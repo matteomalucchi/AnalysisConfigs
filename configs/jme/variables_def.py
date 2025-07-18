@@ -303,6 +303,110 @@ def get_variables_dict(cuts_names_eta, cuts_names_reco_eta, cuts_names_eta_neutr
                     },
                 }
             )
+    if int(os.environ.get("UPART", 0)) == 1 and int(os.environ.get("NEUTRINO", 0)) == 0:
+        variables_dict.update(
+            {
+                **{
+                    f"MatchedJets{flav}_ResponseUparTRegVSpt": HistConf(
+                        [
+                            Axis(
+                                coll=f"MatchedJets{flav}",
+                                field="ResponseUparTReg",
+                                bins=response_bins,
+                                pos=None,
+                                label=f"MatchedJets{flav}_ResponseUparTReg",
+                            ),
+                            Axis(
+                                coll=f"MatchedJets{flav}",
+                                field="pt",
+                                bins=pt_bins,
+                                label=f"MatchedJets{flav}_pt",
+                                type="variable",
+                                pos=None,
+                            ),
+                        ],
+                        only_categories=cuts_names_eta + cuts_names_reco_eta,
+                    )
+                    for flav in list([f"_{x}" for x in flav_dict.keys()]) + [""]
+                },
+                **{
+                    f"MatchedJets{flav}_JetPtUparTRegVSpt": HistConf(
+                        [
+                            Axis(
+                                coll=f"MatchedJets{flav}",
+                                field="JetPtUparTReg",
+                                bins=jet_pt_bins,
+                                pos=None,
+                                label=f"MatchedJets{flav}_JetPtUparTReg",
+                            ),
+                            Axis(
+                                coll=f"MatchedJets{flav}",
+                                field="pt",
+                                bins=pt_bins,
+                                label=f"MatchedJets{flav}_pt",
+                                type="variable",
+                                pos=None,
+                            ),
+                        ],
+                        only_categories=cuts_names_eta + cuts_names_reco_eta,
+                    )
+                    for flav in list([f"_{x}" for x in flav_dict.keys()]) + [""]
+                },
+            }
+        )
+
+    if int(os.environ.get("UPART", 0)) == 1 and int(os.environ.get("NEUTRINO", 1)) == 1:
+        variables_dict.update(
+            {
+                **{
+                    f"MatchedJets{flav}_ResponseUparTRegNeutrinoVSpt": HistConf(
+                        [
+                            Axis(
+                                coll=f"MatchedJetsNeutrino{flav}",
+                                field="ResponseUparTRegNeutrino",
+                                bins=response_bins,
+                                pos=None,
+                                label=f"MatchedJets{flav}_ResponseUparTRegNeutrino",
+                            ),
+                            Axis(
+                                coll=f"MatchedJetsNeutrino{flav}",
+                                field="pt",
+                                bins=pt_bins,
+                                label=f"MatchedJets{flav}_pt",
+                                type="variable",
+                                pos=None,
+                            ),
+                        ],
+                        only_categories=cuts_names_eta_neutrino + cuts_names_reco_eta,
+                    )
+                    for flav in list([f"_{x}" for x in flav_dict.keys()]) + [""]
+                },
+                **{
+                    f"MatchedJets{flav}_JetPtUparTRegNeutrinoVSpt": HistConf(
+                        [
+                            Axis(
+                                coll=f"MatchedJetsNeutrino{flav}",
+                                field="JetPtUparTRegNeutrino",
+                                bins=jet_pt_bins,
+                                pos=None,
+                                label=f"MatchedJets{flav}_JetPtUparTRegNeutrino",
+                            ),
+                            Axis(
+                                coll=f"MatchedJetsNeutrino{flav}",
+                                field="pt",
+                                bins=pt_bins,
+                                label=f"MatchedJets{flav}_pt",
+                                type="variable",
+                                pos=None,
+                            ),
+                        ],
+                        only_categories=cuts_names_eta_neutrino + cuts_names_reco_eta,
+                    )
+                    for flav in list([f"_{x}" for x in flav_dict.keys()]) + [""]
+                },
+            }
+        )
+        
     if int(os.environ.get("NEUTRINO", 1)) == 1 and int(os.environ.get("CLOSURE", 0)) == 1:
         variables_dict.update(
             {
