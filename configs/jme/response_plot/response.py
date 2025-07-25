@@ -138,6 +138,12 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
+parser.add_argument(
+    "--upart",
+    help="Use UparT Regression instead of PNet one",
+    action="store_true",
+    default=False,
+)
 args = parser.parse_args()
 
 
@@ -180,13 +186,21 @@ elif "preBPix" in args.dir:
 elif "postBPix" in args.dir:
     year = "Summer23BPixRun3"
     year_txt = "Summer23BPixPrompt23"
+elif "2024" in args.dir:
+    year = "Summer24Run3"
+    year_txt = "Summer24Prompt24"
 
 if args.year:
     year = args.year
 
 year_txt = year
 if DP_NOTE_PLOTS:
-    year = "2023" if "23" in year else "2022"
+    if "23" in year:
+        year = "2023"
+    elif "24" in year:
+        year = "2024"
+    else:
+        year = "2022"
 
 
 pt_bins = pt_bins_all if "pnetreg15" in args.dir else pt_bins_reduced
@@ -236,6 +250,8 @@ else:
         "ResponseRaw": ["green", "s"],
         "ResponsePNetReg": ["darkred", "<"],
         "ResponsePNetRegNeutrino": ["darkblue", ">"],
+        "ResponseUparTReg": ["darkred", "<"],
+        "ResponseUparTRegNeutrino": ["darkblue", ">"],
     }
     labels_dict = {
         "JEC": "JEC",
@@ -243,6 +259,8 @@ else:
         "Raw": "Raw",
         "PNetReg": "PNet",
         "PNetRegNeutrino": "PNet incl. neutrinos",
+        "UparTReg": "UparT",
+        "UparTRegNeutrino": "UparT incl. neutrinos",
     }
 
 if JET_PT:
@@ -438,7 +456,7 @@ def get_info_from_histogram(
 
         rebinned_bins = list(rebinned_bins)
         rebinned_values = list(rebinned_values)
-    breakpoint()
+    #breakpoint()
     if args.histo:
         histogram_dict_el[variable][i].append((rebinned_values, rebinned_bins))
     if "Response" in variable:
@@ -570,9 +588,9 @@ if args.load:
                     )
                     if args.full:
                         median_dir = (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/median_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/median_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/median_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/median_plots_binned"
                         )
                         median_dir = (
                             f"{main_dir}/median_plots_unbinned"
@@ -580,9 +598,9 @@ if args.load:
                             else f"{main_dir}/median_plots_binned"
                         )
                         resolution_dir = (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/resolution_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/resolution_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/resolution_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/resolution_plots_binned"
                         )
                         resolution_dir = (
                             f"{main_dir}/resolution_plots_unbinned"
@@ -590,9 +608,9 @@ if args.load:
                             else f"{main_dir}/resolution_plots_binned"
                         )
                         width_dir = (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/width_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/width_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/width_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/width_plots_binned"
                         )
                         width_dir = (
                             f"{main_dir}/width_plots_unbinned"
@@ -600,9 +618,9 @@ if args.load:
                             else f"{main_dir}/width_plots_binned"
                         )
                         inv_median_dir = (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/inv_median_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/inv_median_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/inv_median_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/inv_median_plots_binned"
                         )
                         inv_median_dir = (
                             f"{main_dir}/inv_median_plots_unbinned"
@@ -610,9 +628,9 @@ if args.load:
                             else f"{main_dir}/inv_median_plots_binned"
                         )
                         weighted_resolution_dir = (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/weighted_resolution_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/weighted_resolution_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/weighted_resolution_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/weighted_resolution_plots_binned"
                         )
                         weighted_resolution_dir = (
                             f"{main_dir}/weighted_resolution_plots_unbinned"
@@ -621,9 +639,9 @@ if args.load:
                         )
                         if args.histo:
                             histogram_dir = (
-                                f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/histogram_plots_unbinned"
+                                f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/histogram_plots_unbinned"
                                 if args.unbinned
-                                else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/histogram_plots_binned"
+                                else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/histogram_plots_binned"
                             )
                             histogram_dir = (
                                 f"{main_dir}/histogram_plots_unbinned"
@@ -763,11 +781,11 @@ else:
                         if args.full:
                             try:
                                 o = load(
-                                    f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/output_all{neutrino}.coffea"
+                                    f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/output_all{neutrino}.coffea"
                                 )
                             except FileNotFoundError:
                                 print(
-                                    f"\n{main_dir}/{eta_sign}eta_{flav}flav_pnet/output_all{neutrino}.coffea not found\n"
+                                    f"\n{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/output_all{neutrino}.coffea not found\n"
                                 )
                                 continue
                             variables = o["variables"].keys()
@@ -1051,9 +1069,9 @@ else:
             for flav in medians_dict[eta_sign][flav_group].keys():
                 if args.full:
                     median_dir = (
-                        f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/median_plots_unbinned"
+                        f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/median_plots_unbinned"
                         if args.unbinned
-                        else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/median_plots_binned"
+                        else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/median_plots_binned"
                     )
                     median_dir = (
                         f"{main_dir}/median_plots_unbinned"
@@ -1062,9 +1080,9 @@ else:
                     )
                     os.makedirs(f"{median_dir}", exist_ok=True)
                     resolution_dir = (
-                        f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/resolution_plots_unbinned"
+                        f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/resolution_plots_unbinned"
                         if args.unbinned
-                        else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/resolution_plots_binned"
+                        else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/resolution_plots_binned"
                     )
                     resolution_dir = (
                         f"{main_dir}/resolution_plots_unbinned"
@@ -1073,9 +1091,9 @@ else:
                     )
                     os.makedirs(f"{resolution_dir}", exist_ok=True)
                     width_dir = (
-                        f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/width_plots_unbinned"
+                        f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/width_plots_unbinned"
                         if args.unbinned
-                        else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/width_plots_binned"
+                        else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/width_plots_binned"
                     )
                     width_dir = (
                         f"{main_dir}/width_plots_unbinned"
@@ -1085,9 +1103,9 @@ else:
                     os.makedirs(f"{width_dir}", exist_ok=True)
 
                     inv_median_dir = (
-                        f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/inv_median_plots_unbinned"
+                        f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/inv_median_plots_unbinned"
                         if args.unbinned
-                        else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/inv_median_plots_binned"
+                        else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/inv_median_plots_binned"
                     )
                     inv_median_dir = (
                         f"{main_dir}/inv_median_plots_unbinned"
@@ -1096,9 +1114,9 @@ else:
                     )
                     os.makedirs(f"{inv_median_dir}", exist_ok=True)
                     weighted_resolution_dir = (
-                        f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/weighted_resolution_plots_unbinned"
+                        f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/weighted_resolution_plots_unbinned"
                         if args.unbinned
-                        else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/weighted_resolution_plots_binned"
+                        else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/weighted_resolution_plots_binned"
                     )
                     weighted_resolution_dir = (
                         f"{main_dir}/weighted_resolution_plots_unbinned"
@@ -1108,9 +1126,9 @@ else:
                     os.makedirs(f"{weighted_resolution_dir}", exist_ok=True)
                     if args.histo:
                         histogram_dir = (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/histogram_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/histogram_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/histogram_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/histogram_plots_binned"
                         )
                         histogram_dir = (
                             f"{main_dir}/histogram_plots_unbinned"
@@ -1503,7 +1521,7 @@ def plot_median_resolution(eta_bin, plot_type):
                     )
 
                     # Fit the inverse median
-                    if "inverse" in plot_type and "PNet" in variable:
+                    if "inverse" in plot_type and ("PNet" in variable or "UparT" in variable):
                         mask_nan = (
                             ~np.isnan(plot_array)
                             & ~np.isnan(err_plot_array)
@@ -1552,7 +1570,7 @@ def plot_median_resolution(eta_bin, plot_type):
                                     f"fit failed {flav} {variable} {eta_sign} {correct_eta_bins[eta_bin]}"
                                 )
 
-                    if "ResponsePNetReg" in variable and (
+                    if ("ResponsePNetReg" in variable or "ResponseUparTReg" in variable) and (
                         "resolution" in plot_type or "width" in plot_type
                     ):
                         # plot ratio pnreg / jec
@@ -1667,7 +1685,7 @@ def plot_median_resolution(eta_bin, plot_type):
 
             # ax.*.grid(color="gray", linestyle=":", linewidth=0.4, which="both")
             if "resolution" in plot_type or "width" in plot_type:
-                ax_ratio.set_ylabel("1 - PNet / JEC", loc="bottom")  # 1-PNet/Standard
+                ax_ratio.set_ylabel(f"1 - {('UparT' if args.upart else 'PNet')} / JEC", loc="bottom")  # 1-PNet/Standard
                 # ax.*.grid(color="gray", linestyle=":", linewidth=0.4, which="both")
 
             # create string for flavour
@@ -1690,9 +1708,9 @@ def plot_median_resolution(eta_bin, plot_type):
                 if plot_type == "median" or plot_type == "average_jet_pt":
                     plots_dir = [
                         (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/median_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/median_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/median_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/median_plots_binned"
                         )
                         for flav in flav_group
                     ]
@@ -1707,9 +1725,9 @@ def plot_median_resolution(eta_bin, plot_type):
                 elif plot_type == "inverse_median":
                     plots_dir = [
                         (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/inv_median_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/inv_median_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/inv_median_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/inv_median_plots_binned"
                         )
                         for flav in flav_group
                     ]
@@ -1724,9 +1742,9 @@ def plot_median_resolution(eta_bin, plot_type):
                 elif plot_type == "resolution":
                     plots_dir = [
                         (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/resolution_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/resolution_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/resolution_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/resolution_plots_binned"
                         )
                         for flav in flav_group
                     ]
@@ -1742,9 +1760,9 @@ def plot_median_resolution(eta_bin, plot_type):
                 elif plot_type == "weighted_resolution":
                     plots_dir = [
                         (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/weighted_resolution_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/weighted_resolution_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/weighted_resolution_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/weighted_resolution_plots_binned"
                         )
                         for flav in flav_group
                     ]
@@ -1760,9 +1778,9 @@ def plot_median_resolution(eta_bin, plot_type):
                 elif plot_type == "width":
                     plots_dir = [
                         (
-                            f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/width_plots_unbinned"
+                            f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/width_plots_unbinned"
                             if args.unbinned
-                            else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/width_plots_binned"
+                            else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/width_plots_binned"
                         )
                         for flav in flav_group
                     ]
@@ -1886,9 +1904,9 @@ def plot_histos(eta_pt, histogram_dir):
 
                 if args.full:
                     histogram_dir = (
-                        f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/histogram_plots_unbinned"
+                        f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/histogram_plots_unbinned"
                         if args.unbinned
-                        else f"{main_dir}/{eta_sign}eta_{flav}flav_pnet/histogram_plots_binned"
+                        else f"{main_dir}/{eta_sign}eta_{flav}flav_{'upart' if args.upart else 'pnet'}/histogram_plots_binned"
                     )
                     histogram_dir = (
                         f"{main_dir}/histogram_plots_unbinned"
@@ -1914,7 +1932,7 @@ def plot_histos(eta_pt, histogram_dir):
                     # )
                     continue
                 if (
-                    "PNetRegNeutrino" in variable
+                    ("PNetRegNeutrino" in variable or "UparTRegNeutrino" in variable)
                     and (
                         ("splitpnetreg15" in args.dir and "Tot" in variable)
                         or "splitpnetreg15" not in args.dir
@@ -2340,6 +2358,7 @@ write_l2rel_txt(
     VERSION,
     "splitpnetreg15" in args.dir,
     flavs,
+    args.upart,
 )
 
 print("Plotting medians...")

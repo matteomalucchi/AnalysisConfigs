@@ -12,7 +12,7 @@ def create_pol_string(num_params):
     return pol_string
 
 
-def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split15, flavs):
+def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split15, flavs, upart):
     for flav_group in flavs:
         # create string for flavour
         flav_group_str = ""
@@ -23,8 +23,8 @@ def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split
 
             # create txt file for L2Relative
             file_names = [
-                f"{year}_{version}_MC_L2Relative_AK4PFPNet{flav_str}.txt",
-                f"{year}_{version}_MC_L2Relative_AK4PFPNetPlusNeutrino{flav_str}.txt",
+                f"{year}_{version}_MC_L2Relative_AK4PF{'UparT' if upart else 'PNet'}{flav_str}.txt",
+                f"{year}_{version}_MC_L2Relative_AK4PF{'UparT' if upart else 'PNet'}PlusNeutrino{flav_str}.txt",
             ]
             for file_name in file_names:
                 with open(f"{main_dir}/{file_name}", "w") as l2_file:
@@ -44,26 +44,26 @@ def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split
 
                                 params_string = ""
                                 for param in fit_results_dict[
-                                    f"{flav}_ResponsePNetReg{suffix}"
+                                    f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"
                                 ]["parameters"]:
                                     params_string += "    {}".format(param)
                                 for j in range(
                                     num_params
                                     - 2
                                     - len(
-                                        fit_results_dict[f"{flav}_ResponsePNetReg{suffix}"][
+                                        fit_results_dict[f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"][
                                             "parameters"
                                         ]
                                     )
                                 ):
                                     params_string += " 0"
                                 jetpt_low = "    {}".format(
-                                    fit_results_dict[f"{flav}_ResponsePNetReg{suffix}"][
+                                    fit_results_dict[f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"][
                                         "jet_pt"
                                     ][0]
                                 )
                                 jetpt_up = "    {}".format(
-                                    fit_results_dict[f"{flav}_ResponsePNetReg{suffix}"][
+                                    fit_results_dict[f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"][
                                         "jet_pt"
                                     ][1]
                                 )

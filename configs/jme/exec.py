@@ -305,13 +305,13 @@ if __name__ == "__main__":
                 if sign == "all":
                     continue
                 for flav in flavs_list:
-                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{('_pnet' if args.pnet) else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
+                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
                     if not os.path.isfile(f"{dir_name}/output_all.coffea"):
                         print(f"{dir_name}")
                         complete_bash_list=run_command(sign, flav, dir_name, complete_bash_list)
         else:
             dir_name = (
-                f"{dir_prefix}out_cartesian_{sign if not eta_string else eta_string}eta{'_flavsplit' if args.flavsplit else f'_{args.flav}flav'}{('_pnet' if args.pnet) else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}"
+                f"{dir_prefix}out_cartesian_{sign if not eta_string else eta_string}eta{'_flavsplit' if args.flavsplit else f'_{args.flav}flav'}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}"
                 if not args.dir
                 else args.dir
             )
@@ -369,7 +369,7 @@ if __name__ == "__main__":
                     eta_bin_min = eta_bins[i]
                     eta_bin_max = eta_bins[i + 1]
                     dir_name = (
-                        f"{dir_prefix}out_separate_eta_bin_seq{('_pnet' if args.pnet) else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
+                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
                         if not args.dir
                         else args.dir
                     )

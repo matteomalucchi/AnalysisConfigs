@@ -47,7 +47,7 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg = None
 corr_files_upartreg = {
-    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt",
+    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt", # not existent yet -> No closure test for now
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_upartreg[year]}")
@@ -68,7 +68,7 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg_neutrino = None
 corr_files_upartreg_neutrino = {
-    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt", # not existent yet -> No closure test for now
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_upartreg_neutrino[year]}")
@@ -82,7 +82,7 @@ corr_files = {
     "2022_postEE": f"{localdir}/params/Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI.txt",
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V1_MC_L2Relative_AK4PUPPI.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PUPPI.txt",
-    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PUPPI.txt",
+    "2024": f"{localdir}/params/Summer24Prompt24_V1_MC_L2Relative_AK4PFPuppi.txt",
 }
 print(f"Reapplying corrections {corr_files[year]}")
 mc_truth_corr = get_closure_function_information(corr_files[year])
@@ -156,8 +156,8 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            # f"{localdir}/datasets/QCD.json",
-            f"{localdir}/datasets/QCD_redirector.json",
+            f"{localdir}/datasets/QCD.json",
+            #f"{localdir}/datasets/QCD_redirector.json",
             f"{localdir}/datasets/QCD_PNetReg15.json",
         ],
         "filter": {
