@@ -1,0 +1,13 @@
+HLT_triggers:
+  "2022_preEE":
+    SingleMuon:
+       - IsoMu24
+  "2022_postEE":
+    SingleMuon:
+       - IsoMu24
+  "2023_preBPix":
+    SingleMuon:
+       - IsoMu24  
+  "2023_postBPix":
+    SingleMuon:
+       - IsoMu24

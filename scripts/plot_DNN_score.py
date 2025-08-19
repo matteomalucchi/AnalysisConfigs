@@ -38,7 +38,8 @@ BLIND_VALUE = 0.96
 input_dir_data = os.path.dirname(args.input_data[0])
 
 log_scale = not args.linear
-outputdir = os.path.join(input_dir_data, args.output) + f"_{args.normalisation}"
+outputdir =args.output + f"_{args.normalisation}"
+# outputdir = os.path.join(input_dir_data, args.output) + f"_{args.normalisation}"
 
 
 # To mix categories with Run2 and SPANet, put first the Run2 category

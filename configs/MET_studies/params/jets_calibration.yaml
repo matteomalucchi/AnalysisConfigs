@@ -478,22 +478,22 @@ jets_calibration:
       AK4PFchs: "Jet"
       AK8PFPuppi: "FatJet"
     2022_preEE:
-      AK4PFPuppi: "Jet"
+      AK4PFPuppi: "JetType1"
       AK4PFPNet: "JetPNet"
       AK4PFPNetPlusNeutrino: "JetPNetPlusNeutrino"
       #AK8PFPuppi: "FatJet"
     2022_postEE:
-      AK4PFPuppi: "Jet"
+      AK4PFPuppi: "JetType1"
       AK4PFPNet: "JetPNet"
       AK4PFPNetPlusNeutrino: "JetPNetPlusNeutrino"
       #AK8PFPuppi: "FatJet"
     2023_preBPix:
-      AK4PFPuppi: "Jet"
+      AK4PFPuppi: "JetType1"
       AK4PFPNet: "JetPNet"
       AK4PFPNetPlusNeutrino: "JetPNetPlusNeutrino"
       #AK8PFPuppi: "FatJet"
     2023_postBPix:
-      AK4PFPuppi: "Jet"
+      AK4PFPuppi: "JetType1"
       AK4PFPNet: "JetPNet"
       AK4PFPNetPlusNeutrino: "JetPNetPlusNeutrino"
       #AK8PFPuppi: "FatJet"
@@ -505,20 +505,20 @@ jets_calibration:
     2016_PostVFP: False
     "2017": False
     "2018": False
-    2022_preEE: False
-    2022_postEE: False
-    2023_preBPix: False
-    2023_postBPix: False
+    2022_preEE: False 
+    2022_postEE: False 
+    2023_preBPix: False 
+    2023_postBPix: False 
 
   rescale_MET:
     2016_PreVFP: False
     2016_PostVFP: False
     "2017": False
     "2018": False
-    2022_preEE: False
-    2022_postEE: False
-    2023_preBPix: False
-    2023_postBPix: False
+    2022_preEE: False 
+    2022_postEE: False 
+    2023_preBPix: False 
+    2023_postBPix: False 
 
   rescale_MET_branch:
      2016_PreVFP: "MET"

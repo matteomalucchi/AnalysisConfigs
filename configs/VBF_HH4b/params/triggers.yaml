@@ -1,10 +1,10 @@
 HLT_triggers:
-  "2022_postEE":
+  "2022_preEE":
     JetMET:
        - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
     ParkingHH:
        - PFHT280_QuadPFJet30_PNet2BTagMean0p55
-  "2022_preEE":
+  "2022_postEE":
     JetMET:
        - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
     ParkingHH:

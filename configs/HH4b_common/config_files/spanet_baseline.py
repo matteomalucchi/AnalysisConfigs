@@ -52,4 +52,5 @@ config_options_dict = {
     "arctanh_delta_prob_pad_limit": 2.,
     "arctanh_delta_prob_pad_limit": 2.,
     "add_jet_spanet": False,
+    "spanet_input_name_list": ["log_pt", "eta", "phi", "btag"],
 } | onnx_model_dict

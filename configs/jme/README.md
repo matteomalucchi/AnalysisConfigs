@@ -8,7 +8,7 @@ Repository to compute MC Truth corrections for PNet regressed pT jets, structure
 To setup a local installation on `lxplus`:
 ```bash
 # Clone the fork and checkout the desired branch
-git clone --branch met-rescaling-jec https://github.com/matteomalucchi/PocketCoffea.git
+git clone --branch jme-pnet-reg https://github.com/matteomalucchi/PocketCoffea.git
 cd PocketCoffea
 
 #Enter the Singularity image
@@ -55,7 +55,7 @@ micromamba activate pocket-coffea
 pip install coffea==0.7.20
 
 # Clone the fork and checkout the desired branch
-git clone --branch met-rescaling-jec https://github.com/matteomalucchi/PocketCoffea.git
+git clone --branch jme-pnet-reg https://github.com/matteomalucchi/PocketCoffea.git
 cd PocketCoffea
 # For developers
 pip install -e .[dev,docs]
@@ -144,10 +144,21 @@ It will also:
 - Plot the inverse of the median in each bin in $\eta$ as a function of $p_T$.
 - Plot the resolution of the response in each bin in $\eta$ as a function of $p_T$ using 3 different definitions.
 
+
+### Closure test
+To run the closure test of the corrections you can re-run the analysis with some additional flags:
+```bash
+python exec.py --full -pnet --dir <dir_name> -y <year> --closure --abs-eta-inclusive [--lxplus]
+```
+This will run the analysis applying the newly derived corrections which have to be specified in the config file. 
+Once this is done, you can run the other steps of the anlaysis to obtain the final plots.
+
 To plot all eta bins on the same plot you can use the following command:
 
 ```bash
 cd response_plot/
 python plot_summary_reponse.py -d <dir_name>
 ```
-This can be used to plot the closure test of the MC Truth corrections.
+This is useful to plot the closure test of the MC Truth corrections in a inclusive way.
+
+

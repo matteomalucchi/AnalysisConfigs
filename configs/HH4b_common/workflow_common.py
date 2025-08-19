@@ -769,6 +769,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             try:
                 spanet_input_name_list=self.spanet_input_name_list
             except AttributeError:
+                print("Warning: Spanet input parameters not found. Will take default ones")
                 spanet_input_name_list=["log_pt", "eta", "phi", "btag"]
                 
             # compute the pairing information using the SPANET model

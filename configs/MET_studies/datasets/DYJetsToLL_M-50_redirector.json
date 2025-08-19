@@ -62,5 +62,19 @@
             "root://xrootd-cms.infn.it///store/mc/Run3Summer22NanoAODv12/DYJetsToLL_M-50_TuneCP5_13p6TeV-madgraphMLM-pythia8/NANOAODSIM/forPOG_130X_mcRun3_2022_realistic_v5-v2/30000/59830eca-ebe3-4de9-befd-2b601c2b2cc1.root",
             "root://xrootd-cms.infn.it///store/mc/Run3Summer22NanoAODv12/DYJetsToLL_M-50_TuneCP5_13p6TeV-madgraphMLM-pythia8/NANOAODSIM/forPOG_130X_mcRun3_2022_realistic_v5-v2/60000/9222b30f-832f-47c9-a466-a51d9b3b3d28.root"
         ]
+    },
+    "DYJetsToLL_M-50_local_2022_preEE": {
+        "metadata": {
+            "das_names": "['/DYJetsToLL_M-50_TuneCP5_13p6TeV-madgraphMLM-pythia8/Run3Summer22NanoAODv12-forPOG_130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
+            "sample": "DYJetsToLL_M-50_local",
+            "year": "2022_preEE",
+            "isMC": "True",
+            "xsec": "1438000000.0",
+            "nevents": "27096229",
+            "size": "34684495679"
+        },
+        "files": [
+            "/home/matteo-malucchi/software/DY.root"
+        ]
     }
 }

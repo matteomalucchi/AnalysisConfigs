@@ -4,6 +4,7 @@ from collections import defaultdict
 from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.histograms import jet_hists, count_hist, parton_hists
 from pocket_coffea.lib.hist_manager import HistConf, Axis
+from pocket_coffea.parameters.cuts import passthrough
 
 from utils.variables_helpers import jet_hists_dict, create_HistConf
 from utils.variables_helpers import jet_hists_dict, create_HistConf
@@ -1121,6 +1122,8 @@ def define_single_category(category_name):
         else:
             cut_list.append(cuts.blindedRun2)
     
+    if len(cut_list)<1: # aka if no cut applied
+        cut_list.append(passthrough)
     category_item = {
         category_name: cut_list
     }

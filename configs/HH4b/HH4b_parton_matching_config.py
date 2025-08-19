@@ -1,42 +1,41 @@
 import os
-# from collections import defaultdict
 
-from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.cut_functions import (
     get_HLTsel,
 )
-from pocket_coffea.parameters.histograms import *
+from pocket_coffea.lib.weights.common.common import common_weights
+
 # from pocket_coffea.parameters.cuts import passthrough
 # rom pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters import defaults
-from pocket_coffea.lib.weights.common.common import common_weights
+from pocket_coffea.parameters.histograms import *
 
+# from collections import defaultdict
+from pocket_coffea.utils.configurator import Configurator
 from workflow import HH4bbQuarkMatchingProcessor
 
-from configs.HH4b_common.custom_weights import (
-    bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
+import configs.HH4b_common.custom_cuts_common as cuts
+from configs.HH4b_common.config_files.__config_file__ import (
+    config_options_dict,
+    onnx_model_dict,
 )
 from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS,
-    # get_variables_dict,
-    get_columns_list,
     create_DNN_columns_list,
     define_categories,
     define_single_category,
+    # get_variables_dict,
+    get_columns_list,
+)
+from configs.HH4b_common.custom_weights import (
+    bkg_morphing_dnn_weight,
+    bkg_morphing_dnn_weightRun2,
 )
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
     # bkg_morphing_dnn_input_variables_altOrder,
     sig_bkg_dnn_input_variables,
 )
-from configs.HH4b_common.config_files.__config_file__ import (
-    onnx_model_dict,
-    config_options_dict,
-)
-
-import configs.HH4b_common.custom_cuts_common as cuts
-
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,7 +61,7 @@ if config_options_dict["save_chunk"]:
     pass
 
 
-## Define the variables to save
+# Define the variables to save
 # variables_dict = get_variables_dict(
 #     CLASSIFICATION=CLASSIFICATION,
 #     VBF_VARIABLES=False,
@@ -70,7 +69,7 @@ if config_options_dict["save_chunk"]:
 # )
 variables_dict = {}
 
-## Define the preselection to apply
+# Define the preselection to apply
 preselection = [
     (
         cuts.hh4b_presel
@@ -79,13 +78,13 @@ preselection = [
     )
 ]
 
-## Defining the used samples
+# Defining the used samples
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
     # "DATA_JetMET_JMENano_D_skimmed",
-    #"DATA_JetMET_JMENano_E_skimmed",
-    #"DATA_JetMET_JMENano_F_skimmed",
-    #"DATA_JetMET_JMENano_G_skimmed",
+    "DATA_JetMET_JMENano_E_skimmed",
+    "DATA_JetMET_JMENano_F_skimmed",
+    "DATA_JetMET_JMENano_G_skimmed",
     "GluGlutoHHto4B_spanet",
     "GluGlutoHHto4B",
     # "DATA_JetMET_JMENano_2023_Cv1_skimmed",
@@ -96,7 +95,7 @@ sample_list = [
     # "DATA_ParkingHH_2023_Dv2",
 ]
 
-## Define the categories to save
+# Define the categories to save
 categories_dict = define_categories(
     bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
     blind=config_options_dict["blind"],
@@ -105,12 +104,14 @@ categories_dict = define_categories(
     vr1=config_options_dict["vr1"],
 )
 # AKA if no model is applied
-if all([model == "" for model in onnx_model_dict]):
+print(onnx_model_dict)
+if all([model == "" for model in onnx_model_dict.values()]):
+    print("Didn't find any onnx model. Will choose region for SPANet training")
     categories_dict = define_single_category("inclusive_region")
 
 print("categories_dict", categories_dict)
 
-## VBF SPECIFIC REGIONS
+# VBF SPECIFIC REGIONS
 # **{f"4b_semiTight_LeadingPt_region": [hh4b_4b_region, semiTight_leadingPt]},
 # **{f"4b_semiTight_LeadingMjj_region": [hh4b_4b_region, semiTight_leadingMjj]},
 # **{f"4b_semiTight_LeadingMjj_region": [hh4b_4b_region, semiTight_leadingMjj]}
@@ -129,7 +130,7 @@ print("categories_dict", categories_dict)
 # **{f"4b_VBF_0{i}qvg_region": [hh4b_4b_region, VBF_region, qvg_regions[f"qvg_0{i}_region"]] for i in range(5, 10)},
 # **{f"4b_VBF_0{i}qvg_generalSelection_region": [hh4b_4b_region, VBF_generalSelection_region, qvg_regions[f"qvg_0{i}_region"]] for i in range(5, 10)},
 
-## Define the columns to save
+# Define the columns to save
 total_input_variables = {}
 
 
@@ -164,7 +165,7 @@ if config_options_dict["dnn_variables"]:
     column_listRun2 = create_DNN_columns_list(
         True, not config_options_dict["save_chunk"], total_input_variables, btag=False
     )
-elif all([model == "" for model in onnx_model_dict]):
+elif all([model == "" for model in onnx_model_dict.values()]):
     column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS)
     if config_options_dict["random_pt"]:
         column_list += get_columns_list({"events": ["random_pt_weights"]})
@@ -236,7 +237,7 @@ for sample in sample_list:
             )
 print("bysample_bycategory_column_dict", bysample_bycategory_column_dict)
 
-## Define the weights to apply
+# Define the weights to apply
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
     if "DATA" in sample:

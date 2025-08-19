@@ -33,7 +33,7 @@ from configs.HH4b_common.config_files.__config_file__ import (
 
 import configs.HH4b_common.custom_cuts_common as cuts
 
-BASELINE=False
+BASELINE = False
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -88,12 +88,12 @@ preselection = (
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
     # "DATA_JetMET_JMENano_D_skimmed",
-    "DATA_JetMET_JMENano_E_skimmed",
+    # "DATA_JetMET_JMENano_E_skimmed",
     "DATA_JetMET_JMENano_F_skimmed",
     "DATA_JetMET_JMENano_G_skimmed",
 ] + (
     [
-        "GluGlutoHHto4B_spanet_skimmed",
+        # "GluGlutoHHto4B_spanet_skimmed",
         # "GluGlutoHHto4B",
         # "VBF_HHto4B",
     ]
@@ -140,7 +140,7 @@ print("categories_dict", categories_dict)
 
 
 ## Define the columns to save
-total_input_variables={}
+total_input_variables = {}
 
 if config_options_dict["spanet"]:
     total_input_variables |= {
@@ -158,7 +158,7 @@ if config_options_dict["spanet"]:
             "Padded_Arctanh_Delta_pairing_probabilities",
         ],
     }
-    
+
 if config_options_dict["dnn_variables"]:
     total_input_variables |= (
         config_options_dict["sig_bkg_dnn_input_variables"]
@@ -265,7 +265,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + ([bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2] if not BASELINE else [])
+    + ([bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2] if not BASELINE else []),
     weights={
         "common": {
             "inclusive": [

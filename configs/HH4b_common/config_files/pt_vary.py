@@ -35,5 +35,6 @@ config_options_dict = {
     "pad_value": -999.0,
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.,
-    "add_jet_spanet": False,
+    "add_jet_spanet": True,
+    "spanet_input_name_list": ["log_pt", "eta", "phi", "btag"],
 } | onnx_model_dict
