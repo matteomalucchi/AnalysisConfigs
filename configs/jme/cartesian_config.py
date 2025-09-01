@@ -40,6 +40,7 @@ corr_files_pnetreg = {
     "2022_postEE": f"{localdir}/params/Summer22EERun3_V3_MC_L2Relative_AK4PFPNet.txt",
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFPNet.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFPNet.txt",
+    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFPNet.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_pnetreg[year]}")
@@ -59,6 +60,7 @@ corr_files_pnetreg_neutrino = {
     "2022_postEE": f"{localdir}/params/Summer22EERun3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
+    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_pnetreg_neutrino[year]}")

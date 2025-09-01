@@ -15,6 +15,14 @@ object_preselection:
     pt: 10
     eta: 10
     jetId: 0
+  JetUparT:
+    pt: 10
+    eta: 10
+    jetId: 0
+  JetUparTPlusNeutrino:
+    pt: 10
+    eta: 10
+    jetId: 0
 
   GenJet:
     pt: 10 

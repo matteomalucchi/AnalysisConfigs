@@ -125,13 +125,13 @@ parser.add_argument(
 parser.add_argument(
     "--pnet-reg-15",
     action="store_true",
-    help="Evaluate ParticleNet regression also for jet with pT < 15 GeV. Not implemented yet",
+    help="Evaluate ParticleNet regression also for jet with pT < 15 GeV",
     default=False,
 )
 parser.add_argument(
     "--split-pnet-reg-15",
     action="store_true",
-    help="Evaluate ParticleNet regression also for jet with pT < 15 GeV and slit between < and > 15 GeV. Not implemented yet",
+    help="Evaluate ParticleNet regression also for jet with pT < 15 GeV and slit between < and > 15 GeV",
     default=False,
 )
 parser.add_argument(
