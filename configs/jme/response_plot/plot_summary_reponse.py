@@ -27,22 +27,31 @@ parser.add_argument(
     help="Type of plot (jec, reg, neutrino)",
     default=["reg", "neutrino"],
 )
+parser.add_argument(
+    "--upart",
+    help="Use UparT Regression instead of PNet one",
+    action="store_true",
+    default=False,
+)
 args = parser.parse_args()
 
 pt_bins = pt_bins_all if "pnetreg15" in args.dir else pt_bins_reduced
 type_plot_dict = {
     "jec": "ResponseJEC",
-    "reg": "ResponsePNetReg",
-    "neutrino": "ResponsePNetRegNeutrino",
+    "reg": f"Response{'UparT' if args.upart else 'PNet'}Reg",
+    "neutrino": f"Response{'UparT' if args.upart else 'PNet'}RegNeutrino",
 }
 
 label_dict = {
     "jec": "JEC",
-    "reg": "PNet",
-    "neutrino": "PNet incl. neutrinos",
+    "reg": f"{'UparT' if args.upart else 'PNet'}",
+    "neutrino": f"{'UparT' if args.upart else 'PNet'} incl. neutrinos",
 }
 
 tot_string = "Tot" if "splitpnetreg15" in args.dir else ""
+
+if args.upart:
+    inclusive_bins = inclusive_bins_upart
 
 for type_string in args.type:
     for flav in args.flav:

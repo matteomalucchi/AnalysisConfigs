@@ -208,7 +208,11 @@ pt_bins = pt_bins_all if "pnetreg15" in args.dir else pt_bins_reduced
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
-if args.full and (args.central or args.abs_eta_inclusive or args.all_flavs):
+if args.full and (args.central or args.abs_eta_inclusive or args.all_flavs) and args.upart:
+    flavs = {
+        ("inclusive",): ["o"]
+    }
+elif args.full and (args.central or args.abs_eta_inclusive or args.all_flavs):
     flavs = {
         ("inclusive",): ["o"],
         ("b", "c"): ["o", "x"],
@@ -246,7 +250,7 @@ else:
     # set color and marker for each variable
     variables_plot_settings = {
         "ResponseJEC": ["darkorange", "o"],
-        "ResponseJECNeutrino": ["darkorange", "o"],
+        "ResponseJECNeutrino": ["chocolate", "o"],
         "ResponseRaw": ["green", "s"],
         "ResponsePNetReg": ["darkred", "<"],
         "ResponsePNetRegNeutrino": ["darkblue", ">"],
@@ -255,7 +259,7 @@ else:
     }
     labels_dict = {
         "JEC": "JEC",
-        "JECNeutrino": "JEC",
+        "JECNeutrino": "JECNeutrino",
         "Raw": "Raw",
         "PNetReg": "PNet",
         "PNetRegNeutrino": "PNet incl. neutrinos",
@@ -865,6 +869,7 @@ else:
                                             x.split("eta")[1].split("to")[0]
                                         ),
                                     )
+                                    
                                     variations = list(histo.axes["variation"])
                                     lenght = len(categories) if not args.test else 1
 
@@ -1170,7 +1175,10 @@ else:
 if args.central:
     correct_eta_bins = central_bins
 elif args.abs_eta_inclusive:
-    correct_eta_bins = inclusive_bins
+    if args.upart:
+        correct_eta_bins = inclusive_bins_upart
+    else:
+        correct_eta_bins = inclusive_bins
 
 correct_eta_bins = np.array(correct_eta_bins)
 print("correct_eta_bins", correct_eta_bins, len(correct_eta_bins))

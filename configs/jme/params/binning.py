@@ -107,8 +107,12 @@ for eta_sign, eta_interval in eta_sign_dict.items():
         break
 
 inclusive_bins = [0.0, 1.3, 2.4, 2.7, 3.0, 5.0]
+inclusive_bins_upart = [0.0, 1.3, 2.5]
 if int(os.environ.get("ABS_ETA_INCLUSIVE", 0)) == 1:
-    eta_bins = inclusive_bins
+    if int(os.environ.get("UPART", 0)) == 1:
+        eta_bins = inclusive_bins_upart
+    else:
+        eta_bins = inclusive_bins
 
 central_bins = [-5.191, -1.3, 1.3, 5.191]
 if int(os.environ.get("CENTRAL", 0)) == 1:

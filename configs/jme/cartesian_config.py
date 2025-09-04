@@ -48,7 +48,7 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg = None
 corr_files_upartreg = {
-    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt", # not existent yet -> No closure test for now
+    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_upartreg[year]}")
@@ -70,7 +70,7 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg_neutrino = None
 corr_files_upartreg_neutrino = {
-    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt", # not existent yet -> No closure test for now
+    "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_upartreg_neutrino[year]}")
