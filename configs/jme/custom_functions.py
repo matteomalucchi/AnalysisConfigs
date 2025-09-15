@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import os
 
 from configs.jme.response_plot.pol_functions import *
-from configs.jme.params.binning import eta_bins
+from configs.jme.params.binning import eta_bins, eta_bins_upart
 
 
 def string_to_pol_function(string):
@@ -59,6 +59,9 @@ def standard_gaus_function(x, *params):
 
 
 def get_closure_function_information(coor_file, use_function=False, ak_array=True):
+    # redefine eta_bins if UPART
+    if int(os.environ.get("UPART", 0)) == 1:
+        eta_bins = eta_bins_upart
     # open file
     with open(coor_file, "r") as f:
         lines = f.readlines()

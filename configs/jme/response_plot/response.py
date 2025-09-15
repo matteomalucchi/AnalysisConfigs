@@ -329,6 +329,11 @@ os.makedirs(
     exist_ok=True,
 )
 
+if args.upart:
+    eta_bins = eta_bins_upart
+    eta_sign_dict = eta_sign_dict_upart
+    central_bins = central_bins_upart
+
 eta_sections = (
     list(eta_sign_dict.keys())
     if args.full

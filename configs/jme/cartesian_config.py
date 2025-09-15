@@ -33,6 +33,8 @@ parameters = defaults.merge_parameters_from_files(
     update=True,
 )
 
+if int(os.environ.get("UPART", 0)) == 1:
+    eta_bins = eta_bins_upart
 
 mc_truth_corr_pnetreg = None
 corr_files_pnetreg = {

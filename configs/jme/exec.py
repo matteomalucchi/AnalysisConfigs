@@ -2,7 +2,7 @@
 
 import subprocess
 import argparse
-from params.binning import eta_bins, eta_sign_dict
+from params.binning import eta_bins, eta_bins_upart, eta_sign_dict, eta_sign_dict_upart
 import os
 import shutil
 import sys
@@ -159,7 +159,10 @@ args.neutrino = int(args.neutrino)
 args.abs_eta_inclusive = int(args.abs_eta_inclusive)
 
 # Define a list of eta bins
-eta_bins = eta_bins if not args.inclusive_eta else None
+if not args.upart:
+    eta_bins = eta_bins if not args.inclusive_eta else None
+else:
+    eta_bins = eta_bins_upart if not args.inclusive_eta else None
 
 pocket_coffea_env_commands = ["pocket_coffea"]
 if args.lxplus:
@@ -181,8 +184,8 @@ else:
     run_options_file = "params/t3_run_options_big.yaml"
     executor = f"-e dask@T3_CH_PSI --custom-run-options {run_options_file}"
 
-eta_sign_list = list(eta_sign_dict.keys())
-order_eta_sign_list = ["pos1", "pos2", "pos3", "pos4", "neg4", "neg3", "neg2", "neg1"]
+eta_sign_list = list(eta_sign_dict.keys()) if not args.upart else list(eta_sign_dict_upart.keys())
+order_eta_sign_list = ["pos1", "pos2", "pos3", "pos4", "neg4", "neg3", "neg2", "neg1"] if not args.upart else ["pos1", "pos2", "pos3", "neg3", "neg2", "neg1"]
 if len(eta_sign_list) == len(order_eta_sign_list):
     eta_sign_list = order_eta_sign_list
 
