@@ -1,4 +1,6 @@
 import os
+import cloudpickle
+import utils.quantile_transformer as quantile_transformer
 from collections import defaultdict
 
 from pocket_coffea.utils.configurator import Configurator
@@ -49,13 +51,14 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/params/object_preselection.yaml",
     f"{localdir}/params/triggers.yaml",
     f"{localdir}/params/jets_calibration_withoutVariations.yaml",
+    f"{localdir}/../HH4b_common/params/quantile_transformer.yaml",
     update=True,
 )
 
 
 if config_options_dict["save_chunk"]:
+    workflow_options["dump_columns_as_arrays_per_chunk"] = config_options_dict["save_chunk"]
     # workflow_options["dump_columns_as_arrays_per_chunk"] = "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/training_samples/GluGlutoHHto4B_spanet_loose_03_17"
-    pass
 
 ## Define the variables to save
 # variables_dict = get_variables_dict(
@@ -295,3 +298,4 @@ cfg = Configurator(
         "bysample": bysample_bycategory_column_dict,
     },
 )
+cloudpickle.register_pickle_by_value(quantile_transformer)

@@ -1,23 +1,25 @@
 import awkward as ak
 import numpy as np
 import vector
-
-from pocket_coffea.workflows.base import BaseProcessorABC
 from pocket_coffea.lib.deltaR_matching import object_matching
+from pocket_coffea.workflows.base import BaseProcessorABC
 
-from .custom_object_preselection_common import lepton_selection, jet_selection_nopu
-
-from utils.parton_matching_function import get_parton_last_copy
-from utils.spanet_evaluation_functions import get_pairing_information, get_best_pairings
 from utils.basic_functions import add_fields
-from utils.reconstruct_higgs_candidates import (
-    reconstruct_higgs_from_provenance,
-    reconstruct_higgs_from_idx,
-    run2_matching_algorithm,
-    get_jets_no_higgs_from_idx,
-)
-from utils.inference_session_onnx import get_model_session
 from utils.dnn_evaluation_functions import get_dnn_prediction
+from utils.quantile_transformer import WeightedQuantileTransformer
+
+# from utils.inference_session_onnx_slurm import get_model_session
+from utils.inference_session_onnx import get_model_session
+from utils.parton_matching_function import get_parton_last_copy
+from utils.reconstruct_higgs_candidates import (
+    get_jets_no_higgs_from_idx,
+    reconstruct_higgs_from_idx,
+    reconstruct_higgs_from_provenance,
+    run2_matching_algorithm,
+)
+from utils.spanet_evaluation_functions import get_best_pairings, get_pairing_information
+
+from .custom_object_preselection_common import jet_selection_nopu, lepton_selection
 
 vector.register_awkward()
 
@@ -77,7 +79,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             ),
             "mass",
         )
-        
+
         if self.add_jet_spanet:
             # reorder the jets by pt regressed
             self.events["Jet"] = self.events["Jet"][
@@ -87,11 +89,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["Jet"] = ak.with_field(
             self.events.Jet, ak.local_index(self.events.Jet, axis=1), "index"
         )
+        self.events["Jet"] = jet_selection_nopu(
+            self.events, "Jet", self.params, tight_cuts=self.tight_cuts
+        )
 
         self.events["JetGood"] = self.events.Jet
 
-        self.events["JetGood"] = jet_selection_nopu(
-            self.events, "JetGood", self.params, tight_cuts=self.tight_cuts
+        self.events["Electron"] = ak.with_field(
+                self.events.Electron,
+                self.events.Electron.eta + self.events.Electron.deltaEtaSC, "etaSC"
         )
 
         self.events["ElectronGood"] = lepton_selection(
@@ -112,8 +118,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["JetGood"] = ak.concatenate(
                 (self.events["JetGoodHiggs"], jets5plus_pt), axis=1
             )
-            del jets5plus
-            del jets5plus_pt
 
     # def apply_preselection(self, variation):
     #     """
@@ -484,13 +488,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetNotFromHiggs"] = self.get_jets_no_higgs(jet_higgs_idx_per_event)
 
         self.params.object_preselection.update(
-            {"JetNotFromHiggs": self.params.object_preselection["JetGood"]}
+            {"JetNotFromHiggs": self.params.object_preselection["Jet"]}
         )
 
         self.events["JetNotFromHiggs"] = jet_selection_nopu(
             self.events, "JetNotFromHiggs", self.params, tight_cuts=self.tight_cuts
         )
-        
+
         if self.add_jet_spanet:
             if self.fifth_jet == "pt":
                 # order the self.events["JetNotFromHiggs"] according to btag or to pt
@@ -708,14 +712,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
             + (self.events[f"HiggsSubLeading{suffix}"].mass - 120) ** 2
         )
 
-
         if pairing_predictions is not None:
             # Masking and calculating efficiency
             # Need to sort the double pairs in innermost dimension for easier evaluation
             pairing_predictions = ak.sort(ak.Array(pairing_predictions), axis=-1)
-            if pairing_suffix=="Run2":
+            if pairing_suffix == "Run2":
                 # keep up to 4 jets
-                pairing_true=ak.where(
+                pairing_true = ak.where(
                     pairing_true < 4,
                     pairing_true,
                     -1,
@@ -727,7 +730,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     pairing_true,
                     -1,
                 )
-            
+
             mask_fully_matched = ak.all(ak.flatten(pairing_true, axis=2) >= 0, axis=1)
             pairing_true = ak.sort(pairing_true, axis=-1)
 
@@ -753,7 +756,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             mask_fully_matched = ak.all(ak.flatten(pairing_true, axis=2) >= 0, axis=1)
 
         self.events["mask_fully_matched"] = mask_fully_matched
-        
+
         return matched_jet_higgs_idx_not_none
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
@@ -765,13 +768,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
             model_session_spanet, input_name_spanet, output_name_spanet = (
                 get_model_session(self.spanet, "spanet")
             )
-            
+
             try:
-                spanet_input_name_list=self.spanet_input_name_list
+                spanet_input_name_list = self.spanet_input_name_list
             except AttributeError:
                 print("Warning: Spanet input parameters not found. Will take default ones")
-                spanet_input_name_list=["log_pt", "eta", "phi", "btag"]
-                
+                spanet_input_name_list = ["log_pt", "eta", "phi", "btag"]
+
             # compute the pairing information using the SPANET model
             pairing_outputs = get_pairing_information(
                 model_session_spanet,
@@ -781,6 +784,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.max_num_jets,
                 spanet_input_name_list,
             )
+            # Not needed anymore
+            del model_session_spanet
+            del input_name_spanet
+            del output_name_spanet
 
             (
                 pairing_predictions,
@@ -893,6 +900,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 input_name_vbf_ggf_dnn,
                 output_name_vbf_ggf_dnn,
             ) = get_model_session(self.vbf_ggf_dnn, "vbf_ggf_dnn")
+            del model_session_vbf_ggf_dnn
+            del input_name_vbf_ggf_dnn
+            del output_name_vbf_ggf_dnn
 
         if self.dnn_variables and self.spanet:
             (
@@ -958,6 +968,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     )[0],
                     axis=None,
                 )
+            del model_session_bkg_morphing_dnn
+            del input_name_bkg_morphing_dnn
+            del output_name_bkg_morphing_dnn
 
         if self.bkg_morphing_spread_dnn and not self._isMC:
             (
@@ -992,6 +1005,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         run2=True,
                     )
                 )
+            del model_session_bkg_morphing_spread_dnn
+            del input_name_bkg_morphing_spread_dnn
+            del output_name_bkg_morphing_spread_dnn
 
         if self.sig_bkg_dnn:
             (
@@ -1015,7 +1031,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 else:
                     # if array is 2 dim take the last column
                     self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score[:, -1]
-
+                params_quantile_transformer = self.params["quantile_transformer"][self.events.metadata["year"]]
+                transformer = WeightedQuantileTransformer(n_quantiles=params_quantile_transformer["n_quantiles"], output_distribution=params_quantile_transformer["output_distribution"])
+                transformer.load(params_quantile_transformer["file_spanet"])
+                self.events["sig_bkg_dnn_score_transformed"] = transformer.transform(self.events.sig_bkg_dnn_score)
             if self.run2:
                 sig_bkg_dnn_score = get_dnn_prediction(
                     model_session_SIG_BKG_DNN,
@@ -1032,3 +1051,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 else:
                     # if array is 2 dim take the last column
                     self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score[:, -1]
+                params_quantile_transformer = self.params["quantile_transformer"][self.events.metadata["year"]]
+                transformer = WeightedQuantileTransformer(n_quantiles=params_quantile_transformer["n_quantiles"], output_distribution=params_quantile_transformer["output_distribution"])
+                transformer.load(params_quantile_transformer["file_run2"])
+                self.events["sig_bkg_dnn_score_transformedRun2"] = transformer.transform(self.events.sig_bkg_dnn_scoreRun2)
+                del model_session_SIG_BKG_DNN
+                del input_name_SIG_BKG_DNN
+                del output_name_SIG_BKG_DNN

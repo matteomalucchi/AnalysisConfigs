@@ -596,6 +596,6 @@ if __name__ == "__main__":
         if file.endswith(".coffea")
     ]
 
-    cat_col, total_datasets_list = get_columns_from_files(inputfiles_data)
+    cat_col, total_datasets_list = get_columns_from_files(inputfiles_data, "nominal", None, False, args.novars)
     print(f"Total datasets found: {total_datasets_list}")
     main(cat_col)

@@ -14,8 +14,8 @@ onnx_model_dict = {
 
 onnx_model_dict |= {
     "spanet": "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/spanet_hh4b_inclusive_b_region_5jets_loose_ptvary_wide_bratio_300_inclusive_years_s100.onnx",
-#    "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_DeltaProb/best_models/ratio/average_model_from_onnx.onnx",
-#    "sig_bkg_dnn": "",
+    "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_DeltaProb/best_models/ratio/average_model_from_onnx.onnx",
+    "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_DeltaProb/run100/state_dict/model_best_epoch_22.onnx",
 }
 
 

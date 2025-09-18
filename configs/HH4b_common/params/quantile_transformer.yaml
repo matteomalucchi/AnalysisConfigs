@@ -1,0 +1,27 @@
+quantile_transformer:
+  2016_PreVFP:
+    n_quantiles: 1000000
+    output_distribution: uniform
+    file: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2016_PreVFP.pkl"
+  2016_PostVFP:
+    n_quantiles: 1000000
+    output_distribution: uniform
+    file: "${config_dir:}/../../configs/HH4b_common/params/quantile_transformer/quantiles_regressed_2016_PostVFP.pkl"
+  '2017':
+    n_quantiles: 1000000
+    output_distribution: uniform
+    file: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2017.pkl"
+  '2018':
+    n_quantiles: 1000000
+    output_distribution: uniform
+    file: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2018.pkl"
+  2022_preEE:
+    n_quantiles: 1000000
+    output_distribution: uniform
+    file_spanet: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2022_postEE.pkl"
+    file_run2: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2022_postEE.pkl"
+  2022_postEE:
+    n_quantiles: 1000000
+    output_distribution: uniform
+    file_spanet: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2022_postEE.pkl"
+    file_run2: "${config_dir:}/../../HH4b_common/params/quantile_transformer/quantiles_regressed_2022_postEE.pkl"
