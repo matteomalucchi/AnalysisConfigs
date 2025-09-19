@@ -1,0 +1,10 @@
+scaleout: 20
+adaptive: False
+cores-per-worker: 1
+mem-per-worker: "10GB"
+disk-per-worker: "1GB"
+queue: "short"
+walltime: "1:00:00"
+chunksize: 50000
+  #retries: 0
+  #tree-reduction: 5

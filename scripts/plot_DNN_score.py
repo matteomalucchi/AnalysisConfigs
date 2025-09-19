@@ -4,6 +4,7 @@ import numpy as np
 import awkward as ak
 from hist import Hist
 from multiprocessing import Pool
+import matplotlib.pyplot as plt
 
 import configs.HH4b_common.dnn_input_variables as dnn_input_variables
 from utils.inference_session_onnx import get_model_session
@@ -17,14 +18,11 @@ from utils.plot.args_plot import args
 
 from utils.plot.HEPPlotter import HEPPlotter
 
-
 if not args.output:
-    args.output = "plots_DNN_data_and_mc"
-
-
-if args.test:
-    args.workers = 1
-    args.output = "test_DNN_score"
+    if not args.test:
+        args.output = "plots_DNN_data_and_mc"
+    else:
+        args.output = "test_DNN_data_and_mc"
 
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
@@ -142,12 +140,12 @@ filter_lambda = (
 
 ## Collecting MC dataset
 cat_col_mc, total_datasets_list_mc = get_columns_from_files(
-    inputfiles_mc, filter_lambda
+    inputfiles_mc, sel_var="nominal", filter_lambda=filter_lambda, debug=False, novars=args.novars
 )
 
 ## Collecting DATA dataset
 cat_col_data, total_datasets_list_data = get_columns_from_files(
-    inputfiles_data, filter_lambda
+    inputfiles_data, sel_var="nominal", filter_lambda=filter_lambda, debug=False, novars=args.novars
 )
 
 
@@ -226,6 +224,14 @@ def plot_single_var_from_columns(
     mc_signal = ""
     for cat in cat_list:
         if "_MC" in cat:
+            kl = (
+                os.path.basename(inputfiles_mc[0])
+                .split("kl-")[-1]
+                .split("_")[0]
+                .replace("p", ".")
+            )
+            namesuffix = r" ($\kappa_\lambda$=" + kl + ")"
+            # mc_signal_region = plot_regions_names(cat, namesuffix)
             mc_signal = cat
             break
     if mc_signal == "":
@@ -243,6 +249,8 @@ def plot_single_var_from_columns(
             np.linspace(0, 1, NUMBER_OF_BINS + 1),
             weights=weight_dict[mc_signal],
         )
+        bin_edges[0] = 0.0
+        bin_edges[-1] = 1.0
     print(f"bin_edges {bin_edges}")
 
     hist_1d_dict = {}
@@ -263,12 +271,8 @@ def plot_single_var_from_columns(
             bin_edges_plotting = np.linspace(
                 bin_edges[0], bin_edges[-1], NUMBER_OF_BINS + 1
             )
-            bins_center_plotting = (
-                bin_edges_plotting[1:] + bin_edges_plotting[:-1]
-            ) / 2
         else:
-            bin_edges_plotting = bin_edges
-            bins_center_plotting = bins_center
+            bin_edges_plotting = None
 
         namesuffix = ""
         if "MC" in cat:
@@ -279,9 +283,10 @@ def plot_single_var_from_columns(
                 .replace("p", ".")
             )
             namesuffix = r" ($\kappa_\lambda$=" + kl + ")"
-            savesuffix = f"kl_{kl}"
+            # savesuffix = f"kl_{kl}"
 
         cat_plot_name = plot_regions_names(cat, namesuffix).replace("Run2", "_DHH")
+        print(cat_plot_name)
 
         print(f"Found something to plot {cat} -> {cat_plot_name}")
 
@@ -297,20 +302,22 @@ def plot_single_var_from_columns(
         # histogram of the denominator
         histo = Hist.new.Var(bin_edges, name=var_plot_name, flow=False).Weight()
         histo.fill(col_den, weight=weights_den)
+        print(cat_plot_name)
+        print(histo)
+        print(histo.values())
 
-
-        if i == 0:
+        if i == 0: 
             hist_1d_dict[cat_plot_name] = {
                 "data": histo,
                 "style": {
                     "is_reference": (i == 0),
                     "histtype": "errorbar" if i == 0 else "step",
                     "color": color_list[i][0],
+                    "bin_edges_plotting": bin_edges_plotting,
                 },
             }
 
         else:
-            # if not style_dict:
             if "Sig+Bkg" not in hist_1d_dict:
 
                 hist_1d_dict["Sig+Bkg"] = {
@@ -323,6 +330,7 @@ def plot_single_var_from_columns(
                         "facecolor": [],
                         "alpha": [],
                         "legend_name": [],
+                        "bin_edges_plotting": [],
                     },
                 }
             hist_1d_dict["Sig+Bkg"]["data"].append(histo)
@@ -332,7 +340,10 @@ def plot_single_var_from_columns(
                 0.5 if "DATA" in cat else 1
             )
             hist_1d_dict["Sig+Bkg"]["style"]["legend_name"].append(cat_plot_name)
-
+            hist_1d_dict["Sig+Bkg"]["style"]["bin_edges_plotting"].append(
+                bin_edges_plotting
+            )
+    print(f"bin_edges {bin_edges}")
 
     sob, sob_err, sob_list, sob_err_list, s, s_err, b, b_err = compute_sob(hist_1d_dict)
     sob_string = r"$s/\sqrt{{{{b}}}}$ = {:.2f} $\pm$ {:.2f}".format(sob, sob_err)
@@ -403,18 +414,18 @@ def plot_single_var_from_columns(
         p = p.add_chi_square()
 
     p.run()
-    
+
     # save the histogram
-    np.savez(
-        os.path.join(dir_cat, f"hist_columns_{var_plot_name}_{savesuffix}.npz".replace("Run2", "_DHH")),
-        counts=np.append(hist_1d_dict[mc_signal]["data"].values(), hist_1d_dict[mc_signal]["data"].values()[-1]),
-        count_err=np.sqrt(hist_1d_dict[mc_signal]["data"].variances()),
-        bin_edges=bin_edges,
-        plot=var_plot_name,
-        num_events=len(col_den),
-        sob=sob_list,
-        sob_err=sob_err_list,
-    )
+    # np.savez(
+    #     os.path.join(dir_cat, f"hist_columns_{var_plot_name}_{savesuffix}.npz".replace("Run2", "_DHH")),
+    #     counts=np.append(hist_1d_dict[mc_signal_region]["data"].values(), hist_1d_dict[mc_signal_region]["data"].values()[-1]),
+    #     count_err=np.sqrt(hist_1d_dict[mc_signal_region]["data"].variances()),
+    #     bin_edges=bin_edges,
+    #     plot=var_plot_name,
+    #     num_events=len(col_den),
+    #     sob=sob_list,
+    #     sob_err=sob_err_list,
+    # )
 
 def main(cat_cols, lumi, era_string):
 

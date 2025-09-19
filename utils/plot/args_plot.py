@@ -77,6 +77,12 @@ parser.add_argument(
     help="Input variables to the onnx model",
     default="sig_bkg_dnn_input_variables",
 )
+parser.add_argument(
+    "--novars",
+    action="store_true",
+    help="If true, old save format without saved variations is expected",
+    default=False,
+)
 
 args = parser.parse_args()
 

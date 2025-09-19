@@ -5,6 +5,8 @@ from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.histograms import jet_hists, count_hist, parton_hists
 from pocket_coffea.lib.hist_manager import HistConf, Axis
 from pocket_coffea.parameters.cuts import passthrough
+from utils.quantile_transformer import WeightedQuantileTransformer
+import numpy as np
 
 from utils.variables_helpers import jet_hists_dict, create_HistConf
 from utils.variables_helpers import jet_hists_dict, create_HistConf
@@ -987,17 +989,80 @@ variable_dict_bkg_morphing = {
     ),
 }
 
-variables_dict = {}
-
+def get_variables_dict_sig_bkg_score(bins, y=""):
+    score_histograms = {
+    "sig_bkg_dnn_score": HistConf(
+        [
+            Axis(
+                coll="events",
+                field="sig_bkg_dnn_score",
+                bins=20,
+                start=0,
+                stop=1,
+                label="Signal vs Background DNN score",
+            )
+        ],
+        storage='weight'
+    ),
+    "sig_bkg_dnn_scoreRun2": HistConf(
+        [
+            Axis(
+                coll="events",
+                field="sig_bkg_dnn_scoreRun2",
+                bins=20,
+                start=0,
+                stop=1,
+                label=r"Signal vs Background DNN score D$_{HH}$-Method",
+            )
+        ],
+        storage='weight'
+    )
+    }
+    if bins:
+        score_histograms[f"sig_bkg_dnn_score_transformed{y}"] = HistConf(
+            [
+                Axis(
+                    coll="events",
+                    field="sig_bkg_dnn_score",
+                    bins=bins,
+                    type="variable",
+                    start=0,
+                    stop=1,
+                    label=f"Signal vs Background DNN score transformed {y}",
+                )
+            ],
+            storage='weight'
+            )
+        score_histograms[f"sig_bkg_dnn_score_transformedRun2{y}"] = HistConf(
+                [
+                    Axis(
+                        coll="events",
+                        field="sig_bkg_dnn_scoreRun2",
+                        bins=bins,
+                        type="variable",
+                        start=0,
+                        stop=1,
+                        label=r"Signal vs Background DNN score D$_{HH}$-Method transformed " + y,
+                    )
+                ],
+                storage='weight'
+            )
+    return score_histograms
 
 def get_variables_dict(
-    JETS=True,
+    year,
+    config_options_dict,
+    JETS=False,
     CLASSIFICATION=False,
     RANDOM_PT=False,
     VBF_VARIABLES=False,
     BKG_MORPHING=False,
+    SCORE=False,
+    RUN2=False,
+    SPANET=True,
 ):
     """Function to create the variable dictionary for the PocketCoffea Configurator()."""
+    variables_dict = {}
     if JETS:
         variables_dict.update(variables_dict_jets)
     if CLASSIFICATION:
@@ -1008,6 +1073,34 @@ def get_variables_dict(
         variables_dict.update(variables_dict_vbf)
     if BKG_MORPHING:
         variables_dict.update(variable_dict_bkg_morphing)
+    if SCORE:
+        has_qt = False
+        for y in year:
+            if "postEE" in y and config_options_dict["qt_postEE"]:
+                params_qt = config_options_dict["qt_postEE"]
+            elif "preEE" in y and config_options_dict["qt_preEE"]:
+                params_qt = config_options_dict["qt_preEE"]
+            else:
+                print(f"Did not find a valid quantile transformation for year {y}")
+                params_qt = None
+            if params_qt:
+                has_qt = True
+                transformer = WeightedQuantileTransformer(n_quantiles=0, output_distribution="uniform")  # We read the quantiles and distribution anyway from the pickle file
+                transformer.load(params_qt)
+                bins = transformer.quantiles_
+                bins[0] = 0.0
+                bins[-1] = 1.0
+                variables_dict.update(get_variables_dict_sig_bkg_score(list(bins), y))
+            # bins_spanet_final = bins_spanet[::step]
+        if not has_qt:
+            variables_dict.update(get_variables_dict_sig_bkg_score(False))
+    # Sort of lazy implementation. If neither SPANet nor RUN2 are active, no variables are saved.
+    # If not Run2, kick out all variables with Run2 in name
+    # If not SPANet, kick out all variables without Run2 in name
+    if not RUN2:
+        variables_dict = {k: v for k, v in variables_dict.items() if "Run2" not in k}
+    if not SPANET:
+        variables_dict = {k: v for k, v in variables_dict.items() if "Run2" not in k}
     return variables_dict
 
 
@@ -1137,7 +1230,7 @@ def define_categories(bkg_morphing_dnn=False, blind=False, spanet=False,  run2=F
     categories_dict = {}
     if not vr1:
         if spanet:
-            categories_dict |= define_single_category("4b_region")
+            # categories_dict |= define_single_category("4b_region")
             categories_dict |= define_single_category("4b_control_region")
             categories_dict |= define_single_category("2b_control_region_preW")
             categories_dict |= define_single_category("4b_signal_region" + "_blind") if blind else {}

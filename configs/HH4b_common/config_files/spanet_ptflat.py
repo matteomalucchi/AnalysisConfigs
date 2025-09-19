@@ -28,7 +28,7 @@ onnx_model_dict |= {
     # "bkg_morphing_spread_dnn": "/work/mmalucch/out_ML_pytorch/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_postEE/best_models/all_ratios_model_onnx.onnx",  # only 2022_postEE, 20 k-folds, early stopping, 1e-5 minDelta, spanet, all ration spread model
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75/state_dict/model_best_epoch_25.onnx", # morphing full 2022, FixedPairingMorphing, FixedModelMorphing
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_postEE/state_dict/model_best_epoch_13.onnx", # only 2022postEE, FixedPairingMorphing, FixedModelMorphing
-    # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_postEE_allklambda/state_dict/model_best_epoch_16.onnx", # allklambda, only 2022postEE, FixedPairingMorphing, FixedModelMorphing
+    "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_postEE_allklambda/state_dict/model_best_epoch_16.onnx", # allklambda, only 2022postEE, FixedPairingMorphing, FixedModelMorphing
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_WrongMorphing/state_dict/model_best_epoch_21.onnx", # pytorch training, FixedPairingMorphing, WrongModelMorphing
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_WrongPairingMorphing/state_dict/model_best_epoch_14.onnx", # pytorch training, WrongPairingMorphing
     # "sig_bkg_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/keras_models_SvsB/model_fold0.onnx", # soumya's model

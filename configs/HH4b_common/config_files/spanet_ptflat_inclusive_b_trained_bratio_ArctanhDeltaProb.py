@@ -15,8 +15,8 @@ onnx_model_dict = {
 onnx_model_dict |= {
     "spanet": "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/spanet_hh4b_inclusive_b_region_5jets_loose_ptvary_wide_bratio_300_inclusive_years_s100.onnx",  # spanet pt vary 0.3, 1.7
     #
-#    "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_ArctanhDeltaProb/best_models/ratio/average_model_from_onnx.onnx",  # only 2022_postEE, 20 k-folds, early stopping, 1e-5 minDelta, spanet pt vary
-#    "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_ArctanhDeltaProb/state_dict/model_best_epoch_6.onnx",
+    "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_ArctanhDeltaProb/best_models/ratio/average_model_from_onnx.onnx",  # only 2022_postEE, 20 k-folds, early stopping, 1e-5 minDelta, spanet pt vary
+    "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_inclusive_b_region_bratioAll_postEE_ArctanhDeltaProb/run100/state_dict/model_best_epoch_11.onnx",
 }
 
 
@@ -25,7 +25,8 @@ config_options_dict = {
     "vbf_parton_matching": False,
     "tight_cuts": False,
     "classification": False,
-    "save_chunk": False,
+    "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_inclusive_b_trained_bratio_ArctanhDeltaProb_histtest",
+    #"save_chunk": False,
     "vbf_presel": False,
     "semi_tight_vbf": True,
     "dnn_variables": True,

@@ -19,11 +19,11 @@ from utils.plot.HEPPlotter import HEPPlotter
 
 
 if not args.output:
-    args.output = "plots_2bVS4b"
-
-if args.test:
-    args.output = "test"
-
+    if not args.test:
+        args.output = "plots_2bVS4b"
+    else:
+        args.output = "test_2bVS4b"
+        
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
@@ -184,7 +184,7 @@ else:
     ]
 
 filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else None
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, filter_lambda)
+cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda)
 
 cat_col_mc = None
 if args.input_mc:
@@ -198,7 +198,7 @@ if args.input_mc:
             if file.endswith(".coffea") and "DATA" not in file
         ]
 
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, filter_lambda)
+    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", filter_lambda)
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
