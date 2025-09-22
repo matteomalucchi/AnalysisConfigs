@@ -144,6 +144,7 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
+
 args = parser.parse_args()
 
 
@@ -203,7 +204,7 @@ if DP_NOTE_PLOTS:
         year = "2022"
 
 
-pt_bins = pt_bins_all if "pnetreg15" in args.dir else pt_bins_reduced
+pt_bins = pt_bins_all if "pnetreg15" in args.dir else (pt_bins_extended if "extendedPT" in args.dir else pt_bins_reduced)
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -355,11 +356,11 @@ print("eta_bins", eta_bins)
 correct_eta_bins = eta_bins
 
 rebin_factors = {
-    tuple(range(0, 8)): 60,
-    tuple(range(8, 14)): 50,
-    tuple(np.arange(14, 19)): 30,
-    tuple(np.arange(19, 21)): 25,
-    tuple(np.arange(21, 27)): 20,
+    tuple(range(0, 11)): 60,
+    tuple(range(11, 17)): 50,
+    tuple(np.arange(17, 22)): 30,
+    tuple(np.arange(22, 24)): 25,
+    tuple(np.arange(24, 30)): 20,
 }
 
 

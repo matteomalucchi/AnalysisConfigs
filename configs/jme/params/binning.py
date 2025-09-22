@@ -231,6 +231,39 @@ pt_bins_all = (
         5000.0,
     ]
 )
+pt_bins_extended = [
+        8.0,
+        10.0,
+        12.0,
+        15.0,
+        17.0,
+        20.0,
+        23.0,
+        27.0,
+        30.0,
+        35.0,
+        40.0,
+        45.0,
+        57.0,
+        72.0,
+        90.0,
+        120.0,
+        150.0,
+        200.0,
+        300.0,
+        400.0,
+        550.0,
+        750.0,
+        1000.0,
+        1500.0,
+        2000.0,
+        2500.0,
+        3000.0,
+        3500.0,
+        4000.0,
+        4500.0,
+        5000.0,
+    ]
 pt_bins_reduced= [
         50.0,
         57.0,
@@ -256,6 +289,8 @@ pt_bins_reduced= [
 
 if (int(os.environ.get("PNETREG15", 0)) == 1 or int(os.environ.get("SPLITPNETREG15", 0)) == 1):
     pt_bins=pt_bins_all
+elif int(os.environ.get("EXTENDED_PT_BINS", 0)) == 1:
+    pt_bins=pt_bins_extended
 else:
     pt_bins=pt_bins_reduced
 

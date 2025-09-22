@@ -135,6 +135,12 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "--extended-pt-bins",
+    action="store_true",
+    help="Evaluate ParticleNet or UparT regression for jetPT down to 8 GeV",
+    default=False,
+)
+parser.add_argument(
     "--neutrino",
     help="Sum neutrino pT to GenJet pT",
     default=-1,
@@ -155,6 +161,7 @@ args.central = int(args.central)
 args.closure = int(args.closure)
 args.pnet_reg_15 = int(args.pnet_reg_15)
 args.split_pnet_reg_15 = int(args.split_pnet_reg_15)
+args.extended_pt_bins = int(args.extended_pt_bins)
 args.neutrino = int(args.neutrino)
 args.abs_eta_inclusive = int(args.abs_eta_inclusive)
 
@@ -209,6 +216,7 @@ def run_command(sign, flav, dir_name, complete_bash_list):
         "CLOSURE": args.closure,
         "PNETREG15": args.pnet_reg_15,
         "SPLITPNETREG15": args.split_pnet_reg_15,
+        "EXTENDED_PT_BINS": args.extended_pt_bins,
         "YEAR": args.year,
     }
     if args.neutrino != -1:
@@ -308,13 +316,13 @@ if __name__ == "__main__":
                 if sign == "all":
                     continue
                 for flav in flavs_list:
-                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
+                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
                     if not os.path.isfile(f"{dir_name}/output_all.coffea"):
                         print(f"{dir_name}")
                         complete_bash_list=run_command(sign, flav, dir_name, complete_bash_list)
         else:
             dir_name = (
-                f"{dir_prefix}out_cartesian_{sign if not eta_string else eta_string}eta{'_flavsplit' if args.flavsplit else f'_{args.flav}flav'}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}"
+                f"{dir_prefix}out_cartesian_{sign if not eta_string else eta_string}eta{'_flavsplit' if args.flavsplit else f'_{args.flav}flav'}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}"
                 if not args.dir
                 else args.dir
             )
@@ -372,7 +380,7 @@ if __name__ == "__main__":
                     eta_bin_min = eta_bins[i]
                     eta_bin_max = eta_bins[i + 1]
                     dir_name = (
-                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
+                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
                         if not args.dir
                         else args.dir
                     )

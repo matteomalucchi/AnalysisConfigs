@@ -192,14 +192,16 @@ class QCDBaseProcessor(BaseProcessorABC):
                 < (13.6 * 1000) / 2
             )
 
-            if int(os.environ.get("UPART", 0)) == 1:
-                eta_bins = eta_bins_upart
+            if int(os.environ.get("UPART", 0)) == 0:
+                eta_bins_used = eta_bins
+            else:
+                eta_bins_used = eta_bins_upart
             if int(os.environ.get("ABS_ETA_INCLUSIVE", 0)) == 1:
                 # array of True
                 eta_mask = np.ones_like(self.events.JetGood.eta, dtype=bool)
             else:
-                eta_mask = (self.events.JetGood.eta > eta_bins[0]) & (
-                    self.events.JetGood.eta < eta_bins[-1]
+                eta_mask = (self.events.JetGood.eta > eta_bins_used[0]) & (
+                    self.events.JetGood.eta < eta_bins_used[-1]
                 )
 
             pt_mask = self.events.JetGood.ptRaw > 8

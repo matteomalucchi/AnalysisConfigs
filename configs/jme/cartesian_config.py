@@ -33,8 +33,11 @@ parameters = defaults.merge_parameters_from_files(
     update=True,
 )
 
-if int(os.environ.get("UPART", 0)) == 1:
+if int(os.environ.get("UPART", 0)) == 0:
+    eta_bins = eta_bins
+else:
     eta_bins = eta_bins_upart
+
 
 mc_truth_corr_pnetreg = None
 corr_files_pnetreg = {
@@ -196,7 +199,13 @@ cfg = Configurator(
                 int(os.environ.get("PNETREG15", 0)) == 1
                 or int(os.environ.get("SPLITPNETREG15", 0)) == 1
             )
+            else 
+            (8 
+            if (
+                int(os.environ.get("EXTENDED_PT_BINS", 0)) == 1
+            )
             else 50
+            )
         ),
     },
     skim=[],
