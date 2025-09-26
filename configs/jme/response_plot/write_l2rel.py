@@ -4,12 +4,14 @@ import sys
 # sys.path.append("../")
 from configs.jme.params.binning import *
 
-
 def create_pol_string(num_params):
     pol_string = "[0]"
     for i in range(1, num_params - 2):
         pol_string += f"+[{i}]*pow(log10(x),{i})"
     return pol_string
+
+def create_std_gaus_string():
+    return "(x<[10])*([9])+(x>=[10])*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8]))))))"
 
 
 def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split15, flavs, upart):
@@ -31,9 +33,14 @@ def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split
                     suffix = ("Neutrino" if "Neutrino" in file_name else "") + (
                         "Tot" if split15 else ""
                     )
-                    l2_file.write(
-                        f"{{1 JetEta 1 JetPt ({create_pol_string(num_params)})  Correction L2Relative }}\n"
-                    )
+                    if "extendedPT" in main_dir:
+                        l2_file.write(
+                            f"{{1 JetEta 1 JetPt ({create_std_gaus_string()})  Correction L2Relative }}\n"
+                        )
+                    else:
+                        l2_file.write(
+                            f"{{1 JetEta 1 JetPt ({create_pol_string(num_params)})  Correction L2Relative }}\n"
+                        )
                     for i in range(len(correct_eta_bins) - 1):
                         try:
                             with open(

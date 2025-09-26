@@ -35,7 +35,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-pt_bins = pt_bins_all if "pnetreg15" in args.dir else pt_bins_reduced
+pt_bins = pt_bins_all if "pnetreg15" in args.dir else (pt_bins_extended if "extendedPT" in args.dir else pt_bins_reduced)
 type_plot_dict = {
     "jec": "ResponseJEC",
     "reg": f"Response{'UparT' if args.upart else 'PNet'}Reg",
@@ -94,7 +94,7 @@ for type_string in args.type:
         ax.set_xlabel(r"$p_{T}^{ptcl}$ (GeV)", loc="right")
 
         ax.set_ylim(top=1.05 * np.nanmax(data), bottom=0.99 * np.nanmin(data))
-        # ax.set_ylim(top=1.06, bottom=0.95)
+        ax.set_ylim(top=1.053, bottom=0.989)
 
         ax.axhline(y=1, color="black", linestyle="--", linewidth=0.7)
         # add +- 1% lines

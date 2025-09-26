@@ -137,7 +137,9 @@ class QCDBaseProcessor(BaseProcessorABC):
         jet_pt = corr_dict["jet_pt"]
         params = corr_dict["params"]
 
-        if pnetreg or upartreg:
+        if (pnetreg or upartreg) and (function_string=="((x<[10])*([9])+(x>=[10])*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8])))))))"):
+            corr_function = standard_gaus_function
+        elif pnetreg or upartreg:
             corr_function = string_to_pol_function(function_string)
         else:
             corr_function = standard_gaus_function

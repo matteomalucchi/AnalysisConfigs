@@ -1,3 +1,6 @@
+import numpy as np
+from scipy.optimize import curve_fit
+import scipy.stats as stats
 
 # define the function to fit with 9 parameters
 def std_gaus(x, p0, p1, p2, p3, p4, p5, p6, p7, p8):
@@ -9,53 +12,110 @@ def std_gaus(x, p0, p1, p2, p3, p4, p5, p6, p7, p8):
     )
 
 
-def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot):
-    print("fit_inv_median", variable)
+def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_settings,xmin):
+    print("fit_inv_median", variable, name_plot)
+    yerr_cor = yerr.copy()
+    ratio_yerr = yerr / y
+    # for i in range(len(y)):
+    #     if ratio_yerr[i] < 0.001:
+    #         yerr_cor[i] = y[i] * 0.001
+    
+    # p_initial = [
+    #     9.14823123e-01,
+    #     1.59850801e00,
+    #     1.08444406e01,
+    #     -1.65510940e00,
+    #     5.75460089e00,
+    #     -4.40873200e-01,
+    #     -4.04888813e-02,
+    #     1.09142869e02,
+    #     1.43155927e00,
+    # ]
+    # p_initial = [
+    #     9.14823123e-01,
+    #     1.59850801e00,
+    #     1.08444406e01,
+    #     -1.65510940e00,
+    #     2.35460089e00,
+    #     1.1,
+    #     -4.04888813e-02,
+    #     1.09142869e02,
+    #     -1.43155927e00,
+    # ]
+    # p_initial = [
+    #     1.4079260445453523,
+    #     22.163070215571366,
+    #     32.26551228077457,
+    #     -1.0610367819625621,
+    #     0.016828752007083572,
+    #     0.46245487386104656,
+    #     -4.375311791302624,
+    #     18.346287800110574,
+    #     0.8592087373356424,
+    # ]
     p_initial = [
-        9.14823123e-01,
-        1.59850801e00,
-        1.08444406e01,
-        -1.65510940e00,
-        5.75460089e00,
-        -4.40873200e-01,
-        -4.04888813e-02,
-        1.09142869e02,
-        1.43155927e00,
+        0.9988357333883727,
+        3.5860655582607954e-25,
+        88.47582262634891,
+        -14.999999896709642,
+        3.985790101558689,
+        0.09361451452734727,
+        -0.02249681269816284,
+        3.104405384451671,
+        2.909490540551297
     ]
-    p_initial = [
-        9.14823123e-01,
-        1.59850801e00,
-        1.08444406e01,
-        -1.65510940e00,
-        2.35460089e00,
-        1.1,
-        -4.04888813e-02,
-        1.09142869e02,
-        -1.43155927e00,
+    p_minimum = [
+        -2.,
+        0.,
+        0.,
+        -200.,
+        -100.,
+        0.,
+        -20.,
+        0.,
+        -50.,
     ]
-    p_initial = [
-        1.4079260445453523,
-        22.163070215571366,
-        32.26551228077457,
-        -1.0610367819625621,
-        0.016828752007083572,
-        0.46245487386104656,
-        -4.375311791302624,
-        18.346287800110574,
-        0.8592087373356424,
+    p_maximum = [
+        25.,
+        250.,
+        4000.,
+        15.,
+        500.,
+        50.,
+        10.,
+        100.,
+        50.,
     ]
+    #mask to only use points above xmin
+    mask = x>=xmin
     # do the fit
     popt, pcov = curve_fit(
-        std_gaus, x, y, p0=p_initial, sigma=yerr, absolute_sigma=True
+        std_gaus, x[mask], y[mask], p0=p_initial, sigma=yerr_cor[mask], absolute_sigma=True, maxfev=20000, bounds=(p_minimum, p_maximum)
     )
     # popt, pcov = p_initial, [[0]*len(p_initial)]*len(p_initial)
 
+    # add params 9 and 10 
+    p9 = std_gaus(xmin, *popt)
+    p10 = xmin
+    popt_extended = list(popt) + [p9, p10]
+    errors_extended = list(np.sqrt(np.diag(pcov))) + [0.0, 0.0]
+
     # plot the fit
-    x_fit = np.linspace(x[0], x[-1], 1000)
+    x_fit = np.logspace(np.log10(x[0]), np.log10(x[-1]), 1000)
     y_fit = std_gaus(x_fit, *popt)
+    y_fit[x_fit < xmin] = p9
+
+    ax.plot(
+        x_fit,
+        y_fit,
+        color=variables_plot_settings[variable][0],
+        linestyle="-",
+        linewidth=0.7,
+    )
 
     # print chi2 and p-value on the plot
-    chi2 = np.sum(((y - std_gaus(x, *popt)) / yerr) ** 2)
+    model_full = np.where(x < xmin, p9, std_gaus(x, *popt))
+    chi2 = np.sum(((y - model_full) / yerr) ** 2)
     ndof = len(x) - len(popt)
     p_value = 1 - stats.chi2.cdf(chi2, ndof)
 
@@ -71,32 +131,34 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot):
     #
     # )
 
-    print(
-        "\n",
-        name_plot,
-        "\nx",
-        x,
-        "\ny",
-        y,
-        "\nyerr",
-        yerr,
-        "\npopt",
-        popt,
-        "\npcov",
-        pcov,
-        "\nchi2/ndof",
-        chi2,
-        "/",
-        ndof,
-        "p_value",
-        p_value,
-    )
+    # print(
+    #     "\n",
+    #     name_plot,
+    #     "\nx",
+    #     x,
+    #     "\ny",
+    #     y,
+    #     "\nyerr",
+    #     yerr,
+    #     "\npopt",
+    #     popt,
+    #     "\npcov",
+    #     pcov,
+    #     "\nchi2/ndof",
+    #     chi2,
+    #     "/",
+    #     ndof,
+    #     "p_value",
+    #     p_value,
+    # )
     fit_results = {
         "x": list(x),
         "y": list(y),
         "yerr": list(yerr),
-        "parameters": list(popt),
-        "errors": list(np.sqrt(np.diag(pcov))),
+        "jet_pt": [x[0], x[-1]],
+        "y_fit_range": [y_fit[0], y_fit[-1]],
+        "parameters": popt_extended,
+        "errors": errors_extended,
         "chi2": chi2,
         "ndof": ndof,
         "p_value": p_value,

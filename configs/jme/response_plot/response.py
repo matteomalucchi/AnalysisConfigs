@@ -25,6 +25,7 @@ import scipy.stats as stats
 
 
 from configs.jme.response_plot.pol_functions import *
+from configs.jme.response_plot.fit_functions_standard_gaus import *
 from configs.jme.response_plot.write_l2rel import write_l2rel_txt
 from configs.jme.response_plot.confidence import *
 from configs.jme.response_plot.histograms_to_plot import *
@@ -103,7 +104,7 @@ parser.add_argument(
     "-p",
     "--num-params",
     type=int,
-    help="Num param fit polynomial + 2 for the jet pt range",
+    help="Num param fit polynomial + 2 for the jet pt range. 13 for standrad gaus fit",
     default=9,
 )
 parser.add_argument(
@@ -144,6 +145,12 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
+parser.add_argument(
+    "--ptmin-fit-inv-median",
+    help="Minimum pT for fit in inv median",
+    type=float,
+    default=8.0,       #17.0 for PNET, 11.0 for UparT ?
+)
 
 args = parser.parse_args()
 
@@ -170,6 +177,10 @@ VERSION = "V3"
 if "closure" in args.dir:
     FIT = False
     CLOSURE = True
+
+if "extendedPT" in args.dir:
+    print(f"num_params {args.num_params} too low for standard gaus fit for extendedPT + 2 for jet PT range, setting to 13")
+    args.num_params = 13  # 11 for standard gaus fit
 
 # save the log also in a file
 # sys.stdout = open(file=f"{args.dir}/response_plot.log", mode="w")
@@ -1565,18 +1576,30 @@ def plot_median_resolution(eta_bin, plot_type):
                             ("splitpnetreg15" not in args.dir)
                             or ("splitpnetreg15" in args.dir and "Tot" in variable)
                         ):
-
-                            fit_results = fit_inv_median_pol(
-                                ax,
-                                x,
-                                y,
-                                # xerr,
-                                np.zeros(len(x)),
-                                y_err,
-                                variable,
-                                y_pos,
-                                f"{eta_sign} {flav} {correct_eta_bins[eta_bin]} ({index}) {variable}",
-                            )
+                            if "extendedPT" in args.dir:
+                                fit_results = fit_inv_median(
+                                    ax,
+                                    x,
+                                    y,
+                                    y_err,
+                                    variable,
+                                    y_pos,
+                                    f"{eta_sign} {flav} {correct_eta_bins[eta_bin]} ({index}) {variable}",
+                                    variables_plot_settings,
+                                    args.ptmin_fit_inv_median,
+                                    )
+                            else:
+                                fit_results = fit_inv_median_pol(
+                                    ax,
+                                    x,
+                                    y,
+                                    # xerr,
+                                    np.zeros(len(x)),
+                                    y_err,
+                                    variable,
+                                    y_pos,
+                                    f"{eta_sign} {flav} {correct_eta_bins[eta_bin]} ({index}) {variable}",
+                                    )
                             y_pos += -0.05
                             tot_fit_results[f"{flav}_{variable}"] = fit_results
                             if fit_results == {}:
