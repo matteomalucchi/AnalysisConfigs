@@ -36,16 +36,16 @@ run_pocket_coffea pt_vary <config_file> <t3_run_options> <output_dir>
 run_pocket_coffea no_model HH4b_parton_matching_config.py params/t3_run_options.yaml ../../../sample_spanet/loose_MC_postEE_btagWP
 ```
 
+> [!IMPORTANT]
+> To indicate the used config_file, the ending `.py` is to be left out. Currently, it crashes, if the ending is included (e.g. `no_model.py`).
+
 > [!NOTE]
 > To run a test on a small number of files, add the `--test` flag at the **end** of the command.
 
 #### Convert coffea files to h5 files
 
 > [!TIP]
-> @Tier-3/HH4b_SPANet
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md) file of the HH4b_SPANet repository.
+> @Tier-3/HH4b_SPANet &rarr;  [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md)
 
 ```bash
 cd HH4b_SPANet/utils/dataset
@@ -72,10 +72,7 @@ scp -r loose_MC_postEE_btagWP tharte@lxplus.cern.ch:/eos/user/t/tharte/Analysis_
 ### Train and evaluate SPANet model
 
 > [!TIP]
-> @lxplus/HH4b_SPANet
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md) file of the HH4b_SPANet repository.
+> @lxplus/HH4b_SPANet &rarr; [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md)
 
 Edit the option_file accordingly to the training you want to perform.
 
@@ -110,15 +107,12 @@ python3 ~/public/Software/HH4b_SPANet/jobs/submit_jobs_seed.py -c ~/public/Softw
 #### Compute SPANet predictions
 
 > [!TIP]
-> @lxplus/HH4b_SPANet
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md) file of the HH4b_SPANet repository.
+> @lxplus/HH4b_SPANet &rarr; [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md)
 
 Once the model is trained, compute the predictions on the input h5 files using the following command on `lxplus`:
 
 ```bash
-#TODO
+python -m spanet.predict <path_to_spanet_output/out_seed_training_yyy/version_z> <output/file.h5> -tf </true/file/with/inputs> --gpu
 
 app_spanet
 . ~/.bashrc
@@ -130,29 +124,41 @@ python -m spanet.predict ./spanet_output/out_spanet_outputs/out_hh4b_5jets_ptreg
 #### Plot pairing efficiency and mass sculpting
 
 > [!TIP]
-> @lxplus/HH4b_SPANet
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md) file of the HH4b_SPANet repository.
+> @lxplus/HH4b_SPANet &rarr; [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md)
 
 Next step is to fill in an entry in the efficiency script `HH4b_SPANet/utils/performance/efficiency_configurations.py`:
 
+The `efficiency_configuration` script contains two dictionaries: `spanet_dict` and `true_dict`. These have to be completed with the new models:
 ```python
-#TODO
+spanet_dict = {
+    ...
+    '<unique_identifier>': {                                                                                            
+        'file': f'</path/to/file>.h5',                                                     
+        'true': '<unique_identifier_of_true_file>',                                                                              
+        'label': '<label_for_plot>',                                                                                                
+        'color': '<color_in_plot>'},
+	...
+	#e.g.
+    '5_jets_ptvary_btag_wp_3V00e_allklambda': {                                                                                     
+ 	    'file': f'{spanet_dir}spanet_hh4b_5jets_300_ptvary_loose_s100_btag_wp.h5',                                                 
+ 	    'true': '5_jets_pt_true_wp_allklambda',                                                                                    
+ 	    'label': 'SPANet btag 5 WP - Flattened pt [0.3,1.7]',                                                                      
+ 	    'color': 'orangered'},
+}
 
-
-#e.g.
-f'{spanet_dir}spanet_hh4b_5jets_300_ptvary_loose_s100_btag_wp.h5': {
-    'true': '5_jets_pt_true_wp_allklambda',
-    'label': 'SPANet btag WP - Flattened pt [0.3,1.7]',
-    'color': 'firebrick'
-    },
+true_dict = {
+    ...
+	'<unique_identifier>': {'name': '</path/to/truefile>', 'klambda': <'preEE'/'postEE'>}  # klambda settings define, which klambdas are in the file (preEE has less klambda than postEE)
+	...
+    #e.g.
+	'5_jets_pt_true_wp_allklambda': {'name': f"{true_dir_thierry}../spanet_samples/loose_MC_postEE_btagWP/output_JetGood_test.h5", 'klambda': 'postEE'}, 
+}
 ```
 
 And then run the efficiency script in an empty folder (A different environment is needed without the apptainer image):
 
 ```bash
-#TODO
+python3 <path/to/HH4b_SPANet>/utils/performance/efficiency_studies.py -pd <output/dir/for/plots> <-k> <-d>  # -k is to separate klambdas, -d is to run on datafiles
 
 # e.g.
 env_utils 
@@ -162,15 +168,12 @@ python3 ~/public/Software/HH4b_SPANet/utils/performance/efficiency_studies.py -p
 #### Convert SPANet model to ONNX
 
 > [!TIP]
-> @lxplus/HH4b_SPANet
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md) file of the HH4b_SPANet repository.
+> @lxplus/HH4b_SPANet &rarr; [README](https://github.com/matteomalucchi/HH4b_SPANet/blob/main/README.md)
 
 Converting the file to `onnx` to use it in PocketCoffea (You need again the SPANet environment from before for the prediction):
 
 ``` bash
-#TODO
+python -m spanet.export <path_to_spanet_output/out_seed_training_yyy/version_z> <onnx_output_name.onnx> --gpu 
 
 #e.g.
 python -m spanet.export out_spanet_outputs/out_hh4b_5jets_ptvary_loose_300_btag_wp/out_seed_trainings_100/version_0/ spanet_hh4b_5jets_ptvary_loose_300_btag_5wp_s100.onnx --gpu
@@ -200,13 +203,14 @@ Then run PocketCoffea with that config to produce coffea files with SPANet predi
 run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
 ```
 
+> [!NOTE]
+> If the columns are saved as `parquet` in a different folder (using the `save_chunks` setting), the path to the files is stored in the `config.json`.
+> If one of the scripts using the columns does not find the columns, the problem could be, that this file was overwritten/is missing.
+
 ### Train DNN model for background morphing
 
 > [!TIP]
-> @Tier-3/ML_pytorch
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/ML_pytorch/blob/main/README.md) file of the ML_pytorch repository.
+> @Tier-3/ML_pytorch &rarr; [README](https://github.com/matteomalucchi/ML_pytorch/blob/main/README.md)
 
 Create a config in `ML_pytorch/configs/bkg_reweighting/` and set the `data_dirs` entry to the path of the coffea files you produced in the previous step.
 
@@ -250,10 +254,7 @@ sbatch -p short --account=t3 --time=00:05:00 --mem 25gb --cpus-per-task=8 --wrap
 ### Train DNN for signal / background classification
 
 > [!TIP]
-> @Tier-3/ML_pytorch
-
-> [!NOTE]
-> Additional information can be found in the [README](https://github.com/matteomalucchi/ML_pytorch/blob/main/README.md) file of the ML_pytorch repository.
+> @Tier-3/ML_pytorch &rarr; [README](https://github.com/matteomalucchi/ML_pytorch/blob/main/README.md)
 
 Create a config in `ML_pytorch/configs/ggF_bkg_classifier/` and set the `data_dirs` entry to the path of the coffea files you produced in the previous step.
 
@@ -267,6 +268,9 @@ sbatch run_sig_bkg_classifier.sh <config_file> <output_folder>
 
 > [!TIP]
 > @Tier-3/AnalysisConfigs
+
+> [!NOTE]
+> If the goal is to produce Datacards, the `quantile_transformer` has to be run before this step (See in section [Quantile transformer to obtain constant signal binning](#Quantile-transformer-to-obtain-constant-signal-binning)).
 
 Update the config created before  in [`AnalysisConfigs/configs/HH4b_common/config_files`](./config_files/) and set the `"sig_bkg_dnn"` entry of the `onnx_model_dict` to the path of the ONNX model you produced in the previous step.
 
@@ -297,16 +301,29 @@ This section describes how to produce the datacards for the final statistical an
 > [!TIP]
 > @Tier-3/AnalysisConfigs
 
-Produce the quantile transformer to be used in the datacard production with the following command:
+The quantile transformer is mainly needed for Datacard production. The idea is to compute the bin widths for the `sig_bkg_score` variables in a way, that each bin contains the same amount of MC SM signal. This can be done in two ways:
+
+The first option is to train the DNN model for signal / background classification and then apply this model on a previously created PocketCoffea file that used the same SPANet model for the pairing. This is the recommended way:
+```bash
+python </path/to/script>/extract_quantile_transformer.py -i </path/to/coffeafiles>/output_GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE.coffea \
+	--onnx-model </path/to/model/modelname>.onnx \
+	--input-variables <sig_bkg_input_variable_list_name> <--novars>
+	-o <output_directory (default is ./quantile_transformer>
+```
+
+The second option is to use the score variables that are already in the `.coffea` files. In this case, the last PocketCoffea command has to be rerun after defining the bins to get the variables for the datacards.
+
+Due to the need to rerun PocketCoffea, this second option is Not recommended:
 
 ```bash
-#TODO
 python scripts/extract_quantile_transformer.py -i <input_signal_file> <--novars>
 ```
 
 Set the `qt_postEE`/`qt_preEE` entry in the config created before  in [`AnalysisConfigs/configs/HH4b_common/config_files`](./config_files/) to the path of the quantile transformer you produced in the previous step.
 
-Then run PocketCoffea with that config to produce coffea files using the following command:
+If the first option was chosen, continue with the section [Apply DNN to data and MC signal files](#Apply-DNN-to-data-and-MC-signal-files).
+
+Otherwise, run PocketCoffea with that config to produce coffea files using the following command:
 
 ```bash
 run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
@@ -317,9 +334,20 @@ run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
 > [!TIP]
 > @Tier-3/AnalysisConfigs
 
+
+To produce the datacards, we need a single `output_all.coffea` file made from all the relevant coffea outputs from the last `PocketCoffea` run:
+
+```bash
+# Inside output folder:
+pocket-coffea merge-outputs -o output_all.coffea *.coffea -f
 ```
-#TODO
+
+Then the `build_datacards.py` script can just be run like this:
+
+```bash
+python </path/to/AnalysisConfigs>/scripts/build_datacards.py -i <input_folder> -o <desired output folder>
 ```
+
 
 ## Example commands
 
@@ -356,4 +384,15 @@ sbatch -p short --account=t3 --time=00:05:00 --mem 25gb --cpus-per-task=8 --wrap
 
 ```python
 sbatch -p short --account=t3 --time=00:10:00 --mem 40gb --cpus-per-task=1 --wrap="python ~/AnalysisConfigs/scripts/plot_DNN_score.py -id ./  -im output_GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE.coffea -r2 -om /work/mmalucch/out_ML_pytorch/DNN_DHH_method_class_weights_e5drop75_postEE_allklambda_matteo/state_dict/model_best_epoch_19.onnx"
+```
+
+### Plot variables before datacard
+```bash
+pocket-coffea make-plots -i output_all.coffea --cfg parameters_dump.yaml -o plots
+```
+
+### Run Datacard creation
+```bash
+pocket-coffea merge-outputs -o output_all.coffea *.coffea -f
+python /work/tharte/datasets/AnalysisConfigs_develop/scripts/build_datacards.py -i ./ -o datacards
 ```
