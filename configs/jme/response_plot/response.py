@@ -104,7 +104,7 @@ parser.add_argument(
     "-p",
     "--num-params",
     type=int,
-    help="Num param fit polynomial + 2 for the jet pt range. 13 for standrad gaus fit",
+    help="Num param fit polynomial + 2 for the jet pt range. This is forced to 13 for extendedPT for uparT and PNET",
     default=9,
 )
 parser.add_argument(
@@ -149,7 +149,7 @@ parser.add_argument(
     "--ptmin-fit-inv-median",
     help="Minimum pT for fit in inv median",
     type=float,
-    default=8.0,       #17.0 for PNET, 11.0 for UparT ?
+    default=8.0,       #17.0 for PNET, 15.0 for UparT ?
 )
 
 args = parser.parse_args()
@@ -178,9 +178,9 @@ if "closure" in args.dir:
     FIT = False
     CLOSURE = True
 
-if "extendedPT" in args.dir:
-    print(f"num_params {args.num_params} too low for standard gaus fit for extendedPT + 2 for jet PT range, setting to 13")
-    args.num_params = 13  # 11 for standard gaus fit
+#if "extendedPT" in args.dir:
+#    print(f"num_params {args.num_params} too low for standard gaus fit for extendedPT + 2 for jet PT range, setting to 13")
+#    args.num_params = 13  # 13 for standard gaus fit
 
 # save the log also in a file
 # sys.stdout = open(file=f"{args.dir}/response_plot.log", mode="w")
@@ -217,6 +217,8 @@ if DP_NOTE_PLOTS:
 
 pt_bins = pt_bins_all if "pnetreg15" in args.dir else (pt_bins_extended if "extendedPT" in args.dir else pt_bins_reduced)
 
+if 'extendedPT' in args.dir:
+    num_params = 13  # 13 for standard gaus fit for uparT and pol10 for PNet
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -967,8 +969,8 @@ else:
 
                                                 # HERE
                                                 # remove the first bin which is a peak to zero in the response
-                                                bins = bins[2:]
-                                                values = values[2:]
+                                                #bins = bins[2:]
+                                                #values = values[2:]
 
                                                 # sum the values of the unbinned histogram
                                                 if (
@@ -1576,7 +1578,7 @@ def plot_median_resolution(eta_bin, plot_type):
                             ("splitpnetreg15" not in args.dir)
                             or ("splitpnetreg15" in args.dir and "Tot" in variable)
                         ):
-                            if "extendedPT" in args.dir:
+                            if "extendedPT" in args.dir and args.upart:
                                 fit_results = fit_inv_median(
                                     ax,
                                     x,

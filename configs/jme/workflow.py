@@ -137,7 +137,7 @@ class QCDBaseProcessor(BaseProcessorABC):
         jet_pt = corr_dict["jet_pt"]
         params = corr_dict["params"]
 
-        if (pnetreg or upartreg) and (function_string=="((x<[10])*([9])+(x>=[10])*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8])))))))"):
+        if function_string=="((x<[10])*([9])+(x>=[10])*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8])))))))":
             corr_function = standard_gaus_function
         elif pnetreg or upartreg:
             corr_function = string_to_pol_function(function_string)
@@ -205,8 +205,8 @@ class QCDBaseProcessor(BaseProcessorABC):
                 eta_mask = (self.events.JetGood.eta > eta_bins_used[0]) & (
                     self.events.JetGood.eta < eta_bins_used[-1]
                 )
-
-            pt_mask = self.events.JetGood.ptRaw > 8
+            
+            pt_mask = self.events.JetGood.ptRaw > (0 if int(os.environ.get("EXTENDED_PT_BINS", 0)) == 1 else 8)
 
             self.events["JetGood"] = self.events.JetGood[
                 physisical_jet_mask & eta_mask & pt_mask
@@ -448,7 +448,7 @@ class QCDBaseProcessor(BaseProcessorABC):
                         ),
                         "JetPtPNetReg",
                     )
-                elif int(os.environ.get("PNETREG15", 0)) == 0:
+                elif int(os.environ.get("PNETREG15", 0)) == 0 and int(os.environ.get("EXTENDED_PT_BINS", 0)) == 0: # Issues with PNET under 15 GeV
                     self.events[f"MatchedJets"] = ak.with_field(
                         self.events.MatchedJets,
                         ak.where(
@@ -593,7 +593,7 @@ class QCDBaseProcessor(BaseProcessorABC):
                             "JetPtPNetRegNeutrino",
                         )
                     # when regression is not valid
-                    elif int(os.environ.get("PNETREG15", 0)) == 0:
+                    elif int(os.environ.get("PNETREG15", 0)) == 0 and int(os.environ.get("EXTENDED_PT_BINS", 0)) == 0:
                         self.events[f"MatchedJetsNeutrino"] = ak.with_field(
                             self.events.MatchedJetsNeutrino,
                             ak.where(

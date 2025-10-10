@@ -1,0 +1,33 @@
+object_preselection:
+  Jet:
+    pt_raw: 0 
+    eta: 10 
+    jetId: 0 
+  JetPuppiMET:
+    pt: 0
+    eta: 10 
+    jetId: 0 
+  JetPNet:
+    pt: 0
+    eta: 10
+    jetId: 0
+  JetPNetPlusNeutrino:
+    pt: 0
+    eta: 10
+    jetId: 0
+  JetUparT:
+    pt: 0
+    eta: 10
+    jetId: 0
+  JetUparTPlusNeutrino:
+    pt: 0
+    eta: 10
+    jetId: 0
+
+  GenJet:
+    pt: 0 
+    eta: 10 
+    
+    
+    
+    

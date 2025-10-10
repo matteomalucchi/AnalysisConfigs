@@ -28,7 +28,7 @@ year = os.environ.get("YEAR", "2022_preEE")
 # adding object preselection
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/params/object_preselection.yaml",
+    f"{localdir}/params/object_preselection{'_extendedPT' if (int(os.environ.get('EXTENDED_PT_BINS', 0)) == 1) else ''}.yaml",
     f"{localdir}/params/jets_calibration.yaml",
     update=True,
 )
@@ -200,7 +200,7 @@ cfg = Configurator(
                 or int(os.environ.get("SPLITPNETREG15", 0)) == 1
             )
             else 
-            (8 
+            (0 
             if (
                 int(os.environ.get("EXTENDED_PT_BINS", 0)) == 1
             )

@@ -33,7 +33,7 @@ def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split
                     suffix = ("Neutrino" if "Neutrino" in file_name else "") + (
                         "Tot" if split15 else ""
                     )
-                    if "extendedPT" in main_dir:
+                    if "extendedPT" in main_dir and upart:
                         l2_file.write(
                             f"{{1 JetEta 1 JetPt ({create_std_gaus_string()})  Correction L2Relative }}\n"
                         )

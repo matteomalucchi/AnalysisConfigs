@@ -11,15 +11,32 @@ def std_gaus(x, p0, p1, p2, p3, p4, p5, p6, p7, p8):
         + p6 * np.exp(-p7 * (np.log10(x) - p8) ** 2)
     )
 
+def std_gaus_plus(x, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9):
+    return (
+        p0
+        + p1 / (np.log10(x) ** p2 + p3)
+        + p4 * np.exp(-p5 * (np.log10(x) - p6) ** 2)
+        + p7 * np.exp(-p8 * (np.log10(x) - p9) ** 2)
+    )
+
+def std_gaus_enhanced(x, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11):
+    return (
+        p0
+        + p1 / (np.log10(x) ** 2 + p2)
+        + p3 * np.exp(-p4 * (np.log10(x) - p5) ** 2)
+        + p6 * np.exp(-p7 * (np.log10(x) - p8) ** 2)
+        + p9 * np.exp(-p10 * (np.log10(x) - p11) ** 2)
+    )
 
 def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_settings,xmin):
+    
     print("fit_inv_median", variable, name_plot)
     yerr_cor = yerr.copy()
     ratio_yerr = yerr / y
-    # for i in range(len(y)):
-    #     if ratio_yerr[i] < 0.001:
-    #         yerr_cor[i] = y[i] * 0.001
-    
+    for i in range(len(y)):
+        if ratio_yerr[i] < 0.001:
+            yerr_cor[i] = y[i] * 0.001
+
     # p_initial = [
     #     9.14823123e-01,
     #     1.59850801e00,
@@ -62,7 +79,7 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
         0.09361451452734727,
         -0.02249681269816284,
         3.104405384451671,
-        2.909490540551297
+        2.909490540551297,
     ]
     p_minimum = [
         -2.,
@@ -80,7 +97,7 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
         250.,
         4000.,
         15.,
-        500.,
+        2000.,
         50.,
         10.,
         100.,
@@ -151,6 +168,197 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
     #     "p_value",
     #     p_value,
     # )
+    fit_results = {
+        "x": list(x),
+        "y": list(y),
+        "yerr": list(yerr),
+        "jet_pt": [x[0], x[-1]],
+        "y_fit_range": [y_fit[0], y_fit[-1]],
+        "parameters": popt_extended,
+        "errors": errors_extended,
+        "chi2": chi2,
+        "ndof": ndof,
+        "p_value": p_value,
+    }
+
+    return fit_results
+
+def fit_inv_median_std_gaus_plus(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_settings,xmin):
+    
+    print("fit_inv_median", variable, name_plot)
+    yerr_cor = yerr.copy()
+    ratio_yerr = yerr / y
+    for i in range(len(y)):
+        if ratio_yerr[i] < 0.001:
+            yerr_cor[i] = y[i] * 0.001
+
+    p_initial = [
+        0.9988357333883727,
+        3.5860655582607954e-25,
+        2.0,
+        88.47582262634891,
+        -14.999999896709642,
+        3.985790101558689,
+        0.09361451452734727,
+        -0.02249681269816284,
+        3.104405384451671,
+        2.909490540551297,
+    ]
+    p_minimum = [
+        -2.,
+        0.,
+        0.,
+        0.,
+        -200.,
+        -100.,
+        0.,
+        -20.,
+        0.,
+        -50.,
+    ]
+    p_maximum = [
+        25.,
+        250.,
+        15.,
+        4000.,
+        15.,
+        2000.,
+        50.,
+        10.,
+        100.,
+        50.,
+    ]
+    #mask to only use points above xmin
+    mask = x>=xmin
+    # do the fit
+    popt, pcov = curve_fit(
+        std_gaus_plus, x[mask], y[mask], p0=p_initial, sigma=yerr_cor[mask], absolute_sigma=True, maxfev=20000, bounds=(p_minimum, p_maximum)
+    )
+    # popt, pcov = p_initial, [[0]*len(p_initial)]*len(p_initial)
+
+    # add params 10 and 11 
+    p10 = std_gaus_plus(xmin, *popt)
+    p11 = xmin
+    popt_extended = list(popt) + [p10, p11]
+    errors_extended = list(np.sqrt(np.diag(pcov))) + [0.0, 0.0]
+
+    # plot the fit
+    x_fit = np.logspace(np.log10(x[0]), np.log10(x[-1]), 1000)
+    y_fit = std_gaus_plus(x_fit, *popt)
+    y_fit[x_fit < xmin] = p10
+
+    ax.plot(
+        x_fit,
+        y_fit,
+        color=variables_plot_settings[variable][0],
+        linestyle="-",
+        linewidth=0.7,
+    )
+
+    # print chi2 and p-value on the plot
+    model_full = np.where(x < xmin, p10, std_gaus_plus(x, *popt))
+    chi2 = np.sum(((y - model_full) / yerr) ** 2)
+    ndof = len(x) - len(popt)
+    p_value = 1 - stats.chi2.cdf(chi2, ndof)
+
+    fit_results = {
+        "x": list(x),
+        "y": list(y),
+        "yerr": list(yerr),
+        "jet_pt": [x[0], x[-1]],
+        "y_fit_range": [y_fit[0], y_fit[-1]],
+        "parameters": popt_extended,
+        "errors": errors_extended,
+        "chi2": chi2,
+        "ndof": ndof,
+        "p_value": p_value,
+    }
+
+    return fit_results
+
+def fit_inv_median_std_gaus_enhanced(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_settings,xmin):
+    print("fit_inv_median", variable, name_plot)
+    yerr_cor = yerr.copy()
+    ratio_yerr = yerr / y
+    for i in range(len(y)):
+        if ratio_yerr[i] < 0.001:
+            yerr_cor[i] = y[i] * 0.001
+
+    p_initial = [
+        1.006969730604269,
+        0.7718633234870007,
+        9.811511239266676e-06,
+        -0.33801932729874046,
+        499.99999999999994,
+        1.1569207167683109,
+        -5.262052709906921,
+        0.039535370642021124,
+        -7.24214156229274,
+        -8.077926071816982,
+        1.2513631745999887,
+        -0.3744109082590257
+    ]
+    p_minimum = [
+        -2.,
+        0.,
+        0.,
+        -200.,
+        -100.,
+        0.,
+        -20.,
+        0.,
+        -50.,
+        -200.,
+        -200.,
+        -200.,
+    ]
+    p_maximum = [
+        25.,
+        250.,
+        4000.,
+        15.,
+        2000.,
+        50.,
+        10.,
+        100.,
+        50.,
+        200.,
+        200.,
+        200.,
+    ]
+    #mask to only use points above xmin
+    mask = x>=xmin
+    # do the fit
+    popt, pcov = curve_fit(
+        std_gaus_enhanced, x[mask], y[mask], p0=p_initial, sigma=yerr_cor[mask], absolute_sigma=True, maxfev=20000, bounds=(p_minimum, p_maximum)
+    )
+    # popt, pcov = p_initial, [[0]*len(p_initial)]*len(p_initial)
+
+    # add params 9 and 10 
+    p12 = std_gaus_enhanced(xmin, *popt)
+    p13 = xmin
+    popt_extended = list(popt) + [p12, p13]
+    errors_extended = list(np.sqrt(np.diag(pcov))) + [0.0, 0.0]
+
+    # plot the fit
+    x_fit = np.logspace(np.log10(x[0]), np.log10(x[-1]), 1000)
+    y_fit = std_gaus_enhanced(x_fit, *popt)
+    y_fit[x_fit < xmin] = p12
+
+    ax.plot(
+        x_fit,
+        y_fit,
+        color=variables_plot_settings[variable][0],
+        linestyle="-",
+        linewidth=0.7,
+    )
+
+    # print chi2 and p-value on the plot
+    model_full = np.where(x < xmin, p12, std_gaus_enhanced(x, *popt))
+    chi2 = np.sum(((y - model_full) / yerr) ** 2)
+    ndof = len(x) - len(popt)
+    p_value = 1 - stats.chi2.cdf(chi2, ndof)
+
     fit_results = {
         "x": list(x),
         "y": list(y),
