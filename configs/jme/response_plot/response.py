@@ -1578,7 +1578,7 @@ def plot_median_resolution(eta_bin, plot_type):
                             ("splitpnetreg15" not in args.dir)
                             or ("splitpnetreg15" in args.dir and "Tot" in variable)
                         ):
-                            if "extendedPT" in args.dir and args.upart:
+                            if "extendedPT" in args.dir:
                                 fit_results = fit_inv_median(
                                     ax,
                                     x,
