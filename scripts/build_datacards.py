@@ -207,7 +207,8 @@ sig_bkg_dict = {
             "datasets": ["GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE"]
             },
         "data": {
-            "name": "bbbb_data",
+            # "name": "bbbb_data",
+            "name": "data_obs",
             "datasets": ["DATA_JetMET_JMENano_E_2022_postEE_EraE", "DATA_JetMET_JMENano_F_2022_postEE_EraF", "DATA_JetMET_JMENano_G_2022_postEE_EraG"]
             },
         "background": {
@@ -268,6 +269,7 @@ mc_processes = MCProcesses([mc_process, data_bg_process])
 data_process = DataProcess(
         name=sig_bkg_dict["data"]["name"],
         samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["data"]["datasets"]])),
+        years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["data"]["datasets"]])),
         )
 data_processes = DataProcesses([data_process])
 
