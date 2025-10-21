@@ -224,7 +224,7 @@ config_json_path = os.path.join(os.path.dirname(input_dir), "config.json")
 with open(config_json_path, "r") as f:
     config = json.load(f)
 
-region_name = "4b_signal_analysis_region"
+region_name = "bbbb_signal_analysis_region"
 coffea_file = create_new_region(coffea_file, cat_name=region_name, scale_gen=do_scale_gen_weight)
 
 # -- Histograms --
