@@ -139,7 +139,9 @@ def create_new_region(coffea_file, cat_name, scale_gen):
             for dataset in dset_list:
                 histogram = coffea_file["variables"][column][sample][dataset]
                 if "DATA" not in dataset:
-                    histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False, scale_gen=coffea_file["sum_genweights"][dataset])
+                    # histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False, scale_gen=coffea_file["sum_genweights"][dataset])
+                    histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False)
+                    histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False)
                 else:
                     histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False)
                 coffea_file["variables"][column][sample][dataset] = histogram_with_new
@@ -166,7 +168,7 @@ def create_new_region(coffea_file, cat_name, scale_gen):
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.DEBUG)
+                    level=logging.INFO)
 logger = logging.getLogger()
 
 
@@ -198,6 +200,22 @@ if "output_all.coffea" in coffea_list:
 else:
     raise NameError(f"No combined coffea file found in {coffea_list}")
 
+# At some point, this should be the defining dictionary telling us, what sample/dataset belongs in which bin:
+sig_bkg_dict = {
+        "signal": {
+            "name": "GluGlutoHHto4b_signal",
+            "datasets": ["GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE"]
+            },
+        "data": {
+            "name": "bbbb_data",
+            "datasets": ["DATA_JetMET_JMENano_E_2022_postEE_EraE", "DATA_JetMET_JMENano_F_2022_postEE_EraF", "DATA_JetMET_JMENano_G_2022_postEE_EraG"]
+            },
+        "background": {
+            "name": "bbbb_background",
+            "datasets": ["DATA_JetMET_JMENano_E_2022_postEE_EraE_background", "DATA_JetMET_JMENano_F_2022_postEE_EraF_background", "DATA_JetMET_JMENano_G_2022_postEE_EraG_background"]
+            }
+        }
+
 # -- Load Coffea file and config.json --
 coffea_file = load(coffea_file)
 
@@ -209,85 +227,84 @@ region_name = "4b_signal_analysis_region"
 coffea_file = create_new_region(coffea_file, cat_name=region_name, scale_gen=do_scale_gen_weight)
 
 # -- Histograms --
-histograms_dict = {
-        # "SoB": coffea_file["variables"]["sig_bkg_dnn_score_transformed"]
-        "SoB": coffea_file["variables"]["sig_bkg_dnn_score"],
-        "SoB_2022_postEE": coffea_file["variables"]["sig_bkg_dnn_score_transformed2022_postEE"]
-        }
+histograms_dict = {}
+for key, sob_hist in coffea_file["variables"].items():
+    if "sig_bkg" in key:
+        histograms_dict[key] = sob_hist
+        # "SoB": coffea_file["variables"]["sig_bkg_dnn_score"],
 
 # -- Create Processes
-meta_dict_mc = {"samples": [], "years": []}
-meta_dict_data = {"samples": [], "years": []}
-meta_dict_data_bg = {"samples": [], "years": []}
+meta_dict = coffea_file['datasets_metadata']['by_dataset']
 
-# -- Loading datasets --
-# Reading metadata out of the sample list in the config file.
-# For this I try to separate MC and data
-for name, file in config["datasets"]["filesets"].items():
-    metadata = file["metadata"]
-    meta_dict = meta_dict_mc if metadata["isMC"] == "True" else meta_dict_data  # The boolean is a string...
+for dataset in sig_bkg_dict["signal"]["datasets"]:
+    if dataset not in meta_dict.keys():
+        raise Exception(f"Signal dataset {dataset} not found in file")
+for dataset in sig_bkg_dict["data"]["datasets"]:
+    if dataset not in meta_dict.keys():
+        raise Exception(f"Data dataset {dataset} not found in file")
+for dataset in sig_bkg_dict["background"]["datasets"]:
+    if dataset not in meta_dict.keys():
+        raise Exception(f"Background dataset {dataset} not found in file")
 
-    if metadata["sample"] not in meta_dict["samples"]:
-        meta_dict["samples"].append(metadata["sample"])
-    if metadata["year"] not in meta_dict["years"]:
-        meta_dict["years"].append(metadata["year"])
-    if meta_dict == meta_dict_data:
-        if f"{metadata['sample']}_background" not in meta_dict_data_bg["samples"]:
-            meta_dict_data_bg["samples"].append(f"{metadata['sample']}_background")
-        if metadata["year"] not in meta_dict_data_bg["years"]:
-            meta_dict_data_bg["years"].append(metadata["year"])
-
-logger.info(f"These are the found MC samples: {meta_dict_mc['samples']} and years {meta_dict_mc['years']}")
-logger.info(f"These are the found Data samples: {meta_dict_data['samples']} and years {meta_dict_data['years']}")
+logger.info(f"These are the found MC samples: {sig_bkg_dict['signal']['datasets']}")
+logger.info(f"These are the found Data samples: {sig_bkg_dict['data']['datasets']}")
+logger.info(f"These are the found Data background samples: {sig_bkg_dict['background']['datasets']}")
 
 # -- Filling metadata into the respective objects --
 mc_process = MCProcess(
-        name="GluGlutoHHto4b",
-        samples=meta_dict_mc["samples"],
-        years=meta_dict_mc["years"],
+        name=sig_bkg_dict["signal"]["name"],
+        samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["signal"]["datasets"]])),
+        years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["signal"]["datasets"]])),
         is_signal=True,
         )
 data_bg_process = MCProcess(
-        name="4b_background",
-        samples=meta_dict_data_bg["samples"],
-        years=meta_dict_data_bg["years"],
+        name=sig_bkg_dict["background"]["name"],
+        samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["background"]["datasets"]])),
+        years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["background"]["datasets"]])),
         is_signal=False,
         )
 mc_processes = MCProcesses([mc_process, data_bg_process])
 
 data_process = DataProcess(
-        name="4b_data",
-        samples=meta_dict_data["samples"],
+        name=sig_bkg_dict["data"]["name"],
+        samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["data"]["datasets"]])),
         )
 data_processes = DataProcesses([data_process])
 
 # -- Systematics --
-common_systematics = [
-    "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi"
-]
+# common_systematics = [
+#     "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi"
+# ]
 
-systematics = []
-for syst in common_systematics:
-    for year in meta_dict_mc["years"]:
-        systematics.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{year}", typ="shape", processes=["GluGlutoHHto4b"], years=[year], value=1.0))
-# systematics.append(SystematicUncertainty(name="nominal", datacard_name="nominal", typ="shape", processes=["4b_background"], years=[year], value=1.0))
-systematics = Systematics(systematics)
+# Trying to make this generic. Ideally, we want exactly one single set of variations at the moment because we are using MC only for signal. This has to be improved im some shape or form.
+# Essentially, right now, all MC sets belong to "GluGluHHto4b"
+for hist_cat, sob_hist in histograms_dict.items():
+    # Get to the variation infos in the histograms for MC signal:
+    systematics = []
+    for mc_set in sig_bkg_dict["signal"]["datasets"]:
+        variations = list(sob_hist[meta_dict[mc_set]["sample"]][mc_set].axes['variation'])
+        logger.info(f"Found variations: {variations}")
+        for syst in variations:
+            systematics.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{sig_bkg_dict['signal']['name']}", typ="shape", processes=[f"{sig_bkg_dict['signal']['name']}"], years=[meta_dict[mc_set]["year"]], value=1.0))
+        # systematics.append(SystematicUncertainty(name="nominal", datacard_name="nominal", typ="shape", processes=["4b_background"], years=[year], value=1.0))
+        systematics = Systematics(systematics)
 
-_label = "run3"
-_datacard_name = f"datacard_combined_{_label}"
-_workspace_name = f"workspace_{_label}.root"
+    _label = "run3"
+    _datacard_name = f"datacard_combined_{_label}"
+    _workspace_name = f"workspace_{_label}.root"
 
-datacard = Datacard(
-        histograms=histograms_dict["SoB_2022_postEE"],
-        datasets_metadata=coffea_file["datasets_metadata"],
-        cutflow=coffea_file["cutflow"],
-        systematics=systematics,
-        years=meta_dict_mc["years"] + meta_dict_data["years"],
-        mc_processes=mc_processes,
-        data_processes=data_processes,
-        category=region_name,
-        )
-datacard.dump(directory=args.output, card_name=f"{region_name}_{_label}.txt", shapes_name=f"shapes_{region_name}_{_label}.root")
+    datacard = Datacard(
+            histograms=sob_hist,
+            datasets_metadata=coffea_file["datasets_metadata"],
+            cutflow=coffea_file["cutflow"],
+            systematics=systematics,
+            # This might have to change. Right now I am binding the year to the MC signal year...
+            years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["signal"]["datasets"]])),
+            mc_processes=mc_processes,
+            data_processes=data_processes,
+            category=region_name,
+            )
+    datacard.dump(directory=f"{args.output}/{hist_cat}", card_name=f"{region_name}_{_label}.txt", shapes_name=f"shapes_{region_name}_{_label}.root")
 
 # _datacards = {
 #         "4b_signal_region": datacard
