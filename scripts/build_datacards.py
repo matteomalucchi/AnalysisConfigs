@@ -203,17 +203,16 @@ else:
 # At some point, this should be the defining dictionary telling us, what sample/dataset belongs in which bin:
 sig_bkg_dict = {
         "signal": {
-            "name": "GluGlutoHHto4b_signal",
-            "datasets": ["GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE"]
+            "ggHH_kl_1_kt_1_13p6TeV_hbbhbb": ["GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE"],
+            "ggHH_kl_2p45_kt_1_13p6TeV_hbbhbb": ["GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_2022_postEE"],
+            "ggHH_kl_5_kt_1_13p6TeV_hbbhbb": ["GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_2022_postEE"],
             },
         "data": {
-            # "name": "bbbb_data",
-            "name": "data_obs",
-            "datasets": ["DATA_JetMET_JMENano_E_2022_postEE_EraE", "DATA_JetMET_JMENano_F_2022_postEE_EraF", "DATA_JetMET_JMENano_G_2022_postEE_EraG"]
+            # This needs to have this name, and only be one category
+            "data_obs": ["DATA_JetMET_JMENano_E_2022_postEE_EraE", "DATA_JetMET_JMENano_F_2022_postEE_EraF", "DATA_JetMET_JMENano_G_2022_postEE_EraG"]
             },
         "background": {
-            "name": "bbbb_background",
-            "datasets": ["DATA_JetMET_JMENano_E_2022_postEE_EraE_background", "DATA_JetMET_JMENano_F_2022_postEE_EraF_background", "DATA_JetMET_JMENano_G_2022_postEE_EraG_background"]
+            "bbbb_background": ["DATA_JetMET_JMENano_E_2022_postEE_EraE_background", "DATA_JetMET_JMENano_F_2022_postEE_EraF_background", "DATA_JetMET_JMENano_G_2022_postEE_EraG_background"]
             }
         }
 
@@ -237,40 +236,51 @@ for key, sob_hist in coffea_file["variables"].items():
 # -- Create Processes
 meta_dict = coffea_file['datasets_metadata']['by_dataset']
 
-for dataset in sig_bkg_dict["signal"]["datasets"]:
-    if dataset not in meta_dict.keys():
-        raise Exception(f"Signal dataset {dataset} not found in file")
-for dataset in sig_bkg_dict["data"]["datasets"]:
-    if dataset not in meta_dict.keys():
-        raise Exception(f"Data dataset {dataset} not found in file")
-for dataset in sig_bkg_dict["background"]["datasets"]:
-    if dataset not in meta_dict.keys():
-        raise Exception(f"Background dataset {dataset} not found in file")
+for dataset_list in sig_bkg_dict["signal"].values():
+    for dataset in dataset_list:
+        if dataset not in meta_dict.keys():
+            raise Exception(f"Signal dataset {dataset} not found in file")
+for dataset in sig_bkg_dict["data"].values():
+    for dataset in dataset_list:
+        if dataset not in meta_dict.keys():
+            raise Exception(f"Data dataset {dataset} not found in file")
+for dataset in sig_bkg_dict["background"].values():
+    for dataset in dataset_list:
+        if dataset not in meta_dict.keys():
+            raise Exception(f"Background dataset {dataset} not found in file")
 
-logger.info(f"These are the found MC samples: {sig_bkg_dict['signal']['datasets']}")
-logger.info(f"These are the found Data samples: {sig_bkg_dict['data']['datasets']}")
-logger.info(f"These are the found Data background samples: {sig_bkg_dict['background']['datasets']}")
+logger.info(f"These are the MC samples: {sig_bkg_dict['signal']}")
+logger.info(f"These are the Data samples: {sig_bkg_dict['data']}")
+logger.info(f"These are the Data background samples: {sig_bkg_dict['background']}")
 
 # -- Filling metadata into the respective objects --
-mc_process = MCProcess(
-        name=sig_bkg_dict["signal"]["name"],
-        samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["signal"]["datasets"]])),
-        years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["signal"]["datasets"]])),
-        is_signal=True,
-        )
-data_bg_process = MCProcess(
-        name=sig_bkg_dict["background"]["name"],
-        samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["background"]["datasets"]])),
-        years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["background"]["datasets"]])),
-        is_signal=False,
-        )
-mc_processes = MCProcesses([mc_process, data_bg_process])
+mc_process = []
+for name, datasets in sig_bkg_dict["signal"].items():
+    mc_process.append(MCProcess(
+            name=name,
+            # All these ugly catings are to get a list with unique values.
+            samples=set([meta_dict[dataset]["sample"] for dataset in datasets]),
+            years=set([meta_dict[dataset]["year"] for dataset in datasets]),
+            is_signal=True,
+            ))
+data_bg_process = []
+for name, datasets in sig_bkg_dict["background"].items():
+    data_bg_process.append(MCProcess(
+            name=name,
+            samples=set([meta_dict[dataset]["sample"] for dataset in datasets]),
+            years=set([meta_dict[dataset]["year"] for dataset in datasets]),
+            is_signal=False,
+            ))
+mc_processes = MCProcesses(mc_process + data_bg_process)
 
-data_process = DataProcess(
-        name=sig_bkg_dict["data"]["name"],
-        samples=list(set([meta_dict[dataset]["sample"] for dataset in sig_bkg_dict["data"]["datasets"]])),
-        years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["data"]["datasets"]])),
-        )
+if len(sig_bkg_dict["data"].keys()) > 1:
+    raise Exception("Only one single data process is allowed with fixed name 'data_obs'")
+for name, datasets in sig_bkg_dict["data"].items():
+    data_process = DataProcess(
+            name=name,
+            samples=set([meta_dict[dataset]["sample"] for dataset in datasets]),
+            years=set([meta_dict[dataset]["year"] for dataset in datasets]),
+            )
 data_processes = DataProcesses([data_process])
 
 # -- Systematics --
@@ -282,14 +292,16 @@ data_processes = DataProcesses([data_process])
 # Essentially, right now, all MC sets belong to "GluGluHHto4b"
 for hist_cat, sob_hist in histograms_dict.items():
     # Get to the variation infos in the histograms for MC signal:
-    systematics = []
-    for mc_set in sig_bkg_dict["signal"]["datasets"]:
-        variations = list(sob_hist[meta_dict[mc_set]["sample"]][mc_set].axes['variation'])
-        logger.info(f"Found variations: {variations}")
-        for syst in variations:
-            systematics.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{sig_bkg_dict['signal']['name']}", typ="shape", processes=[f"{sig_bkg_dict['signal']['name']}"], years=[meta_dict[mc_set]["year"]], value=1.0))
-        # systematics.append(SystematicUncertainty(name="nominal", datacard_name="nominal", typ="shape", processes=["4b_background"], years=[year], value=1.0))
-        systematics = Systematics(systematics)
+    systematics_list = []
+    # Iterate through different signal types
+    for sig_type, datasets in sig_bkg_dict["signal"].items():
+        # Iterate through the datasets in a particular signal type (often a signle one)
+        for mc_set in datasets:
+            variations = list(sob_hist[meta_dict[mc_set]["sample"]][mc_set].axes['variation'])
+            logger.info(f"Found variations: {variations}")
+            for syst in variations:
+                systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{sig_type}", typ="shape", processes=[f"{sig_type}"], years=[meta_dict[mc_set]["year"]], value=1.0))
+        systematics = Systematics(systematics_list)
 
     _label = "run3"
     _datacard_name = f"datacard_combined_{_label}"
@@ -300,8 +312,8 @@ for hist_cat, sob_hist in histograms_dict.items():
             datasets_metadata=coffea_file["datasets_metadata"],
             cutflow=coffea_file["cutflow"],
             systematics=systematics,
-            # This might have to change. Right now I am binding the year to the MC signal year...
-            years=list(set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["signal"]["datasets"]])),
+            # This might have to change. Right now I am binding the year to the data year...
+            years=set([meta_dict[dataset]["year"] for dataset in sig_bkg_dict["data"]["data_obs"]]),
             mc_processes=mc_processes,
             data_processes=data_processes,
             category=region_name,
