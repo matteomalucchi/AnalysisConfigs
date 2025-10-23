@@ -21,6 +21,7 @@ dependencies:
   - pip
   - pip:
       - coffea==0.7.29
+      # Put the path to your PocketCoffea repository
       - -e ../PocketCoffea
       - -e ./
       # Add any other pip-only packages here, but avoid numpy, scipy, numba, awkward, coffea, etc.
