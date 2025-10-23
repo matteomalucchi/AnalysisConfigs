@@ -14,7 +14,7 @@ micromamba activate pocket-coffea-env
 
 ### General installation
 
-The first step ipocket-coffea-envs installing the main `PocketCoffea` package in your python environment.
+The first step is installing the main `PocketCoffea` package in your python environment.
 
 Please have a look at the [Installation guide](https://pocketcoffea.readthedocs.io/en/latest/installation.html).
 
