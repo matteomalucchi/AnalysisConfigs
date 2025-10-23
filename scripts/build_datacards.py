@@ -55,6 +55,10 @@ def add_variation_axis(histogram):
 
 
 def duplicate_category(histo, src_label, new_label, axis=0, rescale_label=False, scale_gen=False):
+    """Copy the histogram for a category from one region into a new one.
+
+    Essentially all the required datasets/regions for the analysis are to be copied into the newly created region
+    """
     cat_axis = histo.axes[axis]
     if not isinstance(cat_axis, hist.axis.StrCategory):
         raise TypeError(f"Axis {axis} is not a StrCategory axis")
@@ -119,6 +123,7 @@ def duplicate_category(histo, src_label, new_label, axis=0, rescale_label=False,
 
 
 def create_new_region(coffea_file, cat_name, scale_gen):
+    """Create a new region in the coffea file, that contains all the regions we need for the analysis."""
     for key in ["sumw", "sumw2"]:
         coffea_file[key][cat_name] = coffea_file[key]["4b_signal_region"]
     # == adding cutflow ==
@@ -219,10 +224,6 @@ sig_bkg_dict = {
 # -- Load Coffea file and config.json --
 coffea_file = load(coffea_file)
 
-config_json_path = os.path.join(os.path.dirname(input_dir), "config.json")
-with open(config_json_path, "r") as f:
-    config = json.load(f)
-
 region_name = "bbbb_signal_analysis_region"
 coffea_file = create_new_region(coffea_file, cat_name=region_name, scale_gen=do_scale_gen_weight)
 
@@ -232,7 +233,6 @@ for key, sob_hist in coffea_file["variables"].items():
     if "sig_bkg" in key:
         histograms_dict[key] = sob_hist
         # "SoB": coffea_file["variables"]["sig_bkg_dnn_score"],
-
 # -- Create Processes
 meta_dict = coffea_file['datasets_metadata']['by_dataset']
 
@@ -300,7 +300,8 @@ for hist_cat, sob_hist in histograms_dict.items():
             variations = list(sob_hist[meta_dict[mc_set]["sample"]][mc_set].axes['variation'])
             logger.info(f"Found variations: {variations}")
             for syst in variations:
-                systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{sig_type}", typ="shape", processes=[f"{sig_type}"], years=[meta_dict[mc_set]["year"]], value=1.0))
+                if syst != "nominal":
+                    systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{sig_type}", typ="shape", processes=[f"{sig_type}"], years=[meta_dict[mc_set]["year"]], value=1.0))
         systematics = Systematics(systematics_list)
 
     _label = "run3"
@@ -317,6 +318,7 @@ for hist_cat, sob_hist in histograms_dict.items():
             mc_processes=mc_processes,
             data_processes=data_processes,
             category=region_name,
+            process_suffix="",
             )
     datacard.dump(directory=f"{args.output}/{hist_cat}", card_name=f"{region_name}_{_label}.txt", shapes_name=f"shapes_{region_name}_{_label}.root")
 
