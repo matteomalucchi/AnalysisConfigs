@@ -23,7 +23,7 @@ On `tier-3`, run the following commands to produce the input files for SPANet tr
 #### Run pocket-coffea to produce coffea files
 
 > [!TIP]
-> @Tier-3/AnalysisConfigs
+> @Tier-3/AnalysisConfigs &rarr;  [README](https://github.com/matteomalucchi/AnalysisConfigs/blob/main/README.md)
 
 ```bash
 cd AnalysisConfigs/configs/HH4b_common
@@ -284,6 +284,7 @@ run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
 
 > [!TIP]
 > @Tier-3/AnalysisConfigs
+
 
 ```bash
 sbatch -p short --account=t3 --time=00:05:00 --mem 25gb --cpus-per-task=8 --wrap="python AnalysisConfigs/scripts/plot_DNN_score.py -i <input_directory> -im <input_signal_file> -o <output_directory> <--novars>  <-r2>"

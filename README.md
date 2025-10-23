@@ -1,10 +1,20 @@
 # AnalysisConfigs
+
 Repository containing analysis configurations for PocketCoffea
 
 
 ## Setup
 
-The first step is installing the main `PocketCoffea` package in your python environment.
+### Fast installation with micromamba
+
+```bash
+micromamba env create -f pocket-coffea-environment.yml
+micromamba activate pocket-coffea-env
+```
+
+### General installation
+
+The first step ipocket-coffea-envs installing the main `PocketCoffea` package in your python environment.
 
 Please have a look at the [Installation guide](https://pocketcoffea.readthedocs.io/en/latest/installation.html).
 
@@ -25,6 +35,6 @@ This will install the `configs` package in editable mode.
 
 - Simple **Z-> mumu** invariant mass analysis [here](./configs/zmumu)
 
-
 ## HH4b analysis
+
 The instruction to run the HH4b analysis are in the [HH4b README](./configs/HH4b_common/README.md).
