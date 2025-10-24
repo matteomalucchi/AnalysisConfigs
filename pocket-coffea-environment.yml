@@ -21,6 +21,7 @@ dependencies:
   - pip
   - pip:
       - coffea==0.7.29
+      - ipykernel
       # Put the path to your PocketCoffea repository
       - -e ../PocketCoffea
       - -e ./

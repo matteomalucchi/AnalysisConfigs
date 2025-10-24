@@ -309,7 +309,7 @@ The first option is to train the DNN model for signal / background classificatio
 python </path/to/script>/extract_quantile_transformer.py -i </path/to/coffeafiles>/output_GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE.coffea \
 	--onnx-model </path/to/model/modelname>.onnx \
 	--input-variables <sig_bkg_input_variable_list_name> <--novars>
-	-o <output_directory (default is ./quantile_transformer>
+	-o <output_directory (default is ./quantile_transformer)****>
 ```
 
 The second option is to use the score variables that are already in the `.coffea` files. In this case, the last PocketCoffea command has to be rerun after defining the bins to get the variables for the datacards.
