@@ -115,10 +115,11 @@ sample_list = (
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         ## 2022 postEE
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        # "DATA_JetMET_JMENano_G_skimmed",
+        "DATA_JetMET_JMENano_E_skimmed",
+        "DATA_JetMET_JMENano_F_skimmed",
+        "DATA_JetMET_JMENano_G_skimmed",
     ]
+    + sample_ggF_list
     + (
         [
         #     "GluGlutoHHto4B_spanet_skimmed",
@@ -126,7 +127,6 @@ sample_list = (
         #     # "VBF_HHto4B",
         ]
     )
-    + sample_ggF_list
 )
 
 
