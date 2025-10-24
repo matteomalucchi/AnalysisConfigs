@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import numpy as np
+import re
 
 import hist
 from coffea.util import load
@@ -296,12 +297,17 @@ for hist_cat, sob_hist in histograms_dict.items():
     # Iterate through different signal types
     for sig_type, datasets in sig_bkg_dict["signal"].items():
         # Iterate through the datasets in a particular signal type (often a signle one)
-        for mc_set in datasets:
-            variations = list(sob_hist[meta_dict[mc_set]["sample"]][mc_set].axes['variation'])
-            logger.info(f"Found variations: {variations}")
-            for syst in variations:
-                if syst != "nominal":
-                    systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{sig_type}", typ="shape", processes=[f"{sig_type}"], years=[meta_dict[mc_set]["year"]], value=1.0))
+        variations_updown = list(sob_hist[meta_dict[datasets[0]]["sample"]][datasets[0]].axes['variation'])
+        for var in variations_updown:
+            sliced = sob_hist[meta_dict[datasets[0]]["sample"]][datasets[0]][{"variation": var, "cat": region_name}]
+            print(f"Variation: {var}")
+            print(sliced.values())
+        variations = set([re.sub(r'(Up|Down)$', '', var) for var in variations_updown])
+        logger.info(f"Found variations: {variations}")
+        for syst in variations:
+            if syst != "nominal":
+                # systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{meta_dict[datasets[0]]['year']}", typ="shape", processes=datasets, years=[meta_dict[datasets[0]]["year"]], value=1.0))
+                systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}", typ="shape", processes=list(sig_bkg_dict["signal"].keys()), years=[meta_dict[datasets[0]]["year"]], value=1.0))
         systematics = Systematics(systematics_list)
 
     _label = "run3"
