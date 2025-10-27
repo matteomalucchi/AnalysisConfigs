@@ -303,11 +303,13 @@ for hist_cat, sob_hist in histograms_dict.items():
             print(f"Variation: {var}")
             print(sliced.values())
         variations = set([re.sub(r'(Up|Down)$', '', var) for var in variations_updown])
+        try:
+            variations.remove("nominal")
+        except:
+            raise ValueError(f"Variations list {variations} does not contain 'nominal'.")
         logger.info(f"Found variations: {variations}")
         for syst in variations:
-            if syst != "nominal":
-                # systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{meta_dict[datasets[0]]['year']}", typ="shape", processes=datasets, years=[meta_dict[datasets[0]]["year"]], value=1.0))
-                systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}", typ="shape", processes=list(sig_bkg_dict["signal"].keys()), years=[meta_dict[datasets[0]]["year"]], value=1.0))
+            systematics_list.append(SystematicUncertainty(name=syst, datacard_name=f"{syst}_{meta_dict[datasets[0]]['year']}", typ="shape", processes=list(sig_bkg_dict["signal"].keys()), years=[meta_dict[datasets[0]]["year"]], value=1.0))
         systematics = Systematics(systematics_list)
 
     _label = "run3"
