@@ -55,7 +55,7 @@ def add_variation_axis(histogram):
 
 
 
-def duplicate_category(histo, src_label, new_label, axis=0, rescale_label=False, scale_gen=False):
+def duplicate_category(histo, src_label, new_label, axis=0, rescale_label=False):
     """Copy the histogram for a category from one region into a new one.
 
     Essentially all the required datasets/regions for the analysis are to be copied into the newly created region
@@ -85,10 +85,6 @@ def duplicate_category(histo, src_label, new_label, axis=0, rescale_label=False,
         sl_new[axis] = idx_new
 
         vals = histo.view(flow=True)[tuple(sl_old)]
-        if scale_gen:
-            vals["value"] *= 1 / scale_gen
-            vals["variance"] *= (1 / scale_gen)**2
-
         new_histo.view(flow=True)[tuple(sl_new)] = vals
 
     # ---- duplicate requested category ----
@@ -123,19 +119,20 @@ def duplicate_category(histo, src_label, new_label, axis=0, rescale_label=False,
     return new_histo
 
 
-def create_new_region(coffea_file, cat_name, scale_gen):
+def create_new_region(coffea_file, cat_name, run2):
     """Create a new region in the coffea file, that contains all the regions we need for the analysis."""
+    suffix = "Run2" if run2 else ""
     for key in ["sumw", "sumw2"]:
-        coffea_file[key][cat_name] = coffea_file[key]["4b_signal_region"]
+        coffea_file[key][cat_name] = coffea_file[key][f"4b_signal_region{suffix}"]
     # == adding cutflow ==
     presel_samples = list(coffea_file["cutflow"]["presel"].keys())
     for key in presel_samples:
         coffea_file["cutflow"]["presel"][f"{key}_background"] = coffea_file["cutflow"]["presel"][key]
-    coffea_file["cutflow"][cat_name] = coffea_file["cutflow"]["4b_signal_region"]
-    for key in coffea_file["cutflow"]["2b_signal_region_postW"].keys():
+    coffea_file["cutflow"][cat_name] = coffea_file["cutflow"][f"4b_signal_region{suffix}"]
+    for key in coffea_file["cutflow"][f"2b_signal_region_postW{suffix}"].keys():
         if "DATA" in key:
             coffea_file["cutflow"][cat_name][f"{key}_background"] = {}
-            for subkey, subvalue in coffea_file["cutflow"]["2b_signal_region_postW"][key].items():
+            for subkey, subvalue in coffea_file["cutflow"][f"2b_signal_region_postW{suffix}"][key].items():
                 coffea_file["cutflow"][cat_name][f"{key}_background"][f"{subkey}_background"] = subvalue
     # == variables ==
     for column in coffea_file["variables"].keys():
@@ -145,14 +142,13 @@ def create_new_region(coffea_file, cat_name, scale_gen):
             for dataset in dset_list:
                 histogram = coffea_file["variables"][column][sample][dataset]
                 if "DATA" not in dataset:
-                    # histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False, scale_gen=coffea_file["sum_genweights"][dataset])
-                    histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False)
-                    histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False)
+                    histogram_with_new = duplicate_category(histogram, f"4b_signal_region{suffix}", cat_name, axis=0, rescale_label=False)
+                    histogram_with_new = duplicate_category(histogram, f"4b_signal_region{suffix}", cat_name, axis=0, rescale_label=False)
                 else:
-                    histogram_with_new = duplicate_category(histogram, "4b_signal_region", cat_name, axis=0, rescale_label=False)
+                    histogram_with_new = duplicate_category(histogram, f"4b_signal_region{suffix}", cat_name, axis=0, rescale_label=False)
                 coffea_file["variables"][column][sample][dataset] = histogram_with_new
                 if "DATA" in dataset:
-                    histogram_with_new = duplicate_category(histogram, "2b_signal_region_postW", cat_name, axis=0, rescale_label="4b_signal_region")
+                    histogram_with_new = duplicate_category(histogram, f"2b_signal_region_postW{suffix}", cat_name, axis=0, rescale_label=f"4b_signal_region{suffix}")
                     coffea_file["variables"][column][f"{sample}_background"][f"{dataset}_background"] = histogram_with_new
     # == datasets_metadata : by_datataking_period ==
     for period in coffea_file["datasets_metadata"]["by_datataking_period"].keys():
@@ -188,6 +184,13 @@ parser.add_argument(
     help="Input directory for data with coffea files or coffea files themselves",
 )
 parser.add_argument(
+    "-r2",
+    "--run2",
+    action="store_true",
+    help="If running with Run2 method",
+    default=False,
+)
+parser.add_argument(
     "-o", "--output", type=str, help="Output directory", default="./datacards"
 )
 args = parser.parse_args()
@@ -197,7 +200,6 @@ input_dir = os.path.dirname(args.input_data[0])
 if not os.path.exists(args.output):
     os.makedirs(args.output)
 
-do_scale_gen_weight = True
 
 # I want to use the coffea file with all outputs. Therefore, it should be merged beforehand.
 coffea_list = [file for file in os.listdir(input_dir) if file.endswith(".coffea")]
@@ -226,7 +228,7 @@ sig_bkg_dict = {
 coffea_file = load(coffea_file)
 
 region_name = "bbbb_signal_analysis_region"
-coffea_file = create_new_region(coffea_file, cat_name=region_name, scale_gen=do_scale_gen_weight)
+coffea_file = create_new_region(coffea_file, cat_name=region_name, run2=args.run2)
 
 # -- Histograms --
 histograms_dict = {}
