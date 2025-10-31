@@ -9,14 +9,8 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 onnx_model_dict  |= {
-    # "vbf_ggf_dnn":"/t3home/rcereghetti/ML_pytorch/out/20241212_223142_SemitTightPtLearningRateConstant/models/model_28.onnx",
-    #"bkg_morphing_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/keras_models_morphing/average_model_from_keras.onnx",
-    #"bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/AN_1e-2_noDropout_e20lrdrop95/state_dict/ratio/average_model_from_onnx.onnx",
-    #"bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_1e-3_e20drop75_minDelta1em5/best_models/ratio/average_model_from_onnx.onnx",
     "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/average_model_from_onnx.onnx", # --> training on postEE
-    "bkg_morphing_spread_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/all_ratios_model_onnx.onnx", # --> training on postEE
-    #"sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DHH_method_norm_e5drop75_fixed/state_dict/model_best_epoch_18.onnx",
-    #"sig_bkg_dnn": "",
+    # "bkg_morphing_spread_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/all_ratios_model_onnx.onnx", # --> training on postEE
     "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DHH_method_norm_e5drop75_postEE/state_dict/model_best_epoch_18.onnx",
 }
 
@@ -47,4 +41,5 @@ config_options_dict |= {
     "arctanh_delta_prob_pad_limit": 2.,
     "add_jet_spanet": False,
     "spanet_input_name_list": ["log_pt", "eta", "phi", "btag"],
+    "qt_postEE": "/work/tharte/datasets/quantile_transformer/DHH_quantiles/SRRun2_qt/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
 }| onnx_model_dict

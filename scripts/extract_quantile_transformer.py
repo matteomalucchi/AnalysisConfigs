@@ -105,10 +105,8 @@ def extract_quantile_transformer(cat_col, outputdir):
 
     logger.debug(f"col_dict {col_dict}")
     logger.debug(f"vars_to_transform {vars_to_transform}")
-
-    logger.debug("Category name: category")
     for var in vars_to_transform:
-        var_plot_name = var.replace("Run2", "")
+        var_plot_name = var
         logger.debug(f"Variable: {var}")
         kl = os.path.basename(inputfiles[0]).split("kl-")[-1].split("_")[0].replace("p", ".")
         savesuffix = f"kl_{kl}"
@@ -131,7 +129,7 @@ def extract_quantile_transformer(cat_col, outputdir):
             bins_final[-1] = 1.0
             logger.info(f"Current observable {var}, {cat_mc}")
             logger.info(f"bin edges: {bins_final}")
-            
+
             # Check that the signal distribution is flat
             histo = Hist.new.Var(bins_final, name=var_plot_name, flow=False).Weight()
             histo.fill(col_dict[var][cat_mc], weight=col_dict["weight"][cat_mc])

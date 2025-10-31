@@ -1115,7 +1115,7 @@ def get_variables_dict(
     if not RUN2:
         variables_dict = {k: v for k, v in variables_dict.items() if "Run2" not in k}
     if not SPANET:
-        variables_dict = {k: v for k, v in variables_dict.items() if "Run2" not in k}
+        variables_dict = {k: v for k, v in variables_dict.items() if "Run2" in k}
     return variables_dict
 
 
