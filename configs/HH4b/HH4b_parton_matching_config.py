@@ -7,6 +7,7 @@ from configs.HH4b_common.config_files.__config_file__ import (
     onnx_model_dict,
 )
 from pocket_coffea.lib.calibrators.common import default_calibrators_sequence
+from pocket_coffea.lib.calibrators.common import JetsCalibrator
 from pocket_coffea.lib.cut_functions import (
     get_HLTsel,
 )
@@ -40,6 +41,7 @@ from configs.HH4b_common.dnn_input_variables import (
     # bkg_morphing_dnn_input_variables_altOrder,
     sig_bkg_dnn_input_variables,
 )
+from configs.HH4b_common.params.CustomWeights import SF_btag_fixed_multiple_wp
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -57,6 +59,7 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_Calibrator_withoutVariations.yaml",
+    # f"{localdir}/../HH4b_common/params/jets_calibration_Calibrator_withVariations.yaml",
     update=True,
 )
 
@@ -72,6 +75,7 @@ variables_dict = get_variables_dict(
     year,
     config_options_dict,
     CLASSIFICATION=False,
+    RANDOM_PT=False,
     VBF_VARIABLES=False,
     BKG_MORPHING=False,  # bool(onnx_model_dict["bkg_morphing_dnn"]),
     SCORE=bool(config_options_dict["sig_bkg_dnn"]),
@@ -90,6 +94,20 @@ preselection = [
 ]
 
 # Defining the used samples
+sample_ggF_list = [
+     "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+     "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+     "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+#     "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+]
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
     # "DATA_JetMET_JMENano_D_skimmed",
@@ -106,7 +124,7 @@ sample_list = [
     # "DATA_ParkingHH_2023_Cv4",
     # "DATA_ParkingHH_2023_Dv1",
     # "DATA_ParkingHH_2023_Dv2",
-]
+] + sample_ggF_list
 
 # Define the categories to save
 categories_dict = define_categories(
@@ -194,10 +212,8 @@ else:
 # Add special columns
 if config_options_dict["sig_bkg_dnn"] and config_options_dict["spanet"]:
     column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
-    column_list += get_columns_list({"events": ["sig_bkg_dnn_score_transformed"]})
 if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
     column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
-    column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_score_transformedRun2"]})
 if config_options_dict["spanet"] and not any(
     ["DATA" in sample for sample in sample_list]
 ):
@@ -283,6 +299,7 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b.json",
             f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
             f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_SM.json",
+            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
             # f"{localdir}/../HH4b_common/datasets/QCD.json",
             # f"{localdir}/../HH4b_common/datasets/SPANet_classification.json",
@@ -306,11 +323,14 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2],
+    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp],
+    # calibrators=default_calibrators_sequence,
     calibrators=default_calibrators_sequence,
     weights={
         "common": {
-            "inclusive": ["genWeight", "lumi", "XS", "pileup"],
+            # "inclusive": ["genWeight", "lumi", "XS", "sf_btag_fixed_multiple_wp"],
+            # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
+            "inclusive": ["genWeight", "lumi", "XS"],
             # "inclusive": [],
             "bycategory": {
             },
@@ -320,7 +340,7 @@ cfg = Configurator(
     variations={
         "weights": {
             "common": {
-                # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
+                # "inclusive": ["pileup"],  # , "sf_btag_fixed_multiple_wp"],
                 "inclusive": [],
                 "bycategory": {},
             },
