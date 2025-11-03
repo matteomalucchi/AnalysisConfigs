@@ -1,5 +1,6 @@
 from . import custom_cut_functions_common as cuts_f
 from pocket_coffea.lib.cut_definition import Cut
+from pocket_coffea.lib import cut_functions as cuts_f_pc
 
 
 hh4b_presel = Cut(
@@ -173,4 +174,16 @@ blindedRun2 = Cut(
         "score_variable": "sig_bkg_dnn_scoreRun2",
         },
     function=cuts_f.blinding_cuts,
+)
+
+JetVetoMap = Cut(
+    name="JetVetoMaps",
+    params={},
+    function=cuts_f_pc.get_JetVetoMap_Mask
+)
+
+nPVgood = Cut(
+    name="nPVgood",
+    params={"N": 1},
+    function=lambda events, params, **kwargs: events.PV.npvsGood >= params["N"],
 )

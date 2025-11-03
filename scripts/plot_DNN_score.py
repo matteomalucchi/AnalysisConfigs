@@ -453,7 +453,7 @@ def main(cat_cols, lumi, era_string):
     # - In this region, 1st element is 4b, 3rd element is 2b-reweighted
     if args.normalisation == "sum_weights":
         op_norm = lambda x, y: sum(x) / sum(y)
-    elif args.normalisation == "sum_weights":
+    elif args.normalisation == "num_events":
         op_norm = lambda x, y: len(x) / len(y)
     else:
         raise ValueError(
