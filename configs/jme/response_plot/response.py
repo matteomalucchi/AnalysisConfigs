@@ -201,6 +201,9 @@ elif "postBPix" in args.dir:
 elif "2024" in args.dir:
     year = "Summer24Run3"
     year_txt = "Summer24Prompt24"
+elif "2025" in args.dir:
+    year = "Winter25Run3"
+    year_txt = "Winter25Prompt25"
 
 if args.year:
     year = args.year
@@ -211,6 +214,8 @@ if DP_NOTE_PLOTS:
         year = "2023"
     elif "24" in year:
         year = "2024"
+    elif "25" in year:
+        year = "2025"
     else:
         year = "2022"
 

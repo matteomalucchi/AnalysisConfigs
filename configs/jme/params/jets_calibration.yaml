@@ -247,6 +247,9 @@ default_jets_calibration:
         "2024":
           - "${default_params_dir:}/jec/Summer24/Summer24Prompt24_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
+        "2025":
+          - "${default_params_dir:}/jec/Winter25/Winter25Prompt25_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+
 
     AK4PFPNet:
       JES_JER_Syst:
@@ -503,6 +506,8 @@ jets_calibration:
     "2024":
       AK4PFPuppi: "Jet"
       #AK8PFPuppi: "FatJet"
+    "2025":
+      AK4PFPuppi: "Jet"
     
   jec_name_map_MC: "${default_jets_calibration.jec_name_map_MC}"
   jec_name_map_Data: "${default_jets_calibration.jec_name_map_Data}"
@@ -516,6 +521,7 @@ jets_calibration:
     2023_preBPix: True
     2023_postBPix: True
     "2024": True
+    "2025": True
 
   rescale_MET:
     2016_PreVFP: False
@@ -527,6 +533,7 @@ jets_calibration:
     2023_preBPix: True
     2023_postBPix: True
     "2024": True
+    "2025": True
 
   rescale_MET_branch:
      2016_PreVFP: "MET"
