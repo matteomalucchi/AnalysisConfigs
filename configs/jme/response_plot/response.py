@@ -223,7 +223,7 @@ if DP_NOTE_PLOTS:
 pt_bins = pt_bins_all if "pnetreg15" in args.dir else (pt_bins_extended if "extendedPT" in args.dir else pt_bins_reduced)
 
 if 'extendedPT' in args.dir:
-    num_params = 13  # 13 for standard gaus fit for uparT and pol10 for PNet
+    args.num_params = 13  # 13 for standard gaus fit for uparT and pol10 for PNet
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
