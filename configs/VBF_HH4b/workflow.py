@@ -2,7 +2,7 @@ import awkward as ak
 import sys
 import numpy as np
 
-from configs.HH4b_common.custom_object_preselection_common import jet_selection_nopu
+from configs.HH4b_common.custom_object_preselection_common import jet_selection_custom
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 from utils.basic_functions import add_fields
 
@@ -18,19 +18,44 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
     def apply_object_preselection(self, variation):
         super().apply_object_preselection(variation=variation)
         if self.vbf_presel:
+                
             self.events["JetVBF_matching"] = self.events.Jet
-            self.events["JetVBF_matching"] = jet_selection_nopu(
-                self.events, "JetVBF_matching", self.params, tight_cuts=self.tight_cuts
+            self.events["JetVBF_matching"] = jet_selection_custom(
+                self.events,
+                "JetVBF_matching",
+                self.params,
+                year=self._year,
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name,
             )
 
             self.events["JetGoodVBF"] = self.events.Jet
-            self.events["JetGoodVBF"] = jet_selection_nopu(
-                self.events, "JetGoodVBF", self.params, tight_cuts=self.tight_cuts
+            self.events["JetGoodVBF"] = jet_selection_custom(
+                self.events,
+                "JetGoodVBF",
+                self.params,
+                year=self._year,
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name,
             )
 
+            if (
+                self.semi_tight_vbf
+                and "pt_tight" in self.params.object_preselection["Jet"].keys()
+            ):
+                self.pt_cut_name_vbf = "pt_tight"
+            else:
+                self.pt_cut_name_vbf = self.pt_cut_name
+                
+                
             self.events["JetVBF_generalSelection"] = self.events.Jet
-            self.events["JetVBF_generalSelection"] = jet_selection_nopu(
-                self.events, "JetVBF_generalSelection", self.params, tight_cuts=self.tight_cuts, semi_tight_vbf=self.semi_tight_vbf
+            self.events["JetVBF_generalSelection"] = jet_selection_custom(
+                self.events,
+                "JetVBF_generalSelection",
+                self.params,
+                year=self._year,
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name_vbf,
             )
 
     def count_objects(self, variation):
@@ -47,8 +72,13 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             self.events["JetVBFNotFromHiggs"] = self.get_jets_no_higgs()
             
             # apply selection to the jets not from Higgs
-            self.events["JetVBFNotFromHiggs"] = jet_selection_nopu(
-                self.events, "JetVBFNotFromHiggs", self.params, tight_cuts=self.tight_cuts,  semi_tight_vbf=self.semi_tight_vbf
+            self.events["JetVBFNotFromHiggs"] = jet_selection_custom(
+                self.events,
+                "JetVBFNotFromHiggs",
+                self.params,
+                year=self._year,
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name_vbf,
             )
 
             # order in pt

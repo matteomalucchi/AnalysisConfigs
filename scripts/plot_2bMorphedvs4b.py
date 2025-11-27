@@ -1,10 +1,9 @@
 import os
 import sys
-from matplotlib import pyplot as plt
 import numpy as np
-from scipy.stats.distributions import chi2
-import mplhep as hep
 from multiprocessing import Pool
+from hist import Hist
+
 
 import configs.HH4b_common.dnn_input_variables as dnn_input_variables
 from utils.inference_session_onnx import get_model_session
@@ -16,21 +15,21 @@ from utils.plot.weighted_quantile import weighted_quantile
 from utils.plot.plot_names import plot_regions_names
 from utils.plot.args_plot import args
 
-hep.style.use("CMS")
+from utils.plot.HEPPlotter import HEPPlotter
+
 
 if not args.output:
-    args.output = "plots_2bVS4b"
-
-if args.test:
-    # args.workers = 1
-    args.output = "test"
-
+    if not args.test:
+        args.output = "plots_2bVS4b"
+    else:
+        args.output = "test_2bVS4b"
+        
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
-ARCTANH_BINS=False
-VARIABLES_TEST=["score", "weight", "prob"]
-
+ARCTANH_BINS = False
+VARIABLES_TEST = ["score", "weight", "prob"]
+DEBUG = args.test
 
 input_dir = os.path.dirname(args.input_data[0])
 log_scale = not args.linear
@@ -139,7 +138,23 @@ if args.test:
                 f"2b_control_region_preW",
             ]
         ],
+        f"SR{args.region_suffix}_SPREAD": [
+            [
+                f"2b{args.region_suffix}_signal_region_postW",
+                f"2b{args.region_suffix}_signal_region_postW_SPREAD",
+            ]
+        ],
     }
+
+
+color_list_orig = [[("black",), ("blue", "dodgerblue"), ("red",)]]
+color_list_spread = [[("red", "red")] + [("green",)] * 20 + [("orange",)] + [("blue",)]]
+color_list_alt = [[("purple",), ("darkorange", "orange"), ("green",)]]
+color_list_DATAMC = [
+    [("red",), ("darkorange",), ("purple",)],
+    [("blue",), ("dodgerblue",)],
+    [("green",), ("limegreen",)],
+]
 
 ## Load the onnx model
 if args.onnx_model:
@@ -152,18 +167,6 @@ if args.onnx_model:
     dnn_variables = getattr(dnn_input_variables, args.input_variables)
     dnn_input_list = get_DNN_input_list(args.run2, dnn_variables)
     print(f"Input list for DNN: {dnn_input_list}")
-
-
-color_list_orig = [[("black",), ("blue", "dodgerblue"), ("red",)]]
-color_list_spread = [
-    [("green", "red")] + [("green",)] * 20 + [("orange",)] + [("blue",)]
-]
-color_list_alt = [[("purple",), ("darkorange", "orange"), ("green",)]]
-color_list_DATAMC = [
-    [("red",), ("darkorange",), ("purple",)],
-    [("blue",), ("dodgerblue",)],
-    [("green",), ("limegreen",)],
-]
 
 
 if not os.path.exists(outputdir):
@@ -181,7 +184,7 @@ else:
     ]
 
 filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else None
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, filter_lambda)
+cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars)
 
 cat_col_mc = None
 if args.input_mc:
@@ -194,19 +197,21 @@ if args.input_mc:
             for file in os.listdir(input_dir)
             if file.endswith(".coffea") and "DATA" not in file
         ]
-        
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, filter_lambda)
+
+    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", filter_lambda, debug=False, novars=args.novars)
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
     else:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_region"]
-        
-    if args.input_mc[0].endswith(".coffea") and any(["score" in col for col in cols_sig_mc]):
+
+    if args.input_mc[0].endswith(".coffea") and any(
+        ["score" in col for col in cols_sig_mc]
+    ):
         CONST_SIG_BINNING = True if len(inputfiles_mc) == 1 else False
     else:
         CONST_SIG_BINNING = False
-        
+
     for col in cols_sig_mc:
         print(col)
         if "score" in col:
@@ -231,27 +236,109 @@ else:
 
 
 def plot_weights(weights_list, suffix, lumi, era_string):
-    fig, ax = plt.subplots(figsize=[13, 13])
+
+    hist_1d_dict = {}
+    mean_std_list = []
     for i, weights in enumerate(weights_list):
-        ax.hist(
-            weights,
-            bins=np.logspace(-3, 2, 100),
-            histtype="step",
-            label="Morphing weights "
-            + (f"{i}" if len(weights_list) > 1 else "")
-            + "\nmean: {:.2f}\nstd: {:.2f}".format(np.mean(weights), np.std(weights)),
+        var_name = f"Morphing weights" + (f" {i}" if len(weights_list) > 1 else "")
+        hist_w = Hist.new.Var(
+            np.logspace(-3, 2, 100),
+            name=var_name,
+            flow=False,
+        ).Double()
+        hist_w.fill(weights)
+        hist_1d_dict[var_name] = {
+            "data": hist_w,
+        }
+        mean_std_list.append(
+            f"mean: {np.mean(weights):.2f}, std: {np.std(weights):.2f}"
         )
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.legend()
-    ax.set_xlabel("Morphing weights")
-    ax.set_ylabel("Events")
 
-    hep.cms.lumitext(f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", ax=ax)
-    hep.cms.text(text="Preliminary", ax=ax)
+    output_base = os.path.join(outputdir, f"weights_{suffix}")
 
-    fig.savefig(os.path.join(outputdir, f"weights_{suffix}.png"))
-    plt.close(fig)
+    p = (
+        HEPPlotter()
+        .set_plot_config(
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            figsize=[13, 13],
+        )
+        .set_output(output_base)
+        .set_labels(
+            "Morphing weights",
+            "Events",
+        )
+        .set_options(y_log=True, x_log=True, set_ylim=False, legend=False)
+        .set_data(hist_1d_dict, plot_type="1d")
+        .add_annotation(
+            x=0.05, y=0.95, s="\n".join(mean_std_list), fontsize=20, ha="left", va="top"
+        )
+        .run()
+    )
+
+
+def get_median_hist(
+    hist_1d_dict, histos_spread, bins, var, k, color_list, cat_plot_name_alt
+):
+    
+    h_median_spread = np.median([h.values() for h in histos_spread], axis=0)
+
+    histo_median_spread = Hist.new.Var(
+        bins,
+        name=var,
+        flow=False,
+    ).Double()
+    histo_median_spread.fill(bins[:-1], weight=h_median_spread)
+
+    hist_1d_dict[cat_plot_name_alt] = {
+        "data": histo_median_spread,
+        "style": {
+            "histtype_ratio": "step",
+            "color": color_list[k][-2][0],
+            "linewidth": 2,
+            "label": cat_plot_name_alt,
+            "appear_in_legend_ratio": False,
+            "edges_ratio": False,
+            "plot_errors": False,
+        },
+    }
+    return hist_1d_dict
+
+
+def get_median_quantiles(hist_1d_dict, histos_spread, bins, var, k, color_list):
+    # plot the 16th and 84th percentiles of the spread
+    for h in hist_1d_dict.values():
+        is_ref = h.get("style", {}).get("is_reference", False)
+        if is_ref:
+            hist_ref = h["data"]
+            break
+
+    ratios_spread = []
+    for h in histos_spread:
+        ratios_spread.append(h.values() / hist_ref.values())
+
+    hist_1d_ratio_dict = {}
+    for idx, quantile in enumerate([16, 84]):
+        ratio_quantile = np.percentile(ratios_spread, quantile, axis=0)
+        ratio_quantile_histo = Hist.new.Var(
+            bins,
+            name=var,
+            flow=False,
+        ).Double()
+        ratio_quantile_histo.fill(bins[:-1], weight=ratio_quantile)
+
+        hist_1d_ratio_dict[f"ratio_{quantile}"] = {
+            "data": ratio_quantile_histo,
+            "style": {
+                "histtype_ratio": "step",
+                "color": color_list[k][-1][0],
+                "linewidth": 2,
+                "legend_name_ratio": (r"$\pm \sigma_{k-folds}$" if idx == 0 else None),
+                "appear_in_legend_ratio": True if quantile == 16 else False,
+                "edges_ratio": False,
+                "plot_errors": False,
+            },
+        }
+    return hist_1d_ratio_dict
 
 
 def plot_single_var_from_columns(
@@ -266,27 +353,17 @@ def plot_single_var_from_columns(
     lumi,
     era_string,
 ):
-    fig, (ax, ax_ratio) = plt.subplots(
-        2,
-        1,
-        figsize=[13, 13],
-        sharex=True,
-        gridspec_kw={"height_ratios": [2.5, 1]},
-    )
-
-    print(var, cat_lists)
-    ratios_spread = []
     histos_spread = []
 
-    min_histo_value = 1e10
-
     for k, cat_list in enumerate(cat_lists):
+        hist_1d_dict = {}
         for i, cat in enumerate(cat_list):
-            print("cat", cat)
 
             if "SPREAD" in cats_name:
-                if "SPREAD" in cat:
+                if "SPREAD" in cat and i == 1:
                     cat_plot_name = plot_regions_names(cat, " (k-folds)")
+                elif "SPREAD" in cat:
+                    cat_plot_name = cat
                 else:
                     cat_plot_name = plot_regions_names(cat, " (mean weight per event)")
                 cat_plot_name_alt = plot_regions_names(cat, " (median per bin)")
@@ -348,7 +425,6 @@ def plot_single_var_from_columns(
                 )
             elif type(col_num[0]) == np.int64:
                 # this is a categorical variable, use the number of bins
-                print("categorical variable")
                 bins = np.arange(
                     col_num.min() - 0.5,
                     col_num.max() + 1.5,
@@ -360,8 +436,6 @@ def plot_single_var_from_columns(
                     tuple(np.quantile(col_den, [0.001, 0.999])) if i == 0 else range_4b
                 )
 
-                print(f"range_4b {range_4b}")
-
                 mask_num_range4b = (col_num >= range_4b[0]) & (col_num <= range_4b[1])
                 weights_num = weights_num[mask_num_range4b]
                 col_num = col_num[mask_num_range4b]
@@ -371,273 +445,123 @@ def plot_single_var_from_columns(
                 col_den = col_den[mask_den_range4b]
 
                 bins = np.linspace(range_4b[0], range_4b[1], NUMBER_OF_BINS + 1)
-                
+
                 if ARCTANH_BINS:
                     # transform the bins to arctanh space
                     bins = np.arctanh(np.linspace(-0.1, 0.999, NUMBER_OF_BINS + 1))
 
-                # print(f"weights_den {weights_den}", type(weights_den))
-                # print(f"weights_num {weights_num}")
-                # print(f"col_num {col_num}", type(col_num))
-                # print(f"col_den {col_den}")
-
-            idx_den = np.digitize(col_den, bins)
-            idx_num = np.digitize(col_num, bins)
-
             if "TRANSFORM" in var:
                 bins = np.linspace(bins[0], bins[-1], NUMBER_OF_BINS + 1)
-            bins_center = (bins[1:] + bins[:-1]) / 2
 
-            h_den = []
-            h_num = []
-            err_den = []
-            err_num = []
+            histo = Hist.new.Var(bins, name=var, flow=False).Weight()
+            histo.fill(col_den, weight=weights_den)
 
-            for j in range(1, len(bins)):
-                h_den.append(np.sum(weights_den[idx_den == j]))
-                h_num.append(np.sum(weights_num[idx_num == j]))
-                err_den.append(np.sqrt(np.sum(weights_den[idx_den == j] ** 2)))
-                err_num.append(np.sqrt(np.sum(weights_num[idx_num == j] ** 2)))
-                # print('weights_den[idx_den == j]', weights_den[idx_den == j])
-
-            h_den = np.array(h_den)
-            h_num = np.array(h_num)
-            err_den = np.array(err_den)
-            err_num = np.array(err_num)
-
-            # print("h_den", h_den, len(h_den))
-            # print("h_num", h_num, len(h_num))
-            # print("err_den", err_den)
-            # print("err_num", err_num)
-
-            chi2_norm = None
-            if i > 0 and chi_squared:
-                # compute the chi square between the two histograms (divide by the error on data)
-                chi2s = ((h_den - h_num) / np.where(err_num == 0, 1, err_num)) ** 2
-                chi2_value = np.sum(chi2s)
-                ndof = len(h_den) - 1
-                chi2_norm = chi2_value / ndof
-                pvalue = chi2.sf(chi2_value, ndof)
-                print("chi2", chi2s, chi2_value, ndof, chi2_norm)
-
-            ratio = h_num / h_den
-
-            print("ratio", ratio)
-            if i == 0:
-                ratio_err = err_num / h_num
-                ax.errorbar(
-                    bins_center,
-                    h_den,
-                    yerr=err_den,
-                    label=cat_plot_name,
-                    color=color_list[k][i][0],
-                    fmt=".",
-                    zorder=10,
-                )
-
-                ax_ratio.axhline(y=1, color="black", linestyle="--")
-                if "SPREAD" in cats_name:
-                    ax_ratio.step(
-                        bins,
-                        1 - np.append(ratio_err, ratio_err[-1]),
-                        where="post",
-                        color=color_list[k][i][1],
-                        label=r"$\pm \sigma_{stat}$",
-                        linewidth=2,
-                    )
-                    ax_ratio.step(
-                        bins,
-                        1 + np.append(ratio_err, ratio_err[-1]),
-                        where="post",
-                        color=color_list[k][i][1],
-                        linewidth=2,
-                    )
+            # Store into dict expected by cms_plotter
+            if "SPREAD" in cats_name:
+                # spread histograms
+                if i == 0:
+                    legend_name_ratio = r"$\pm \sigma_{stat}$"
                 else:
-                    ax_ratio.fill_between(
-                        bins_center,
-                        1 - ratio_err,
-                        1 + ratio_err,
-                        color=color_list[k][i][0],
-                        alpha=0.2,
-                    )
-
+                    legend_name_ratio = None
+                histos_spread.append(histo)
+                style_dict = {
+                    "is_reference": (i == 0),
+                    "histtype": "errorbar" if i == 0 else "step",
+                    "histtype_ratio": "step",
+                    "color": color_list[k][i][0],
+                    "appear_in_legend": True if i < 2 else False,
+                    "appear_in_legend_ratio": True if i < 1 else False,
+                    "legend_name_ratio": legend_name_ratio,
+                    "edges_ratio": False,
+                    "plot_errors": True if i == 0 else False,
+                    "linewidth": 1,
+                }
             else:
-                ratio_err = np.sqrt(
-                    (err_num / h_den) ** 2 + (h_num * err_den / h_den**2) ** 2
-                )
-
-                ## plot the histogram
-                ax.step(
-                    bins,
-                    np.append(h_den, h_den[-1]),
-                    where="post",
-                    label=cat_plot_name if "SPREAD" not in cat or i == 1 else None,
-                    color=color_list[k][i][0],
-                    linewidth=2,
-                    zorder=0,
-                )
-
-                # plot the first and last bin edges
-                x0 = bins[0]
-                x1 = bins[-1]
-                y0 = h_den[0]
-                y1 = h_den[-1]
-                ax.plot(
-                    [x0, x0], [1e-10, y0], color=color_list[k][i][0], linewidth=2,
-                )  # first bin edge
-                ax.plot(
-                    [x1, x1], [1e-10, y1], color=color_list[k][i][0],linewidth=2,
-                )  # last bin edge
-
-                # get the minimum value of the histogram
-                min_histo_value = min(min_histo_value, h_den.min())
-
                 if len(color_list[k][i]) > 1:
-                    ax.fill_between(
-                        bins,
-                        np.append(h_den, h_den[-1]),
-                        step="post",
-                        alpha=0.5,
-                        color=color_list[k][i][1],
-                    )
-
-                if "SPREAD" in cat:
-                    histos_spread.append(h_den)
-                    # plot the spread of the DNN score as histogram in the ratio
-                    ax_ratio.step(
-                        bins,
-                        np.append(ratio, ratio[-1]),
-                        where="post",
-                        color=color_list[k][i][0],
-                        # linestyle="--",
-                        linewidth=1,
-                        zorder=0,
-                    )
-                    ratios_spread.append(ratio)
+                    style_dict = {
+                        "is_reference": (i == 0),
+                        "histtype": "fill",
+                        "edgecolor": color_list[k][i][0],
+                        "facecolor": color_list[k][i][1],
+                    }
                 else:
-                    ax_ratio.errorbar(
-                        bins_center,
-                        ratio,
-                        yerr=ratio_err,
-                        fmt=".",
-                        color=color_list[k][i][0],
-                    )
+                    style_dict = {
+                        "is_reference": (i == 0),
+                        "histtype": "errorbar" if i == 0 else "step",
+                        "color": color_list[k][i][0],
+                    }
 
-            if chi2_norm:
-                ax.text(
-                    0.05,
-                    0.95 - 0.05 * i,
-                    r"$\chi^2$/ndof= {:.1f},".format(chi2_norm)
-                    + f"  p-value= {pvalue:.2f}",
-                    horizontalalignment="left",
-                    verticalalignment="center",
-                    transform=ax.transAxes,
-                    color=color_list[k][i][0],
-                    fontsize=20,
-                )
+            hist_1d_dict[cat_plot_name] = {
+                "data": histo,
+                "style": style_dict,
+            }
 
             del col_den, col_num
 
     if "SPREAD" in cats_name:
         # plot the median of the spread
-        h_median_spread = np.median(histos_spread, axis=0)
-        ax.step(
+        hist_1d_dict = get_median_hist(
+            hist_1d_dict.copy(),
+            histos_spread,
             bins,
-            np.append(h_median_spread, h_median_spread[-1]),
-            where="post",
-            color=color_list[k][-2][0],
-            linewidth=1,
-            label=cat_plot_name_alt,
-            zorder=1,
-        )
-        x0 = bins[0]
-        x1 = bins[-1]
-        y0 = h_median_spread[0]
-        y1 = h_median_spread[-1]
-        ax.plot(
-            [x0, x0], [ax.get_ylim()[0], y0], color=color_list[k][-2][0]
-        )  # first bin edge
-        ax.plot(
-            [x1, x1], [ax.get_ylim()[0], y1], color=color_list[k][-2][0]
-        )  # last bin edge
-
-        if len(color_list[k][-2]) > 1:
-            ax.fill_between(
-                bins,
-                np.append(h_median_spread, h_median_spread[-1]),
-                step="post",
-                alpha=0.5,
-                color=color_list[k][-2][1],
-            )
-
-        ratio_median = h_num / h_median_spread
-        ax_ratio.step(
-            bins,
-            np.append(ratio_median, ratio_median[-1]),
-            where="post",
-            color=color_list[k][-2][0],
-            linewidth=2,
+            var,
+            k,
+            color_list,
+            cat_plot_name_alt,
         )
 
         # plot the 16th and 84th percentiles of the spread
-        ratio_16 = np.percentile(ratios_spread, 16, axis=0)
-        ratio_84 = np.percentile(ratios_spread, 84, axis=0)
-        ax_ratio.step(
-            bins,
-            np.append(ratio_16, ratio_16[-1]),
-            where="post",
-            color=color_list[k][-1][0],
-            linewidth=1,
-            label=r"$\pm \sigma_{k-folds}$",
-        )
-        ax_ratio.step(
-            bins,
-            np.append(ratio_84, ratio_84[-1]),
-            where="post",
-            color=color_list[k][-1][0],
-            linewidth=1,
+        hist_1d_ratio_dict = get_median_quantiles(
+            hist_1d_dict, histos_spread, bins, var, k, color_list
         )
 
-    ax.legend(loc="upper right")
-    ax_ratio.legend(loc="upper left")
-    ax.set_yscale("log" if log_scale else "linear")
+        p = (
+            HEPPlotter(debug=DEBUG)
+            .set_plot_config(
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                figsize=[13, 13],
+            )
+            .set_output(os.path.join(dir_cat, f"{var}"))
+            .set_labels(
+                var.replace("Run2", ""),
+                "Events",
+            )
+            .set_options(
+                y_log=log_scale,
+                reference_to_den=False,
+                legend_ratio=True,
+                set_ylim=False,
+            )
+            .set_data(hist_1d_dict, plot_type="1d")
+            .add_ratio_hists(hist_1d_ratio_dict)
+        )
 
-    hep.cms.lumitext(f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", ax=ax)
-    hep.cms.text(text="Preliminary", ax=ax)
+    else:
+        p = (
+            HEPPlotter(debug=DEBUG)
+            .set_plot_config(
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                figsize=[13, 13],
+            )
+            .set_output(os.path.join(dir_cat, f"{var}"))
+            .set_labels(
+                var.replace("Run2", ""),
+                "Events",
+                ratio_label="Data/Pred." if not "DATAMC" in cats_name else "Bkg/Sig",
+            )
+            .set_options(
+                y_log=log_scale,
+                reference_to_den=False,
+            )
+            .set_data(hist_1d_dict, plot_type="1d")
+        )
+        if chi_squared:
+            p = p.add_chi_square()
 
-    var_plot_name = var.replace("Run2", "")
-    ax_ratio.set_xlabel(var_plot_name)
-    ax.set_ylabel("Events")
-    ax_ratio.set_ylabel("Data/Pred." if not "DATAMC" in cats_name else "Bkg/Sig")
-
-    ax.grid()
-    ax_ratio.grid()
-    if "SPREAD" in cat:
-        ax_ratio.set_ylim(0.75, 1.25)
-    elif not "DATAMC" in cat:
-        ax_ratio.set_ylim(0.5, 1.5)
-
-    ax.set_ylim(
-        top=(
-            1.3 * ax.get_ylim()[1]
-            if not log_scale
-            else ax.get_ylim()[1] ** (1.3 if args.normalisation != "density" else -1.3)
-        ),
-        bottom=(
-            min_histo_value * 0.9
-            if not log_scale
-            else min_histo_value ** (0.9 if args.normalisation != "density" else -0.9)
-        ),
-    )
-    fig.savefig(
-        os.path.join(dir_cat, f"{var}.png"),
-        bbox_inches="tight",
-        dpi=300,
-    )
-    plt.close(fig)
+    p.run()
 
 
-def plot_from_columns(cat_cols, lumi, era_string):
+def main(cat_cols, lumi, era_string):
 
     print(f"CATEGORIES ARE:")
     print(cat_dict)
@@ -684,8 +608,12 @@ def plot_from_columns(cat_cols, lumi, era_string):
             if args.test:
                 # vars_tot = vars_tot[:3]
                 # vars_tot=[v for v in vars_tot if "prob" in v or "weight" in v]
-                vars_tot=[v for v in vars_tot if any(test_var in v for test_var in VARIABLES_TEST)]
-                
+                vars_tot = [
+                    v
+                    for v in vars_tot
+                    if any(test_var in v for test_var in VARIABLES_TEST)
+                ]
+
             print("vars_tot", vars_tot)
 
             vars_to_plot = []
@@ -836,24 +764,12 @@ def plot_from_columns(cat_cols, lumi, era_string):
 
             vars_to_plot += [f"{v}_TRANSFORM" for v in vars_to_plot if "score" in v]
 
-            print("vars_to_plot", vars_to_plot)
-            print("col_dict", col_dict)
-            print("cat_list_final", cat_list_final)
-
-            for col in col_dict:
-                for cat in col_dict[col]:
-                    print(
-                        col,
-                        cat,
-                        col_dict[col][cat],
-                        len(col_dict[col][cat]),
-                    )
             cat_lists_final.append(cat_list_final)
 
             plot_categories = True
 
         if plot_categories:
-            if args.workers>1:
+            if args.workers > 1:
                 with Pool(args.workers) as p:
                     p.starmap(
                         plot_single_var_from_columns,
@@ -887,15 +803,10 @@ def plot_from_columns(cat_cols, lumi, era_string):
                         lumi,
                         era_string,
                     )
-        # del col_dict
 
 
 if __name__ == "__main__":
-
-    # print(cat_col_data)
-    for k in cat_col_data.keys():
-        for kk in cat_col_data[k].keys():
-            print(k, kk, len(cat_col_data[k][kk]))
+            
     lumi, era_string = get_era_lumi(total_datasets_list)
 
     # plot the weights
@@ -904,6 +815,6 @@ if __name__ == "__main__":
             weights = cat_col_data[category]["weight"]
             plot_weights([weights], category, lumi, era_string)
 
-    plot_from_columns([cat_col_data, cat_col_mc], lumi, era_string)
+    main([cat_col_data, cat_col_mc], lumi, era_string)
 
     print(f"\nPlots saved in {outputdir}")

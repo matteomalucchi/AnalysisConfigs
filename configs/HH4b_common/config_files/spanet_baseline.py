@@ -4,13 +4,9 @@ from configs.HH4b_common.dnn_input_variables import (
 )
 
 
-onnx_model_dict = {
-    "spanet": "",
-    "vbf_ggf_dnn": "",
-    "bkg_morphing_dnn": "",
-    "sig_bkg_dnn": "",
-    "bkg_morphing_spread_dnn": "",
-}
+from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
+
+from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
 
 
 onnx_model_dict  |= {
@@ -19,14 +15,14 @@ onnx_model_dict  |= {
     #"bkg_morphing_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/keras_models_morphing/average_model_from_keras.onnx",
     #"bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/AN_1e-2_noDropout_e20lrdrop95/state_dict/ratio/average_model_from_onnx.onnx",
     #"bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/SPANET_minDelta1em5_LRdropout/state_dict/ratio/average_model_from_onnx.onnx",
-    #"bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_morphing/SPANET_baseline_20_runs_fixed/best_models/ratio/average_model_from_onnx.onnx",
+    #"bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/SPANET_baseline_20_runs_fixed/best_models/ratio/average_model_from_onnx.onnx",
     "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/SPANET_baseline_20_runs_postEE/best_models/ratio/average_model_from_onnx.onnx", # --> trained on postEE only
     "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/SPANET_baseline_norm_e5drop75_postEE/state_dict/model_best_epoch_18.onnx",
     # "sig_bkg_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/keras_models_SvsB/model_fold0.onnx",
 }
 
 
-config_options_dict = {
+config_options_dict |= {
     "higgs_parton_matching": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
@@ -46,7 +42,7 @@ config_options_dict = {
     "max_num_jets": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
-    "donotscale_sumgenweights": True,
+    "donotscale_sumgenweights": False,
     "pad_value": -999.0,
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.,

@@ -16,6 +16,7 @@ vbf_hh4b_presel = Cut(
         "pt_jet3": 35,
         "mean_pnet_jet": 0.65,
         "tight_cuts": False,
+        "pt_type": "pt_default",
     },
     function=cuts_f.vbf_hh4b_presel_cuts,
 )
@@ -31,6 +32,7 @@ vbf_hh4b_presel_tight = Cut(
         "pt_jet3": 35,
         "mean_pnet_jet": 0.65,
         "tight_cuts": True,
+        "pt_type": "pt_default",
     },
     function=cuts_f.vbf_hh4b_presel_cuts,
 )
@@ -69,6 +71,7 @@ VBF_generalSelection_region = Cut(
         "pt_VBFjet0": 30,
         "eta_product": 0,
         "mjj": 250,
+        "pt_type": "pt_default",
     },
     function=cuts_f.VBF_generalSelection_cuts,
 )
@@ -91,6 +94,7 @@ VBFtight_params = {
     "pt": 10,
     "eta": 4.7,
     "btag": 0.2605,
+    "pt_type": "pt_default",
 }
 
 # Different parameters dictionary
@@ -124,9 +128,9 @@ def generate_dictionaries(VBFtight_params, no_cuts_params):
 
 # Generate the array of dictionaries
 ab = generate_dictionaries(VBFtight_params, no_cuts_params)
-print(len(ab))
-for i in range(0, len(ab)):
-    print(list(no_cuts_params.keys())[i], ab[i], "\n")
+# print(len(ab))
+# for i in range(0, len(ab)):
+#     print(list(no_cuts_params.keys())[i], ab[i], "\n")
 
 qvg_regions = {}
 for i in range(5, 10):

@@ -9,6 +9,24 @@ PAD_VALUE_SPANET = 9999.0
 def define_spanet_inputs(events, max_num_jets, spanet_input_name_list):
 
     input_dict = {}
+    
+    # for variable_name in ["eta", "phi", "btag", "btagPNetB_5wp","btagPNetB_3wp", "btagPNetB_delta5wp", "btagPNetB_delta3wp"]:
+    for variable_name in spanet_input_name_list: 
+        if variable_name not in ["log_pt", "btag12_ratioSubLead", "btag_ratioAll"]:
+            input_dict[variable_name] = np.array(
+                ak.to_numpy(
+                    ak.fill_none(
+                        ak.pad_none(
+                            getattr(events.JetGood, variable_name),
+                            max_num_jets,
+                            clip=True,
+                        ),
+                        value=PAD_VALUE_SPANET,
+                    ),
+                    allow_missing=True,
+                ),
+                dtype=np.float32,
+            )
 
     if "log_pt" in spanet_input_name_list:
         log_pt = np.array(
@@ -25,32 +43,6 @@ def define_spanet_inputs(events, max_num_jets, spanet_input_name_list):
             dtype=np.float32,
         )
         input_dict["log_pt"] = log_pt
-
-    if "eta" in spanet_input_name_list:
-        eta = np.array(
-            ak.to_numpy(
-                ak.fill_none(
-                    ak.pad_none(events.JetGood.eta, max_num_jets, clip=True),
-                    value=PAD_VALUE_SPANET,
-                ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["eta"] = eta
-
-    if "phi" in spanet_input_name_list:
-        phi = np.array(
-            ak.to_numpy(
-                ak.fill_none(
-                    ak.pad_none(events.JetGood.phi, max_num_jets, clip=True),
-                    value=PAD_VALUE_SPANET,
-                ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["phi"] = phi
 
     # Define btag and variations
     btag_padded = ak.pad_none(events.JetGood.btagPNetB, max_num_jets, clip=True)
@@ -78,19 +70,6 @@ def define_spanet_inputs(events, max_num_jets, spanet_input_name_list):
 
         btag12_ratioSubLead_list.append(btag_ratio_sum_5)
         btag_ratioAll_list.append(btag_ratio_sum_5)
-
-    if "btag" in spanet_input_name_list:
-        btag = np.array(
-            ak.to_numpy(
-                ak.fill_none(
-                    btag_padded,
-                    value=PAD_VALUE_SPANET,
-                ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["btag"] = btag
 
     if "btag12_ratioSubLead" in spanet_input_name_list:
         btag12_ratioSubLead = np.array(
@@ -123,7 +102,7 @@ def define_spanet_inputs(events, max_num_jets, spanet_input_name_list):
             dtype=np.float32,
         )
         input_dict["btag_ratioAll"] = btag_ratioAll
-
+        
     try:
         assert len(input_dict) == len(spanet_input_name_list)
     except AssertionError:

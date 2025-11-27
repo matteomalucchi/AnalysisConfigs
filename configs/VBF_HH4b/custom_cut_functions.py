@@ -8,6 +8,7 @@ def vbf_hh4b_presel_cuts(events, params, **kwargs):
     at_least_six_jetvbf = events.nJetVBF_generalSelection >= params["njetvbf"]  # HERE
     no_electron = events.nElectronGood == 0
     no_muon = events.nMuonGood == 0
+    pt_type = params["pt_type"]
 
     mask_6jet_nolep = at_least_four_jetgood & no_electron & no_muon & at_least_six_jetvbf
 
@@ -20,14 +21,14 @@ def vbf_hh4b_presel_cuts(events, params, **kwargs):
     )
 
     jets_pt_order = jets_btag_order[
-        ak.argsort(jets_btag_order.pt, axis=1, ascending=False)
+        ak.argsort(jets_btag_order[pt_type], axis=1, ascending=False)
     ]
 
     mask_pt_none = (
-        (jets_pt_order.pt[:, 0] > params["pt_jet0"])
-        & (jets_pt_order.pt[:, 1] > params["pt_jet1"])
-        & (jets_pt_order.pt[:, 2] > params["pt_jet2"])
-        & (jets_pt_order.pt[:, 3] > params["pt_jet3"])
+        (jets_pt_order[pt_type][:, 0] > params["pt_jet0"])
+        & (jets_pt_order[pt_type][:, 1] > params["pt_jet1"])
+        & (jets_pt_order[pt_type][:, 2] > params["pt_jet2"])
+        & (jets_pt_order[pt_type][:, 3] > params["pt_jet3"])
     )
     # convert none to false
     mask_pt = ak.where(ak.is_none(mask_pt_none), False, mask_pt_none)
@@ -72,7 +73,8 @@ def VBF_cuts(events, params, **args):
 
 
 def VBFtight_cuts(events, params, **args):
-    mask_pt = events.JetVBF_matched.pt > params["pt"]
+    pt_type = params["pt_type"]
+    mask_pt = events.JetVBF_matched[pt_type] > params["pt"]
     mask_eta = events.JetVBF_matched.eta < params["eta"]
     mask_btag = events.JetVBF_matched.btagPNetB < params["btag"]
 
@@ -97,23 +99,21 @@ def VBFtight_cuts(events, params, **args):
     mask_jj_mass = ak.fill_none(mask_jj_mass, False)
 
     mask = mask_opposite_eta & mask_jj_mass
-    # print(f"Cut in njet_vbf = {params['njet_vbf']} : {mask_efficiency(mask_at_least_two_vbf, False)}")
-    # print(f"Cut in opposite eta : {mask_efficiency(mask_opposite_eta, False)}")
-    # print(f"Cut in m_jj = {params['mjj']} : {mask_efficiency(mask_jj_mass, False)}", "\n")
 
     return ak.where(ak.is_none(mask), False, mask)
 
 
 def VBF_generalSelection_cuts(events, params, **kwargs):
+    pt_type = params["pt_type"]
     at_least_two_jets = events.nJetVBF_generalSelection >= params["njet_vbf"]
     mask_two_vbf_jets = ak.mask(at_least_two_jets, at_least_two_jets)
     jets_btag_order = events[mask_two_vbf_jets].JetVBF_generalSelection
 
     jets_pt_order = jets_btag_order[
-        ak.argsort(jets_btag_order.pt, axis=1, ascending=False)
+        ak.argsort(jets_btag_order[pt_type], axis=1, ascending=False)
     ]
 
-    mask_VBF_pt_none = jets_pt_order.pt[:, 0] > params["pt_VBFjet0"]
+    mask_VBF_pt_none = jets_pt_order[pt_type][:, 0] > params["pt_VBFjet0"]
 
     # convert none to false
     mask_pt = ak.where(ak.is_none(mask_VBF_pt_none), False, mask_VBF_pt_none)

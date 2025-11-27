@@ -3,13 +3,9 @@ from configs.HH4b_common.dnn_input_variables import (
     sig_bkg_dnn_BinnedArctanhDeltaProb_input_variables,
 )
 
-onnx_model_dict = {
-    "spanet": "",
-    "vbf_ggf_dnn": "",
-    "bkg_morphing_dnn": "",
-    "sig_bkg_dnn": "",
-    "bkg_morphing_spread_dnn": "",
-}
+from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
+
+from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
 
 
 onnx_model_dict |= {
@@ -19,7 +15,7 @@ onnx_model_dict |= {
 }
 
 
-config_options_dict = {
+config_options_dict |= {
     "higgs_parton_matching": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
@@ -39,7 +35,7 @@ config_options_dict = {
     "max_num_jets": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
-    "donotscale_sumgenweights": True,
+    "donotscale_sumgenweights": False,
     "pad_value": -999.0,
     "arctanh_delta_prob_bin_edge": 3.2,
     "arctanh_delta_prob_pad_limit": 2.0,

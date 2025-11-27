@@ -280,13 +280,14 @@ def run2_matching_algorithm(jet_collection):
 
 @njit
 def get_jets_no_higgs_from_idx(jets_index_all, jets_from_higgs_idx):
-    jets_no_higgs_idx = jets_index_all
+    n = len(jets_index_all)
+    out = jets_index_all.copy()  # important: avoid aliasing Awkward’s buffer
 
-    # if jets_from_higgs_idx put -1
     for ijet_higgs in jets_from_higgs_idx:
-        jets_no_higgs_idx[ijet_higgs] = -1
+        if 0 <= ijet_higgs < n:  # bounds check
+            out[ijet_higgs] = -1
 
-    return jets_no_higgs_idx
+    return out
 
 
 if __name__ == "__main__":

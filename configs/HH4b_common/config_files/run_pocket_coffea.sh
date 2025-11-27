@@ -1,32 +1,36 @@
 #!/usr/bin/env bash
+
 cleanup() {
     echo "Cleaning up..."
     [ -f "$new_config_template" ] && rm -f "$new_config_template"
     [ -f "$onnx_exec" ] && rm -f "$onnx_exec"
 }
-# Usage: ./your_script.sh config_options config_template run_options output [--test]
 
 trap 'cleanup; kill -- "$pid"; exit 1' SIGINT SIGTERM
-config_options=$1
+
+# Required args
+config_options=${1%.py}
 config_template=$2
 run_options=$3
 output=$4
-testing=$5  # Optional flag: --test
+shift 4
 
-# Find the directory this script is in
+# Additional args passed directly to pocket-coffea
+extra_args=("$@")
+
+# Script location
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-# Find out which runnumber can be used
-found_free_runnumber=False
+# Find free run number
 i=0
-while [ "$found_free_runnumber" != "True" ]; do
-    if [ ! -f "${SCRIPT_DIR}/../__onnx_executor_${i}__.py" ]; then
-        echo "Found free Runnumber ${i}"
-        onnx_exec="${SCRIPT_DIR}/../__onnx_executor_${i}__.py"
-        found_free_runnumber=True
-    else
-        i=$((i + 1))
+while true; do
+    candidate="${SCRIPT_DIR}/../__onnx_executor_${i}__.py"
+    if [ ! -f "$candidate" ]; then
+        echo "Found free Run number ${i}"
+        onnx_exec="$candidate"
+        break
     fi
+    i=$((i+1))
 done
 
 cp "${SCRIPT_DIR}/../onnx_executor_common.py" "$onnx_exec"
@@ -37,43 +41,77 @@ cp "$config_template" "$new_config_template"
 sed -i "s/__config_file__/${config_options}/g" "$onnx_exec"
 sed -i "s/__config_file__/${config_options}/g" "$new_config_template"
 
-# Determine the executor based on the hostname
+# Determine executor
 hostname=$(hostname)
-if [[ "$hostname" == *"t3"* ]]; then
-    EXECUTOR="dask@T3_CH_PSI"
-    EXECUTOR_CUSTOM_SETUP="--executor-custom-setup ${onnx_exec}"
-elif [[ "$hostname" == *"lxplus"* ]]; then
-    EXECUTOR="dask@lxplus"
-    EXECUTOR_CUSTOM_SETUP=""
-else
-    echo "WARNING: Unknown hostname '$hostname', no executor set."
-    EXECUTOR=""
-    EXECUTOR_CUSTOM_SETUP=""
-fi
+case "$hostname" in
+    *t3*)
+        EXECUTOR="dask@T3_CH_PSI"
+        EXECUTOR_CUSTOM_SETUP="--executor-custom-setup ${onnx_exec}"
+        ;;
+    *lxplus*)
+        EXECUTOR="dask@lxplus"
+        EXECUTOR_CUSTOM_SETUP=""
+        ;;
+    *)
+        echo "WARNING: Unknown hostname '$hostname', no executor set."
+        EXECUTOR=""
+        EXECUTOR_CUSTOM_SETUP=""
+        ;;
+esac
 
 echo "Using executor: $EXECUTOR"
-# Run the command
-if [[ "$testing" == "--test" ]]; then
-    echo "pocket-coffea run --cfg ${new_config_template} --test --custom-run-options ${run_options} -o ${output} --process-separately"
-    pocket-coffea run \
-		--cfg "$new_config_template" \
-        --test \
-        --custom-run-options "$run_options" \
-        -o "$output" \
-        --process-separately &
-		pid=$!
-else
-    echo "pocket-coffea run --cfg ${new_config_template} ${EXECUTOR:+-e $EXECUTOR} --custom-run-options ${run_options} -o ${output} ${EXECUTOR_CUSTOM_SETUP} --process-separately"
-    pocket-coffea run \
-        --cfg "$new_config_template" \
-        ${EXECUTOR:+-e $EXECUTOR} \
-        --custom-run-options "$run_options" \
-        -o "$output" \
-        ${EXECUTOR_CUSTOM_SETUP} \
-        --process-separately &
-		pid=$!
-		echo $pid
+
+# Build base command
+cmd=( pocket-coffea run
+      --cfg "$new_config_template"
+      --custom-run-options "$run_options"
+      -o "$output"
+      --process-separately
+)
+
+# Add executor if available
+if [[ -n "$EXECUTOR" ]]; then
+    cmd+=( -e "$EXECUTOR" )
 fi
+
+# Add custom setup
+if [[ -n "$EXECUTOR_CUSTOM_SETUP" ]]; then
+    cmd+=( $EXECUTOR_CUSTOM_SETUP )
+fi
+
+# Add extra args (e.g. --test, --debug, etc.)
+cmd+=( "${extra_args[@]}" )
+
+# Detect test mode
+is_test=false
+for arg in "${extra_args[@]}"; do
+    [[ "$arg" == "--test" ]] && is_test=true
+done
+
+# If test mode, insert --test into command (if not already included)
+if $is_test; then
+    cmd=( pocket-coffea run
+          --cfg "$new_config_template"
+          --custom-run-options "$run_options"
+          -o "$output"
+          --process-separately
+          --test
+          "${extra_args[@]}"
+    )
+fi
+
+# Print command exactly as executed
+echo "${cmd[@]}"
+
+# Skip execution in debug mode
+if printf '%s\n' "${extra_args[@]}" | grep -q -- '--debug'; then
+    exit 0
+fi
+
+# Run
+"${cmd[@]}" &
+pid=$!
+
 wait $pid
 status=$?
 

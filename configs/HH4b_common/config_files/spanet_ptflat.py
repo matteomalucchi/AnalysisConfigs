@@ -3,13 +3,9 @@ from configs.HH4b_common.dnn_input_variables import (
     sig_bkg_dnn_input_variables,
 )
 
-onnx_model_dict = {
-    "spanet": "",
-    "vbf_ggf_dnn": "",
-    "bkg_morphing_dnn": "",
-    "sig_bkg_dnn": "",
-    "bkg_morphing_spread_dnn": "",
-}
+from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
+
+from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
 
 
 onnx_model_dict |= {
@@ -28,14 +24,14 @@ onnx_model_dict |= {
     # "bkg_morphing_spread_dnn": "/work/mmalucch/out_ML_pytorch/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_postEE/best_models/all_ratios_model_onnx.onnx",  # only 2022_postEE, 20 k-folds, early stopping, 1e-5 minDelta, spanet, all ration spread model
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75/state_dict/model_best_epoch_25.onnx", # morphing full 2022, FixedPairingMorphing, FixedModelMorphing
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_postEE/state_dict/model_best_epoch_13.onnx", # only 2022postEE, FixedPairingMorphing, FixedModelMorphing
-    # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_postEE_allklambda/state_dict/model_best_epoch_16.onnx", # allklambda, only 2022postEE, FixedPairingMorphing, FixedModelMorphing
+    "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_postEE_allklambda/state_dict/model_best_epoch_16.onnx", # allklambda, only 2022postEE, FixedPairingMorphing, FixedModelMorphing
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_WrongMorphing/state_dict/model_best_epoch_21.onnx", # pytorch training, FixedPairingMorphing, WrongModelMorphing
     # "sig_bkg_dnn": "/work/mmalucch/out_ML_pytorch/DNN_ptFlatSPANet_class_weights_e5drop75_WrongPairingMorphing/state_dict/model_best_epoch_14.onnx", # pytorch training, WrongPairingMorphing
     # "sig_bkg_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/keras_models_SvsB/model_fold0.onnx", # soumya's model
 }
 
 
-config_options_dict = {
+config_options_dict |= {
     "higgs_parton_matching": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
@@ -55,7 +51,7 @@ config_options_dict = {
     "max_num_jets": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
-    "donotscale_sumgenweights": True,
+    "donotscale_sumgenweights": False,
     "pad_value": -999.0,
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.,

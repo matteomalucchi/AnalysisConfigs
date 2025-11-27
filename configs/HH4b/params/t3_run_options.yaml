@@ -1,9 +1,9 @@
 scaleout: 30
 cores-per-worker: 1
-mem-per-worker: "25GB"
+mem-per-worker: "24GB"
 disk-per-worker: "1GB"
 queue: "standard"
-walltime: "2:00:00"
-chunksize: 50000
-  #retries: 0
+walltime: "12:00:00"
+chunksize: 8000
+retries: 0
   #tree-reduction: 5

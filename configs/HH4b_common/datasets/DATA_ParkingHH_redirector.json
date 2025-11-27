@@ -39,10 +39,10 @@
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/2550000/d94bf63b-6150-443c-95cd-d7d23d8dd844.root",
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/2550000/892b058e-a74e-446c-9038-a6953db13a7b.root",
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/2550000/1bbd7651-09cc-4ea3-a693-d155cd9f444a.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/60000/260a15ae-728f-4702-a504-d3e9dfbc7b34.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/60000/ba55316d-69d0-4fb4-bf5c-403d50ba32ba.root",
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/610000/0b36184d-cd6d-4618-abfd-175b45ba47eb.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/2560000/dbf10fbc-ac78-42ab-8e2c-fbf16dabc5cd.root"
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/2560000/dbf10fbc-ac78-42ab-8e2c-fbf16dabc5cd.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/60000/260a15ae-728f-4702-a504-d3e9dfbc7b34.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v3-v1/60000/ba55316d-69d0-4fb4-bf5c-403d50ba32ba.root"
         ]
     },
     "DATA_ParkingHH_2023_Cv4_2023_preBPix_EraCv4": {
@@ -212,11 +212,11 @@
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/70000/ae90356b-f4cb-4160-982f-b166aa60c020.root",
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/25510000/f7725c71-8f69-450e-867b-db83292db179.root",
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/cb9d1b76-2063-4a9c-85d2-f85ba71c8bea.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/ea679548-41f9-489b-bbe2-b3d0ed44eb15.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/3838fcf7-050e-4526-b696-2b9c728028a4.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/26139777-294d-4773-8761-af31afce1a04.root",
             "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/6f6bfc12-8813-484f-b063-a0699cfae559.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/0b85fbf8-0197-4103-967c-91c1767082cf.root"
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/0b85fbf8-0197-4103-967c-91c1767082cf.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/26139777-294d-4773-8761-af31afce1a04.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/ea679548-41f9-489b-bbe2-b3d0ed44eb15.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023C/ParkingHH/NANOAOD/22Sep2023_v4-v1/2560000/3838fcf7-050e-4526-b696-2b9c728028a4.root"
         ]
     },
     "DATA_ParkingHH_2023_Dv1_2023_postBPix_EraDv1": {
@@ -238,9 +238,9 @@
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2560000/54da8602-8f18-47fe-b20a-585e43c567f6.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2560000/485f3dc8-08c4-4a65-af98-d201327d6544.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2560000/b14e54e7-59c4-4be3-8022-e3e608954264.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/3f2cb671-fff3-4353-a7d5-fc615c21d2ed.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/0b1d42a2-99ec-448f-9ecc-4fee2465ce13.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/fad7bc73-5d75-4c73-ad83-df090b8bfd3c.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/3f2cb671-fff3-4353-a7d5-fc615c21d2ed.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/ae680161-6aef-40c2-bff1-61f24b158bb8.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/e777c69f-7b36-48da-8587-5a67ce5cc543.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/856d0b15-ae35-4c39-89ba-ba7c5e6a14b1.root",
@@ -272,22 +272,23 @@
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/1c399826-0d46-4d53-9b24-c4b61c03bdbc.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/8457988e-10b3-4fe0-bc70-fdad2b0b95be.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/67ab99d7-4ae2-4173-8d07-d918c6fe779a.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/5e686a9c-5223-4fc4-8f25-863c8ad030c1.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/be7f39d1-97bb-4d6e-b606-14da9aec5962.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/5e686a9c-5223-4fc4-8f25-863c8ad030c1.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/fd9d158d-ca18-49bf-b5be-223e281559b2.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/635c0f63-152d-4b27-83c9-885e1b9f5975.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/63ca966d-bf46-480c-8c72-b13c690067cc.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/548a62f1-2d0c-4833-a122-61caf168d729.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/69f6cf03-ab3e-49e8-8c2c-628b1ac5f3ba.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/67344267-fce6-4901-90fb-c1441f1e5610.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/1868e4ff-1dd7-4bf2-9e7c-279a2070f9a0.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/81418845-b5e8-465c-9596-76ff048cace3.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/397cb4e4-8e25-45c7-ad7e-a087c0facef9.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/1868e4ff-1dd7-4bf2-9e7c-279a2070f9a0.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/d8568c3c-78ab-42bd-8316-8c8d3bce86e8.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/397cb4e4-8e25-45c7-ad7e-a087c0facef9.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/68123ff4-fc56-4ab5-9fd1-d773ea7cbbe7.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/f8f0d0eb-09b9-4adb-9734-4a33dc72b921.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/f68346ab-2c0f-4781-8b20-5dbede906670.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/850ea0e4-8316-46d5-a0a0-0fb3f8ba9bb7.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/66f0bc13-bd63-4c29-a488-2009ddb03600.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/cbf1f954-859d-41d9-b677-031f345d84ad.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/2ba30d8a-0c13-40ed-93d2-80ce78ce5632.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/777de58e-a622-4852-90ed-277bd57ec1d7.root",
@@ -306,7 +307,6 @@
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/a19df01c-68d3-48ff-99af-c926681d8c81.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/e7225871-fddb-4342-8501-f579833cee85.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/34f5f3db-69e4-45e5-85c3-5c337a47c508.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/60000/66f0bc13-bd63-4c29-a488-2009ddb03600.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/a67b81eb-6deb-4d3a-be24-98cc2d7262b1.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/795edc5f-834d-4f9c-9f03-76ff20b2931f.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/bf9b1d0e-8c57-4e02-bf8f-d58a1a95033f.root",
@@ -314,8 +314,8 @@
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/4b200d95-994a-488e-8285-027a1a799f8f.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/9be525ab-26cf-4137-ad37-11094dabd788.root",
             "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/70000/2fb4647a-a2b9-4f80-9bfa-e1dacf355305.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2550000/b6f4e687-08fa-4558-9e19-3b895e6b9d8f.root",
-            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2550000/7b6b326a-9194-424a-a808-caf4769f80dd.root"
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2550000/7b6b326a-9194-424a-a808-caf4769f80dd.root",
+            "root://xrootd-cms.infn.it///store/data/Run2023D/ParkingHH/NANOAOD/22Sep2023_v1-v1/2550000/b6f4e687-08fa-4558-9e19-3b895e6b9d8f.root"
         ]
     },
     "DATA_ParkingHH_2023_Dv2_2023_postBPix_EraDv2": {

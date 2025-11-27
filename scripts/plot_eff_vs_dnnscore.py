@@ -79,9 +79,9 @@ args = parser.parse_args()
 
 # Collecting MC dataset
 cat_col_spanet, total_datasets_list_spanet = get_columns_from_files(
-    [args.input_spanet], None
+    [args.input_spanet], sel_var="nominal", filter_lambda=None, novars=args.novars 
 )
-cat_col_run2, total_datasets_list_run2 = get_columns_from_files([args.input_run2], None)
+cat_col_run2, total_datasets_list_run2 = get_columns_from_files([args.input_run2], sel_var="nominal", filter_lambda=None, novars=args.novars)
 print(f"Category_spanet: {cat_col_spanet.keys()}")
 print(total_datasets_list_spanet)
 print(cat_col_run2.keys())

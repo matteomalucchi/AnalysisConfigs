@@ -2,7 +2,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser(description="Plot 2b morphed vs 4b data")
-parser.add_argument (
+parser.add_argument(
     "-i",
     "--input-data",
     type=str,
@@ -18,15 +18,20 @@ parser.add_argument(
     help="Input coffea files monte carlo",
     default=None,
 )
-parser.add_argument(
-    "-o", "--output", type=str, help="Output directory", default=""
-)
+parser.add_argument("-o", "--output", type=str, help="Output directory", default="")
 parser.add_argument(
     "-n",
     "--normalisation",
     type=str,
     help="Type of normalisation (num_events, sum_weights, density)",
     default="sum_weights",
+)
+parser.add_argument(
+    "-sn",
+    "--separate-normalisation",
+    action="store_true",
+    help="If true, normalise signal region and control region separately. Otherwise, normalise everything to control region.",
+    default=False,
 )
 parser.add_argument(
     "-om",
@@ -76,6 +81,12 @@ parser.add_argument(
     type=str,
     help="Input variables to the onnx model",
     default="sig_bkg_dnn_input_variables",
+)
+parser.add_argument(
+    "--novars",
+    action="store_true",
+    help="If true, old save format without saved variations is expected",
+    default=False,
 )
 
 args = parser.parse_args()

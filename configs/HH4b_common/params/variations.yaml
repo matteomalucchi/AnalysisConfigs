@@ -1,0 +1,65 @@
+systematic_variations:
+  weight_variations:
+    sf_btag_fixed_wp:
+      "2016_PreVFP":
+        sf_collection_to_use: "comb"
+        light_flavor_name: "incl"
+        comb: 
+          - isr
+          - fsr
+          - hdamp
+          - jes
+          - jer
+          - pileup
+          - qcdscale
+          - statistic
+          - topmass
+          - type3
+        mujets:
+          - jes
+          - pileup
+          - statistic
+          - type3
+        incl:
+          - correlated
+          - uncorrelated
+      '2016_PostVFP': "${.2016_PreVFP}"
+      '2017': "${.2016_PreVFP}"
+      '2018': "${.2016_PreVFP}"
+      '2022_preEE':
+        #sf_collection_to_use: "comb"
+        #light_flavor_name: "light"
+        comb: # heavy flav jets
+          - bfragmentation
+          - colorreconnection
+          - hdamp
+          - jer
+          - jes
+          - pdf
+          - pileup
+          - statistic
+          #- topmass
+          - type3
+        mujets:
+          - bfragmentation
+          - jes
+          - pileup
+          - statistic
+          - type3
+        light:
+          - 
+        # variations:
+        #   - bfragmentation
+        #   - colorreconnection
+        #   - hdamp
+        #   - jer
+        #   - jes
+        #   - pdf
+        #   - pileup
+        #   - statistic
+        #   - topmass
+        #   - type3
+        #   - lightFlavor
+      '2022_postEE': "${.2022_preEE}"
+      '2023_preBPix': "${.2022_preEE}"
+      '2023_postBPix': "${.2022_preEE}"

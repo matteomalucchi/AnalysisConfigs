@@ -1,9 +1,8 @@
 import os
 import sys
-from matplotlib import pyplot as plt
 import numpy as np
-from scipy.stats.distributions import chi2
-import mplhep as hep
+import awkward as ak
+from hist import Hist
 from multiprocessing import Pool
 
 import configs.HH4b_common.dnn_input_variables as dnn_input_variables
@@ -16,29 +15,22 @@ from utils.plot.weighted_quantile import weighted_quantile
 from utils.plot.plot_names import plot_regions_names
 from utils.plot.args_plot import args
 
-
-hep.style.use("CMS")
-
-import matplotlib
-
-matplotlib.rcParams["agg.path.chunksize"] = 10000  # or try 5000, depending on size
+from utils.plot.HEPPlotter import HEPPlotter
 
 if not args.output:
-    args.output = "plots_DNN_data_and_mc"
-
-
-if args.test:
-    args.workers = 1
-    args.output = "test"
+    if not args.test:
+        args.output = "plots_DNN_data_and_mc"
+    else:
+        args.output = "test_DNN_data_and_mc"
 
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
-BLIND_VALUE = 0.96
+BLINDED_SIGNAL_FRACTION = 0.2
 
 input_dir_data = os.path.dirname(args.input_data[0])
 
 log_scale = not args.linear
-outputdir =args.output + f"_{args.normalisation}"
+outputdir = args.output + f"_{args.normalisation}"
 # outputdir = os.path.join(input_dir_data, args.output) + f"_{args.normalisation}"
 
 
@@ -46,33 +38,33 @@ outputdir =args.output + f"_{args.normalisation}"
 # because first the name of the variables is try with the Run2 string
 # and after without it
 # First region: data 4b (blinded)
-# Second region: mc 4b (unblinded)
-# Third region: data 2b reweighted (unblinded)
+# Second region: data 2b reweighted (unblinded)
+# Third region: mc 4b (unblinded)
 cat_dict = {}
 if args.run2:
     cat_dict[f"CR{args.region_suffix}Run2"] = [
         f"4b{args.region_suffix}_control_regionRun2",
-        f"4b{args.region_suffix}_control_regionRun2",
         f"2b{args.region_suffix}_control_region_postWRun2",
+        f"4b{args.region_suffix}_control_regionRun2",
     ]
     # cat_dict[f"SR{args.region_suffix}_blindRun2"] = [f"4b{args.region_suffix}_signal_region_blindRun2", f"4b{args.region_suffix}_signal_regionRun2", f"2b{args.region_suffix}_signal_region_postWRun2"]
     cat_dict[f"SR{args.region_suffix}Run2"] = [
         f"4b{args.region_suffix}_signal_regionRun2",
-        f"4b{args.region_suffix}_signal_regionRun2",
         f"2b{args.region_suffix}_signal_region_postWRun2",
+        f"4b{args.region_suffix}_signal_regionRun2",
     ]
 else:
     cat_dict[f"CR{args.region_suffix}"] = [
         f"4b{args.region_suffix}_control_region",
-        f"4b{args.region_suffix}_control_region",
         f"2b{args.region_suffix}_control_region_postW",
+        f"4b{args.region_suffix}_control_region",
         # f"2b{args.region_suffix}_control_region_preW"
     ]
     # f"SR{args.region_suffix}_blind": [f"4b{args.region_suffix}_signal_region_blind", f"4b{args.region_suffix}_signal_region", f"2b{args.region_suffix}_signal_region_postW"],
     cat_dict[f"SR{args.region_suffix}"] = [
         f"4b{args.region_suffix}_signal_region",
-        f"4b{args.region_suffix}_signal_region",
         f"2b{args.region_suffix}_signal_region_postW",
+        f"4b{args.region_suffix}_signal_region",
     ]
     # f"2b{args.region_suffix}_signal_region_preW"
     #    f"CR{args.region_suffix}_2b_Run2SPANet": [f"2b{args.region_suffix}_control_region_preWRun2", f"2b{args.region_suffix}_control_region_preW"],
@@ -83,16 +75,16 @@ if args.test:
         cat_dict = {
             f"SR{args.region_suffix}Run2": [
                 f"4b{args.region_suffix}_signal_regionRun2",
-                f"4b{args.region_suffix}_signal_regionRun2",
                 f"2b{args.region_suffix}_signal_region_postWRun2",
+                f"4b{args.region_suffix}_signal_regionRun2",
             ]
         }
     else:
         cat_dict = {
             f"SR{args.region_suffix}": [
                 f"4b{args.region_suffix}_signal_region",
-                f"4b{args.region_suffix}_signal_region",
                 f"2b{args.region_suffix}_signal_region_postW",
+                f"4b{args.region_suffix}_signal_region",
             ]
         }
 
@@ -113,8 +105,8 @@ if args.onnx_model:
 
 color_list_orig = [
     ("black",),
-    ("red",),
     ("blue", "dodgerblue"),
+    ("red", "red"),
 ]
 color_list_alt = [("purple",), ("darkorange", "orange"), ("green",)]
 
@@ -147,13 +139,77 @@ filter_lambda = (
 
 ## Collecting MC dataset
 cat_col_mc, total_datasets_list_mc = get_columns_from_files(
-    inputfiles_mc, filter_lambda
+    inputfiles_mc,
+    sel_var="nominal",
+    filter_lambda=filter_lambda,
+    debug=False,
+    novars=args.novars,
 )
 
 ## Collecting DATA dataset
 cat_col_data, total_datasets_list_data = get_columns_from_files(
-    inputfiles_data, filter_lambda
+    inputfiles_data,
+    sel_var="nominal",
+    filter_lambda=filter_lambda,
+    debug=False,
+    novars=args.novars,
 )
+
+yields_dict = {}
+
+
+def compute_sob(hist_1d_dict):
+    # Calculating binwise s/sqrt(b).
+    # our background (reweighted 2b contains the signal at this point.
+    # Therefore the function needs to be:
+    # s/np.sqrt(bg-s) with s being the MC_signal and bg being the reweighted data
+    # Assuming the mc did already go through
+    # s = plotdict[mc_signal]["h_den"]
+    # b = values["h_den"]
+    # s_err = plotdict[mc_signal]["err_den"]
+    # b_err = values["err_den"]
+    # sob_list = s / np.sqrt(b - s)
+    # sob = np.sqrt(np.sum(sob_list**2))
+
+    # dds = -(s - 2 * b) * (2 * (b - s) ** (-3 / 2))  # derivative d(sob)/ds
+    # ddb = -(s / 2) * (b - s) ** (-3 / 2)  # derivative d(sob)/db
+    # sob_err_list = np.sqrt((dds * s_err) ** 2 + (ddb * b_err) ** 2)
+    # sob_err_sq = np.sum((sob_list * sob_err_list / sob) ** 2)
+    # sob_err = np.sqrt(sob_err_sq)
+    # print("====== S/B list bin-by-bin: =======")
+    # print(sob_list)
+    # print("Errors also as a list")
+    # print(sob_err_list)
+    # print("S/B and errors combined")
+    # print(f"sob: {sob}, error: {sob_err}")
+
+    ########## Easier approach #############
+    # Calculating binwise s/sqrt(b).h_den_onlybg
+    # our background (reweighted 2b contains the signal at this point.
+    # Therefore the function needs to be:
+    # s/np.sqrt(bg-s) with s being the MC_signal and bg being the reweighted data
+    # Assuming the mc did already go through
+    for idx in range(len(hist_1d_dict["Sig+Bkg"]["data"])):
+        if "DATA" in hist_1d_dict["Sig+Bkg"]["style"]["legend_name"][idx]:
+            b_hist = hist_1d_dict["Sig+Bkg"]["data"][idx]
+        else:
+            s_hist = hist_1d_dict["Sig+Bkg"]["data"][idx]
+
+    s = s_hist.values()
+    b = b_hist.values()
+    s_err = np.sqrt(s_hist.variances())
+    b_err = np.sqrt(b_hist.variances())
+
+    sob_list = s / np.sqrt(b)
+    sob = np.sqrt(np.sum(sob_list**2))
+
+    dds = 1 / np.sqrt(b)  # derivative d(sob)/ds
+    ddb = -(s / 2) * (b) ** (-3 / 2)  # derivative d(sob)/db
+    sob_err_list = np.sqrt((dds * s_err) ** 2 + (ddb * b_err) ** 2)
+    sob_err_sq = np.sum((sob_list * sob_err_list / sob) ** 2)
+    sob_err = np.sqrt(sob_err_sq)
+
+    return sob, sob_err, sob_list, sob_err_list, s, s_err, b, b_err
 
 
 def plot_single_var_from_columns(
@@ -168,19 +224,27 @@ def plot_single_var_from_columns(
     lumi=5.79,
     era_string="22 E",
 ):
-    fig, (ax, ax_ratio) = plt.subplots(
-        2,
-        1,
-        figsize=[13, 13],
-        sharex=True,
-        gridspec_kw={"height_ratios": [2.5, 1]},
-    )
-    weights_plotted = False
-    print(var)
+    print(f"\n\nPlotting variable {var} in {dir_cat}")
 
     var_plot_name = var.replace("Run2", "")
 
     plotdict = {}
+
+    mc_signal = ""
+    for cat in cat_list:
+        if "_MC" in cat:
+            kl = (
+                os.path.basename(inputfiles_mc[0])
+                .split("kl-")[-1]
+                .split("_")[0]
+                .replace("p", ".")
+            )
+            namesuffix = r" ($\kappa_\lambda$=" + kl + ")"
+            # mc_signal_region = plot_regions_names(cat, namesuffix)
+            mc_signal = cat
+            break
+    if mc_signal == "":
+        raise ValueError("No MC signal found in cat_list")
 
     # the range for the score can be inclusively all the range.
     # I still have to define it this way to make up for different ranges of blinded histograms.
@@ -190,473 +254,206 @@ def plot_single_var_from_columns(
         bin_edges = np.linspace(0, 1, NUMBER_OF_BINS + 1)
     else:
         bin_edges = weighted_quantile(
-            col_dict[cat_list[1]]["MC"],
+            col_dict[mc_signal],
             np.linspace(0, 1, NUMBER_OF_BINS + 1),
-            weights=weight_dict[cat_list[1]]["MC"],
+            weights=weight_dict[mc_signal],
         )
-    print(f"bin_edges {bin_edges}")
+        bin_edges[0] = 0.0
+        bin_edges[-1] = 1.0
+
+    hist_1d_dict = {}
 
     # this is the mc data that I want to add to the histogram of the reweighted data
-    mc_signal = f"{cat_list[1]}_MC"
     for i, cat in enumerate(cat_list):
-        # I only want the following columns:
-        # postW data
-        # signal data
-        # signal MC
-        for data_mc in ["MC", "DATA"]:
-            # we dont need the reweighted MC region
-            if data_mc == "MC" and "postW" in cat:
-                continue
-            if data_mc == "MC" and "blind" in cat:
-                continue
-            if i == 1 and data_mc == "DATA":
-                continue
+        style_dict = {}
+        col_den = col_dict[cat]
+        col_den = col_den[col_den != PAD_VALUE]
+        weights_den = weight_dict[cat]
+        weights_den = weights_den[col_den != PAD_VALUE]
+        if args.normalisation == "density":
+            weights_den = weights_den / np.sum(weights_den)
+        if "DATA" in cat and "2b" in cat:
+            weights_den = weights_den * ratio2b4b
+        bins_center = (bin_edges[1:] + bin_edges[:-1]) / 2
 
-            weights_den = weight_dict[cat][data_mc]
-            weights_num = weight_dict[cat_list[0]][data_mc]
+        if "TRANSFORM" in var:
+            bin_edges_plotting = np.linspace(
+                bin_edges[0], bin_edges[-1], NUMBER_OF_BINS + 1
+            )
+        else:
+            bin_edges_plotting = None
 
-            col_den = col_dict[cat][data_mc]
-            col_num = col_dict[cat_list[0]][data_mc]
-
-            # remove padded values
-            weights_den = weights_den[col_den != PAD_VALUE]
-            weights_num = weights_num[col_num != PAD_VALUE]
-            col_den = col_den[col_den != PAD_VALUE]
-            col_num = col_num[col_num != PAD_VALUE]
-
-            norm_factor_den = weights_num.sum() / weights_den.sum()
-            print("Difference between the different normings")
-            print(norm_factor_den)
-            print(ratio2b4b)
-
-            print(f"weights_den {weights_den}", type(weights_den))
-            print(f"weights_num {weights_num}")
-            print(f"col_num {col_num}", type(col_num))
-            print(f"col_den {col_den}")
-
-            print("bin_edges", bin_edges, len(bin_edges))
-            bins_center = (bin_edges[1:] + bin_edges[:-1]) / 2
-            print("bins_center", bins_center, len(bins_center))
-
-            if "TRANSFORM" in var:
-                bin_edges_plotting = np.linspace(
-                    bin_edges[0], bin_edges[-1], NUMBER_OF_BINS + 1
-                )
-                bins_center_plotting = (
-                    bin_edges_plotting[1:] + bin_edges_plotting[:-1]
-                ) / 2
-            else:
-                bin_edges_plotting = bin_edges
-                bins_center_plotting = bins_center
-
-            print(f"Found something to plot {cat}_{data_mc}")
-            # Here we save the MC and the bg reweighted
-            # The signal was already plotted and we don't need it anymore
-            plotdict[f"{cat}_{data_mc}"] = {
-                "bin_edges": bin_edges,
-                "bins_center": bins_center,
-                "bin_edges_plotting": bin_edges_plotting,
-                "bins_center_plotting": bins_center_plotting,
-                "color": color_list[i],
-                "col_den": col_den,
-                "col_num": col_num,
-                "weights_den": weights_den,
-                "weights_num": weights_num,
-            }
-            del col_den, col_num
-
-    # print(plotdict)
-    for region, values in plotdict.items():
-        print(f"Plotting region {region}")
-        # Trying to add up the reweighted data from 2b with the MC signal
-        # MC is still plotted independently.
-
-        # Essentially the idea is:
-        # -> events are appended with np.concatenate()
-        # -> histograms are added binwise with +
         namesuffix = ""
-        if "postW" in region:
-            # Applying reweighting weight to 2b reweighted signal
-            values["weights_den"] = values["weights_den"] * ratio2b4b
-            values["col_den_onlybg"] = values["col_den"]
-            values["weights_den_onlybg"] = values["weights_den"]
-            values["col_den"] = np.concatenate(
-                (values["col_den"], plotdict[mc_signal]["col_den"])
-            )
-            values["weights_den"] = np.concatenate(
-                (values["weights_den"], plotdict[mc_signal]["weights_den"])
-            )
-
-            idx_den_onlybg = np.digitize(values["col_den_onlybg"], values["bin_edges"])
-            values["h_den_onlybg"] = []
-            values["err_den_onlybg"] = []
-            for j in range(1, len(values["bin_edges"])):
-                values["h_den_onlybg"].append(
-                    np.sum(values["weights_den_onlybg"][idx_den_onlybg == j])
-                )
-                values["err_den_onlybg"].append(
-                    np.sqrt(
-                        np.sum(values["weights_den_onlybg"][idx_den_onlybg == j] ** 2)
-                    )
-                )
-            values["h_den_onlybg"] = np.array(values["h_den_onlybg"])
-            values["err_den_onlybg"] = np.array(values["err_den_onlybg"])
-
-        if "postW" in region or "MC" in region:
+        if "MC" in cat:
             kl = (
                 os.path.basename(inputfiles_mc[0])
                 .split("kl-")[-1]
                 .split("_")[0]
                 .replace("p", ".")
             )
-            if "postW" in region:
-                namesuffix = r" + $\kappa_\lambda$=" + kl
-                savesuffix = f"plus_kl_{kl}"
-            if "MC" in region:
-                namesuffix = r" ($\kappa_\lambda$=" + kl + ")"
-                savesuffix = f"kl_{kl}"
+            namesuffix = r" ($\kappa_\lambda$=" + kl + ")"
+            # savesuffix = f"kl_{kl}"
 
-        cat_plot_name = plot_regions_names(region, namesuffix).replace("Run2", "_DHH")
-        # Filling the histograms
-        idx_den = np.digitize(values["col_den"], values["bin_edges"])
-        idx_num = np.digitize(values["col_num"], values["bin_edges"])
-        # print(f"bin_edges {values['bin_edges']}")
-        # print(len(values["col_den"]))
-        # print(len(values["weights_den"]))
-        # print("idx_den", idx_den, len(idx_den))
-        # print("idx_num", idx_num, len(idx_num))
+        cat_plot_name = plot_regions_names(cat, namesuffix).replace("Run2", "_DHH")
 
-        values["h_den"] = []
-        values["h_num"] = []
-        values["err_den"] = []
-        values["err_num"] = []
-
-        for j in range(1, len(values["bin_edges"])):
-            values["h_den"].append(np.sum(values["weights_den"][idx_den == j]))
-            values["h_num"].append(np.sum(values["weights_num"][idx_num == j]))
-            values["err_den"].append(
-                np.sqrt(np.sum(values["weights_den"][idx_den == j] ** 2))
-            )
-            values["err_num"].append(
-                np.sqrt(np.sum(values["weights_num"][idx_num == j] ** 2))
-            )
-            # print(
-            #     'values["weights_den"][idx_den == j]',
-            #     values["weights_den"][idx_den == j],
-            # )
-
-        values["h_den"] = np.array(values["h_den"])
-        values["h_num"] = np.array(values["h_num"])
-        values["err_den"] = np.array(values["err_den"])
-        values["err_num"] = np.array(values["err_num"])
-
-        # print("h_den", values["h_den"], len(values["h_den"]))
-        # print("h_num", values["h_num"], len(values["h_num"]))
-        # print("err_den", values["err_den"])
-        # print("err_num", values["err_num"])
-
-        ratio = values["h_num"] / values["h_den"]
-        ratio_err = np.sqrt(
-            (values["err_num"] / values["h_den"]) ** 2
-            + (values["h_num"] * values["err_den"] / values["h_den"] ** 2) ** 2
+        print(
+            "\n\n######################################################################"
         )
-        print("These are ratio and ratio error")
-        print(ratio[0])
-        print(ratio_err)
-        print(values["bin_edges"])
+        print(f"Found something to plot {cat} -> {cat_plot_name}")
 
-        # Thanks chatGPT. Try to mask the bins, where both edges are above BLIND_VALUE:
-        if not "control" in region:
-            mask_blind = ~(
-                (bin_edges[:-1] > BLIND_VALUE) & (bin_edges[1:] > BLIND_VALUE)
+        # Mask the blinded region
+        if "4b" in cat and "signal" in cat and "DATA" in cat:
+            # check if the blinded fraction can divide the bin edges
+            np.testing.assert_almost_equal(
+                (len(bin_edges) - 1) * BLINDED_SIGNAL_FRACTION % 1,
+                0,
+                decimal=3,
+                err_msg=f"BLINDED_SIGNAL_FRACTION {BLINDED_SIGNAL_FRACTION} cannot divide the bin edges of length {len(bin_edges)-1}",
             )
+
+            blind_value = bin_edges[
+                int((len(bin_edges) - 1) * (1 - BLINDED_SIGNAL_FRACTION))
+            ]
+            mask_blind = col_den <= blind_value
+
+            col_den = col_den[mask_blind]
+            weights_den = weights_den[mask_blind]
+
+        # histogram of the denominator
+        histo = Hist.new.Var(bin_edges, name=var_plot_name, flow=False).Weight()
+        histo.fill(col_den, weight=weights_den)
+
+        # print the histo and the total number of events
+        print(cat_plot_name)
+        print(histo)
+        print(f"Total number of events: {np.sum(histo.values())}")
+        yields_dict[f"Yields {dir_cat}/{var}_{cat_plot_name}"] = np.sum(
+            histo.values()
+        )
+
+        if i == 0:
+            hist_1d_dict[cat_plot_name] = {
+                "data": histo,
+                "style": {
+                    "is_reference": (i == 0),
+                    "histtype": "errorbar" if i == 0 else "step",
+                    "color": color_list[i][0],
+                    "bin_edges_plotting": bin_edges_plotting,
+                },
+            }
+
         else:
-            mask_blind = ~(
-                (bin_edges[:-1] > 1) & (bin_edges[1:] > 1)
-            )  # hacked - so not blinded
+            if "Sig+Bkg" not in hist_1d_dict:
 
-        # Reference dataset (data in 4b)
-        if not "postW" in region and "DATA" in region:
-            print("Found signal region DATA")
-            ratio = values["h_num"][mask_blind] / values["h_den"][mask_blind]
-            ratio_err = values["err_num"][mask_blind] / values["h_num"][mask_blind]
-            # print("ratio_err", ratio_err)
-
-            ax.errorbar(
-                values["bins_center_plotting"][mask_blind],
-                values["h_den"][mask_blind],
-                yerr=values["err_den"][mask_blind],
-                label=cat_plot_name,
-                color=values["color"][0],
-                fmt=".",
+                hist_1d_dict["Sig+Bkg"] = {
+                    "data": [],
+                    "style": {
+                        "is_reference": (i == 0),
+                        "histtype": "fill",
+                        "stack": i != 0,
+                        "edgecolor": [],
+                        "facecolor": [],
+                        "alpha": [],
+                        "legend_name": [],
+                        "bin_edges_plotting": [],
+                    },
+                }
+            hist_1d_dict["Sig+Bkg"]["data"].append(histo)
+            hist_1d_dict["Sig+Bkg"]["style"]["edgecolor"].append(color_list[i][0])
+            hist_1d_dict["Sig+Bkg"]["style"]["facecolor"].append(color_list[i][1])
+            hist_1d_dict["Sig+Bkg"]["style"]["alpha"].append(
+                0.5 if "DATA" in cat else 1
             )
-            ax_ratio.axhline(y=1, color=values["color"][0], linestyle="--")
-            ax_ratio.fill_between(
-                values["bins_center_plotting"][mask_blind],
-                1 - ratio_err,
-                1 + ratio_err,
-                color="grey",
-                alpha=0.5,
+            hist_1d_dict["Sig+Bkg"]["style"]["legend_name"].append(cat_plot_name)
+            hist_1d_dict["Sig+Bkg"]["style"]["bin_edges_plotting"].append(
+                bin_edges_plotting
             )
-        else:
-            chi2_norm = None
-            if "postW" in region and chi_squared:
-                # compute the chi square between the two histograms (divide by the error on data)
-                chi2_value = np.sum(
-                    (
-                        (values["h_den"][mask_blind] - values["h_num"][mask_blind])
-                        / np.where(
-                            values["err_num"][mask_blind] == 0,
-                            1,
-                            values["err_num"][mask_blind],
-                        )
-                    )
-                    ** 2
-                )
-                ndof = len(values["h_den"][mask_blind]) - 1
-                chi2_norm = chi2_value / ndof
-                pvalue = chi2.sf(chi2_value, ndof)
+    print(f"bin_edges {bin_edges}")
 
-                ax.text(
-                    0.05,
-                    0.95 - 0.05,
-                    r"$\chi^2$/ndof= {:.1f},".format(chi2_norm)
-                    + f"  p-value= {pvalue:.2f} (blind)",
-                    horizontalalignment="left",
-                    verticalalignment="center",
-                    transform=ax.transAxes,
-                    color=values["color"][0],
-                    fontsize=20,
-                )
-                # Calculating binwise s/sqrt(b).
-                # our background (reweighted 2b contains the signal at this point.
-                # Therefore the function needs to be:
-                # s/np.sqrt(bg-s) with s being the MC_signal and bg being the reweighted data
-                # Assuming the mc did already go through
-                s = plotdict[mc_signal]["h_den"]
-                b = values["h_den"]
-                s_err = plotdict[mc_signal]["err_den"]
-                b_err = values["err_den"]
-                sob_list = s / np.sqrt(b - s)
-                sob = np.sqrt(np.sum(sob_list**2))
+    sob, sob_err, sob_list, sob_err_list, s, s_err, b, b_err = compute_sob(hist_1d_dict)
+    sob_string = r"$s/\sqrt{{{{b}}}}$ = {:.3f} $\pm$ {:.3f}".format(sob, sob_err)
 
-                dds = -(s - 2 * b) * (2 * (b - s) ** (-3 / 2))  # derivative d(sob)/ds
-                ddb = -(s / 2) * (b - s) ** (-3 / 2)  # derivative d(sob)/db
-                sob_err_list = np.sqrt((dds * s_err) ** 2 + (ddb * b_err) ** 2)
-                sob_err_sq = np.sum((sob_list * sob_err_list / sob) ** 2)
-                sob_err = np.sqrt(sob_err_sq)
-                print("====== S/B list bin-by-bin: =======")
-                print(sob_list)
-                print("Errors also as a list")
-                print(sob_err_list)
-                print("S/B and errors combined")
-                print(f"sob: {sob}, error: {sob_err}")
+    for plot_var, plot_var_err, axis_name, plot_name in zip(
+        [sob_list, s, b],
+        [
+            sob_err_list,
+            s_err,
+            b_err,
+        ],
+        [r"$s/\sqrt{{{{b}}}}$", "sig", "bkg"],
+        ["sob", "sig", "bkg"],
+    ):
+        graph_dict = {
+            f"{plot_name}": {
+                "data": {
+                    "x": [bins_center, (bin_edges[1:] - bin_edges[:-1]) / 2],
+                    "y": [plot_var, plot_var_err],
+                },
+                "style": {
+                    "appear_in_legend": False,
+                },
+            }
+        }
 
-                ########## Easier approach #############
-                # Calculating binwise s/sqrt(b).h_den_onlybg
-                # our background (reweighted 2b contains the signal at this point.
-                # Therefore the function needs to be:
-                # s/np.sqrt(bg-s) with s being the MC_signal and bg being the reweighted data
-                # Assuming the mc did already go through
-                s = plotdict[mc_signal]["h_den"]
-                b = values["h_den_onlybg"]
-                s_err = plotdict[mc_signal]["err_den"]
-                b_err = values["err_den_onlybg"]
-                sob_list = s / np.sqrt(b)
-                sob = np.sqrt(np.sum(sob_list**2))
-
-                dds = 1 / np.sqrt(b)  # derivative d(sob)/ds
-                ddb = -(s / 2) * (b) ** (-3 / 2)  # derivative d(sob)/db
-                sob_err_list = np.sqrt((dds * s_err) ** 2 + (ddb * b_err) ** 2)
-                sob_err_sq = np.sum((sob_list * sob_err_list / sob) ** 2)
-                sob_err = np.sqrt(sob_err_sq)
-                print("====== S/B list bin-by-bin ALTERNATIVE APPROACH: =======")
-                print(sob_list)
-                print("Errors also as a list")
-                print(sob_err_list)
-                print("S/B and errors combined")
-                print(f"sob: {sob}, error: {sob_err}")
-
-                ax.text(
-                    0.05,
-                    0.95 - 0.15,
-                    r"$s/\sqrt{{{{b}}}}$ = {:.2f} $\pm$ {:.2f}".format(sob, sob_err),
-                    horizontalalignment="left",
-                    verticalalignment="center",
-                    transform=ax.transAxes,
-                    color="k",
-                    fontsize=20,
-                )
-
-                for plot_var, plot_var_err, axis_name, plot_name in zip(
-                    [sob_list, s, b],
-                    [
-                        sob_err_list,
-                        s_err,
-                        b_err,
-                    ],
-                    [r"$s/\sqrt{{{{b}}}}$", "sig", "bkg"],
-                    ["sob", "sig", "bkg"],
-                ):
-
-                    # plot the sob for each bin
-                    fig_events, ax_events = plt.subplots(figsize=[13, 13])
-                    ax_events.errorbar(
-                        values["bins_center_plotting"],
-                        plot_var,
-                        yerr=plot_var_err,
-                        fmt=".",
-                        label=cat_plot_name,
-                        color=values["color"][0],
-                    )
-                    ax_events.fill_between(
-                        values["bins_center_plotting"],
-                        plot_var - plot_var_err,
-                        plot_var + plot_var_err,
-                        color="grey",
-                        alpha=0.5,
-                    )
-                    ax_events.legend(loc="upper left")
-                    ax_events.set_yscale("linear")
-                    hep.cms.lumitext(
-                        f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
-                        ax=ax_events,
-                    )
-                    ax_events.set_xlabel(var_plot_name)
-                    ax_events.set_ylabel(axis_name)
-                    ax_events.grid()
-                    fig_events.savefig(
-                        os.path.join(dir_cat, f"{var}_{plot_name}.png"),
-                        bbox_inches="tight",
-                        dpi=300,
-                    )
-                    plt.close(fig_events)
-
-                ax_ratio.errorbar(
-                    values["bins_center_plotting"][mask_blind],
-                    ratio[mask_blind],
-                    yerr=ratio_err[mask_blind],
-                    fmt=".",
-                    label=cat_plot_name,
-                    color=values["color"][0],
-                )
-
-                ## Save the histogram
-                np.savez(
-                    os.path.join(
-                        dir_cat,
-                        f"hist_columns_{region}_{var_plot_name}_{savesuffix}.npz".replace(
-                            "Run2", "_DHH"
-                        ),
-                    ),
-                    counts=np.append(values["h_den"], values["h_den"][-1]),
-                    count_err=values["err_den"],
-                    bin_edges=values["bin_edges_plotting"],
-                    plot=var_plot_name,
-                    num_events=len(values["col_den"]),
-                )
-                np.savez(
-                    os.path.join(
-                        dir_cat,
-                        f"hist_columns_{region}_{var_plot_name}.npz".replace(
-                            "Run2", "_DHH"
-                        ),
-                    ),
-                    counts=np.append(
-                        values["h_den_onlybg"], values["h_den_onlybg"][-1]
-                    ),
-                    count_err=values["err_den_onlybg"],
-                    bin_edges=values["bin_edges_plotting"],
-                    sob=sob_list,
-                    sob_err=sob_err_list,
-                    plot=var_plot_name,
-                    num_events=len(values["col_den"]),
-                )
-            else:  # For mainly MC and 4b_data, as there we are not calculating the sob
-                ## Save the histogram
-                np.savez(
-                    os.path.join(
-                        dir_cat,
-                        f"hist_columns_{region}_{var_plot_name}_{savesuffix}.npz".replace(
-                            "Run2", "_DHH"
-                        ),
-                    ),
-                    counts=np.append(values["h_den"], values["h_den"][-1]),
-                    count_err=values["err_den"],
-                    bin_edges=values["bin_edges_plotting"],
-                    plot=var_plot_name,
-                    num_events=len(values["col_den"]),
-                )
-
-            ## plot the histogram
-            ax.step(
-                values["bin_edges_plotting"],
-                np.append(values["h_den"], values["h_den"][-1]),
-                where="post",
-                label=cat_plot_name,
-                color=values["color"][0],
+        p_sob = (
+            HEPPlotter(debug=True)
+            .set_plot_config(
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                figsize=[13, 13],
             )
+            .set_output(os.path.join(dir_cat, f"{var}_{plot_name}"))
+            .set_options(set_ylim=False)
+            .set_labels(
+                var.replace("Run2", ""),
+                axis_name,
+            )
+            .set_data(
+                graph_dict,
+                plot_type="graph",
+            )
+        )
+        p_sob = p_sob.add_annotation(x=0.05, y=0.95 - 0.15, s=sob_string, fontsize=20)
+        p_sob.run()
 
-            x0 = values["bin_edges_plotting"][0]
-            x1 = values["bin_edges_plotting"][-1]
-            y0 = values["h_den"][0]
-            y1 = values["h_den"][-1]
-            ax.plot(
-                [x0, x0], [ax.get_ylim()[0], y0], color=values["color"][0]
-            )  # first bin edge
-            ax.plot(
-                [x1, x1], [ax.get_ylim()[0], y1], color=values["color"][0]
-            )  # last bin edge
-
-            if len(values["color"]) > 1:
-                ax.fill_between(
-                    values["bin_edges_plotting"],
-                    np.append(values["h_den"], values["h_den"][-1]),
-                    step="post",
-                    alpha=0.5,
-                    color=values["color"][1],
-                )
-
-            # ax.hist(
-            #     values["col_den"],
-            #     bins=values["bin_edges_plotting"],
-            #     histtype="step",
-            #     label=cat_plot_name,
-            #     weights=values["weights_den"],
-            #     edgecolor=values["color"][0],
-            #     facecolor=values["color"][1] if len(values["color"]) > 1 else None,
-            #     fill=True if len(values["color"]) > 1 else False,
-            #     alpha=0.5,
-            # )
-
-    del plotdict
-
-    ax.legend(loc="upper right")
-    ax.set_yscale("log" if log_scale else "linear")
-
-    hep.cms.lumitext(f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", ax=ax)
-    hep.cms.text(text="Preliminary", ax=ax)
-
-    ax_ratio.set_xlabel(var_plot_name)
-    ax.set_ylabel("Events")
-    ax_ratio.set_ylabel("Data/Pred.")
-
-    ax.grid()
-    ax_ratio.grid()
-    ax_ratio.set_ylim(0.5, 1.5)
-    ax.set_ylim(
-        top=(1.3 * ax.get_ylim()[1] if not log_scale else ax.get_ylim()[1] ** 1.3)
+    p = (
+        HEPPlotter(debug=True)
+        .set_plot_config(
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            figsize=[13, 13],
+        )
+        .set_output(os.path.join(dir_cat, f"{var}"))
+        .set_labels(
+            var.replace("Run2", ""),
+            "Events",
+            ratio_label="Data/Pred.",
+        )
+        .set_options(
+            y_log=log_scale,
+            reference_to_den=False,
+        )
+        .add_annotation(x=0.05, y=0.95 - 0.15, s=sob_string, fontsize=20)
+        .set_data(hist_1d_dict, plot_type="1d")
     )
-    print(f"Plotname: {os.path.join(dir_cat, f'{var}.png')}")
-    fig.savefig(
-        os.path.join(dir_cat, f"{var}.png"),
-        bbox_inches="tight",
-        dpi=300,
-    )
-    plt.close(fig)
+
+    if chi_squared:
+        p = p.add_chi_square()
+
+    p.run()
+
+    # save the histogram
+    # np.savez(
+    #     os.path.join(dir_cat, f"hist_columns_{var_plot_name}_{savesuffix}.npz".replace("Run2", "_DHH")),
+    #     counts=np.append(hist_1d_dict[mc_signal_region]["data"].values(), hist_1d_dict[mc_signal_region]["data"].values()[-1]),
+    #     count_err=np.sqrt(hist_1d_dict[mc_signal_region]["data"].variances()),
+    #     bin_edges=bin_edges,
+    #     plot=var_plot_name,
+    #     num_events=len(col_den),
+    #     sob=sob_list,
+    #     sob_err=sob_err_list,
+    # )
 
 
-def plot_from_columns(cat_cols, lumi, era_string):
+def main(cat_cols, lumi, era_string):
 
     ## Calculating a ratio between the 2b-reweighted and the 4b region
     # Needs to be done here, as afterwards, we don't have access to all the regions anymore...
@@ -667,51 +464,60 @@ def plot_from_columns(cat_cols, lumi, era_string):
     # - In this region, 1st element is 4b, 3rd element is 2b-reweighted
     if args.normalisation == "sum_weights":
         op_norm = lambda x, y: sum(x) / sum(y)
-    elif args.normalisation == "sum_weights":
+    elif args.normalisation == "num_events":
         op_norm = lambda x, y: len(x) / len(y)
+    elif args.normalisation == "density":
+        op_norm = lambda x, y: 1
     else:
         raise ValueError(
-            f"Unknown normalisation type {args.normalisation}. Use num_events or sum_weights"
+            f"Unknown normalisation type {args.normalisation}. Use num_events, sum_weights or density"
         )
 
-    if args.run2:
-        if args.test:
-            CRratio_4b_2bpostW_Run2 = 1
-        else:
-            CR_region_keys = cat_dict[f"CR{args.region_suffix}Run2"]
-            CRratio_4b_2bpostW_Run2 = op_norm(
-                cat_cols[0][CR_region_keys[0]]["weight"],
-                cat_cols[0][CR_region_keys[2]]["weight"],
+    try:
+        if args.run2:
+            if args.test:
+                CRratio_4b_2bpostW_Run2 = 1
+            else:
+                CR_region_keys = cat_dict[f"CR{args.region_suffix}Run2"]
+                CRratio_4b_2bpostW_Run2 = op_norm(
+                    cat_cols[0][CR_region_keys[0]]["weight"],
+                    cat_cols[0][CR_region_keys[1]]["weight"],
+                )
+
+            SR_region_keys = cat_dict[f"SR{args.region_suffix}Run2"]
+            SRratio_4b_2bpostW_Run2 = op_norm(
+                cat_cols[0][SR_region_keys[0]]["weight"],
+                cat_cols[0][SR_region_keys[1]]["weight"],
             )
 
-        SR_region_keys = cat_dict[f"SR{args.region_suffix}Run2"]
-        SRratio_4b_2bpostW_Run2 = op_norm(
-            cat_cols[0][SR_region_keys[0]]["weight"],
-            cat_cols[0][SR_region_keys[2]]["weight"],
-        )
-
-        print(f"CR ratio Run2: {CRratio_4b_2bpostW_Run2}")
-        print(f"SR ratio Run2: {SRratio_4b_2bpostW_Run2}")
-    else:
-        if args.test:
-            CRratio_4b_2bpostW = 1
+            print(f"CR ratio Run2: {CRratio_4b_2bpostW_Run2}")
+            print(f"SR ratio Run2: {SRratio_4b_2bpostW_Run2}")
         else:
-            CR_region_keys = cat_dict[f"CR{args.region_suffix}"]
-            print(CR_region_keys)
+            if args.test:
+                CRratio_4b_2bpostW = 1
+            else:
+                CR_region_keys = cat_dict[f"CR{args.region_suffix}"]
 
-            CRratio_4b_2bpostW = op_norm(
-                cat_cols[0][CR_region_keys[0]]["weight"],
-                cat_cols[0][CR_region_keys[2]]["weight"],
+                CRratio_4b_2bpostW = op_norm(
+                    cat_cols[0][CR_region_keys[0]]["weight"],
+                    cat_cols[0][CR_region_keys[1]]["weight"],
+                )
+
+            SR_region_keys = cat_dict[f"SR{args.region_suffix}"]
+            SRratio_4b_2bpostW = op_norm(
+                cat_cols[0][SR_region_keys[0]]["weight"],
+                cat_cols[0][SR_region_keys[1]]["weight"],
             )
 
-        SR_region_keys = cat_dict[f"SR{args.region_suffix}"]
-        SRratio_4b_2bpostW = op_norm(
-            cat_cols[0][SR_region_keys[0]]["weight"],
-            cat_cols[0][SR_region_keys[2]]["weight"],
+            print(f"CR ratio: {CRratio_4b_2bpostW}")
+            print(f"SR ratio: {SRratio_4b_2bpostW}")
+    except KeyError as e:
+        # print the error output
+        print(e)
+        print(
+            "Maybe you didn't provide the `--run2` flag while using Run2 categories or vice versa?"
         )
-
-        print(f"CR ratio: {CRratio_4b_2bpostW}")
-        print(f"SR ratio: {SRratio_4b_2bpostW}")
+        sys.exit(1)
 
     # cat_dict defined on top (global variable)
     for cats_name, cat_list in cat_dict.items():
@@ -727,6 +533,7 @@ def plot_from_columns(cat_cols, lumi, era_string):
         # From here on we have to extract for signal an MC:
         # :param: data_mc means that we make the dictionary one longer such that for each category we save the data and the MC values.
         col_dict = {}
+        col_list_data_mc = []
         for data_mc, cat_col in zip(["DATA", "MC"], cat_cols):
             print(data_mc)
             print(cat_col.keys())
@@ -756,17 +563,18 @@ def plot_from_columns(cat_cols, lumi, era_string):
                             col_dict[f"{v}_{idx}"] = {}
                         vars_to_plot.append(f"{v}_{idx}")
                         for cat in cat_list:
+                            cat_data_mc = f"{cat}_{data_mc}"
                             if "2b" in cat and data_mc == "MC":
                                 print(f"Skipping {v} for {cat} in {data_mc}")
                                 continue  # skip 2b MC
-                            if not cat in col_dict[f"{v}_{idx}"].keys():
-                                col_dict[f"{v}_{idx}"][cat] = {}
+                            # if not cat in col_dict[f"{v}_{idx}"].keys():
+                            #     col_dict[f"{v}_{idx}"][cat] = {}
                             try:
-                                col_dict[f"{v}_{idx}"][cat][data_mc] = cat_col[cat][v][
+                                col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][v][
                                     np.arange(len(cat_col[cat][v])) % N == idx
                                 ]
                             except KeyError:
-                                col_dict[f"{v}_{idx}"][cat][data_mc] = cat_col[cat][
+                                col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][
                                     v.replace("Run2", "")
                                 ][
                                     np.arange(len(cat_col[cat][v.replace("Run2", "")]))
@@ -779,20 +587,23 @@ def plot_from_columns(cat_cols, lumi, era_string):
                     if v != "weight":
                         vars_to_plot.append(v)
                     for cat in cat_list:
+                        cat_data_mc = f"{cat}_{data_mc}"
                         if "2b" in cat and data_mc == "MC":
                             print(f"Skipping {v} for {cat} in {data_mc}")
                             continue  # skip 2b MC
-                        if not cat in col_dict[v].keys():
-                            col_dict[v][cat] = {}
+                        if not cat_data_mc in col_list_data_mc:
+                            col_list_data_mc.append(cat_data_mc)
+                        # if not cat in col_dict[v].keys():
+                        #     col_dict[v][cat] = {}
                         try:
-                            col_dict[v][cat][data_mc] = cat_col[cat][v]
+                            col_dict[v][cat_data_mc] = cat_col[cat][v]
                         except KeyError:
-                            col_dict[v][cat][data_mc] = cat_col[cat][
+                            col_dict[v][cat_data_mc] = cat_col[cat][
                                 v.replace("Run2", "")
                             ]
                         if v == "weight":
                             # Note that the total luminosity is hardcoded here for 2022postEE
-                            col_dict[v][cat][data_mc] = col_dict[v][cat][data_mc] * (
+                            col_dict[v][cat_data_mc] = col_dict[v][cat_data_mc] * (
                                 float(lumi) / (5.79 + 17.6 + 2.88)
                                 if data_mc == "MC"
                                 else 1
@@ -814,19 +625,18 @@ def plot_from_columns(cat_cols, lumi, era_string):
                     vars_to_plot.append(v)
 
                 for cat in cat_list:
+                    cat_data_mc = f"{cat}_{data_mc}"
                     if "2b" in cat and data_mc == "MC":
                         print(f"Skipping {v} for {cat} in {data_mc}")
                         continue  # skip 2b MC
-                    if not cat in col_dict[v].keys():
-                        col_dict[v][cat] = {}
+                    # if not cat in col_dict[v].keys():
+                    # col_dict[v][cat] = {}
                     # if data_mc in col_dict[v][cat].keys():
                     #     continue
                     input_variables_array = []
                     for input_var in dnn_input_list:
                         input_variables_array.append(
-                            np.array(
-                                col_dict[input_var][cat][data_mc], dtype=np.float32
-                            )
+                            np.array(col_dict[input_var][cat_data_mc], dtype=np.float32)
                         )
                     input_variables_array = np.stack(input_variables_array, axis=-1)
                     inputs_complete = {input_name_SIG_BKG_DNN[0]: input_variables_array}
@@ -834,7 +644,7 @@ def plot_from_columns(cat_cols, lumi, era_string):
                         output_name_SIG_BKG_DNN, inputs_complete
                     )
                     # print("events_sig_bkg_dnn_score", col_dict["events_sig_bkg_dnn_score"][cat][data_mc])
-                    col_dict[v][cat][data_mc] = outputs[0][:, -1]
+                    col_dict[v][cat_data_mc] = outputs[0][:, -1]
                     # print("outputs", cat, data_mc, outputs[0].shape, outputs[0])
                     del input_variables_array, inputs_complete, outputs
 
@@ -845,42 +655,71 @@ def plot_from_columns(cat_cols, lumi, era_string):
 
         print("col_dict", col_dict)
         print("vars_to_plot_final", vars_to_plot_final)
+        
+        # print the length of each variable in of col_dict
+        # save them to a dictionary
+        for v in col_dict.keys():
+            print(f"Variable {v} has lengths: ", end="")
+            for cat in col_dict[v].keys():
+                print(f"{cat}: {len(col_dict[v][cat])} ", end="")
+                yields_dict[f"{v}_{cat}"] = len(col_dict[v][cat])
+            print("")
+            
 
-        with Pool(args.workers) as p:
-            print(f"Category name: {cats_name}")
-            if "SR" in cats_name:
-                ratio2b4b = (
-                    SRratio_4b_2bpostW_Run2
-                    if "Run2" in cats_name
-                    else SRratio_4b_2bpostW
-                )
-            else:
-                ratio2b4b = (
-                    CRratio_4b_2bpostW_Run2
-                    if "Run2" in cats_name
-                    else CRratio_4b_2bpostW
-                )
-
-            p.starmap(
-                plot_single_var_from_columns,
-                [
-                    (
-                        var,
-                        col_dict[var.replace("_TRANSFORM", "").replace("_UNIFORM", "")],
-                        col_dict["weight"],
-                        cat_list,
-                        dir_cat,
-                        chi_squared,
-                        color_list,
-                        ratio2b4b,
-                        lumi,
-                        era_string,
-                    )
-                    for var in vars_to_plot_final
-                ],
+        print(f"\n\n\nCategory name: {cats_name}")
+        if "SR" in cats_name and args.separate_normalisation:
+            print("Using SR ratio for normalisation")
+            ratio2b4b = (
+                SRratio_4b_2bpostW_Run2 if "Run2" in cats_name else SRratio_4b_2bpostW
             )
+        else:
+            print("Using CR ratio for normalisation")
+            ratio2b4b = (
+                CRratio_4b_2bpostW_Run2 if "Run2" in cats_name else CRratio_4b_2bpostW
+            )
+        print(f"Using ratio2b4b: {ratio2b4b}")
+        if args.workers > 1:
+            with Pool(args.workers) as p:
+                p.starmap(
+                    plot_single_var_from_columns,
+                    [
+                        (
+                            var,
+                            col_dict[
+                                var.replace("_TRANSFORM", "").replace("_UNIFORM", "")
+                            ],
+                            col_dict["weight"],
+                            col_list_data_mc,
+                            dir_cat,
+                            chi_squared,
+                            color_list,
+                            ratio2b4b,
+                            lumi,
+                            era_string,
+                        )
+                        for var in vars_to_plot_final
+                    ],
+                )
+        else:
+            for var in vars_to_plot_final:
+                plot_single_var_from_columns(
+                    var,
+                    col_dict[var.replace("_TRANSFORM", "").replace("_UNIFORM", "")],
+                    col_dict["weight"],
+                    col_list_data_mc,
+                    dir_cat,
+                    chi_squared,
+                    color_list,
+                    ratio2b4b,
+                    lumi,
+                    era_string,
+                )
         del col_dict
 
+    # save the yields_dict to txt file
+    with open(os.path.join(outputdir, "yields.txt"), "w") as f:
+        for key, value in yields_dict.items():
+            f.write(f"{key}: {value}\n")
 
 if __name__ == "__main__":
 
@@ -892,7 +731,7 @@ if __name__ == "__main__":
     lumi, era_string = get_era_lumi(total_datasets_list_data)
 
     ############# Actual plotting command. Now a list with [datastuff, mcstuff] ######################
-    plot_from_columns(
+    main(
         [cat_col_data, cat_col_mc],
         lumi,
         era_string,
