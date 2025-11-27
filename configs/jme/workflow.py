@@ -9,7 +9,7 @@ from pocket_coffea.lib.deltaR_matching import object_matching, deltaR_matching_n
 
 from configs.jme.custom_cut_functions import *
 from configs.jme.custom_functions import *
-from configs.jme.params.binning import pt_bins, eta_bins
+from configs.jme.params.binning import pt_bins, eta_bins, eta_bins_upart
 
 
 flav_dict = (
