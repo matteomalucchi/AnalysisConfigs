@@ -243,6 +243,9 @@ default_jets_calibration:
           - "${default_params_dir:}/jec/Summer23BPix/Summer23BPixPrompt23_V1_MC_Uncertainty_AK4PFPuppi.junc.txt.gz"
           - "${default_params_dir:}/jec/Summer23BPix/Summer23BPixPrompt23_JRV1_MC_PtResolution_AK4PFPuppi.jr.txt.gz"
           - "${default_params_dir:}/jec/Summer23BPix/Summer23BPixPrompt23_JRV1_MC_SF_AK4PFPuppi.jersf.txt.gz"
+        
+        "2024":
+          - "${default_params_dir:}/jec/Summer24/Summer24Prompt24_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
 
     AK4PFPNet:
@@ -457,7 +460,7 @@ jets_calibration:
       AK4PFchs: "${default_jets_calibration.factory_configuration_MC.AK4PFchs.JES_JER_Syst}" 
       AK4PFPuppi: "${default_jets_calibration.factory_configuration_MC.AK4PFPuppi.JES_JER_Syst}" 
       AK4PFPNet: "${default_jets_calibration.factory_configuration_MC.AK4PFPNet.JES_JER_Syst}" 
-      AK4PFPNetPlusNeutrino: "${default_jets_calibration.factory_configuration_MC.AK4PFPNetPlusNeutrino.JES_JER_Syst}" 
+      AK4PFPNetPlusNeutrino: "${default_jets_calibration.factory_configuration_MC.AK4PFPNetPlusNeutrino.JES_JER_Syst}"
       AK8PFPuppi: "${default_jets_calibration.factory_configuration_MC.AK8PFPuppi.JES_JER_Syst}"
     Data:
       AK4PFPuppi: "${default_jets_calibration.factory_configuration_Data.AK4PFPuppi.JES}" 
@@ -497,6 +500,9 @@ jets_calibration:
       AK4PFPNet: "JetPNet"
       AK4PFPNetPlusNeutrino: "JetPNetPlusNeutrino"
       #AK8PFPuppi: "FatJet"
+    "2024":
+      AK4PFPuppi: "Jet"
+      #AK8PFPuppi: "FatJet"
     
   jec_name_map_MC: "${default_jets_calibration.jec_name_map_MC}"
   jec_name_map_Data: "${default_jets_calibration.jec_name_map_Data}"
@@ -509,6 +515,7 @@ jets_calibration:
     2022_postEE: True
     2023_preBPix: True
     2023_postBPix: True
+    "2024": True
 
   rescale_MET:
     2016_PreVFP: False
@@ -519,6 +526,7 @@ jets_calibration:
     2022_postEE: True
     2023_preBPix: True
     2023_postBPix: True
+    "2024": True
 
   rescale_MET_branch:
      2016_PreVFP: "MET"
@@ -529,3 +537,4 @@ jets_calibration:
      2022_postEE: "PuppiMET"
      2023_preBPix: "PuppiMET"
      2023_postBPix: "PuppiMET"
+     "2024": "PuppiMET"
