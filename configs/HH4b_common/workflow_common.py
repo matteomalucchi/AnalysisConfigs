@@ -159,6 +159,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 (self.events["JetGoodHiggs"], jets5plus_pt), axis=1
             )
 
+        # Select FatJets for the boosted category
+        self.events["FatJetGood"], _ = custom_jet_selection(
+            self.events,
+            jet_type="FatJet",
+            params=self.params,
+            year=self._year,
+            jet_tagger="PNet",
+            pt_type="pt",
+            pt_cut_name="pt",
+        )
+
     # def apply_preselection(self, variation):
     #     """
     #     Workaround to have the possibility for preselections depending on samples
@@ -492,6 +503,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood, axis=1)
         self.events["nJetGood"] = ak.num(self.events.JetGood, axis=1)
         self.events["nJetGoodHiggs"] = ak.num(self.events.JetGoodHiggs, axis=1)
+        self.events["nFatJetGood"] = ak.num(self.events.FatJetGood, axis=1)
 
     def HelicityCosTheta(self, higgs, jet):
         higgs = add_fields(higgs, four_vec="Momentum4D")
@@ -859,143 +871,144 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return matched_jet_higgs_idx_not_none
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
-        # Define the Delta WP
-        self.events["JetGood"] = self.generate_btag_delta_workingpoints(
-            self.events["JetGood"], 5
-        )
-
-        if self._isMC and not self.spanet:
-            matched_jet_higgs_idx_not_none = self.get_true_pairing_and_compare()
-
-        elif self.spanet:
-            # apply spanet model to get the pairing prediction for the b-jets from Higgs
-            model_session_spanet, input_name_spanet, output_name_spanet = (
-                get_model_session(self.spanet, "spanet")
+        if not self.boosted:
+            # Define the Delta WP
+            self.events["JetGood"] = self.generate_btag_delta_workingpoints(
+                self.events["JetGood"], 5
             )
 
-            # compute the pairing information using the SPANET model
-            pairing_outputs = get_pairing_information(
-                model_session_spanet,
-                input_name_spanet,
-                output_name_spanet,
-                self.events,
-                self.max_num_jets,
-                self.spanet_input_name_list,
-            )
-            # Not needed anymore
-            del model_session_spanet
-            del input_name_spanet
-            del output_name_spanet
+            if self._isMC and not self.spanet:
+                matched_jet_higgs_idx_not_none = self.get_true_pairing_and_compare()
 
-            (
-                pairing_predictions,
-                self.events["best_pairing_probability"],
-                self.events["second_best_pairing_probability"],
-            ) = get_best_pairings(pairing_outputs)
-
-            # get the probabilities difference between the best and second best jet assignment
-            self.events["Delta_pairing_probabilities"] = (
-                self.events.best_pairing_probability
-                - self.events.second_best_pairing_probability
-            )
-
-            # apply logit transformation
-            # self.events["Logit_Delta_pairing_probabilities"] = np.log(
-            #     self.events["Delta_pairing_probabilities"]
-            #     / (1 - self.events["Delta_pairing_probabilities"])
-            # )
-
-            # apply arctanh transformation
-            self.events["Arctanh_Delta_pairing_probabilities"] = np.arctanh(
-                self.events["Delta_pairing_probabilities"]
-            )
-            arctanh_delta_prob_bin_edges = [
-                np.min(self.events.Arctanh_Delta_pairing_probabilities) - 1,
-                self.arctanh_delta_prob_bin_edge,
-                np.max(
-                    [
-                        np.max(self.events.Arctanh_Delta_pairing_probabilities) + 1,
-                        self.arctanh_delta_prob_bin_edge + 1,
-                    ]
-                ),
-            ]
-            self.events["Binned_Arctanh_Delta_pairing_probabilities"] = (
-                np.digitize(
-                    ak.to_numpy(self.events.Arctanh_Delta_pairing_probabilities),
-                    arctanh_delta_prob_bin_edges,
-                )
-                - 1
-            )
-            self.events["Padded_Arctanh_Delta_pairing_probabilities"] = np.where(
-                self.events.Arctanh_Delta_pairing_probabilities
-                > self.arctanh_delta_prob_pad_limit,
-                self.pad_value,
-                self.events.Arctanh_Delta_pairing_probabilities,
-            )
-
-            (
-                self.events["HiggsLeading"],
-                self.events["HiggsSubLeading"],
-                self.events["JetGoodFromHiggsOrdered"],
-            ) = reconstruct_higgs_from_idx(self.events.JetGood, pairing_predictions)
-
-            matched_jet_higgs_idx_not_none = self.events.JetGoodFromHiggsOrdered.index
-            # Define distance parameter for selection:
-            self.events["Rhh"] = np.sqrt(
-                (self.events.HiggsLeading.mass - 125) ** 2
-                + (self.events.HiggsSubLeading.mass - 120) ** 2
-            )
-            if self._isMC:
-                matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
-                    suffix="True",
-                    pairing_predictions=pairing_predictions,
-                    pairing_suffix="",
+            elif self.spanet:
+                # apply spanet model to get the pairing prediction for the b-jets from Higgs
+                model_session_spanet, input_name_spanet, output_name_spanet = (
+                    get_model_session(self.spanet, "spanet")
                 )
 
-            # if the 5th jet is matched, then the add jet should be order by btag
-            # because we want to consider the leading in btag which the pairing discarded
-            self.events["btag_order_add_jet"] = ak.any(
-                ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
-            )
+                # compute the pairing information using the SPANET model
+                pairing_outputs = get_pairing_information(
+                    model_session_spanet,
+                    input_name_spanet,
+                    output_name_spanet,
+                    self.events,
+                    self.max_num_jets,
+                    self.spanet_input_name_list,
+                )
+                # Not needed anymore
+                del model_session_spanet
+                del input_name_spanet
+                del output_name_spanet
 
-        # reconstruct the higgs candidates for Run2 method
-        if self.run2:
-            (
-                pairing_predictions,
-                self.events["delta_dhh"],
-                self.events["HiggsLeadingRun2"],
-                self.events["HiggsSubLeadingRun2"],
-                self.events["JetGoodFromHiggsOrderedRun2"],
-            ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
+                (
+                    pairing_predictions,
+                    self.events["best_pairing_probability"],
+                    self.events["second_best_pairing_probability"],
+                ) = get_best_pairings(pairing_outputs)
 
-            matched_jet_higgs_idx_not_noneRun2 = (
-                self.events.JetGoodFromHiggsOrderedRun2.index
-            )
-            self.events["Rhh_Run2"] = np.sqrt(
-                (self.events.HiggsLeadingRun2.mass - 125) ** 2
-                + (self.events.HiggsSubLeadingRun2.mass - 120) ** 2
-            )
-            if self._isMC:
-                matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
-                    suffix="True",
-                    pairing_predictions=pairing_predictions,
-                    pairing_suffix="Run2",
+                # get the probabilities difference between the best and second best jet assignment
+                self.events["Delta_pairing_probabilities"] = (
+                    self.events.best_pairing_probability
+                    - self.events.second_best_pairing_probability
                 )
 
-            # if the 5th jet is matched, then the add jet should be order by btag
-            # because we want to consider the leading in btag which the pairing discarded
-            # (useless for Run2 pairing because it's always 4 jets)
-            self.events["btag_order_add_jet"] = ak.any(
-                ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                # apply logit transformation
+                # self.events["Logit_Delta_pairing_probabilities"] = np.log(
+                #     self.events["Delta_pairing_probabilities"]
+                #     / (1 - self.events["Delta_pairing_probabilities"])
+                # )
+
+                # apply arctanh transformation
+                self.events["Arctanh_Delta_pairing_probabilities"] = np.arctanh(
+                    self.events["Delta_pairing_probabilities"]
+                )
+                arctanh_delta_prob_bin_edges = [
+                    np.min(self.events.Arctanh_Delta_pairing_probabilities) - 1,
+                    self.arctanh_delta_prob_bin_edge,
+                    np.max(
+                        [
+                            np.max(self.events.Arctanh_Delta_pairing_probabilities) + 1,
+                            self.arctanh_delta_prob_bin_edge + 1,
+                        ]
+                    ),
+                ]
+                self.events["Binned_Arctanh_Delta_pairing_probabilities"] = (
+                    np.digitize(
+                        ak.to_numpy(self.events.Arctanh_Delta_pairing_probabilities),
+                        arctanh_delta_prob_bin_edges,
+                    )
+                    - 1
+                )
+                self.events["Padded_Arctanh_Delta_pairing_probabilities"] = np.where(
+                    self.events.Arctanh_Delta_pairing_probabilities
+                    > self.arctanh_delta_prob_pad_limit,
+                    self.pad_value,
+                    self.events.Arctanh_Delta_pairing_probabilities,
+                )
+
+                (
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["JetGoodFromHiggsOrdered"],
+                ) = reconstruct_higgs_from_idx(self.events.JetGood, pairing_predictions)
+
+                matched_jet_higgs_idx_not_none = self.events.JetGoodFromHiggsOrdered.index
+                # Define distance parameter for selection:
+                self.events["Rhh"] = np.sqrt(
+                    (self.events.HiggsLeading.mass - 125) ** 2
+                    + (self.events.HiggsSubLeading.mass - 120) ** 2
+                )
+                if self._isMC:
+                    matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
+                        suffix="True",
+                        pairing_predictions=pairing_predictions,
+                        pairing_suffix="",
+                    )
+
+                # if the 5th jet is matched, then the add jet should be order by btag
+                # because we want to consider the leading in btag which the pairing discarded
+                self.events["btag_order_add_jet"] = ak.any(
+                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                )
+
+            # reconstruct the higgs candidates for Run2 method
+            if self.run2:
+                (
+                    pairing_predictions,
+                    self.events["delta_dhh"],
+                    self.events["HiggsLeadingRun2"],
+                    self.events["HiggsSubLeadingRun2"],
+                    self.events["JetGoodFromHiggsOrderedRun2"],
+                ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
+    
+                matched_jet_higgs_idx_not_noneRun2 = (
+                    self.events.JetGoodFromHiggsOrderedRun2.index
+                )
+                self.events["Rhh_Run2"] = np.sqrt(
+                    (self.events.HiggsLeadingRun2.mass - 125) ** 2
+                    + (self.events.HiggsSubLeadingRun2.mass - 120) ** 2
+                )
+                if self._isMC:
+                    matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
+                        suffix="True",
+                        pairing_predictions=pairing_predictions,
+                        pairing_suffix="Run2",
+                    )
+    
+                # if the 5th jet is matched, then the add jet should be order by btag
+                # because we want to consider the leading in btag which the pairing discarded
+                # (useless for Run2 pairing because it's always 4 jets)
+                self.events["btag_order_add_jet"] = ak.any(
+                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                )
+    
+            if not (self._isMC and not self.spanet):
+                self.dummy_provenance()
+    
+            self.events["nJetGoodHiggsMatched"] = ak.num(
+                self.events.JetGoodHiggsMatched, axis=1
             )
-
-        if not (self._isMC and not self.spanet):
-            self.dummy_provenance()
-
-        self.events["nJetGoodHiggsMatched"] = ak.num(
-            self.events.JetGoodHiggsMatched, axis=1
-        )
-        self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
+            self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
 
         if self.vbf_ggf_dnn:
             (

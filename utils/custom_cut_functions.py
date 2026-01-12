@@ -92,12 +92,26 @@ def custom_jet_selection(
 
     _, mask = jet_selection(
         events_copy,
-        jet_type_default,
+        jet_type,
         params_copy,
         year,
         leptons_collection,
         jet_tagger,
     )
+
+    if "FatJet" in jet_type:
+        events[jet_type] = ak.with_field(
+            events[jet_type][mask], _["btagBB"], "btagBB",
+        )
+        events[jet_type] = ak.with_field(
+            events[jet_type], _["btagCC"], "btagCC",
+        )
+
+        # remove copies
+        del params_copy
+        del events_copy
+        
+        return events[jet_type], mask
 
     # remove copies
     del params_copy

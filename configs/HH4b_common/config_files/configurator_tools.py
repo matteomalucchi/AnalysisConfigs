@@ -60,6 +60,12 @@ variables_dict_jets = {
 }
 
 
+variables_dict_fatjets = {
+    **jet_hists(coll="FatJetGood", pos=0),
+    **jet_hists(coll="FatJetGood", pos=1),
+}
+
+
 variables_dict_higgs_mass = {
     "RecoHiggs1Mass": HistConf(
         [
@@ -541,6 +547,132 @@ variables_dict_vbf = {
         start=0,
         stop=1,
         label="JetGoodFromHiggsOrdered_btagPNetQvG3",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "pt",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=1000,
+        label="FatJetGood_pt0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "eta",
+        bins=60,
+        pos=0,
+        start=-5,
+        stop=5,
+        label="FatJetGood_eta0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "phi",
+        bins=60,
+        pos=0,
+        start=-5,
+        stop=5,
+        label="FatJetGood_phi0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "mass",
+        bins=100,
+        pos=0,
+        start=50,
+        stop=250,
+        label="FatJetGood_mass0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "msoftdrop",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=200,
+        label="FatJetGood_msoftdrop0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagBB",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagBB0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagPNetQvG",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagCC0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "pt",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=1000,
+        label="FatJetGood_pt1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "eta",
+        bins=60,
+        pos=1,
+        start=-5,
+        stop=5,
+        label="FatJetGood_eta1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "phi",
+        bins=60,
+        pos=1,
+        start=-5,
+        stop=5,
+        label="FatJetGood_phi1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "mass",
+        bins=100,
+        pos=1,
+        start=50,
+        stop=250,
+        label="FatJetGood_mass1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "msoftdrop",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=200,
+        label="FatJetGood_msoftdrop1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagBB",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagBB1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagPNetQvG",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagCC1",
     ),
     **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
@@ -1064,6 +1196,7 @@ def get_variables_dict(
     SCORE=False,
     RUN2=False,
     SPANET=True,
+    BOOSTED=False,
 ):
     """Function to create the variable dictionary for the PocketCoffea Configurator()."""
     variables_dict = {}
@@ -1077,6 +1210,8 @@ def get_variables_dict(
         variables_dict.update(variables_dict_vbf)
     if BKG_MORPHING:
         variables_dict.update(variable_dict_bkg_morphing)
+    if BOOSTED:
+        variables_dict.update(variables_dict_fatjets)
     if SCORE:
         has_qt = False
 
@@ -1113,10 +1248,17 @@ def get_variables_dict(
     # Sort of lazy implementation. If neither SPANet nor RUN2 are active, no variables are saved.
     # If not Run2, kick out all variables with Run2 in name
     # If not SPANet, kick out all variables without Run2 in name
-    if not RUN2:
+    if (not RUN2) and (not BOOSTED):
+        print(" - Removing Run2 variables")
         variables_dict = {k: v for k, v in variables_dict.items() if "Run2" not in k}
-    if not SPANET:
+    elif (not SPANET) and (not BOOSTED):
+        print(" - Removing non-Run2 variables")
         variables_dict = {k: v for k, v in variables_dict.items() if "Run2" in k}
+    elif (BOOSTED) and (not SPANET) and (not RUN2):
+        print(" - Removing non-FatJetGood variables")
+        for k in variables_dict.items():
+            print(k)
+        variables_dict = {k: v for k, v in variables_dict.items() if "FatJetGood" in k}
     return variables_dict
 
 
@@ -1167,6 +1309,22 @@ DEFAULT_JET_COLUMNS_DICT = {
     f"JetGood_{x}": ["JetGood", x] for x in DEFAULT_JET_COLUMN_PARAMS
 }
 
+DEFAULT_FATJET_COLUMN_PARAMS = [
+    "pt",
+    "eta",
+    "phi",
+    "mass",
+    "msoftdrop",
+    "btagBB",
+    "btagCC",
+]
+DEFAULT_FATJET_COLUMNS = {
+    "FatJetGood": DEFAULT_FATJET_COLUMN_PARAMS,
+}
+
+DEFAULT_FATJET_COLUMNS_DICT = {
+    f"FatJetGood_{x}": ["FatJetGood", x] for x in DEFAULT_FATJET_COLUMN_PARAMS
+}
 
 def get_columns_list(
     columns_dict=DEFAULT_JET_COLUMNS,
@@ -1224,7 +1382,7 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=False):
             "btagPNetB"
         )
     column_list = get_columns_list(column_dict, flatten)
-
+    print("porca madonna", column_list)
     return column_list
 
 
@@ -1239,8 +1397,15 @@ def define_single_category(category_name):
     if "2b" in category_name:
         cut_list.append(cuts.hh4b_2b_region)
 
+    if "boosted" in category_name:
+        if "signal" in category_name:
+            cut_list.append(cuts.hh4b_boosted_signal_region)
+        if "ttbar" in category_name:
+            cut_list.append(cuts.hh4b_boosted_ttbar_control_region)
+        if "qcd" in category_name:
+            cut_list.append(cuts.hh4b_boosted_qcd_control_region)
     # mass cuts
-    if "VR1" not in category_name:
+    elif "VR1" not in category_name:
         if "control" in category_name:
             if "Run2" not in category_name:
                 cut_list.append(cuts.hh4b_control_region)
@@ -1277,7 +1442,7 @@ def define_single_category(category_name):
 
 
 def define_categories(
-    bkg_morphing_dnn=False, blind=False, spanet=False, run2=False, vr1=False, btag_sf_comp=False,
+    bkg_morphing_dnn=False, blind=False, spanet=False, run2=False, vr1=False, btag_sf_comp=False, boosted=False
 ):
     """
     Define the categories for the analysis.
@@ -1332,6 +1497,10 @@ def define_categories(
                 categories_dict |= define_single_category(
                     "2b_signal_region_postW" + "Run2"
                 )
+        if boosted:
+            categories_dict |= define_single_category("boosted_signal_region")
+            categories_dict |= define_single_category("boosted_ttbar_region")
+            categories_dict |= define_single_category("boosted_qcd_region")
     else:
         if spanet:
             categories_dict |= define_single_category("4b_VR1_control_region")
@@ -1354,7 +1523,7 @@ def define_categories(
                     "2b_VR1_signal_region_postWRun2"
                 )
 
-    if not spanet and not run2:
+    if not spanet and not run2 and not boosted:
         # add the 2b control region post W for the old DNN
         categories_dict |= define_single_category("4b_region")
 
@@ -1377,6 +1546,8 @@ def define_preselection(options):
                 preselection = [vbf_cuts.vbf_hh4b_presel_tight]
             else:
                 preselection = [vbf_cuts.vbf_hh4b_presel]
+        elif options["boosted_presel"]:
+            preselection = [cuts.hh4b_boosted_presel]
         else:
             if options["tight_cuts"]:
                 preselection = [cuts.hh4b_presel_tight]
@@ -1386,6 +1557,7 @@ def define_preselection(options):
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
-    preselection.append(cuts.hh4b_JetVetoMap)
+    if not options["boosted_presel"]: # FIXME
+        preselection.append(cuts.hh4b_JetVetoMap)
     
     return preselection

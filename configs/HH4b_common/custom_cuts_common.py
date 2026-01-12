@@ -24,6 +24,23 @@ hh4b_presel = Cut(
     function=cuts_f.hh4b_presel_cuts,
 )
 
+hh4b_boosted_presel = Cut(
+    name="hh4b_boosted_presel",
+    params={
+        "nfatjet": 2,
+        "pt_jet0": 300,
+        "pt_jet1": 250,
+        "msd_jet": 50,
+        "pnet_jet0": 0.65,
+        "pnet_jet1": 0.05,
+        "mass_min": 50,
+        "mass_max": 200,
+        "tight_cuts": False,
+        "pt_type": "pt",
+    },
+    function=cuts_f.hh4b_boosted_presel_cuts,
+)
+
 hh4b_presel_tight = Cut(
     name="hh4b_presel_tight",
     params={
@@ -133,6 +150,38 @@ hh4b_control_region_run2 = Cut(
         "higgs_sublead_center": 120,
     },
     function=cuts_f.hh4b_Rhh_cuts,
+)
+
+hh4b_boosted_signal_region = Cut(
+    name="hh4b_boosted_signal_region",
+    params={
+        "Run2": False,
+        "pnet_cut": 0.65,
+        "mass_min": 100,
+        "mass_max": 150,
+    },
+    function=cuts_f.hh4b_boosted_SR_cuts,
+)
+
+hh4b_boosted_ttbar_control_region = Cut(
+    name="hh4b_boosted_ttbar_control_region",
+    params={
+        "Run2": False,
+        "mass_min": 150,
+        "mass_max": 200,
+    },
+    function=cuts_f.hh4b_boosted_ttbar_CR_cuts,
+)
+
+hh4b_boosted_qcd_control_region = Cut(
+    name="hh4b_boosted_qcd_control_region",
+    params={
+        "Run2": False,
+        "pnet_cut": 0.65,
+        "mass_min": 100,
+        "mass_max": 150,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts,
 )
 
 hh4b_VR1_signal_region = Cut(

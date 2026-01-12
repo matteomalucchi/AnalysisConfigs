@@ -7,6 +7,14 @@ object_preselection:
     jetId: 6 # 6 with lepveto or 2 w/o lepveto
     btagPNetB: -2 
     #TODO: trigger matching?
+  FatJet:
+    pt: 250
+    eta: 2.5
+    jetId: 2 # 6 with lepveto or 2 w/o lepveto
+    btagPNetB: -2
+    msd: 50
+    mass_regr_min: 50
+    mass_regr_max: 200
   
   ## Lepton selection
   Electron:

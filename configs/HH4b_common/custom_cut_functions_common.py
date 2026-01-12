@@ -8,6 +8,12 @@ def four_jets(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def two_fat_jets(events, params, **kwargs):
+    jet_collection = "FatJetGood"
+    mask = events[f"n{jet_collection}"] >= params["nfatjet"]
+    return ak.where(ak.is_none(mask), False, mask)
+
+
 def lepton_veto(events, params, **kwargs):
     no_electron = events.nElectronGood == 0
     no_muon = events.nMuonGood == 0
@@ -53,6 +59,151 @@ def hh4b_presel_cuts(events, params, **kwargs):
     mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
 
     mask = mask_pt & mask_btag
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_boosted_presel_cuts(events, params, **kwargs):
+    at_least_two_fat_jets = two_fat_jets(events, params, **kwargs)
+    pt_type = params["pt_type"]
+
+    # Do we need this? From the AN, section 12.3 doesn't mention lepton veto for boosted presel
+    # lepton_veto_mask = lepton_veto(events, params, **kwargs)
+
+    # require two fat jets
+    mask_2_fatjet = at_least_two_fat_jets # & lepton_veto_mask
+    # convert false to None
+    mask_2_fatjet_none = ak.mask(mask_2_fatjet, mask_2_fatjet)
+    
+    jets = (
+        events[mask_2_fatjet_none].FatJetGood
+        if not params["tight_cuts"]
+        else events[mask_2_fatjet_none].FatJetGoodHiggs
+    )
+
+    # make sure that the jets are pt ordered
+    jets_pt_order = jets[
+        ak.argsort(jets[pt_type], axis=1, ascending=False)
+    ]
+
+    # require both jets have pt > 250 GeV, lower limit for the second jet
+    mask_pt_none = (
+        (jets_pt_order[pt_type][:, 0] > params["pt_jet0"])
+        & (jets_pt_order[pt_type][:, 1] > params["pt_jet1"])
+    )
+    # convert none to false
+    mask_pt = ak.where(ak.is_none(mask_pt_none), False, mask_pt_none)
+
+    # order in btag and require btag score of leading and subleading of 0.65 and 0.05 respectively.
+    # since the cut is at the event level the different ordering of the jets should not be a problem
+    jets_btag_order = jets_pt_order[
+        ak.argsort(jets_pt_order["btagBB"], axis=1, ascending=False)
+    ]
+
+    mask_btag = (
+        (jets_btag_order.btagBB[:, 0] > params["pnet_jet0"])
+        & (jets_btag_order.btagBB[:, 1] > params["pnet_jet1"])
+    )
+    mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
+
+    # require both jets to be in the mass window 50 - 200 GeV, they are further split later on, to be checked if this is the regressed mass or not
+    mask_mass = (
+        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
+        & (jets_btag_order.mass[:, 0] < params["mass_max"])
+        & (jets_btag_order.mass[:, 1] > params["mass_min"])
+        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+    )
+    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+    # require mass soft drop > 50 GeV for both jets
+    mask_msd = (
+        (jets_btag_order.msoftdrop[:, 0] > params["msd_jet"])
+        & (jets_btag_order.msoftdrop[:, 1] > params["msd_jet"])
+    )
+    mask_msd = ak.where(ak.is_none(mask_msd), False, mask_msd)
+
+    mask = mask_pt & mask_btag & mask_mass & mask_msd
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_boosted_SR_cuts(events, params, **kwargs):
+
+    jets_btag_order = events["FatJetGood"][
+        ak.argsort(events["FatJetGood"]["btagBB"], axis=1, ascending=False)
+    ]
+
+    # also the second jet has to pass the btag cut to end in the SR
+    mask_btag = (
+        jets_btag_order["btagBB"][:, 1] > params["pnet_cut"]
+    )
+    mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
+
+    # this should be done with the regressed mass,
+    # leading jet in b-tag or pt?
+    mask_mass = (
+        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
+        & (jets_btag_order.mass[:, 0] < params["mass_max"])
+    )
+    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+    mask = mask_btag & mask_mass
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_boosted_ttbar_CR_cuts(events, params, **kwargs):
+
+    jets_btag_order = events["FatJetGood"][
+        ak.argsort(events["FatJetGood"]["btagBB"], axis=1, ascending=False)
+    ]
+
+    # both jets has to be in the 150 < mass < 200 GeV window to be in the ttbar CR 
+    mask_mass = (
+        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
+        & (jets_btag_order.mass[:, 0] < params["mass_max"])
+        & (jets_btag_order.mass[:, 1] > params["mass_min"])
+        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+    )
+    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+
+def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
+
+    jets_btag_order = events["FatJetGood"][
+        ak.argsort(events["FatJetGood"]["btagBB"], axis=1, ascending=False)
+    ]
+
+    # both jets has to be in the 50 < mass < 150 GeV window to be in the QCD CR 
+    # at least one has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
+    mask_mass_lead = (
+        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
+        & (jets_btag_order.mass[:, 0] < params["mass_max"])
+    )
+    mask_mass_lead = ak.where(ak.is_none(mask_mass_lead), False, mask_mass_lead)
+
+    mask_mass_sublead = (
+        (jets_btag_order.mass[:, 1] > params["mass_min"])
+        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+    )
+    mask_mass_sublead = ak.where(ak.is_none(mask_mass_sublead), False, mask_mass_sublead)
+
+    mask_mass_qcd = (
+        (jets_btag_order.mass[:, 0] < params["mass_max"])
+        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+    )
+    mask_mass_qcd = ak.where(ak.is_none(mask_mass_qcd), False, mask_mass_qcd)
+
+    mask_btag_sublead = (jets_btag_order["btagBB"][:, 1] > params["pnet_cut"])
+    mask_btag_sublead = ak.where(ak.is_none(mask_btag_sublead), False, mask_btag_sublead)
+
+    mask = ~(mask_mass_lead & mask_mass_sublead & mask_btag_sublead) & mask_mass_qcd
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)

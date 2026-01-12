@@ -27,6 +27,7 @@ import configs.HH4b_common.custom_cuts_common as cuts
 from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
+    DEFAULT_FATJET_COLUMNS,
     create_DNN_columns_list,
     define_categories,
     define_single_category,
@@ -83,6 +84,7 @@ variables_dict = get_variables_dict(
     SCORE=bool(config_options_dict["sig_bkg_dnn"]),
     RUN2=config_options_dict["run2"],
     SPANET=bool(config_options_dict["spanet"]),
+    BOOSTED=config_options_dict["boosted"],
 )
 # print(variables_dict)
 
@@ -130,11 +132,12 @@ categories_dict = define_categories(
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
+    boosted=config_options_dict["boosted"],
 )
 # AKA if no model is applied
 # print(onnx_model_dict)
-if all([model == "" for model in onnx_model_dict.values()]):
-    print("Didn't find any onnx model. Will choose region for SPANet training")
+if all([model == "" for model in onnx_model_dict.values()]) and not (config_options_dict["boosted"]):
+    print("Didn't find any onnx model and not running boosted analysis. Will choose region for SPANet training")
     categories_dict = define_single_category("4b_region")
 
 # print("categories_dict", categories_dict)
@@ -194,7 +197,7 @@ if config_options_dict["dnn_variables"]:
     column_listRun2 = create_DNN_columns_list(
         True, not config_options_dict["save_chunk"], total_input_variables, btag=False
     )
-elif all([model == "" for model in onnx_model_dict.values()]):
+elif all([model == "" for model in onnx_model_dict.values()]) and not (config_options_dict["boosted"]):
     if "wp" in config_options_dict["spanet_input_name_list"][-1]:
         print("Taking btag Working Points")
         column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
@@ -235,6 +238,8 @@ if config_options_dict["run2"] and not any(
             ]
         }
     )
+if config_options_dict["boosted"]:
+    column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
 
 
 bysample_bycategory_column_dict = {}
