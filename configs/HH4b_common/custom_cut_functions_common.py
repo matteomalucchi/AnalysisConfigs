@@ -82,8 +82,6 @@ def hh4b_boosted_presel_cuts(events, params, **kwargs):
         else events[mask_2_fatjet_none].FatJetGoodHiggs
     )
 
-    jets["mass_regr"] = jets.mass * jets.particleNet_massCorr
-
     # jet ordered in btagging score
     jets_btag_order = jets[
         ak.argsort(jets["btagBB"], axis=1, ascending=False)
@@ -132,8 +130,8 @@ def hh4b_boosted_presel_cuts(events, params, **kwargs):
     mask_additional_jet = ak.num(remaining_good_jet_pool, axis=1) >= 1
 
     # Store the leading and subleading fat jets in the events for later use
-    events["LeadingFatJet"] = trigger_cand_jets
-    events["SubLeadingFatJet"] = subleading_jet
+    events["FatJetGoodSelected"] = ak.unflatten(trigger_cand_jets, counts=1)
+    events["FatJetGoodSelected"] = ak.concatenate((events["FatJetGoodSelected"], ak.unflatten(subleading_jet, counts=1)), axis=1)
 
     mask = mask_trigger & mask_additional_jet
 
@@ -143,7 +141,7 @@ def hh4b_boosted_presel_cuts(events, params, **kwargs):
 
 def hh4b_boosted_SR_cuts(events, params, **kwargs):
     # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
-    lead_jet, sublead_jet = events.LeadingFatJet, events.SubLeadingFatJet
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
 
     # also the second jet has to pass the btag cut to end in the SR
     mask_btag = (
@@ -166,7 +164,7 @@ def hh4b_boosted_SR_cuts(events, params, **kwargs):
 
 def hh4b_boosted_ttbar_CR_cuts(events, params, **kwargs):
     # further splits after passing the boosted preselection, here I assume that the two candidate jets are present  
-    lead_jet, sublead_jet = events.LeadingFatJet, events.SubLeadingFatJet
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
 
     # both jets has to be in the 150 < mass < 200 GeV window to be in the ttbar CR 
     mask_mass = (
@@ -183,21 +181,15 @@ def hh4b_boosted_ttbar_CR_cuts(events, params, **kwargs):
 
 def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
     # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
-    lead_jet, sublead_jet = events.LeadingFatJet, events.SubLeadingFatJet
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
 
     # both jets has to be in the 50 < mass < 150 GeV window to be in the QCD CR 
-    # at least one has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
+    # the leading one has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
     mask_mass_lead = (
         (lead_jet.mass_regr > params["mass_min"]) 
         & (lead_jet.mass_regr < params["mass_max"])
     )
     mask_mass_lead = ak.where(ak.is_none(mask_mass_lead), False, mask_mass_lead)
-
-    mask_mass_sublead = (
-        (sublead_jet.mass_regr > params["mass_min"])
-        & (sublead_jet.mass_regr < params["mass_max"])
-    )
-    mask_mass_sublead = ak.where(ak.is_none(mask_mass_sublead), False, mask_mass_sublead)
 
     mask_mass_qcd = (
         (lead_jet.mass_regr < params["mass_max"])
@@ -208,7 +200,7 @@ def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
     mask_btag_sublead = (sublead_jet["btagBB"] > params["pnet_cut"])
     mask_btag_sublead = ak.where(ak.is_none(mask_btag_sublead), False, mask_btag_sublead)
 
-    mask = ~(mask_mass_lead & mask_mass_sublead & mask_btag_sublead) & mask_mass_qcd
+    mask = (~(mask_mass_lead) | ~(mask_btag_sublead)) & mask_mass_qcd
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)

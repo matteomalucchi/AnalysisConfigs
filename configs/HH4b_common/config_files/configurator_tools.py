@@ -1314,12 +1314,14 @@ DEFAULT_FATJET_COLUMN_PARAMS = [
     "eta",
     "phi",
     "mass",
+    "mass_regr",
     "msoftdrop",
     "btagBB",
     "btagCC",
 ]
 DEFAULT_FATJET_COLUMNS = {
     "FatJetGood": DEFAULT_FATJET_COLUMN_PARAMS,
+    "FatJetGoodSelected": DEFAULT_FATJET_COLUMN_PARAMS,
 }
 
 DEFAULT_FATJET_COLUMNS_DICT = {

@@ -170,6 +170,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
             pt_cut_name="pt",
         )
 
+        self.events["FatJetGood"] = ak.with_field(
+            self.events["FatJetGood"],
+            self.events["FatJetGood"].mass * self.events["FatJetGood"].particleNet_massCorr,
+            "mass_regr"
+        )
+
     # def apply_preselection(self, variation):
     #     """
     #     Workaround to have the possibility for preselections depending on samples
