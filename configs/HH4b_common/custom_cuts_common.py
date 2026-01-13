@@ -266,3 +266,10 @@ skimming_cut_list = [
     get_HLTsel(primaryDatasets=["JetMET"]),
     get_L1sel(primaryDatasets=["JetMET"]),
 ]
+
+skimming_cut_list_boosted = [
+    eventFlags,
+    goldenJson,
+    get_nPVgood(1),
+    get_HLTsel(primaryDatasets=["Boosted"]),
+]

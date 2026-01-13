@@ -242,6 +242,7 @@ if config_options_dict["boosted"]:
     column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
 
 
+
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
     bysample_bycategory_column_dict[sample] = {
@@ -293,6 +294,11 @@ for sample in sample_list:
 
 # print("bysample_bycategory_weight_dict", bysample_bycategory_weight_dict)
 
+if config_options_dict["boosted"]:
+    skimming_cut_list = cuts.skimming_cut_list_boosted
+else:
+    skimming_cut_list = cuts.skimming_cut_list
+
 cfg = Configurator(
     parameters=parameters,
     datasets={
@@ -319,7 +325,7 @@ cfg = Configurator(
     },
     workflow=HH4bbQuarkMatchingProcessor,
     workflow_options=config_options_dict,
-    skim=cuts.skimming_cut_list,
+    skim=skimming_cut_list,
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights

@@ -2,9 +2,15 @@ HLT_triggers:
   "2022_preEE":
     JetMET:
        - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+    Boosted:
+       - HLT_AK8PFJet250_SoftDropMass40_PFAK8ParticleNetBB0p35
+       - HLT_AK8PFJet425_SoftDropMass40
   "2022_postEE":
     JetMET:
        - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+    Boosted:
+       - HLT_AK8PFJet230_SoftDropMass40_PNetBB0p06
+       - HLT_AK8PFJet400_SoftDropMass40
 
 ## TRIGGERS FOR 2023 PARKING OR PRE PARKING STILL TO BE UNDERSTOOD
 #   "2023_preBPix":
