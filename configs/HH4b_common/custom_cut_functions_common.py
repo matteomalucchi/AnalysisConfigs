@@ -75,77 +75,86 @@ def hh4b_boosted_presel_cuts(events, params, **kwargs):
     mask_2_fatjet = at_least_two_fat_jets # & lepton_veto_mask
     # convert false to None
     mask_2_fatjet_none = ak.mask(mask_2_fatjet, mask_2_fatjet)
-    
+
     jets = (
         events[mask_2_fatjet_none].FatJetGood
         if not params["tight_cuts"]
         else events[mask_2_fatjet_none].FatJetGoodHiggs
     )
 
-    # make sure that the jets are pt ordered
-    jets_pt_order = jets[
-        ak.argsort(jets[pt_type], axis=1, ascending=False)
+    jets["mass_regr"] = jets.mass * jets.particleNet_massCorr
+
+    # jet ordered in btagging score
+    jets_btag_order = jets[
+        ak.argsort(jets["btagBB"], axis=1, ascending=False)
     ]
+    # Build per-jet indices
+    jet_idx = ak.local_index(jets_btag_order, axis=1)
 
-    # require both jets have pt > 250 GeV, lower limit for the second jet
-    mask_pt_none = (
-        (jets_pt_order[pt_type][:, 0] > params["pt_jet0"])
-        & (jets_pt_order[pt_type][:, 1] > params["pt_jet1"])
+    # trigger object mask
+    good_trigger_jet_mask  = (
+        (jets_btag_order.pt > params["pt_jet0"]) 
+        & (jets_btag_order.msoftdrop > params["msd_jet"]) 
+        & (jets_btag_order.btagBB > params["pnet_jet0"])
+        & (jets_btag_order.mass_regr > params["mass_min"])
+        & (jets_btag_order.mass_regr < params["mass_max"])
     )
-    # convert none to false
-    mask_pt = ak.where(ak.is_none(mask_pt_none), False, mask_pt_none)
+    good_trigger_jet_mask = ak.fill_none(good_trigger_jet_mask, False)
 
-    # order in btag and require btag score of leading and subleading of 0.65 and 0.05 respectively.
-    # since the cut is at the event level the different ordering of the jets should not be a problem
-    jets_btag_order = jets_pt_order[
-        ak.argsort(jets_pt_order["btagBB"], axis=1, ascending=False)
-    ]
+    trigger_cand_jets = ak.firsts(jets_btag_order[good_trigger_jet_mask], axis=1)
+    idx_tr_cand = jet_idx[good_trigger_jet_mask]
 
-    mask_btag = (
-        (jets_btag_order.btagBB[:, 0] > params["pnet_jet0"])
-        & (jets_btag_order.btagBB[:, 1] > params["pnet_jet1"])
+    # Identify which jets to exclude
+    idx_selected = ak.firsts(idx_tr_cand, axis=1)
+
+    mask_trigger = ~ak.is_none(idx_selected)
+
+    # Here I build an exclusion mask for the trigger jet checking by index w.r.t. the looser collection
+    exclude_trigger = (jet_idx == idx_selected[:, None])
+    exclude_trigger = ak.fill_none(exclude_trigger, False)
+
+    # Build pool of other jets
+    remaining_jet_pool = jets_btag_order[~exclude_trigger] 
+
+    # require both jets have pt > 250 GeV, lower limit for the second jet and btag > 0.05
+    second_good_jet_mask = (
+        (remaining_jet_pool.pt > params["pt_jet1"]) 
+        & (remaining_jet_pool.btagBB > params["pnet_jet1"])
+        & (remaining_jet_pool.msoftdrop > params["msd_jet"])
+        & (remaining_jet_pool.mass_regr > params["mass_min"])
+        & (remaining_jet_pool.mass_regr < params["mass_max"])
     )
-    mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
+    second_good_jet_mask = ak.fill_none(second_good_jet_mask, False)
 
-    # require both jets to be in the mass window 50 - 200 GeV, they are further split later on, to be checked if this is the regressed mass or not
-    mask_mass = (
-        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
-        & (jets_btag_order.mass[:, 0] < params["mass_max"])
-        & (jets_btag_order.mass[:, 1] > params["mass_min"])
-        & (jets_btag_order.mass[:, 1] < params["mass_max"])
-    )
-    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+    remaining_good_jet_pool = remaining_jet_pool[second_good_jet_mask]
+    subleading_jet = ak.firsts(remaining_good_jet_pool, axis=1)
 
-    # require mass soft drop > 50 GeV for both jets
-    mask_msd = (
-        (jets_btag_order.msoftdrop[:, 0] > params["msd_jet"])
-        & (jets_btag_order.msoftdrop[:, 1] > params["msd_jet"])
-    )
-    mask_msd = ak.where(ak.is_none(mask_msd), False, mask_msd)
+    mask_additional_jet = ak.num(remaining_good_jet_pool, axis=1) >= 1
 
-    mask = mask_pt & mask_btag & mask_mass & mask_msd
+    # Store the leading and subleading fat jets in the events for later use
+    events["LeadingFatJet"] = trigger_cand_jets
+    events["SubLeadingFatJet"] = subleading_jet
+
+    mask = mask_trigger & mask_additional_jet
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
 
 def hh4b_boosted_SR_cuts(events, params, **kwargs):
-
-    jets_btag_order = events["FatJetGood"][
-        ak.argsort(events["FatJetGood"]["btagBB"], axis=1, ascending=False)
-    ]
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
+    lead_jet, sublead_jet = events.LeadingFatJet, events.SubLeadingFatJet
 
     # also the second jet has to pass the btag cut to end in the SR
     mask_btag = (
-        jets_btag_order["btagBB"][:, 1] > params["pnet_cut"]
+        sublead_jet["btagBB"] > params["pnet_cut"]
     )
     mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
 
-    # this should be done with the regressed mass,
-    # leading jet in b-tag or pt?
+    # this should be done with the regressed mass, GloParT or PNet? at the moment is PNet
     mask_mass = (
-        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
-        & (jets_btag_order.mass[:, 0] < params["mass_max"])
+        (lead_jet.mass_regr > params["mass_min"]) 
+        & (lead_jet.mass_regr < params["mass_max"])
     )
     mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
 
@@ -156,17 +165,15 @@ def hh4b_boosted_SR_cuts(events, params, **kwargs):
 
 
 def hh4b_boosted_ttbar_CR_cuts(events, params, **kwargs):
-
-    jets_btag_order = events["FatJetGood"][
-        ak.argsort(events["FatJetGood"]["btagBB"], axis=1, ascending=False)
-    ]
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present  
+    lead_jet, sublead_jet = events.LeadingFatJet, events.SubLeadingFatJet
 
     # both jets has to be in the 150 < mass < 200 GeV window to be in the ttbar CR 
     mask_mass = (
-        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
-        & (jets_btag_order.mass[:, 0] < params["mass_max"])
-        & (jets_btag_order.mass[:, 1] > params["mass_min"])
-        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+        (lead_jet.mass_regr > params["mass_min"]) 
+        & (lead_jet.mass_regr < params["mass_max"])
+        & (sublead_jet.mass_regr > params["mass_min"])
+        & (sublead_jet.mass_regr < params["mass_max"])
     )
     mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
 
@@ -175,32 +182,30 @@ def hh4b_boosted_ttbar_CR_cuts(events, params, **kwargs):
 
 
 def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
-
-    jets_btag_order = events["FatJetGood"][
-        ak.argsort(events["FatJetGood"]["btagBB"], axis=1, ascending=False)
-    ]
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
+    lead_jet, sublead_jet = events.LeadingFatJet, events.SubLeadingFatJet
 
     # both jets has to be in the 50 < mass < 150 GeV window to be in the QCD CR 
     # at least one has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
     mask_mass_lead = (
-        (jets_btag_order.mass[:, 0] > params["mass_min"]) 
-        & (jets_btag_order.mass[:, 0] < params["mass_max"])
+        (lead_jet.mass_regr > params["mass_min"]) 
+        & (lead_jet.mass_regr < params["mass_max"])
     )
     mask_mass_lead = ak.where(ak.is_none(mask_mass_lead), False, mask_mass_lead)
 
     mask_mass_sublead = (
-        (jets_btag_order.mass[:, 1] > params["mass_min"])
-        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+        (sublead_jet.mass_regr > params["mass_min"])
+        & (sublead_jet.mass_regr < params["mass_max"])
     )
     mask_mass_sublead = ak.where(ak.is_none(mask_mass_sublead), False, mask_mass_sublead)
 
     mask_mass_qcd = (
-        (jets_btag_order.mass[:, 0] < params["mass_max"])
-        & (jets_btag_order.mass[:, 1] < params["mass_max"])
+        (lead_jet.mass_regr < params["mass_max"])
+        & (sublead_jet.mass_regr < params["mass_max"])
     )
     mask_mass_qcd = ak.where(ak.is_none(mask_mass_qcd), False, mask_mass_qcd)
 
-    mask_btag_sublead = (jets_btag_order["btagBB"][:, 1] > params["pnet_cut"])
+    mask_btag_sublead = (sublead_jet["btagBB"] > params["pnet_cut"])
     mask_btag_sublead = ak.where(ak.is_none(mask_btag_sublead), False, mask_btag_sublead)
 
     mask = ~(mask_mass_lead & mask_mass_sublead & mask_btag_sublead) & mask_mass_qcd
