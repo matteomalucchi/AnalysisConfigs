@@ -184,6 +184,18 @@ hh4b_boosted_qcd_control_region = Cut(
     function=cuts_f.hh4b_boosted_qcd_CR_cuts,
 )
 
+hh4b_boosted_vbf_region = Cut(
+    name="hh4b_boosted_vbf_region",
+    params={
+        "vbf_pt": 25,
+        "vbf_eta": 4.7,
+        "vbf_mjj": 400,
+        "vbf_delta_eta": 3.5,
+        "tight_cuts": False,
+    },
+    function=cuts_f.hh4b_boosted_vbf_cuts,
+)
+
 hh4b_VR1_signal_region = Cut(
     name="hh4b_VR1_signal_region",
     params={

@@ -68,7 +68,7 @@ def custom_jet_selection(
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
     """
-    jet_type_default = "Jet"
+    jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
 
     # create a copy of params to avoid modifying the original one
     # and put in the collection the AK4PFPuppi to compute the jetId
@@ -98,20 +98,6 @@ def custom_jet_selection(
         leptons_collection,
         jet_tagger,
     )
-
-    if "FatJet" in jet_type:
-        events[jet_type] = ak.with_field(
-            events[jet_type][mask], _["btagBB"], "btagBB",
-        )
-        events[jet_type] = ak.with_field(
-            events[jet_type], _["btagCC"], "btagCC",
-        )
-
-        # remove copies
-        del params_copy
-        del events_copy
-        
-        return events[jet_type], mask
 
     # remove copies
     del params_copy

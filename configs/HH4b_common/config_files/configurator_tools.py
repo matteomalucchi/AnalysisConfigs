@@ -1406,6 +1406,8 @@ def define_single_category(category_name):
             cut_list.append(cuts.hh4b_boosted_ttbar_control_region)
         if "qcd" in category_name:
             cut_list.append(cuts.hh4b_boosted_qcd_control_region)
+        if "vbf" in category_name:
+            cut_list.append(cuts.hh4b_boosted_vbf_region)
     # mass cuts
     elif "VR1" not in category_name:
         if "control" in category_name:
@@ -1503,6 +1505,7 @@ def define_categories(
             categories_dict |= define_single_category("boosted_signal_region")
             categories_dict |= define_single_category("boosted_ttbar_region")
             categories_dict |= define_single_category("boosted_qcd_region")
+            categories_dict |= define_single_category("boosted_vbf_region")
     else:
         if spanet:
             categories_dict |= define_single_category("4b_VR1_control_region")

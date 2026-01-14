@@ -205,6 +205,43 @@ def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def hh4b_boosted_vbf_cuts(events, params, **kwargs):
+    # Build VBF pool (other jets)
+    vbf_pool = events["JetVBFClean"]
+
+    # looser VBF cuts
+    mask_pt_vbf = ak.fill_none(vbf_pool.pt > params["vbf_pt"], False)
+
+    central_or_forward = (np.abs(vbf_pool.eta) < 2.5) | (np.abs(vbf_pool.eta) > 3.0)
+    gap_higher_pt      = (np.abs(vbf_pool.eta) >= 2.5) & (np.abs(vbf_pool.eta) <= 3.0) & (vbf_pool.pt > 50)
+    within_max_eta     = np.abs(vbf_pool.eta) < params["vbf_eta"]
+
+    mask_eta_vbf = ak.fill_none(
+        (central_or_forward | gap_higher_pt) & within_max_eta,
+        False,
+    )
+    good_vbf_jets = vbf_pool[mask_pt_vbf & mask_eta_vbf]
+
+    # build dijets for veto
+    dijets = ak.combinations(good_vbf_jets, 2, fields=["j_lead","j_sublead"])
+    dijets = ak.fill_none(dijets, [])
+    d4 = dijets.j_lead + dijets.j_sublead
+    dijets = ak.with_field(dijets, d4.mass, "mass")
+    dijets = ak.with_field(dijets, np.abs(dijets.j_lead.eta - dijets.j_sublead.eta), "dEta")
+
+    # Apply VBF veto conditions to select good dijets and create a mask
+    good_pairs_mask = ak.fill_none(
+        (dijets.mass > params["vbf_mjj"]) & (dijets.dEta > params["vbf_delta_eta"]),
+        False,
+    )
+    n_good_cand = ak.sum(good_pairs_mask, axis=1)
+    mask_vbf = n_good_cand > 0
+
+    events["VBF_candidate"] = ak.firsts(dijets[good_pairs_mask])
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask_vbf), False, mask_vbf)
+
 
 def hh4b_2b_cuts(events, params, **kwargs):
     at_least_four_jets = four_jets(events, {"njet": 4}, **kwargs)

@@ -23,6 +23,7 @@ from utils.spanet_evaluation_functions import get_best_pairings, get_pairing_inf
 
 from .custom_object_preselection_common import (
     lepton_selection,
+    object_cleaning,
 )
 from utils.custom_cut_functions import custom_jet_selection
 
@@ -159,22 +160,47 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 (self.events["JetGoodHiggs"], jets5plus_pt), axis=1
             )
 
-        # Select FatJets for the boosted category
-        self.events["FatJetGood"], _ = custom_jet_selection(
-            self.events,
-            jet_type="FatJet",
-            params=self.params,
-            year=self._year,
-            jet_tagger="PNet",
-            pt_type="pt",
-            pt_cut_name="pt",
-        )
+        if self.boosted:
+            # Select FatJets for the boosted category
+            self.events["FatJetGood"] = self.events.FatJet
+            self.events["FatJetGood"], _ = custom_jet_selection(
+                self.events,
+                jet_type="FatJet",
+                params=self.params,
+                year=self._year,
+                jet_tagger="PNet",
+                pt_type="pt",
+                pt_cut_name="pt",
+            )
 
-        self.events["FatJetGood"] = ak.with_field(
-            self.events["FatJetGood"],
-            self.events["FatJetGood"].mass * self.events["FatJetGood"].particleNet_massCorr,
-            "mass_regr"
-        )
+            self.events["FatJetGood"] = ak.with_field(
+                self.events["FatJetGood"],
+                self.events["FatJetGood"].mass * self.events["FatJetGood"].particleNet_massCorr,
+                "mass_regr"
+            )
+
+            # here we propagate the btagging scores to the FatJetGood collection as is done in the pocket coffea jet_selection
+            # if we're interested in other taggers, we need to add them here or swap to the mass decorrelated ones ("particleNet_XbbVsQCD", "particleNet_XccVsQCD")
+            self.events["FatJetGood"] = ak.with_field(
+                self.events["FatJetGood"],
+                self.events["FatJet"][_]["particleNetWithMass_HbbvsQCD"],
+                "btagBB",
+            )
+            self.events["FatJetGood"] = ak.with_field(
+                self.events["FatJetGood"],
+                self.events["FatJet"][_]["particleNetWithMass_HccvsQCD"],
+                "btagCC",
+            )
+
+            self.events["JetGoodVBF_boosted"] = self.events.Jet
+            self.events["JetGoodVBF_boosted"], _ = custom_jet_selection(
+                self.events,
+                "JetGoodVBF_boosted",
+                self.params,
+                year=self._year,
+                pt_type="pt",
+                pt_cut_name="pt",
+            )
 
     # def apply_preselection(self, variation):
     #     """
@@ -1015,6 +1041,16 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events.JetGoodHiggsMatched, axis=1
             )
             self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
+        else:
+            self.events["JetVBFClean"] = object_cleaning(
+                self.events["JetGoodVBF_boosted"],
+                self.events["FatJetGoodSelected"],
+                dr_min=0.8
+            )
+            
+            # to be fixed, it is better to create a functin for this as in define_dnn_variables for resolved
+            self.events["HiggsLeading"] = self.events["FatJetGoodSelected"][:, 0]
+            self.events["HiggsSubLeading"] = self.events["FatJetGoodSelected"][:, 1]
 
         if self.vbf_ggf_dnn:
             (

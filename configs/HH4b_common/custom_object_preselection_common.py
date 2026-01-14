@@ -1,4 +1,5 @@
 import numpy as np
+import awkward as ak
 
 
 def lepton_selection(events, lepton_flavour, params):
@@ -40,7 +41,7 @@ def lepton_selection(events, lepton_flavour, params):
 
 
 def jet_selection_nopu(
-    events, jet_type, params, tight_cuts=False, semi_tight_vbf=False
+    events, jet_type, params, tight_cuts=False, semi_tight_vbf=False, 
 ):
     jets = events[jet_type]
     cuts = params.object_preselection[jet_type]
@@ -70,3 +71,17 @@ def jet_selection_nopu(
         )
 
     return jets[mask_jets]
+
+
+def object_cleaning(object, cleaning_collection, dr_min=0.4):
+    # here I create a deltaR matrix between jets and cleaning collection the output shape is (njets, ncleaning)
+    dR = object[:, :, None].delta_r(cleaning_collection[:, None, :])
+   
+    # then I check if the jets are within dR min of ANY cleaning object
+    dR_mask = dR < dr_min
+    dR_mask_jets = ak.any(dR_mask, axis=2)
+    
+    # I then add to the mask the cleaning requirement
+    cleaned_object = object[~dR_mask_jets]
+    
+    return cleaned_object
