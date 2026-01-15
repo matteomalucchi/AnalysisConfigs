@@ -46,6 +46,7 @@ corr_files_pnetreg = {
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFPNet.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFPNet.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFPNet.txt",
+    "2025": f"{localdir}/params/Winter25Run3_V3_MC_L2Relative_AK4PFPNet.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_pnetreg[year]}")
@@ -58,6 +59,7 @@ corr_files_upartreg = {
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFUparT.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFUparT.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt",
+    "2025": f"{localdir}/params/Winter25Run3_V3_MC_L2Relative_AK4PFUparT.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_upartreg[year]}")
@@ -70,6 +72,7 @@ corr_files_pnetreg_neutrino = {
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
+    "2025": f"{localdir}/params/Winter25Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_pnetreg_neutrino[year]}")
@@ -84,6 +87,7 @@ corr_files_upartreg_neutrino = {
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2025": f"{localdir}/params/Winter25Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
     print(f"Performing closure test with {corr_files_upartreg_neutrino[year]}")
@@ -98,6 +102,7 @@ corr_files = {
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V1_MC_L2Relative_AK4PUPPI.txt",
     "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PUPPI.txt",
     "2024": f"{localdir}/params/Summer24Prompt24_V1_MC_L2Relative_AK4PFPuppi.txt",
+    "2025": f"{localdir}/params/Winter25Prompt25_V1_MC_L2Relative_AK4PFPuppi.txt",
 }
 print(f"Reapplying corrections {corr_files[year]}")
 mc_truth_corr = get_closure_function_information(corr_files[year])
@@ -145,6 +150,7 @@ samples_dict = {
     "2023_preBPix": "QCD_PT-15to7000_JMENano_Summer23",
     "2023_postBPix": "QCD_PT-15to7000_JMENano_Summer23BPix",
     "2024" : "QCD_PT-15to7000_JMENano_Summer24",
+    "2025" : "QCD_PT-15to7000_JMENano_Winter25",
 }
 samples_PNetReg15_dict = {
     "2022_preEE": "QCD_PT-15to7000_PNetReg15_JMENano_Summer22",
