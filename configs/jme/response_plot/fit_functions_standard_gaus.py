@@ -82,10 +82,10 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
         2.909490540551297,
     ]
     p_minimum = [
-        -2.,
+        -5.,
         0.,
         0.,
-        -200.,
+        -500.,
         -100.,
         0.,
         -20.,

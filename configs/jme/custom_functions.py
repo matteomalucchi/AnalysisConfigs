@@ -16,6 +16,8 @@ def string_to_pol_function(string):
 
 
 def standard_gaus_partial(x, *params):
+    if len(params) <= 10:
+        raise RuntimeError(f"Not enough params: len={len(params)}, params={params}")
     return ((x < params[10]) * (params[9])) + (
         (x >= params[10])
         * (

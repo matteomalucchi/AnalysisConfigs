@@ -185,7 +185,7 @@ if args.lxplus:
 if args.test:
     executor = "--test"
 elif args.lxplus:
-    run_options_file = "params/lxplus_run_options_big.tmp.yaml"
+    run_options_file = f"params/lxplus_run_options_big_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}.tmp.yaml"
     executor = f"-e condor@lxplus --custom-run-options {run_options_file}"
 else:
     run_options_file = "params/t3_run_options_big.yaml"
@@ -229,7 +229,7 @@ def run_command(sign, flav, dir_name, complete_bash_list):
     if args.lxplus and not args.test:
         # create a new run_options_file adding the environment variables
 
-        base_run_options_file = run_options_file.replace(".tmp", "")
+        base_run_options_file = run_options_file.replace(f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}.tmp", "")
         
         # Start the bash script as a string, with proper escaping
         run_options_lines = [
@@ -285,11 +285,11 @@ if __name__ == "__main__":
         )
 
         if args.full and args.neutrino != 1:
-            tmux_session = "full_cartesian" + args.suffix + f"_{args.year}"
+            tmux_session = "full_cartesian" + args.suffix + f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}"
         elif args.full and args.neutrino == 1:
-            tmux_session = "full_cartesian_neutrino" + args.suffix + f"_{args.year}"
+            tmux_session = "full_cartesian_neutrino" + args.suffix + f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}"
         else:
-            tmux_session = f"{sign}_cartesian" + args.suffix + f"_{args.year}"
+            tmux_session = f"{sign}_cartesian" + args.suffix + f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}"
 
         command0 = f"tmux kill-session -t {tmux_session}"
         subprocess.run(command0, shell=True)
@@ -316,7 +316,7 @@ if __name__ == "__main__":
                 if sign == "all":
                     continue
                 for flav in flavs_list:
-                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
+                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
                     if not os.path.isfile(f"{dir_name}/output_all.coffea"):
                         print(f"{dir_name}")
                         complete_bash_list=run_command(sign, flav, dir_name, complete_bash_list)
@@ -380,7 +380,7 @@ if __name__ == "__main__":
                     eta_bin_min = eta_bins[i]
                     eta_bin_max = eta_bins[i + 1]
                     dir_name = (
-                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
+                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
                         if not args.dir
                         else args.dir
                     )

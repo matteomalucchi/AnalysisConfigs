@@ -89,16 +89,13 @@
         "files": [
             {
                 "das_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer22NanoAODv12-JMENano12p5_132X_mcRun3_2022_realistic_v3-v3/NANOAODSIM"
+                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer22NanoAODv15-JMENano_150X_mcRun3_2022_realistic_v1-v2/NANOAODSIM"
                 ],
                 "metadata": {
                     "year": "2022_preEE",
                     "isMC": true,
                     "xsec": 1438000000.0
                 },
-                "das_parents_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer22MiniAODv4-130X_mcRun3_2022_realistic_v5-v3/MINIAODSIM"
-                ]
             }
         ]
     },
@@ -109,16 +106,13 @@
         "files": [
             {
                 "das_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer22EENanoAODv12-JMENano12p5_132X_mcRun3_2022_realistic_postEE_v4-v3/NANOAODSIM"
+                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer22NanoAODv15-JMENano_150X_mcRun3_2022_realistic_v1-v2/NANOAODSIM"
                 ],
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
                     "xsec": 1438000000.0
                 },
-                "das_parents_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v3/MINIAODSIM"
-                ]
             }
         ]
     },
@@ -129,16 +123,13 @@
         "files": [
             {
                 "das_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer23NanoAODv12-JMENano12p5_132X_mcRun3_2023_realistic_v5-v3/NANOAODSIM"
+                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer23NanoAODv15-JMENano_150X_mcRun3_2023_realistic_v1-v2/NANOAODSIM"
                 ],
                 "metadata": {
                     "year": "2023_preBPix",
                     "isMC": true,
                     "xsec": 1438000000.0
                 },
-                "das_parents_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer23MiniAODv4-130X_mcRun3_2023_realistic_v15-v3/MINIAODSIM"
-                ]
             }
         ]
     },
@@ -149,16 +140,13 @@
         "files": [
             {
                 "das_names": [
-                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer23BPixNanoAODv12-JMENano12p5_132X_mcRun3_2023_realistic_postBPix_v4-v3/NANOAODSIM"
+                    "/QCD_PT-15to7000_TuneCP5_Flat2022_13p6TeV_pythia8/Run3Summer23BPixNanoAODv15-JMENano_150X_mcRun3_2023_realistic_postBPix_v1-v2/NANOAODSIM"
                 ],
                 "metadata": {
                     "year": "2023_postBPix",
                     "isMC": true,
                     "xsec": 1438000000.0
                 },
-                "das_parents_names": [
-                    "QCD_PT-15_TuneCP5_Flat2018_13p6TeV_pythia8/Run3Summer22MiniAODv4-130X_mcRun3_2022_realistic_v5-v2/MINIAODSIM"
-                ]
             }
         ]
     },

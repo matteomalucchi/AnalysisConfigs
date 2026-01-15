@@ -219,6 +219,8 @@ pt_bins = pt_bins_all if "pnetreg15" in args.dir else (pt_bins_extended if "exte
 
 if 'extendedPT' in args.dir:
     num_params = 13  # 13 for standard gaus fit for uparT and pol10 for PNet
+else:
+    num_params = args.num_params
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -1230,7 +1232,7 @@ def fit_inv_median_pol(ax, x, y, xerr, yerr, variable, y_pos, name_plot):
         p_initial = [1.0] * (i + 1)
         func = pol
 
-        if i + 1 >= len(x) or i + 3 > args.num_params:
+        if i + 1 >= len(x) or i + 3 > num_params:
             break
         param_bounds = ([-1000.0] * len(p_initial), [1000.0] * len(p_initial))
         popt, pcov = curve_fit(
@@ -2393,7 +2395,7 @@ write_l2rel_txt(
     main_dir,
     correct_eta_bins,
     year_txt,
-    args.num_params,
+    num_params,
     VERSION,
     "splitpnetreg15" in args.dir,
     flavs,

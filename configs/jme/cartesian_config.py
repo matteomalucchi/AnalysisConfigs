@@ -53,6 +53,10 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg = None
 corr_files_upartreg = {
+    "2022_preEE": f"{localdir}/params/Summer22Run3_V3_MC_L2Relative_AK4PFUparT.txt",
+    "2022_postEE": f"{localdir}/params/Summer22EERun3_V3_MC_L2Relative_AK4PFUparT.txt",
+    "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFUparT.txt",
+    "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFUparT.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
@@ -75,6 +79,10 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg_neutrino = None
 corr_files_upartreg_neutrino = {
+    "2022_preEE": f"{localdir}/params/Summer22Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2022_postEE": f"{localdir}/params/Summer22EERun3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2023_postBPix": f"{localdir}/params/Summer23BPixRun3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
 }
 if int(os.environ.get("CLOSURE", 0)) == 1:
@@ -163,8 +171,8 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/datasets/QCD.json",
-            #f"{localdir}/datasets/QCD_redirector.json",
+            #f"{localdir}/datasets/QCD.json",
+            f"{localdir}/datasets/QCD_redirector.json",
             f"{localdir}/datasets/QCD_PNetReg15.json",
         ],
         "filter": {

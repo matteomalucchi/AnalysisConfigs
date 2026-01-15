@@ -93,8 +93,8 @@ for type_string in args.type:
         ax.set_ylabel("Median jet response", loc="top")
         ax.set_xlabel(r"$p_{T}^{ptcl}$ (GeV)", loc="right")
 
-        ax.set_ylim(top=1.05 * np.nanmax(data), bottom=0.99 * np.nanmin(data))
-        ax.set_ylim(top=1.053, bottom=0.989)
+        #ax.set_ylim(top=1.05 * np.nanmax(data), bottom=0.99 * np.nanmin(data))
+        ax.set_ylim(top=1.08, bottom=0.92)
 
         ax.axhline(y=1, color="black", linestyle="--", linewidth=0.7)
         # add +- 1% lines
@@ -108,7 +108,7 @@ for type_string in args.type:
         ax.set_xscale("log")
 
         hep.cms.lumitext(
-            f"{'2023' if '23' in args.dir else '2022'} (13.6 TeV)",
+            f"{'2025' if '25' in args.dir else ('2024' if '24' in args.dir else ('2023' if '23' in args.dir else '2022'))}{' preBPix' if 'preBPix' in args.dir else (' postBPix' if 'postBPix' in args.dir else '')}{' preEE' if 'preEE' in args.dir else (' postEE' if 'postEE' in args.dir else '')} (13.6 TeV)",
         )
         hep.cms.text(
             text="Simulation\nPreliminary",
