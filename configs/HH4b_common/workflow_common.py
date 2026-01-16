@@ -26,6 +26,10 @@ from .custom_object_preselection_common import (
     object_cleaning,
 )
 from utils.custom_cut_functions import custom_jet_selection
+from .custom_cuts_common import (
+    hh4b_boosted_presel,
+    hh4b_boosted_vbf_region,
+)
 
 vector.register_awkward()
 
@@ -192,6 +196,55 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 "btagCC",
             )
 
+            # Selecting Higgs candidate jets
+            fat_jets = self.events.FatJetGood
+
+            # jet ordered in btagging score
+            fat_jets_btag_order = fat_jets[
+                ak.argsort(fat_jets["btagBB"], axis=1, ascending=False)
+            ]
+            # Build per-jet indices
+            jet_idx = ak.local_index(fat_jets_btag_order, axis=1)
+
+            # trigger object mask
+            good_trigger_jet_mask = (
+                (fat_jets_btag_order.pt > hh4b_boosted_presel.params["pt_jet0"]) 
+                & (fat_jets_btag_order.msoftdrop > hh4b_boosted_presel.params["msd_jet"]) 
+                & (fat_jets_btag_order.btagBB > hh4b_boosted_presel.params["pnet_jet0"])
+                & (fat_jets_btag_order.mass_regr > hh4b_boosted_presel.params["mass_min"])
+                & (fat_jets_btag_order.mass_regr < hh4b_boosted_presel.params["mass_max"])
+            )
+            good_trigger_jet_mask = ak.fill_none(good_trigger_jet_mask, False)
+
+            # keep as list, take at most one
+            trigger_list = fat_jets_btag_order[good_trigger_jet_mask][:, :1]
+            idx_tr_list = jet_idx[good_trigger_jet_mask][:, :1]
+            idx_selected = ak.firsts(idx_tr_list)  # scalar index or None (used only for exclusion)
+
+            # Here I build an exclusion mask for the trigger jet checking by index w.r.t. the looser collection
+            exclude_trigger = (jet_idx == idx_selected[:, None])
+            exclude_trigger = ak.fill_none(exclude_trigger, False)
+
+            # Build pool of other jets
+            remaining_fat_jet_pool = fat_jets_btag_order[~exclude_trigger] 
+
+            # require both jets have pt > 250 GeV, lower limit for the second jet and btag > 0.05
+            second_good_jet_mask = (
+                (remaining_fat_jet_pool.pt > hh4b_boosted_presel.params["pt_jet1"]) 
+                & (remaining_fat_jet_pool.btagBB > hh4b_boosted_presel.params["pnet_jet1"])
+                & (remaining_fat_jet_pool.msoftdrop > hh4b_boosted_presel.params["msd_jet"])
+                & (remaining_fat_jet_pool.mass_regr > hh4b_boosted_presel.params["mass_min"])
+                & (remaining_fat_jet_pool.mass_regr < hh4b_boosted_presel.params["mass_max"])
+            )
+            second_good_jet_mask = ak.fill_none(second_good_jet_mask, False)
+
+            sublead_list = remaining_fat_jet_pool[second_good_jet_mask][:, :1]
+
+            self.events["FatJetGoodSelected"] = ak.concatenate([trigger_list, sublead_list], axis=1)
+            self.events["nFatJetGoodSelected"] = ak.num(self.events["FatJetGoodSelected"], axis=1)
+
+            # here I select the jets to be used for VBF in boosted category
+            # first we remove the jets overlapping with the FatJets
             self.events["JetGoodVBF_boosted"] = self.events.Jet
             self.events["JetGoodVBF_boosted"], _ = custom_jet_selection(
                 self.events,
@@ -201,6 +254,44 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 pt_type="pt",
                 pt_cut_name="pt",
             )
+
+            self.events["JetVBFClean"] = object_cleaning(
+                self.events["JetGoodVBF_boosted"],
+                self.events["FatJetGoodSelected"],
+                dr_min=0.8
+            )
+            vbf_pool = self.events["JetVBFClean"]
+
+            # looser VBF cuts
+            mask_pt_vbf = ak.fill_none(vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_pt"], False)
+
+            # additional cuts for the region 2.5 < |eta| < 3.0
+            central_or_forward = (np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["gap_eta_min"]) | (np.abs(vbf_pool.eta) > hh4b_boosted_vbf_region.params["gap_eta_max"])
+            gap_higher_pt      = (np.abs(vbf_pool.eta) >= hh4b_boosted_vbf_region.params["gap_eta_min"]) & (np.abs(vbf_pool.eta) <= hh4b_boosted_vbf_region.params["gap_eta_max"]) & (vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_gap_pt"])
+            within_max_eta     = np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["vbf_eta"]
+
+            mask_eta_vbf = ak.fill_none(
+                (central_or_forward | gap_higher_pt) & within_max_eta,
+                False,
+            )
+            good_vbf_jets = vbf_pool[mask_pt_vbf & mask_eta_vbf]
+
+            # build dijets for veto
+            dijets = ak.combinations(good_vbf_jets, 2, fields=["j_lead","j_sublead"])
+            dijets = ak.fill_none(dijets, [])
+            d4 = dijets.j_lead + dijets.j_sublead
+            dijets = ak.with_field(dijets, d4.mass, "mass")
+            dijets = ak.with_field(dijets, d4.pt, "pt")
+            dijets = ak.with_field(dijets, d4.eta, "eta")
+            dijets = ak.with_field(dijets, d4.phi, "phi")
+            dijets = ak.with_field(dijets, np.abs(dijets.j_lead.eta - dijets.j_sublead.eta), "dEta")
+
+            # Apply VBF veto conditions to select good dijets and create a mask
+            good_pairs_mask = ak.fill_none(
+                (dijets.mass > hh4b_boosted_vbf_region.params["vbf_mjj"]) & (dijets.dEta > hh4b_boosted_vbf_region.params["vbf_delta_eta"]),
+                False,
+            )
+            self.events["DiJetVBFCandidates"] = dijets[good_pairs_mask]
 
     # def apply_preselection(self, variation):
     #     """
@@ -536,6 +627,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["nJetGood"] = ak.num(self.events.JetGood, axis=1)
         self.events["nJetGoodHiggs"] = ak.num(self.events.JetGoodHiggs, axis=1)
         self.events["nFatJetGood"] = ak.num(self.events.FatJetGood, axis=1)
+        self.events["nFatJetGoodSelected"] = ak.num(self.events.FatJetGoodSelected, axis=1)
+        self.events["nDiJetVBFCandidates"] = ak.num(self.events.DiJetVBFCandidates, axis=1)
 
     def HelicityCosTheta(self, higgs, jet):
         higgs = add_fields(higgs, four_vec="Momentum4D")
@@ -826,7 +919,115 @@ class HH4bCommonProcessor(BaseProcessorABC):
             sigma_over_higgs1_reco_mass,
             sigma_over_higgs2_reco_mass,
         )
+    
+    def define_boosted_dnn_variables(
+        self, higgs1, higgs2, cleaned_jets, vbf_candidate, vbf_variables
+    ):
+        # HT : scalar sum of all jets with pT > 25 GeV inside | η | < 2.5
+        self.events["HT"] = ak.sum(self.events.JetGood.pt, axis=1)
 
+        self.events["era"] = ak.full_like(
+            self.events.HT, era_dict[f"{self._year}_{self._era}"]
+        )
+        self.events["year"] = ak.full_like(self.events.HT, year_dict[f"{self._year}"])
+
+        # Angular separation (∆R) between jets and H candidate
+        dR = higgs1[:, None].delta_r(cleaned_jets) # dr: shape [nEvents, nJets] (jagged in nJets)
+
+        # index of the closest jet per event (None for events with no jets)
+        min_idx = ak.argmin(dR, axis=1)   # shape [nEvents]
+        # take the jet at min_idx within each event
+        idx = ak.local_index(cleaned_jets, axis=1)          # [nEvents, nJets]
+        mask = idx == min_idx[:, None]                      # [nEvents, nJets]
+        closest_jet = ak.firsts(cleaned_jets[mask])         # [nEvents]
+
+        # sum higgs1 and closest_jet four vectors
+        h_plus_j = higgs1 + closest_jet
+
+        m_hj = h_plus_j.mass
+        dR_min = ak.min(dR, axis=1)
+
+        higgs1 = ak.with_field(
+            higgs1,
+            dR_min,
+            "dR_Hjet_min",
+        )
+        higgs1 = ak.with_field(
+            higgs1,
+            m_hj,
+            "m_Hjet_min_dR",
+        )
+
+        # second higgs candidate
+        dR = higgs2[:, None].delta_r(cleaned_jets[:])
+
+        idx = ak.local_index(cleaned_jets, axis=1)          # [nEvents, nJets]
+        mask = idx == min_idx[:, None]                      # [nEvents, nJets]
+        closest_jet = ak.firsts(cleaned_jets[mask])         # [nEvents]
+
+        # sum higgs1 and closest_jet four vectors
+        h_plus_j = higgs2 + closest_jet
+
+        m_hj = h_plus_j.mass
+        dR_min = ak.min(dR, axis=1)
+
+        higgs2 = ak.with_field(
+            higgs2,
+            dR_min,
+            "dR_Hjet_min",
+        )
+        higgs2 = ak.with_field(
+            higgs2,
+            m_hj,
+            "m_Hjet_min_dR",
+        )
+
+        # di-Higgs system
+        # pT, η, and mass of HH system
+        hh = add_fields(higgs1 + higgs2)
+
+        # | cos θ ∗ | of HH system
+        hh = ak.with_field(
+            hh,
+            self.Costhetastar_CS(higgs1, hh),
+            "Costhetastar_CS",
+        )
+
+        # Angular separation (∆R, ∆η, ∆φ) between H candidates
+        hh = ak.with_field(
+            hh,
+            higgs1.delta_r(higgs2),
+            "dR",
+        )
+        hh = ak.with_field(
+            hh,
+            abs(higgs1.eta - higgs2.eta),
+            "dEta",
+        )
+        hh = ak.with_field(
+            hh,
+            higgs1.delta_phi(higgs2),
+            "dPhi",
+        )
+
+        if vbf_variables:
+            LeadingVBFJet = vbf_candidate.j_lead
+            SubLeadingVBFJet = vbf_candidate.j_sublead
+
+            return (
+                higgs1,
+                higgs2,
+                hh,
+                LeadingVBFJet,
+                SubLeadingVBFJet,
+            )
+
+        return (
+            higgs1,
+            higgs2,
+            hh,
+        )
+    
     def get_true_pairing_and_compare(
         self, suffix="", pairing_predictions=None, pairing_suffix=""
     ):
@@ -1042,16 +1243,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
             self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
         else:
-            self.events["JetVBFClean"] = object_cleaning(
-                self.events["JetGoodVBF_boosted"],
-                self.events["FatJetGoodSelected"],
-                dr_min=0.8
-            )
+            print("Skipping jet pairing for boosted category")
             
-            # to be fixed, it is better to create a functin for this as in define_dnn_variables for resolved
-            self.events["HiggsLeading"] = self.events["FatJetGoodSelected"][:, 0]
-            self.events["HiggsSubLeading"] = self.events["FatJetGoodSelected"][:, 1]
-
         if self.vbf_ggf_dnn:
             (
                 model_session_vbf_ggf_dnn,
@@ -1062,7 +1255,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             del input_name_vbf_ggf_dnn
             del output_name_vbf_ggf_dnn
 
-        if self.dnn_variables and self.spanet:
+        if self.dnn_variables and self.spanet and not self.boosted:
             (
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],
@@ -1077,7 +1270,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_none,
                 sb_variables=True,  # if self.SIG_BKG_DNN else False,
             )
-        if self.dnn_variables and self.run2:
+        if self.dnn_variables and self.run2 and not self.boosted:
             (
                 self.events["HiggsLeadingRun2"],
                 self.events["HiggsSubLeadingRun2"],
@@ -1091,6 +1284,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events.JetGoodFromHiggsOrderedRun2,
                 matched_jet_higgs_idx_not_noneRun2,
                 sb_variables=True,  # if self.sig_bkg_dnn else False,
+            )
+        if self.dnn_variables and self.boosted:
+            (
+                self.events["HiggsLeading"],
+                self.events["HiggsSubLeading"],
+                self.events["HH"],
+                self.events["LeadingVBFJet"],
+                self.events["SubLeadingVBFJet"]
+            ) = self.define_boosted_dnn_variables(
+                self.events["FatJetGoodSelected"][:, 0],
+                self.events["FatJetGoodSelected"][:, 1],
+                self.events.JetVBFClean,
+                self.events.DiJetVBFCandidates,
+                vbf_variables=True
             )
 
         if self.bkg_morphing_dnn and not self._isMC:

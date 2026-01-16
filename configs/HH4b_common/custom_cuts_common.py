@@ -188,7 +188,10 @@ hh4b_boosted_vbf_region = Cut(
     name="hh4b_boosted_vbf_region",
     params={
         "vbf_pt": 25,
+        "vbf_gap_pt": 50,
         "vbf_eta": 4.7,
+        "gap_eta_min": 2.5,
+        "gap_eta_max": 3.0,
         "vbf_mjj": 400,
         "vbf_delta_eta": 3.5,
         "tight_cuts": False,

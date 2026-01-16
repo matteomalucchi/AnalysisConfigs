@@ -1384,7 +1384,6 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=False):
             "btagPNetB"
         )
     column_list = get_columns_list(column_dict, flatten)
-    print("porca madonna", column_list)
     return column_list
 
 

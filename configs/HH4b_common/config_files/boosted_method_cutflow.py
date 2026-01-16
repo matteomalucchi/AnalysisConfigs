@@ -1,6 +1,6 @@
 from configs.HH4b_common.dnn_input_variables import (
-    bkg_morphing_dnn_input_variables,
-    sig_bkg_dnn_input_variables,
+    bkg_morphing_boosted_dnn_input_variables,
+    sig_bkg_boosted_dnn_input_variables,
 )
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
@@ -9,7 +9,9 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 config_options_dict |= {
-    "dnn_variables": False,
+    "dnn_variables": True,
+    "sig_bkg_dnn_input_variables": sig_bkg_boosted_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": bkg_morphing_boosted_dnn_input_variables,
     "run2": False,
     "fifth_jet": "pt",
     "pad_value": -999.0,

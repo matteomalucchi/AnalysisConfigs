@@ -41,8 +41,10 @@ from configs.HH4b_common.custom_weights import (
 )
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
+    bkg_morphing_boosted_dnn_input_variables,
     # bkg_morphing_dnn_input_variables_altOrder,
     sig_bkg_dnn_input_variables,
+    sig_bkg_boosted_dnn_input_variables,
 )
 from configs.HH4b_common.params.CustomWeights import SF_btag_fixed_multiple_wp
 
@@ -168,11 +170,19 @@ column_listRun2 = []
 
 assert not (config_options_dict["random_pt"] and config_options_dict["run2"])
 if config_options_dict["dnn_variables"]:
-    total_input_variables = (
-        sig_bkg_dnn_input_variables
-        | bkg_morphing_dnn_input_variables
-        | {"year": ["events", "year"]}
-    )
+    if config_options_dict["boosted"]:
+        print("Using boosted DNN input variables")
+        total_input_variables = (
+            sig_bkg_boosted_dnn_input_variables
+            | bkg_morphing_boosted_dnn_input_variables
+            | {"year": ["events", "year"]}
+        )
+    else:
+        total_input_variables = (
+            sig_bkg_dnn_input_variables
+            | bkg_morphing_dnn_input_variables
+            | {"year": ["events", "year"]}
+        )
     if config_options_dict["spanet"]:
         total_input_variables |= {
             "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
