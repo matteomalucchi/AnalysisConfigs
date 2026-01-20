@@ -2,7 +2,7 @@
 
 import subprocess
 import argparse
-from params.binning import eta_bins, eta_sign_dict
+from params.binning import eta_bins, eta_bins_upart, eta_sign_dict, eta_sign_dict_upart
 import os
 import shutil
 import sys
@@ -47,6 +47,13 @@ parser.add_argument(
     "--pnet",
     action="store_true",
     help="Use ParticleNet regression",
+    default=False,
+)
+parser.add_argument(
+    "-upart",
+    "--upart",
+    action="store_true",
+    help="Use UparT regression",
     default=False,
 )
 parser.add_argument(
@@ -128,6 +135,12 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "--extended-pt-bins",
+    action="store_true",
+    help="Evaluate ParticleNet or UparT regression for jetPT down to 8 GeV",
+    default=False,
+)
+parser.add_argument(
     "--neutrino",
     help="Sum neutrino pT to GenJet pT",
     default=-1,
@@ -143,15 +156,20 @@ args = parser.parse_args()
 
 args.flavsplit = int(args.flavsplit)
 args.pnet = int(args.pnet)
+args.upart = int(args.upart)
 args.central = int(args.central)
 args.closure = int(args.closure)
 args.pnet_reg_15 = int(args.pnet_reg_15)
 args.split_pnet_reg_15 = int(args.split_pnet_reg_15)
+args.extended_pt_bins = int(args.extended_pt_bins)
 args.neutrino = int(args.neutrino)
 args.abs_eta_inclusive = int(args.abs_eta_inclusive)
 
 # Define a list of eta bins
-eta_bins = eta_bins if not args.inclusive_eta else None
+if not args.upart:
+    eta_bins = eta_bins if not args.inclusive_eta else None
+else:
+    eta_bins = eta_bins_upart if not args.inclusive_eta else None
 
 pocket_coffea_env_commands = ["pocket_coffea"]
 if args.lxplus:
@@ -167,14 +185,14 @@ if args.lxplus:
 if args.test:
     executor = "--test"
 elif args.lxplus:
-    run_options_file = "params/lxplus_run_options_big.tmp.yaml"
+    run_options_file = f"params/lxplus_run_options_big_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}.tmp.yaml"
     executor = f"-e condor@lxplus --custom-run-options {run_options_file}"
 else:
     run_options_file = "params/t3_run_options_big.yaml"
     executor = f"-e dask@T3_CH_PSI --custom-run-options {run_options_file}"
 
-eta_sign_list = list(eta_sign_dict.keys())
-order_eta_sign_list = ["pos1", "pos2", "pos3", "pos4", "neg4", "neg3", "neg2", "neg1"]
+eta_sign_list = list(eta_sign_dict.keys()) if not args.upart else list(eta_sign_dict_upart.keys())
+order_eta_sign_list = ["pos1", "pos2", "pos3", "pos4", "neg4", "neg3", "neg2", "neg1"] if not args.upart else ["pos1", "pos2", "pos3", "neg3", "neg2", "neg1"]
 if len(eta_sign_list) == len(order_eta_sign_list):
     eta_sign_list = order_eta_sign_list
 
@@ -191,12 +209,14 @@ def run_command(sign, flav, dir_name, complete_bash_list):
         "SIGN": sign,
         "FLAVSPLIT": args.flavsplit,
         "PNET": args.pnet,
+        "UPART": args.upart,
         "FLAV": flav,
         "CENTRAL": args.central,
         "ABS_ETA_INCLUSIVE": args.abs_eta_inclusive,
         "CLOSURE": args.closure,
         "PNETREG15": args.pnet_reg_15,
         "SPLITPNETREG15": args.split_pnet_reg_15,
+        "EXTENDED_PT_BINS": args.extended_pt_bins,
         "YEAR": args.year,
     }
     if args.neutrino != -1:
@@ -209,7 +229,7 @@ def run_command(sign, flav, dir_name, complete_bash_list):
     if args.lxplus and not args.test:
         # create a new run_options_file adding the environment variables
 
-        base_run_options_file = run_options_file.replace(".tmp", "")
+        base_run_options_file = run_options_file.replace(f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}.tmp", "")
         
         # Start the bash script as a string, with proper escaping
         run_options_lines = [
@@ -265,11 +285,11 @@ if __name__ == "__main__":
         )
 
         if args.full and args.neutrino != 1:
-            tmux_session = "full_cartesian" + args.suffix + f"_{args.year}"
+            tmux_session = "full_cartesian" + args.suffix + f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}"
         elif args.full and args.neutrino == 1:
-            tmux_session = "full_cartesian_neutrino" + args.suffix + f"_{args.year}"
+            tmux_session = "full_cartesian_neutrino" + args.suffix + f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}"
         else:
-            tmux_session = f"{sign}_cartesian" + args.suffix + f"_{args.year}"
+            tmux_session = f"{sign}_cartesian" + args.suffix + f"_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}"
 
         command0 = f"tmux kill-session -t {tmux_session}"
         subprocess.run(command0, shell=True)
@@ -296,13 +316,13 @@ if __name__ == "__main__":
                 if sign == "all":
                     continue
                 for flav in flavs_list:
-                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ''}{'_neutrino' if args.neutrino == 1 else ''}"
+                    dir_name = f"{dir_prefix}out_cartesian_full{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/{sign if not eta_string else eta_string}eta_{flav}flav{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}"
                     if not os.path.isfile(f"{dir_name}/output_all.coffea"):
                         print(f"{dir_name}")
                         complete_bash_list=run_command(sign, flav, dir_name, complete_bash_list)
         else:
             dir_name = (
-                f"{dir_prefix}out_cartesian_{sign if not eta_string else eta_string}eta{'_flavsplit' if args.flavsplit else f'_{args.flav}flav'}{'_pnet' if args.pnet else ''}{'_neutrino' if args.neutrino == 1 else ''}{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}"
+                f"{dir_prefix}out_cartesian_{sign if not eta_string else eta_string}eta{'_flavsplit' if args.flavsplit else f'_{args.flav}flav'}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_neutrino' if args.neutrino == 1 else ''}{args.dir}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}"
                 if not args.dir
                 else args.dir
             )
@@ -360,11 +380,11 @@ if __name__ == "__main__":
                     eta_bin_min = eta_bins[i]
                     eta_bin_max = eta_bins[i + 1]
                     dir_name = (
-                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ''}{'_pnetreg15' if args.pnet_reg_15 else ''}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
+                        f"{dir_prefix}out_separate_eta_bin_seq{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_pnetreg15' if args.pnet_reg_15 else ('_extendedPT' if args.extended_pt_bins else '')}{'_splitpnetreg15' if args.split_pnet_reg_15 else ''}_{args.year}{'_pnet' if args.pnet else ('_upart' if args.upart else '')}{'_closure' if args.closure else ''}{'_test' if args.test else ''}/eta{eta_bin_min}to{eta_bin_max}"
                         if not args.dir
                         else args.dir
                     )
-                    command2 = f'tmux send-keys "export ETA_MIN={eta_bin_min} && export ETA_MAX={eta_bin_max} && export PNET={args.pnet}" "C-m"'
+                    command2 = f'tmux send-keys "export ETA_MIN={eta_bin_min} && export ETA_MAX={eta_bin_max} && export PNET={args.pnet}  && export UPART={args.upart}" "C-m"'
                     command3 = f'tmux send-keys "time pocket-coffea run --cfg jme_config.py  {executor} -o {dir_name}" "C-m"'
                     # command4 = f'tmux send-keys "make_plots.py {dir_name} --overwrite -j 8" "C-m"'
 
