@@ -1011,8 +1011,30 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
 
         if vbf_variables:
-            LeadingVBFJet = vbf_candidate.j_lead
-            SubLeadingVBFJet = vbf_candidate.j_sublead
+            # the ak.firsts is needed because vbf_candidate.j_lead and j_sublead are jagged arrays with one or zero entries per event
+            LeadingVBFJet = ak.firsts(vbf_candidate.j_lead, axis=1)
+            SubLeadingVBFJet = ak.firsts(vbf_candidate.j_sublead, axis=1)
+
+            # centrality of the Higgs candidates w.r.t. the VBF jets
+            C_1 = np.exp(
+                -4 / (LeadingVBFJet.eta - SubLeadingVBFJet.eta) ** 2 *
+                (higgs1.eta - (LeadingVBFJet.eta + SubLeadingVBFJet.eta) / 2) ** 2
+            )
+            C_2 = np.exp(
+                -4 / (LeadingVBFJet.eta - SubLeadingVBFJet.eta) ** 2 *
+                (higgs2.eta - (LeadingVBFJet.eta + SubLeadingVBFJet.eta) / 2) ** 2
+            )
+
+            higgs1 = ak.with_field(
+                higgs1,
+                C_1,
+                "centrality",
+            )
+            higgs2 = ak.with_field(
+                higgs2,
+                C_2,
+                "centrality",
+            )
 
             return (
                 higgs1,
@@ -1307,7 +1329,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 output_name_bkg_morphing_dnn,
             ) = get_model_session(self.bkg_morphing_dnn, "bkg_morphing_dnn")
 
-            if self.spanet:
+            if self.spanet or self.boosted:
                 self.events["bkg_morphing_dnn_weight"] = ak.flatten(
                     get_dnn_prediction(
                         model_session_bkg_morphing_dnn,
@@ -1370,6 +1392,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         run2=True,
                     )
                 )
+
+            if self.boosted:
+                print("Warning: bkg_morphing_spread_dnn is not implemented for boosted category")
+
             del model_session_bkg_morphing_spread_dnn
             del input_name_bkg_morphing_spread_dnn
             del output_name_bkg_morphing_spread_dnn

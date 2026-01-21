@@ -1256,8 +1256,6 @@ def get_variables_dict(
         variables_dict = {k: v for k, v in variables_dict.items() if "Run2" in k}
     elif (BOOSTED) and (not SPANET) and (not RUN2):
         print(" - Removing non-FatJetGood variables")
-        for k in variables_dict.items():
-            print(k)
         variables_dict = {k: v for k, v in variables_dict.items() if "FatJetGood" in k}
     return variables_dict
 
@@ -1404,7 +1402,14 @@ def define_single_category(category_name):
         if "ttbar" in category_name:
             cut_list.append(cuts.hh4b_boosted_ttbar_control_region)
         if "qcd" in category_name:
-            cut_list.append(cuts.hh4b_boosted_qcd_control_region)
+            if "A" in category_name:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region_A)
+            elif "B" in category_name:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region_B)
+            elif "C" in category_name:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region_C)
+            else:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region)
         if "vbf" in category_name:
             cut_list.append(cuts.hh4b_boosted_vbf_region)
     # mass cuts
@@ -1445,7 +1450,7 @@ def define_single_category(category_name):
 
 
 def define_categories(
-    bkg_morphing_dnn=False, blind=False, spanet=False, run2=False, vr1=False, btag_sf_comp=False, boosted=False
+    bkg_morphing_dnn=False, blind=False, spanet=False, run2=False, vr1=False, btag_sf_comp=False, boosted=False, split_qcd=True
 ):
     """
     Define the categories for the analysis.
@@ -1503,8 +1508,21 @@ def define_categories(
         if boosted:
             categories_dict |= define_single_category("boosted_signal_region")
             categories_dict |= define_single_category("boosted_ttbar_region")
-            categories_dict |= define_single_category("boosted_qcd_region")
             categories_dict |= define_single_category("boosted_vbf_region")
+            if split_qcd:
+                categories_dict |= define_single_category("boosted_qcd_A_region")
+                categories_dict |= define_single_category("boosted_qcd_B_region")
+                categories_dict |= define_single_category("boosted_qcd_C_region")
+                if bkg_morphing_dnn:
+                    categories_dict |= define_single_category("boosted_qcd_A_region_postW")
+                    categories_dict |= (
+                        define_single_category("boosted_qcd_C_region_postW" + "_blind")
+                        if blind
+                        else {}
+                    )
+                    categories_dict |= define_single_category("boosted_qcd_C_region_postW")
+            else:
+                categories_dict |= define_single_category("boosted_qcd_region")
     else:
         if spanet:
             categories_dict |= define_single_category("4b_VR1_control_region")

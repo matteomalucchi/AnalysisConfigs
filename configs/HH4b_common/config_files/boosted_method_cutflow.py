@@ -8,6 +8,10 @@ from configs.HH4b_common.config_files.default_config import default_onnx_model_d
 from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
 
 
+onnx_model_dict |= {
+    "bkg_morphing_dnn": "/work/bevila_t/PostDoc/HH4b/Output/ML_trainings/bkg_reweigting_boosted/first_test/best_models/average_model_from_onnx.onnx", 
+}
+
 config_options_dict |= {
     "dnn_variables": True,
     "sig_bkg_dnn_input_variables": sig_bkg_boosted_dnn_input_variables,
@@ -18,4 +22,5 @@ config_options_dict |= {
     "add_jet_spanet": False,
     "boosted": True,
     "boosted_presel": True,
+    "split_qcd": True,
 }| onnx_model_dict | {  "spanet": False,}

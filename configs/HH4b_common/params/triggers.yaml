@@ -9,6 +9,10 @@ HLT_triggers:
     JetMET:
        - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
     Boosted:
+       - HLT_AK8PFJet250_SoftDropMass40_PFAK8ParticleNetBB0p35
+       - HLT_AK8PFJet425_SoftDropMass40
+  "2023_preBPix":
+    Boosted:
        - HLT_AK8PFJet230_SoftDropMass40_PNetBB0p06
        - HLT_AK8PFJet400_SoftDropMass40
 

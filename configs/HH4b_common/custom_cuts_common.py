@@ -173,8 +173,8 @@ hh4b_boosted_ttbar_control_region = Cut(
     function=cuts_f.hh4b_boosted_ttbar_CR_cuts,
 )
 
-hh4b_boosted_qcd_control_region = Cut(
-    name="hh4b_boosted_qcd_control_region",
+hh4b_boosted_qcd_control_region_tot = Cut(
+    name="hh4b_boosted_qcd_control_region_A",
     params={
         "Run2": False,
         "pnet_cut": 0.65,
@@ -182,6 +182,45 @@ hh4b_boosted_qcd_control_region = Cut(
         "mass_max": 150,
     },
     function=cuts_f.hh4b_boosted_qcd_CR_cuts,
+)
+
+hh4b_boosted_qcd_control_region_A = Cut(
+    name="hh4b_boosted_qcd_control_region_A",
+    params={
+        "Run2": False,
+        "pnet_cut_min": 0.05,
+        "pnet_cut_max": 0.65,
+        "mass_min": 50,
+        "mass_max": 100,
+        "mass_max_qcd": 150,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
+)
+
+hh4b_boosted_qcd_control_region_B = Cut(
+    name="hh4b_boosted_qcd_control_region_B",
+    params={
+        "Run2": False,
+        "pnet_cut_min": 0.65,
+        "pnet_cut_max": 1.0,
+        "mass_min": 50,
+        "mass_max": 100,
+        "mass_max_qcd": 150,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
+)
+
+hh4b_boosted_qcd_control_region_C = Cut(
+    name="hh4b_boosted_qcd_control_region_C",
+    params={
+        "Run2": False,
+        "pnet_cut_min": 0.05,
+        "pnet_cut_max": 0.65,
+        "mass_min": 100,
+        "mass_max": 150,
+        "mass_max_qcd": 150,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
 )
 
 hh4b_boosted_vbf_region = Cut(
