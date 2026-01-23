@@ -95,7 +95,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events.JetPNetPlusNeutrino.pt,
             "pt_regressed",
         )
-        
+
         if self.add_jet_spanet:
             # reorder the jets by pt regressed
             self.events["Jet"] = self.events["Jet"][
@@ -336,6 +336,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             dr_min=self.parton_jet_min_dR,
         )
 
+        # add provenance
         matched_jets_higgs = ak.with_field(
             matched_jets_higgs, matched_bquarks_higgs.provenance, "provenance"
         )
@@ -349,6 +350,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events.JetGood, matched_bquarks.provenance, "provenance"
         )
 
+        # add deltaR information
         self.events["bQuarkHiggsMatched"] = ak.with_field(
             matched_bquarks_higgs, deltaR_matched_higgs, "dRMatchedJet"
         )
@@ -361,6 +363,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetGoodMatched"] = ak.with_field(
             matched_jets, deltaR_matched, "dRMatchedJet"
         )
+
+        # add pdgId information
         self.events["JetGoodHiggsMatched"] = ak.with_field(
             self.events.JetGoodHiggsMatched,
             self.events.bQuarkHiggsMatched.pdgId,
@@ -372,7 +376,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             "pdgId",
         )
 
-    def do_vbf_parton_matching(self, which_bquark):  # -> ak.Array:
+    def do_vbf_parton_matching(self):  # -> ak.Array:
         # Select vbf quarks
         self.events.GenPart = ak.with_field(
             self.events.GenPart, ak.local_index(self.events.GenPart, axis=1), "index"
@@ -392,6 +396,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         vbf_quarks = quarks[quarks_mother_children_isH]
 
+        # define variables to get the last copy
         children_idxG = ak.without_parameters(genpart.childrenIdxG, behavior={})
         children_idxG_flat = ak.flatten(children_idxG, axis=1)
         genpart_pdgId_flat = ak.flatten(
@@ -415,6 +420,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         firstgenpart_idxG = ak.firsts(genpart[:, 0].children).genPartIdxMotherG
         firstgenpart_idxG_numpy = ak.to_numpy(firstgenpart_idxG, allow_missing=False)
 
+        # find the quark last copy
         vbf_quark_last_idx = get_parton_last_copy(
             vbf_quark_idx,
             vbf_quarks_pdgId,
@@ -426,52 +432,36 @@ class HH4bCommonProcessor(BaseProcessorABC):
             nevents,
             firstgenpart_idxG_numpy,
         )
+        vbf_quarks_last = genparts_flat[vbf_quark_last_idx]
 
-        vbf_quark_last = genparts_flat[vbf_quark_last_idx]
-
+        # match quarks with the VBF jet candidates
         matched_vbf_quarks, matched_vbf_jets, deltaR_matched_vbf = object_matching(
-            vbf_quark_last,
-            self.events.JetVBF_matching,
+            vbf_quarks_last,
+            self.events.JetGoodVBF,
             dr_min=self.parton_jet_min_dR,
         )
 
-        maskNotNone = ~ak.is_none(matched_vbf_jets, axis=1)
-        self.events["JetVBF_matched"] = matched_vbf_jets[maskNotNone]
-
-        self.events["JetVBF_matched"] = ak.with_field(
-            self.events.JetVBF_matched,
-            ak.where(
-                self.events.JetVBF_matched.PNetRegPtRawCorr > 0,
-                self.events.JetVBF_matched.pt
-                / self.events.JetVBF_matched.PNetRegPtRawCorrNeutrino,
-                self.events.JetVBF_matched.pt,
-            ),
-            "pt",
+        matched_vbf_jets = ak.with_field(
+            matched_vbf_jets, ak.ones_like(matched_vbf_jets.pt) * 3, "provenance"
+        )
+        matched_vbf_quarks = ak.with_field(
+            matched_vbf_quarks, matched_vbf_jets.provenance, "provenance"
         )
 
-        self.events["quarkVBF_matched"] = matched_vbf_quarks[maskNotNone]
-
-        self.events["quarkVBF"] = vbf_quark_last
-
-        # general Selection
-        (
-            matched_vbf_quarks_generalSelection,
-            matched_vbf_jets_generalSelection,
-            deltaR_matched_vbf,
-        ) = object_matching(
-            vbf_quark_last,
-            self.events.JetVBF_generalSelection,
-            dr_min=self.parton_jet_min_dR,
-        )
-        maskNotNone_genSel = ~ak.is_none(matched_vbf_jets_generalSelection, axis=1)
-
-        self.events["JetVBF_generalSelection_matched"] = (
-            matched_vbf_jets_generalSelection[maskNotNone_genSel]
+        self.events["JetGoodVBF_matched"] = matched_vbf_jets
+        self.events["JetGoodVBF"] = ak.with_field(
+            self.events.JetGoodVBF,
+            self.events["JetGoodVBF_matched"].provenance,
+            "provenance",
         )
 
-        self.events["quarkVBF_generalSelection_matched"] = (
-            matched_vbf_quarks_generalSelection[maskNotNone_genSel]
+        self.events["quarkVBF_matched"] = matched_vbf_quarks
+
+        self.events["quarkVBF"] = ak.with_field(
+            vbf_quarks_last, matched_vbf_quarks.provenance, "provenance"
         )
+
+        # breakpoint()
 
     def dummy_provenance(self):
         self.events["JetGoodHiggs"] = ak.with_field(
