@@ -3,123 +3,83 @@ import copy
 import numpy as np
 
 from utils.custom_cut_functions import custom_jet_selection
-from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 from utils.basic_functions import add_fields
-
+from configs.HH4b_common.workflow_common import HH4bCommonProcessor
+from configs.HH4b_common.custom_object_preselection_common import forward_jet_veto
 
 class VBFHH4bProcessor(HH4bCommonProcessor):
     def __init__(self, cfg) -> None:
         super().__init__(cfg=cfg)
         self.vbf_parton_matching = self.workflow_options["vbf_parton_matching"]
-        self.vbf_presel = self.workflow_options["vbf_presel"]
-        self.semi_tight_vbf = self.workflow_options["semi_tight_vbf"]
+        self.vbf_analysis = self.workflow_options["vbf_analysis"]
         
 
     def apply_object_preselection(self, variation):
         super().apply_object_preselection(variation=variation)
-        if self.vbf_presel:
+        if self.vbf_analysis:
                 
-            self.events["JetVBF_matching"] = copy.copy(self.events["Jet"])
-            self.events["JetVBF_matching"] = custom_jet_selection(
+            jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
+            
+            self.events["JetVBF"] = self.get_jets_no_higgs(jet_goodhiggs_idx_not_none)
+            self.events["JetGoodVBF"], _ = custom_jet_selection(
                 self.events,
-                "JetVBF_matching",
+                "JetVBF",
                 self.params,
                 year=self._year,
                 pt_type="pt_default",
                 pt_cut_name=self.pt_cut_name,
             )
-
-            self.events["JetGoodVBF"] = copy.copy(self.events["Jet"])
-            self.events["JetGoodVBF"] = custom_jet_selection(
-                self.events,
-                "JetGoodVBF",
-                self.params,
-                year=self._year,
-                pt_type="pt_default",
-                pt_cut_name=self.pt_cut_name,
-            )
-
-            if (
-                self.semi_tight_vbf
-                and "pt_tight" in self.params.object_preselection["Jet"].keys()
-            ):
-                self.pt_cut_name_vbf = "pt_tight"
-            else:
-                self.pt_cut_name_vbf = self.pt_cut_name
-                
-                
-            self.events["JetVBF_generalSelection"] = copy.copy(self.events["Jet"])
-            self.events["JetVBF_generalSelection"] = custom_jet_selection(
-                self.events,
-                "JetVBF_generalSelection",
-                self.params,
-                year=self._year,
-                pt_type="pt_default",
-                pt_cut_name=self.pt_cut_name_vbf,
-            )
-
+            # order in pt
+            self.events["JetGoodVBF"] = self.events.JetGoodVBF[
+                ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
+            ]
+            
+            # apply forward jet veto
+            self.events["JetGoodVBF"]=forward_jet_veto(self.events, "JetGoodVBF", pt_type="pt_default")
+            
     def count_objects(self, variation):
         super().count_objects(variation=variation)
-        if self.vbf_presel:
+        if self.vbf_analysis:
             self.events["nJetGoodVBF"] = ak.num(self.events.JetGoodVBF, axis=1)
-            self.events["nJetVBF_generalSelection"] = ak.num(
-                self.events.JetVBF_generalSelection, axis=1
-            )
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         super().process_extra_after_presel(variation=variation)
-        if self.vbf_presel:            
-            self.events["JetVBFNotFromHiggs"] = self.get_jets_no_higgs()
-            
-            # apply selection to the jets not from Higgs
-            self.events["JetVBFNotFromHiggs"] = custom_jet_selection(
-                self.events,
-                "JetVBFNotFromHiggs",
-                self.params,
-                year=self._year,
-                pt_type="pt_default",
-                pt_cut_name=self.pt_cut_name_vbf,
-            )
-
-            # order in pt
-            self.events["JetVBFNotFromHiggs"] = self.events.JetVBFNotFromHiggs[
-                ak.argsort(self.events.JetVBFNotFromHiggs.pt, axis=1, ascending=False)
-            ]
+        if self.vbf_analysis:            
 
             if self._isMC and self.vbf_parton_matching:
-                self.do_vbf_parton_matching(which_bquark=self.which_bquark)
+                self.do_vbf_parton_matching()
 
-                self.events["nJetVBF_matched"] = ak.num(
-                    self.events.JetVBF_matched, axis=1
+                self.events["nJetGoodVBF_matched"] = ak.num(
+                    self.events.JetGoodVBF_matched, axis=1
                 )
 
                 # Create new variable delta eta and invariant mass of the jets
-                JetVBF_matched_padded = ak.pad_none(
-                    self.events.JetVBF_matched, 2
+                JetGoodVBF_matched_padded = ak.pad_none(
+                    self.events.JetGoodVBF_matched, 2
                 )  # Adds none jets to events that have less than 2 jets
 
                 self.events["deltaEta_matched"] = abs(
-                    JetVBF_matched_padded.eta[:, 0] - JetVBF_matched_padded.eta[:, 1]
+                    JetGoodVBF_matched_padded.eta[:, 0] - JetGoodVBF_matched_padded.eta[:, 1]
                 )
 
                 self.events["jj_mass_matched"] = (
-                    JetVBF_matched_padded[:, 0] + JetVBF_matched_padded[:, 1]
+                    JetGoodVBF_matched_padded[:, 0] + JetGoodVBF_matched_padded[:, 1]
                 ).mass
 
                 # This product will give only -1 or 1 values, as it's needed to see if the two jets are in the same side or not
                 self.events["etaProduct"] = (
-                    JetVBF_matched_padded.eta[:, 0] * JetVBF_matched_padded.eta[:, 1]
+                    JetGoodVBF_matched_padded.eta[:, 0] * JetGoodVBF_matched_padded.eta[:, 1]
                 ) / abs(
-                    JetVBF_matched_padded.eta[:, 0] * JetVBF_matched_padded.eta[:, 1]
+                    JetGoodVBF_matched_padded.eta[:, 0] * JetGoodVBF_matched_padded.eta[:, 1]
                 )
 
             # choose vbf jets as the two jets with the highest pt that are not from higgs decay
-            self.events["JetVBFLeadingPtNotFromHiggs"] = self.events.JetVBFNotFromHiggs[
+            self.events["JetVBFLeadingPtNotFromHiggs"] = self.events.JetGoodVBF[
                 :, :2
             ]
 
             # choose higgs jets as the two jets with the highest mjj that are not from higgs decay
-            jet_combinations = ak.combinations(self.events.JetVBFNotFromHiggs, 2)
+            jet_combinations = ak.combinations(self.events.JetGoodVBF, 2)
             jet_combinations_mass = (jet_combinations["0"] + jet_combinations["1"]).mass
             jet_combinations_mass_max_idx = ak.to_numpy(
                 ak.argsort(jet_combinations_mass, axis=1, ascending=False)[:, 0]
