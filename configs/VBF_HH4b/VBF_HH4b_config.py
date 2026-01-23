@@ -76,18 +76,18 @@ preselection = define_preselection(config_options_dict)
 
 
 sample_ggF_list = [
-    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 
 # Define the samples to process
@@ -97,16 +97,16 @@ sample_list = (
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         # 2022 postEE
-        "DATA_JetMET_JMENano_E_skimmed",
-        "DATA_JetMET_JMENano_F_skimmed",
-        "DATA_JetMET_JMENano_G_skimmed",
+        # "DATA_JetMET_JMENano_E_skimmed",
+        # "DATA_JetMET_JMENano_F_skimmed",
+        # "DATA_JetMET_JMENano_G_skimmed",
     ]
     + sample_ggF_list
     + (
         [
+            "VBFHHto4B_CV_1_C2V_1_C3_1",
         #     "GluGlutoHHto4B_spanet_skimmed",
         #     # "GluGlutoHHto4B",
-        #     # "VBF_HHto4B",
         # "GluGlutoHHto4B_spanet"
         ]
     )
@@ -254,7 +254,7 @@ cfg = Configurator(
     datasets={
         "jsons": [
             # f"{localdir}/../HH4b_common/datasets/QCD.json",
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local_rucio.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_rucio_redirector.json",
@@ -299,12 +299,12 @@ cfg = Configurator(
             },
             "bysample": {},
         },
-        "shape": {
-            "common": {
-                # "inclusive": ["jet_calibration_with_pt_regression_legacy"],
-                # "inclusive": ["jet_calibration"]
-                },
-            }
+        # "shape": {
+        #     "common": {
+        #         # "inclusive": ["jet_calibration_with_pt_regression_legacy"],
+        #         # "inclusive": ["jet_calibration"]
+        #         },
+        #     }
     },
     variables=variables_dict,
     columns={
