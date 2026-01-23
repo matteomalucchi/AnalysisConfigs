@@ -40,7 +40,7 @@ def lepton_selection(events, lepton_flavour, params):
 
 
 def jet_selection_nopu(
-    events, jet_type, params, tight_cuts=False, semi_tight_vbf=False
+    events, jet_type, params, tight_cuts=False,
 ):
     jets = events[jet_type]
     cuts = params.object_preselection[jet_type]
@@ -50,8 +50,6 @@ def jet_selection_nopu(
     pt_cut = "pt"
     if tight_cuts and "pt_tight" in cuts.keys():
         pt_cut = "pt_tight"
-    if semi_tight_vbf and "ptSemiTight" in cuts.keys():
-        pt_cut = "ptSemiTight"
 
     if "eta_min" in cuts.keys() and "eta_max" in cuts.keys():
         mask_jets = (
@@ -70,3 +68,13 @@ def jet_selection_nopu(
         )
 
     return jets[mask_jets]
+
+
+def forward_jet_veto(events, jet_type, pt_type):
+    eta_range = (abs(events[jet_type].eta) <2.5) | (abs(events[jet_type].eta) > 3.0)
+    pt_mask = events[jet_type][pt_type] > 50
+    
+    # jets rejected if pT < 50 GeV and 2.5 < |η| < 3
+    jets=events[jet_type][eta_range | pt_mask]
+    
+    return jets
