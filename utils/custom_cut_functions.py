@@ -42,7 +42,7 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
     # remove copies
     del processor_params_copy
     del events_copy
-    
+
     return mask
 
 
@@ -76,8 +76,11 @@ def custom_jet_selection(
     # since it's the one having the jetId stored
     # copy also the object_preselection to modify it
     params_copy = copy.copy(params)
+    params_copy.object_preselection[jet_type_default] = params_copy.object_preselection[
+        jet_type
+    ].copy()
     params_copy.object_preselection[jet_type_default]["pt"] = (
-        params.object_preselection[jet_type][pt_cut_name]
+        params_copy.object_preselection[jet_type][pt_cut_name]
     )
     params_copy.jets_calibration.collection[year] = {"AK4PFPuppi": jet_type_default}
 
