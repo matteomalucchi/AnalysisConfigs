@@ -22,7 +22,6 @@ config_options_dict |= {
     "classification": False,
     "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_btag_ratioAll_ArctanhDeltaProb",
     "vbf_presel": False,
-    "semi_tight_vbf": True,
     "dnn_variables": True,
     "run2": False,
     "vr1": False,

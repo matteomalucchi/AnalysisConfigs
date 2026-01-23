@@ -13,12 +13,14 @@ default_onnx_model_dict = {
 
 default_config_options_dict = {
     "higgs_parton_matching": False,
-    "vbf_parton_matching": False,
     "tight_cuts": False,
     "classification": False,
     "save_chunk": False,
+    # VBF
+    "vbf_parton_matching": False,
     "vbf_presel": False,
-    "semi_tight_vbf": True,
+    "vbf_analysis": False,
+    #
     "dnn_variables": True,
     "run2": False,
     "vr1": False,

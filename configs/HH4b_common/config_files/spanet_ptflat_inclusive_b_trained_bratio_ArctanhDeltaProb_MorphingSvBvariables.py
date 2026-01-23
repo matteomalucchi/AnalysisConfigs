@@ -21,7 +21,6 @@ config_options_dict |= {
     "classification": False,
     "save_chunk": False,
     "vbf_presel": False,
-    "semi_tight_vbf": True,
     "dnn_variables": True,
     "run2": False,
     "vr1": False,
