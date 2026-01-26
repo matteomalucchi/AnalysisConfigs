@@ -13,7 +13,6 @@ default_onnx_model_dict = {
 
 default_config_options_dict = {
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": False,
     # VBF
     "vbf_parton_matching": False,

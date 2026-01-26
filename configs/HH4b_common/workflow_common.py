@@ -173,8 +173,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
 
     def flatten_pt(self, variation):
-        if self._isMC and not self.classification:
-            if self.random_pt:  # TODO implement random_pt
+        if self._isMC and if self.random_pt:  # TODO implement random_pt
                 if self.rand_type == 0.5:
                     random_weights = ak.Array(np.random.rand((len(self.events["nJetGood"])))+0.5)  # [0.5,1.5]
                 elif self.rand_type == 0.3:

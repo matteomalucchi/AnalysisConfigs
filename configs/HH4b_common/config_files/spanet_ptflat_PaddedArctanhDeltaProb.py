@@ -19,7 +19,6 @@ onnx_model_dict  |= {
 config_options_dict |= {
     "vbf_parton_matching": False,
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": False,
     "vbf_presel": False,
     "dnn_variables": True,

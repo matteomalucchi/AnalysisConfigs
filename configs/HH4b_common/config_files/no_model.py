@@ -9,7 +9,6 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 config_options_dict |= {
     "vbf_parton_matching": False,
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": False,
     "vbf_presel": False,
     "dnn_variables": False,

@@ -16,13 +16,16 @@ onnx_model_dict  |= {
 
 config_options_dict |= {
     "dnn_variables": True,
-    "run2": True,
+    "run2": False,
     "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
     "qt_postEE": None,
+    "random_pt": True,
+    "rand_type": 0.3,
+    
     "vbf_parton_matching": True,
     "vbf_presel": False,
     "vbf_analysis": True,

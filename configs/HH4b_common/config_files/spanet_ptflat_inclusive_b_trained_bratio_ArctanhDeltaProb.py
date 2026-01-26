@@ -19,7 +19,6 @@ onnx_model_dict |= {
 config_options_dict |= {
     "vbf_parton_matching": False,
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_inclusive_b_trained_bratio_ArctanhDeltaProb_histtest",
     #"save_chunk": False,
     "vbf_presel": False,
