@@ -1,0 +1,5 @@
+scaleout: 1
+cores-per-worker: 1
+chunksize: 1000
+ignore-grid-certificate: true
+voms-proxy: null
