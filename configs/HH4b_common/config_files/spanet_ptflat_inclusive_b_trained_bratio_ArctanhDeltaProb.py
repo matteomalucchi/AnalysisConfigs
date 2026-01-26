@@ -17,7 +17,6 @@ onnx_model_dict |= {
 
 
 config_options_dict |= {
-    "higgs_parton_matching": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
     "classification": False,

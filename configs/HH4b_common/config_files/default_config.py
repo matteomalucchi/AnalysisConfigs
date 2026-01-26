@@ -12,7 +12,6 @@ default_onnx_model_dict = {
 }
 
 default_config_options_dict = {
-    "higgs_parton_matching": False,
     "tight_cuts": False,
     "classification": False,
     "save_chunk": False,
