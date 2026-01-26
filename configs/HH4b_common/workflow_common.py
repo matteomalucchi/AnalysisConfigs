@@ -239,14 +239,18 @@ class HH4bCommonProcessor(BaseProcessorABC):
         higgs = higgs[ak.num(higgs.childrenIdxG, axis=2) == 2]
         higgs = higgs[ak.argsort(higgs.pt, ascending=False)]
 
-        if which_bquark == "last_numba":
-            bquarks_first = genpart[isB & isHard & isFirst]
-            mother_bquarks = genpart[bquarks_first.genPartIdxMother]
-            bquarks_from_higgs = bquarks_first[mother_bquarks.pdgId == 25]
+        if which_bquark == "last_numba" or which_bquark == "last_numba_with_status":
+            if which_bquark == "last_numba":
+                bquarks_first = genpart[isB & isHard & isFirst]
+                mother_bquarks = genpart[bquarks_first.genPartIdxMother]
+                bquarks_from_higgs = bquarks_first[mother_bquarks.pdgId == 25]
+            else:
+                outgoing_part=genpart[genpart.status==23]
+                bquarks_from_higgs=outgoing_part[abs(outgoing_part.pdgId) == 5]
+                
             provenance = ak.where(
                 bquarks_from_higgs.genPartIdxMother == higgs.index[:, 0], 1, 2
             )
-
             # define variables to get the last copy
             children_idxG = ak.without_parameters(genpart.childrenIdxG, behavior={})
             children_idxG_flat = ak.flatten(children_idxG, axis=1)
@@ -312,7 +316,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             provenance = ak.where(bquarks.genPartIdxMother == higgs.index[:, 0], 1, 2)
         else:
             raise ValueError(
-                "which_bquark for the parton matching must be 'first' or 'last' or 'last_numba'"
+                "which_bquark for the parton matching must be 'first', 'last', 'last_numba' or 'last_numba_with_status'"
             )
 
         # Adding the provenance to the quark object
@@ -382,19 +386,31 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events.GenPart, ak.local_index(self.events.GenPart, axis=1), "index"
         )
         genpart = self.events.GenPart
+        
+        if self.which_vbf_quark == "with_status":
+            # find the vbf looking at the status
+            outgoing_part=genpart[genpart.status==23]
+            vbf_quarks=outgoing_part[abs(outgoing_part.pdgId) != 5]
 
-        isQuark = abs(genpart.pdgId) < 7
-        isHard = genpart.hasFlags(["fromHardProcess"])
+        elif self.which_vbf_quark == "with_mothers_children":
+            # find the vbf looking if the children of the mother are Higgs
+            # for samples which are not vbf this one creates issues
+            isQuark = abs(genpart.pdgId) < 7
+            isHard = genpart.hasFlags(["fromHardProcess"])
 
-        quarks = genpart[isQuark & isHard]
-        quarks = quarks[quarks.genPartIdxMother != -1]
+            quarks = genpart[isQuark & isHard]
+            quarks = quarks[quarks.genPartIdxMother != -1]
 
-        quarks_mother = genpart[quarks.genPartIdxMother]
-        quarks_mother_children = quarks_mother.children
-        quarks_mother_children_isH = (
-            ak.sum((quarks_mother_children.pdgId == 25), axis=-1) == 2
-        )
-        vbf_quarks = quarks[quarks_mother_children_isH]
+            quarks_mother = genpart[quarks.genPartIdxMother]
+            quarks_mother_children = quarks_mother.children
+            quarks_mother_children_isH = (
+                ak.sum((quarks_mother_children.pdgId == 25), axis=-1) == 2
+            )
+            vbf_quarks = quarks[quarks_mother_children_isH]
+        else:
+            raise ValueError(
+                "which_vbf_quark for the parton matching must be 'with_status' or 'with_mothers_children'"
+            )
 
         # define variables to get the last copy
         children_idxG = ak.without_parameters(genpart.childrenIdxG, behavior={})
@@ -458,10 +474,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["quarkVBF_matched"] = matched_vbf_quarks
 
         self.events["quarkVBF"] = ak.with_field(
-            vbf_quarks_last, matched_vbf_quarks.provenance, "provenance"
+            vbf_quarks_last, ak.ones_like(vbf_quarks_last.pt) * 3, "provenance"
         )
-
-        # breakpoint()
 
     def dummy_provenance(self):
         self.events["JetGoodHiggs"] = ak.with_field(

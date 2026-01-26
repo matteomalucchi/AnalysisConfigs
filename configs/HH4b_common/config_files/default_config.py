@@ -20,6 +20,7 @@ default_config_options_dict = {
     "vbf_parton_matching": False,
     "vbf_presel": False,
     "vbf_analysis": False,
+    "which_vbf_quark":"with_status", #"with_mothers_children"
     #
     "dnn_variables": True,
     "run2": False,

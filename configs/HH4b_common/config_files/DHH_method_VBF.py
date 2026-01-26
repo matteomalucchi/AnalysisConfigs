@@ -26,5 +26,5 @@ config_options_dict |= {
     "vbf_parton_matching": True,
     "vbf_presel": False,
     "vbf_analysis": True,
-    
+    "which_vbf_quark":"with_status"
 }| onnx_model_dict
