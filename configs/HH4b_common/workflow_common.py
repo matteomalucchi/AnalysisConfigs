@@ -184,16 +184,21 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
 
             # here we propagate the btagging scores to the FatJetGood collection as is done in the pocket coffea jet_selection
-            # if we're interested in other taggers, we need to add them here or swap to the mass decorrelated ones ("particleNet_XbbVsQCD", "particleNet_XccVsQCD")
+            # if we're interested in other taggers, we need to add them here or swap to the mass correlated ones ("particleNetWithMass_HbbvsQCD", "particleNetWithMass_HccvsQCD")
             self.events["FatJetGood"] = ak.with_field(
                 self.events["FatJetGood"],
-                self.events["FatJet"][_]["particleNetWithMass_HbbvsQCD"],
+                self.events["FatJet"][_]["particleNet_XbbVsQCD"],
                 "btagBB",
             )
             self.events["FatJetGood"] = ak.with_field(
                 self.events["FatJetGood"],
-                self.events["FatJet"][_]["particleNetWithMass_HccvsQCD"],
+                self.events["FatJet"][_]["particleNet_XccVsQCD"],
                 "btagCC",
+            )
+
+            # Add btag WP
+            self.events["FatJetGood"] = self.generate_btag_workingpoints(
+                self.events["FatJetGood"], 3
             )
 
             # Selecting Higgs candidate jets
@@ -292,6 +297,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 False,
             )
             self.events["DiJetVBFCandidates"] = dijets[good_pairs_mask]
+        
 
     # def apply_preselection(self, variation):
     #     """
@@ -306,23 +312,27 @@ class HH4bCommonProcessor(BaseProcessorABC):
     #     self._preselections = self._preselections_temp
 
     def generate_btag_workingpoints(self, jets, num_wp):
+        if hasattr(jets, "btagBB"):
+            btag = "btagBB"
+        else:
+            btag = "btagPNetB"
         # L, M, T, XT, XXT
         # Right now hardcoded particleNet postEE
         wps = self.params["btagging"]["working_point"][self._year]["btagging_WP"][
-            "btagPNetB"
+            btag
         ]
-        btag_wp = ak.zeros_like(jets.btagPNetB, dtype=np.int32) - (
+        btag_wp = ak.zeros_like(jets[btag], dtype=np.int32) - (
             1 if self.old_wp_def else 0
         )
         for i, thr in enumerate(sorted(wps.values())):
             if i >= num_wp:
                 break
             btag_wp = ak.where(
-                jets.btagPNetB > thr, i + 1 - (1 if self.old_wp_def else 0), btag_wp
+                jets[btag] > thr, i + 1 - (1 if self.old_wp_def else 0), btag_wp
             )  # NOTE: the -1 is to use the old configuration
 
         # raise ValueError("WARNING: change the definition")
-        return ak.with_field(jets, btag_wp, f"btagPNetB_{num_wp}wp")
+        return ak.with_field(jets, btag_wp, f"{btag}_{num_wp}wp")
 
     def generate_btag_delta_workingpoints(self, jets, num_wp):
         wp_array = jets[f"btagPNetB_{num_wp}wp"]

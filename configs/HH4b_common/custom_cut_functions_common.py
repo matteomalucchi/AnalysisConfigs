@@ -117,8 +117,7 @@ def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
     # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
     lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
 
-    # both jets has to be in the 50 < mass < 150 GeV window to be in the QCD CR 
-    # the leading one has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
+    # the leading jet has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
     mask_mass_lead = (
         (lead_jet.mass_regr > params["mass_min"]) 
         & (lead_jet.mass_regr < params["mass_max"])
@@ -127,7 +126,7 @@ def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
 
     mask_mass_qcd = (
         (lead_jet.mass_regr < params["mass_max"])
-        & (sublead_jet.mass_regr < params["mass_max"])
+        & (sublead_jet.mass_regr < params["mass_max_sublead"])
     )
     mask_mass_qcd = ak.where(ak.is_none(mask_mass_qcd), False, mask_mass_qcd)
 
@@ -136,24 +135,26 @@ def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
 
     mask = (~(mask_mass_lead) | ~(mask_btag_sublead)) & mask_mass_qcd
 
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
 
 def hh4b_boosted_qcd_CR_cuts_X(events, params, **kwargs):
     # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
     lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
 
-    # both jets has to be in the 50 < mass < 150 GeV window to be in the QCD CR 
-    # the leading one has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
+    # the leading jet has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
     mask_mass_lead = (
-        (lead_jet.mass_regr > params["mass_min"]) 
-        & (lead_jet.mass_regr < params["mass_max"])
+        (lead_jet.mass_regr > params["mass_min_lead"]) 
+        & (lead_jet.mass_regr < params["mass_max_lead"])
     )
     mask_mass_lead = ak.where(ak.is_none(mask_mass_lead), False, mask_mass_lead)
 
-    mask_mass_qcd = (
-        (lead_jet.mass_regr < params["mass_max_qcd"])
-        & (sublead_jet.mass_regr < params["mass_max_qcd"])
+    mask_mass_sublead = (
+        (sublead_jet.mass_regr > params["mass_min_sublead"])
+        & (sublead_jet.mass_regr < params["mass_max_sublead"])
     )
-    mask_mass_qcd = ak.where(ak.is_none(mask_mass_qcd), False, mask_mass_qcd)
+    mask_mass_sublead = ak.where(ak.is_none(mask_mass_sublead), False, mask_mass_sublead)
 
     mask_btag_sublead = (
         (sublead_jet["btagBB"] >= params["pnet_cut_min"])
@@ -161,7 +162,7 @@ def hh4b_boosted_qcd_CR_cuts_X(events, params, **kwargs):
     )
     mask_btag_sublead = ak.where(ak.is_none(mask_btag_sublead), False, mask_btag_sublead)
 
-    mask = (mask_mass_lead) & (mask_btag_sublead) & (mask_mass_qcd)
+    mask = (mask_mass_lead) & (mask_btag_sublead) & (mask_mass_sublead)
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)

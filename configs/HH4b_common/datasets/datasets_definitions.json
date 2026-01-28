@@ -727,7 +727,7 @@
     "VBFHHto4B_BSM": {
         "sample": "VBF_HHto4B_BSM",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -736,11 +736,67 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.4105150,
                     "part": "CV-1p74_C2V-1p37_C3-14p4"
                 },
                 "das_parents_names": [
                     "/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
+                ]
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV_1_C2V_0_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v1/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0304177,
+                    "part": "CV_1_C2V_0_C3_1"
+                },
+                "das_parents_names": [
+                    "/VBFHHto4B_CV_1_C2V_0_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v1/MINIAODSIM"
+                ]
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.3678762,
+                    "part": "CV-m0p758_C2V-1p44_C3-m19p3"
+                },
+                "das_parents_names": [
+                    "/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
+                ]
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0000131,
+                    "part": "CV-m0p012_C2V-0p030_C3-10p2"
+                },
+                "das_parents_names": [
+                    "/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
+                ]
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0038945,
+                    "part": "CV-m1p21_C2V-1p94_C3-m0p94"
+                },
+                "das_parents_names": [
+                    "/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
                 ]
             }
         ]

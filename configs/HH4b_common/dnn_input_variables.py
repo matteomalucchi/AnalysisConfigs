@@ -382,8 +382,10 @@ bkg_morphing_boosted_dnn_input_variables = OrderedDict(
         "higgs1_reco_eta": ["HiggsLeading", "eta"],
         "higgs1_reco_mass": ["HiggsLeading", "mass_regr"],
         "higgs1_btagBB": ["HiggsLeading", "btagBB"],
+        "higgs1_btagBB_wp": ["HiggsLeading", "btagBB_3wp"],
         "higgs2_reco_pt": ["HiggsSubLeading", "pt"],
         "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
+        "higgs2_btagBB_wp": ["HiggsSubLeading", "btagBB_3wp"],
         "hh_vec_mass": ["HH", "mass"],
         "hh_vec_pt": ["HH", "pt"],
         "hh_vec_eta": ["HH", "eta"],
@@ -391,6 +393,7 @@ bkg_morphing_boosted_dnn_input_variables = OrderedDict(
         "higgs1_mass_Hj": ["HiggsLeading", "m_Hjet_min_dR"],
         "higgs2_DeltaR_Hj": ["HiggsSubLeading", "dR_Hjet_min"],
         "higgs2_mass_Hj": ["HiggsSubLeading", "m_Hjet_min_dR"],
+        "met_et": ["MET", "sumEt"],
     }
 )
 
@@ -886,11 +889,13 @@ sig_bkg_boosted_dnn_input_variables = OrderedDict(
         "higgs1_reco_mass": ["HiggsLeading", "mass_regr"],
         "higgs1_centrality": ["HiggsLeading", "centrality"],
         "higgs1_btagBB": ["HiggsLeading", "btagBB"],
+        "higgs1_btagBB_wp": ["HiggsLeading", "btagBB_3wp"],
         "higgs2_reco_pt": ["HiggsSubLeading", "pt"],
         "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
         "higgs2_reco_phi": ["HiggsSubLeading", "phi"],
         "higgs2_reco_mass": ["HiggsSubLeading", "mass_regr"],
         "higgs2_btagBB": ["HiggsSubLeading", "btagBB"],
+        "higgs2_btagBB_wp": ["HiggsSubLeading", "btagBB_3wp"],
         "higgs2_centrality": ["HiggsSubLeading", "centrality"],
         "HT": ["events", "HT"],
         "higgs1_DeltaR_Hj": ["HiggsLeading", "dR_Hjet_min"],
@@ -917,6 +922,7 @@ sig_bkg_boosted_dnn_input_variables = OrderedDict(
         "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta"],
         "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi"],
         "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass"],
+        "met_et": ["MET", "sumEt"],
     }
 )
 

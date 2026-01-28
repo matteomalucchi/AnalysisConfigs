@@ -71,6 +71,23 @@ if args.run2:
             ]
         ],
     }
+elif args.boosted:
+    cat_dict |= {
+        f"CR{args.region_suffix}": [
+            [
+                f"boosted_qcd_B{args.region_suffix}_region",
+                f"boosted_qcd_A{args.region_suffix}_region_postW",
+                f"boosted_qcd_A{args.region_suffix}_region",
+            ]
+        ],
+        f"SR{args.region_suffix}": [
+            [
+                f"boosted_signal{args.region_suffix}_region",
+                f"boosted_qcd_C{args.region_suffix}_region_postW",
+                f"boosted_qcd_C{args.region_suffix}_region",
+            ]
+        ]
+    }   
 else:
     cat_dict |= {
         f"CR{args.region_suffix}": [
@@ -202,6 +219,8 @@ if args.input_mc:
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
+    elif args.boosted:
+        cols_sig_mc = cat_col_mc[f"boosted_signal_{args.region_suffix}_region"]
     else:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_region"]
 
