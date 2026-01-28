@@ -89,6 +89,10 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr = None
 corr_files = {
+    "2016_PreVFP": f"{localdir}/params/Summer20UL16APV_V1_MC_L2Relative_AK4PFPuppi.txt",
+    "2016_PostVFP": f"{localdir}/params/Summer20UL16_V1_MC_L2Relative_AK4PFPuppi.txt",
+    "2017": f"{localdir}/params/Summer20UL17_V1_MC_L2Relative_AK4PFPuppi.txt",
+    "2018": f"{localdir}/params/Summer20UL18_V1_MC_L2Relative_AK4PFPuppi.txt",
     "2022_preEE": f"{localdir}/params/Summer22Run3_V1_MC_L2Relative_AK4PUPPI.txt",
     "2022_postEE": f"{localdir}/params/Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI.txt",
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V1_MC_L2Relative_AK4PUPPI.txt",
@@ -137,6 +141,10 @@ else:
 variables_dict=get_variables_dict(cuts_names_eta, cuts_names_reco_eta, cuts_names_eta_neutrino)
 
 samples_dict = {
+    "2016_PreVFP": "QCD_PT-15to7000_JMENano_Summer20UL16APV",
+    "2016_PostVFP": "QCD_PT-15to7000_JMENano_Summer20UL16",
+    "2017": "QCD_PT-15to7000_JMENano_Summer20UL17",
+    "2018": "QCD_PT-15to7000_JMENano_Summer20UL18",
     "2022_preEE": "QCD_PT-15to7000_JMENano_Summer22",
     "2022_postEE": "QCD_PT-15to7000_JMENano_Summer22EE",
     "2023_preBPix": "QCD_PT-15to7000_JMENano_Summer23",
@@ -205,8 +213,8 @@ cfg = Configurator(
                 int(os.environ.get("PNETREG15", 0)) == 1
                 or int(os.environ.get("SPLITPNETREG15", 0)) == 1
             )
-            else 
-            (0 
+            else
+            (0
             if (
                 int(os.environ.get("EXTENDED_PT_BINS", 0)) == 1
             )

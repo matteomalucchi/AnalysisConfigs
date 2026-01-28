@@ -1,4 +1,72 @@
 {
+    "QCD_PT-15to7000_JMENano_Summer20UL16APV": {
+        "sample": "QCD_PT-15to7000_JMENano_Summer20UL16APV",
+        "json_output": "datasets/QCD.json",
+        "description": "Cross-section taken from https://xsecdb-xsdb-official.app.cern.ch/xsdb/?columns=67108863&currentPage=0&ordDirection=-1&ordFieldName=modifiedOn&pageSize=10&searchQuery=process_name%3DQCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8",
+        "files": [
+            {
+                "das_names": [
+                    "/QCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8/RunIISummer20UL16NanoAODAPVv15-20UL16APVJMENano_150X_mcRun2_asymptotic_preVFP_v1-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 1373000000.0
+                }
+            }
+        ]
+    },
+    "QCD_PT-15to7000_JMENano_Summer20UL16": {
+        "sample": "QCD_PT-15to7000_JMENano_Summer20UL16",
+        "json_output": "datasets/QCD.json",
+        "description": "Cross-section taken from https://xsecdb-xsdb-official.app.cern.ch/xsdb/?columns=67108863&currentPage=0&ordDirection=-1&ordFieldName=modifiedOn&pageSize=10&searchQuery=process_name%3DQCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8",
+        "files": [
+            {
+                "das_names": [
+                    "/QCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8/RunIISummer20UL16NanoAODv15-20UL16JMENano_150X_mcRun2_asymptotic_v1-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 1373000000.0
+                }
+            }
+        ]
+    },
+    "QCD_PT-15to7000_JMENano_Summer20UL17": {
+        "sample": "QCD_PT-15to7000_JMENano_Summer20UL17",
+        "json_output": "datasets/QCD.json",
+        "description": "Cross-section taken from https://xsecdb-xsdb-official.app.cern.ch/xsdb/?columns=67108863&currentPage=0&ordDirection=-1&ordFieldName=modifiedOn&pageSize=10&searchQuery=process_name%3DQCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8",
+        "files": [
+            {
+                "das_names": [
+                    "/QCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8/RunIISummer20UL17NanoAODv15-20UL17JMENano_150X_mc2017_realistic_v1-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2017",
+                    "isMC": true,
+                    "xsec": 1373000000.0
+                }
+            }
+        ]
+    },
+    "QCD_PT-15to7000_JMENano_Summer20UL18": {
+        "sample": "QCD_PT-15to7000_JMENano_Summer20UL18",
+        "json_output": "datasets/QCD.json",
+        "description": "Cross-section taken from https://xsecdb-xsdb-official.app.cern.ch/xsdb/?columns=67108863&currentPage=0&ordDirection=-1&ordFieldName=modifiedOn&pageSize=10&searchQuery=process_name%3DQCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8",
+        "files": [
+            {
+                "das_names": [
+                    "/QCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8/RunIISummer20UL18NanoAODv15-20UL18JMENano_150X_mc2018_realistic_v1-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2018",
+                    "isMC": true,
+                    "xsec": 1373000000.0
+                }
+            }
+        ]
+    },
     "QCD_PT-15to7000": {
         "sample": "QCD_PT-15to7000",
         "json_output": "datasets/QCD.json",
@@ -282,3 +350,4 @@
     }
 
 }
+
