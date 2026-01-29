@@ -70,11 +70,3 @@ def jet_selection_nopu(
     return jets[mask_jets]
 
 
-def forward_jet_veto(events, jet_type, pt_type):
-    eta_range = (abs(events[jet_type].eta) <2.5) | (abs(events[jet_type].eta) > 3.0)
-    pt_mask = events[jet_type][pt_type] > 50
-    
-    # jets rejected if pT < 50 GeV and 2.5 < |η| < 3
-    jets=events[jet_type][eta_range | pt_mask]
-    
-    return jets

@@ -55,6 +55,7 @@ def custom_jet_selection(
     jet_tagger="",
     pt_type="pt",
     pt_cut_name="pt",
+    forward_jet_veto=False,
 ):
     """
     Custom jet selection function to apply selection on different pt types.
@@ -93,7 +94,7 @@ def custom_jet_selection(
         "pt",
     )
 
-    _, mask = jet_selection(
+    _, selection_mask = jet_selection(
         events_copy,
         jet_type_default,
         params_copy,
@@ -102,8 +103,25 @@ def custom_jet_selection(
         jet_tagger,
     )
 
+    if forward_jet_veto:
+        # Apply forward jet veto
+        _, forward_mask = get_forward_jet_veto(events, jet_type, pt_type)
+        mask = selection_mask & forward_mask
+    else:
+        mask = selection_mask
+
     # remove copies
     del params_copy
     del events_copy
+
+    return events[jet_type][mask], mask
+
+
+def get_forward_jet_veto(events, jet_type, pt_type):
+    # jets rejected if pT < 50 GeV and  2.5 < |η| < 3
+    eta_range = (abs(events[jet_type].eta) < 2.5) | (abs(events[jet_type].eta) > 3.0)
+    pt_mask = events[jet_type][pt_type] > 50
+
+    mask = eta_range | pt_mask
 
     return events[jet_type][mask], mask
