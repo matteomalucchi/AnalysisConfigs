@@ -90,6 +90,7 @@ class HEPPlotter:
             "cbar_log": False,
             ## legend
             "legend": True,
+            "legend_font_size": None,
             "split_legend": True,
             "legend_loc": "best",
             "legend_ratio": False,
@@ -99,10 +100,13 @@ class HEPPlotter:
             "set_ylim_ratio": 0,  # If a number is set, this will be used.
             "ylim_top_factor": 1.7,
             "ylim_bottom_factor": 1e-2,
+            "ylim_top_value": None,
+            "ylim_bottom_value": None,
             ## other
             "reference_to_den": True,
             "grid": True,
-            "_enable_watermark": True,
+            "enable_watermark": True,
+            "rotate_xticks": False,
         }
 
         # expose as attributes too (so they're accessible normally)
@@ -116,6 +120,10 @@ class HEPPlotter:
         self._lines = []
 
         self._change_histogram_binning = False
+
+        # special for categorical plots
+        self._xticklabels = []
+        self._label_pos=[]
 
     # ----------------------------
     # CONFIGURATION METHODS
@@ -341,7 +349,7 @@ class HEPPlotter:
 
     def _draw_watermark(self, ax):
         """Draw a small, faint watermark in a guaranteed empty area."""
-        if not self._enable_watermark:
+        if not self.enable_watermark:
             return
 
         fig = ax.figure
@@ -619,6 +627,47 @@ class HEPPlotter:
                 )
         self._finalize(fig, ax)
 
+    def _plot_categorical(self):
+        """
+        Plot categorical data as grouped bar charts.
+        """
+        fig, ax = plt.subplots(figsize=self.figsize)
+
+        series_names = list(self.series_dict.keys())
+        first = self.series_dict[series_names[0]]
+
+        categories = first["data"]["categories"]
+        n_cats = len(categories)
+        self._xticklabels = categories
+        n_series = len(series_names)
+
+        x = np.arange(n_cats)
+        width = 0.8 / n_series
+        self._label_pos=x + width * (n_series - 1) / 2
+
+        offset = 0
+        for name in series_names:
+            entry = self.series_dict[name]
+            values = np.asarray(entry["data"]["values"])
+            style = entry.get("style", {}).copy()
+
+            label = style.pop("label", name)
+
+            self._draw_categorical_bars(
+                ax=ax,
+                x=x + offset,
+                values=values,
+                width=width,
+                style={**style, "label": label},
+            )
+
+            offset += width
+
+        self._finalize(
+            fig,
+            ax,
+        )
+
     # ----------------------------
     # UTILITIES
     # ----------------------------
@@ -798,69 +847,151 @@ class HEPPlotter:
             return
 
         if len(handles) > 5 and self.split_legend:
-            ax.legend(loc=pos, ncol=2, fontsize="small")
+            ax.legend(
+                loc=pos,
+                ncol=2,
+                fontsize=(
+                    "small"
+                    if self.legend_font_size is None
+                    else (self.legend_font_size / 2)
+                ),
+            )
         else:
-            ax.legend(loc=pos)
+            ax.legend(loc=pos, fontsize=self.legend_font_size)
+
+    def _autolabel_categorical(self, ax, bars):
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(
+                f"{height * 100:.1f}",
+                xy=(bar.get_x() + bar.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=12,
+            )
+
+    def _draw_categorical_bars(self, ax, x, values, width, style):
+        bars = ax.bar(
+            x,
+            values,
+            width,
+            **style,
+        )
+        self._autolabel_categorical(ax, bars)
+        return bars
 
     def _finalize(self, fig, ax, ax_ratio=None):
         """Final adjustments and saving the figure."""
 
+        # ----------------------------
+        # AXIS SCALES
+        # ----------------------------
         if self.y_log:
             ax.set_yscale("log")
         if self.x_log:
             ax.set_xscale("log")
 
+        # ----------------------------
+        # GRID
+        # ----------------------------
         if self.grid:
             ax.grid()
 
+        # ----------------------------
+        # X / Y LABELS
+        # ----------------------------
         if ax_ratio:
             ax_ratio.set_xlabel(self.xlabel)
             ax_ratio.set_ylabel(self.ratio_label)
+
             if self.grid:
                 ax_ratio.grid()
             if self.y_log_ratio:
                 ax_ratio.set_yscale("log")
             if not self.y_log_ratio and self.set_ylim_ratio:
-                ax_ratio.set_ylim(1 - self.set_ylim_ratio, 1 + self.set_ylim_ratio)
+                ax_ratio.set_ylim(
+                    1 - self.set_ylim_ratio,
+                    1 + self.set_ylim_ratio,
+                )
             if self.legend_ratio:
                 self._set_legend(ax_ratio, self.legend_ratio_loc)
         else:
-            ax.set_xlabel(self.xlabel)
+            # categorical plots may intentionally leave xlabel empty
+            if self.xlabel:
+                ax.set_xlabel(self.xlabel)
 
         ax.set_ylabel(self.ylabel)
 
-        # define the scalar format for y-axis
-        # ax.yaxis.set_major_formatter(mtick.ScalarFormatter())
-        # ax.ticklabel_format(style="sci", axis="y", scilimits=(0, 0))
+        # ----------------------------
+        # CATEGORICAL-SPECIFIC HANDLING
+        # ----------------------------
+        if self.plot_type == "categorical":
 
+            if self._xticklabels:
+                ax.set_xticks(self._label_pos)
+                ax.set_xticklabels(
+                    self._xticklabels,
+                    rotation=45 if self.rotate_xticks else 0,
+                    ha="right" if self.rotate_xticks else "center",
+                    fontsize=18,
+                )
+
+        # ----------------------------
+        # AUTO Y-LIMITS (NON-CATEGORICAL)
+        # ----------------------------
         if self.set_ylim and self.plot_type != "2d":
-            ax.set_ylim(
-                top=(
+            top_value = (
+                self.ylim_top_value
+                if self.ylim_top_value is not None
+                else (
                     self.ylim_top_factor * ax.get_ylim()[1]
                     if not self.y_log
-                    else ax.get_ylim()[1] ** (self.ylim_top_factor)
-                ),
-                bottom=(self.ylim_bottom_factor * ax.get_ylim()[0]),
+                    else ax.get_ylim()[1] ** self.ylim_top_factor
+                )
+            )
+            bottom_value = (
+                self.ylim_bottom_value
+                if self.ylim_bottom_value is not None
+                else self.ylim_bottom_factor * ax.get_ylim()[0]
             )
 
+            ax.set_ylim(top=top_value, bottom=bottom_value)
+
+        # ----------------------------
+        # 2D COLORBAR
+        # ----------------------------
         if self.plot_type == "2d":
-            # label colorbar
             cbar = ax.collections[0].colorbar
             cbar.set_label(self.cbar_label)
 
+        # ----------------------------
+        # ANNOTATIONS / LINES / WATERMARK
+        # ----------------------------
         self._apply_annotations(ax)
         self._apply_lines(ax)
         self._draw_watermark(ax)
 
+        # ----------------------------
+        # CMS LABELS
+        # ----------------------------
         self._apply_cms_labels(ax)
 
+        # ----------------------------
+        # LEGEND
+        # ----------------------------
         if self.legend:
             self._set_legend(ax, self.legend_loc)
 
+        # ----------------------------
+        # OUTPUT
+        # ----------------------------
         if self.create_dir:
             os.makedirs(os.path.dirname(self.output_base), exist_ok=True)
 
         self._save(fig)
+
         if self.show_plot:
             plt.show()
         else:
@@ -882,5 +1013,7 @@ class HEPPlotter:
             self._plot_2d()
         elif self.plot_type == "graph":
             self._plot_graph()
+        elif self.plot_type == "categorical":
+            self._plot_categorical()
         else:
             raise ValueError(f"Unknown plot_type={self.plot_type}")
