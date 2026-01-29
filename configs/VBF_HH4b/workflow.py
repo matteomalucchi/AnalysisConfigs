@@ -5,70 +5,137 @@ import numpy as np
 from utils.custom_cut_functions import custom_jet_selection
 from utils.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from configs.HH4b_common.custom_object_preselection_common import forward_jet_veto
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):
     def __init__(self, cfg) -> None:
         super().__init__(cfg=cfg)
-        self.vbf_parton_matching = self.workflow_options["vbf_parton_matching"]
-        self.vbf_analysis = self.workflow_options["vbf_analysis"]
+
+    def process_extra_after_skim(self):
+        super().process_extra_after_skim()
+
+        if self.vbf_parton_matching:
+            if self._isMC and "VBFHHto4B" in self.events.metadata["dataset"]:
+                # do truth matching to get VBF-jets
+                self.do_vbf_parton_matching(
+                    which_vbf_quark=self.which_vbf_quark, jet_collection="Jet"
+                )
+            else:
+
+                self.dummy_provenance_vbf()
+
+        # # check that provenance fields are ortherogonal
+        # if self.vbf_analysis and self._isMC:
+        #     provenance_higgs = self.events.Jet.provenance_higgs
+        #     provenance_vbf = self.events.Jet.provenance_vbf
+
+        #     mask_both_not_none = (
+        #         ~ak.is_none(provenance_higgs, axis=1)
+        #         & ~ak.is_none(provenance_vbf, axis=1)
+        #     )
+        #     n_jets_both_not_none = ak.sum(mask_both_not_none, axis=1)
+        #     n_events_with_jets_both_not_none = ak.sum(n_jets_both_not_none > 0)
+
+        #     # if n_events_with_jets_both_not_none > 0:
+        #     #     raise ValueError(
+        #     #         f"Some jets are matched to both Higgs and VBF quarks in {n_events_with_jets_both_not_none} events!"
+        #     )
+
+        self.def_provenance_field()
+        self.define_jet_collections()
 
     def apply_object_preselection(self, variation):
         super().apply_object_preselection(variation=variation)
-    
-    def get_vbf_jet_candidates(self):
         if self.vbf_analysis:
 
+            # get idx of good jets after preselection
             self.events["JetGoodClip"] = copy.copy(
                 self.events.JetGood[:, : self.max_num_jets]
             )
-            jet_goodhiggs_idx_not_none = self.events.JetGoodClip.index
+            jet_good_idx_not_none = self.events.JetGoodClip.index
 
-            self.events["JetVBF"] = self.get_jets_no_higgs(jet_goodhiggs_idx_not_none)
-            self.events["JetGoodVBF"], _ = custom_jet_selection(
+            # find the remaining jets to define the vbf candidates
+            self.events["JetVBF"] = self.get_jets_not_from_idx(
+                jet_good_idx_not_none
+            )
+            self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
                 self.events,
                 "JetVBF",
                 self.params,
                 year=self._year,
                 pt_type="pt_default",
                 pt_cut_name=self.pt_cut_name,
+                forward_jet_veto=True,
             )
+
             # order in pt
             self.events["JetGoodVBF"] = self.events.JetGoodVBF[
                 ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
             ]
 
-            # apply forward jet veto
-            self.events["JetGoodVBF"] = forward_jet_veto(
-                self.events, "JetGoodVBF", pt_type="pt_default"
+            # define the Matched collection
+            self.events["JetGoodVBFMatched"] = ak.mask(
+                self.events["JetGoodVBF"],
+                ~ak.is_none(self.events["JetGoodVBF"].provenance_vbf, axis=1),
             )
+            
+            # # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
+            # jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
 
-    # def count_objects(self, variation):
-    #     super().count_objects(variation=variation)
-    #     if self.vbf_analysis:
-    #         self.events["nJetGoodVBF"] = ak.num(self.events.JetGoodVBF, axis=1)
+            # # find the remaining jets to define the vbf candidates
+            # self.events["JetVBFAN"] = self.get_jets_not_from_idx(
+            #     jet_goodhiggs_idx_not_none
+            # )
+            # self.params.object_preselection.update(
+            #     {"JetVBFAN": self.params.object_preselection["JetVBF"]}
+            # )
+            # self.events["JetGoodVBFAN"], mask_jet_vbf = custom_jet_selection(
+            #     self.events,
+            #     "JetVBFAN",
+            #     self.params,
+            #     year=self._year,
+            #     pt_type="pt_default",
+            #     pt_cut_name=self.pt_cut_name,
+            #     forward_jet_veto=True,
+            # )
+            
+
+            # # create the provenance field
+            # for jet_coll in ["JetGood", "JetGoodHiggs", "JetGoodMatched", "JetGoodHiggsMatched"]:
+            #     self.events[jet_coll] = ak.with_field(
+            #         self.events[jet_coll],
+            #         self.events[jet_coll].provenance_higgs,
+            #         "provenance",
+            #     )
+
+            # for jet_coll in ["JetGoodVBF", "JetGoodVBFMatched"]:
+            #     self.events[jet_coll] = ak.with_field(
+            #         self.events[jet_coll],
+            #         self.events[jet_coll].provenance_vbf,
+            #         "provenance",
+            #     )
+
+    def count_objects(self, variation):
+        super().count_objects(variation=variation)
+        if self.vbf_analysis:
+            self.events["nJetGoodVBF"] = ak.num(self.events.JetGoodVBF, axis=1)
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         super().process_extra_after_presel(variation=variation)
         if self.vbf_analysis:
-            self.get_vbf_jet_candidates()
-            
             if self._isMC and self.vbf_parton_matching:
-                self.do_vbf_parton_matching()
-
-                self.events["nJetGoodVBF_matched"] = ak.num(
-                    self.events.JetGoodVBF_matched, axis=1
+                self.events["nJetGoodVBFMatched"] = ak.num(
+                    self.events.JetGoodVBFMatched, axis=1
                 )
 
             # choose vbf jets as the two jets with the highest pt that are not from higgs decay
             self.events["JetVBFLeadingPtNotFromHiggs"] = self.events.JetGoodVBF[:, :2]
 
             # Adds none jets to events that have less than 2 jets
-            self.events["JetGoodVBF"] = ak.pad_none(self.events.JetGoodVBF, 2)
+            self.events["JetGoodVBFPadded"] = ak.pad_none(self.events.JetGoodVBF, 2)
 
             # choose vbf jet candidates as the ones with the highest mjj that are not from higgs decay
-            jet_combinations = ak.combinations(self.events.JetGoodVBF, 2)
+            jet_combinations = ak.combinations(self.events.JetGoodVBFPadded, 2)
             jet_combinations_mass = (jet_combinations["0"] + jet_combinations["1"]).mass
             jet_combinations_mass_max_idx = ak.to_numpy(
                 ak.argsort(jet_combinations_mass, axis=1, ascending=False)[:, 0]
@@ -77,7 +144,12 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ak.local_index(jet_combinations, axis=0), jet_combinations_mass_max_idx
             ]
 
-            mask_is_not_none = ~ak.is_none(jets_max_mass["0"])
+            # get the mask for each event where there aren't none jets in the VBF padded collection
+            mask_event_not_none = ak.all(
+                ~ak.is_none(self.events.JetGoodVBFPadded, axis=1), axis=1
+            )
+
+            # get the two jets with the highest mjj
             vbf_good_jets_max_mass_0 = ak.unflatten(
                 self.events.Jet[
                     ak.local_index(self.events.Jet, axis=0),
@@ -92,7 +164,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ],
                 1,
             )
-
             vbf_good_jet_leading_mjj = ak.with_name(
                 ak.concatenate(
                     [vbf_good_jets_max_mass_0, vbf_good_jets_max_mass_1], axis=1
@@ -105,12 +176,51 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 for field in vbf_good_jet_leading_mjj.fields
                 if ("muon" not in field and "electron" not in field)
             }
-            self.events["JetGoodVBFLeadingMjj"] = add_fields(
+            jet_good_vbf_lead_mjj_none = add_fields(
                 vbf_good_jet_leading_mjj, vbf_good_jet_leading_mjj_fields_dict
+            )
+            # remove the vbf jets which were actually none
+            # if an event was missing one or two vbf jets,
+            # set the leading mjj VBF jet pair to the first JetGoodVBF (if present)
+            # and the other to None. This is to avoid having events with incomplete VBF jet pairs.
+            jet_good_vbf_lead_mjj_padded = add_fields(
+                ak.pad_none(
+                    ak.unflatten(ak.firsts(self.events.JetGoodVBF), 1), 2, axis=1
+                ),
+                vbf_good_jet_leading_mjj_fields_dict,
+            )
+            self.events["JetGoodVBFLeadingMjj"] = ak.where(
+                mask_event_not_none,
+                jet_good_vbf_lead_mjj_none,
+                jet_good_vbf_lead_mjj_padded,
+            )
+
+            # compute the mjj and delta eta
+            self.events = ak.with_field(
+                self.events,
+                (
+                    self.events.JetGoodVBFLeadingMjj[:, 0]
+                    + self.events.JetGoodVBFLeadingMjj[:, 1]
+                ).mass,
+                "JetGoodVBFLeadingMjj_mjj",
+            )
+            self.events = ak.with_field(
+                self.events,
+                abs(
+                    self.events.JetGoodVBFLeadingMjj[:, 0].eta
+                    - self.events.JetGoodVBFLeadingMjj[:, 1].eta
+                ),
+                "JetGoodVBFLeadingMjj_deta",
+            )
+
+            mask_jet_vbf_lead_mjj_not_none = ak.values_astype(
+                ~ak.is_none(self.events.JetGoodVBFLeadingMjj.pt, axis=1), "bool"
             )
 
             # get additional VBF jets
-            jet_vbf_leading_mjj_idx_not_none = self.events["JetGoodVBFLeadingMjj"].index
+            jet_vbf_leading_mjj_idx_not_none = self.events[
+                "JetGoodVBFLeadingMjj"
+            ].index[mask_jet_vbf_lead_mjj_not_none]
             jet_good_vbf_leading_mjj_idx_not_none = ak.concatenate(
                 [
                     self.events.JetGoodClip.index,
@@ -119,13 +229,14 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 axis=1,
             )
 
-            self.events["JetAdditionalVBF"] = self.get_jets_no_higgs(
+            self.events["JetAdditionalVBF"] = self.get_jets_not_from_idx(
                 jet_good_vbf_leading_mjj_idx_not_none
             )
             self.params.object_preselection.update(
                 {"JetAdditionalVBF": self.params.object_preselection["JetVBF"]}
             )
 
+            # get additional good VBF jets
             self.events["JetAdditionalGoodVBF"], _ = custom_jet_selection(
                 self.events,
                 "JetAdditionalVBF",
@@ -133,27 +244,56 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 year=self._year,
                 pt_type="pt_default",
                 pt_cut_name=self.pt_cut_name,
+                forward_jet_veto=True,
             )
 
-            # order in energy
-            self.events["JetAdditionalGoodVBF"] = self.events["JetAdditionalGoodVBF"][
-                ak.argsort(self.events.JetAdditionalGoodVBF.energy, axis=1, ascending=False)
-            ][:, : self.max_num_add_vbf_jets]
-
-            jet_good_padded = ak.pad_none(self.events.JetGoodClip, self.max_num_jets)
-            jet_good_vbf_masked = ak.mask(self.events.JetGoodVBFLeadingMjj, mask_is_not_none)
-            jet_add_good_vbf_padded = ak.pad_none(
-                self.events.JetAdditionalGoodVBF, self.max_num_add_vbf_jets
+            # order in energy because of the high eta
+            self.events["JetAdditionalGoodVBF"] = ak.pad_none(
+                self.events["JetAdditionalGoodVBF"][
+                    ak.argsort(
+                        self.events.JetAdditionalGoodVBF.energy, axis=1, ascending=False
+                    )
+                ],
+                self.max_num_add_vbf_jets,
+                axis=1,
+                clip=True,
             )
 
-            # merge the 3 jet collection to feed to spanet training
-            self.events["JetGoodTotalSPANet"] = ak.concatenate(
+            self.events["JetGoodPadded"] = ak.pad_none(
+                self.events.JetGoodClip, self.max_num_jets, clip=True
+            )
+
+            # merge the 3 jet collections to feed to spanet training
+            self.events["JetTotalSPANetPadded"] = ak.concatenate(
                 [
-                    jet_good_padded,
-                    jet_good_vbf_masked,
-                    jet_add_good_vbf_padded,
+                    self.events["JetGoodPadded"],
+                    self.events["JetGoodVBFLeadingMjj"],
+                    self.events["JetAdditionalGoodVBF"],
                 ],
                 axis=1,
             )
+            self.events["JetTotalSPANetMatchedPadded"] = ak.mask(
+                self.events["JetTotalSPANetPadded"],
+                ~ak.is_none(self.events["JetTotalSPANetPadded"].provenance, axis=1),
+            )
 
-        self.flatten_pt(variation)
+            # save the merged good VBF jets for convenience
+            self.events["JetGoodVBFMergedPadded"] = ak.concatenate(
+                [
+                    self.events["JetGoodVBFLeadingMjj"],
+                    self.events["JetAdditionalGoodVBF"],
+                ],
+                axis=1,
+            )
+            
+            # create a new collection which is similar to the one of the AN
+            self.events["JetGoodHiggsPlusVBF1mjj"] = ak.concatenate(
+                [
+                    self.events["JetGoodHiggs"],
+                    self.events["JetGoodVBFLeadingMjj"],
+                ],
+                axis=1,
+            )
+            
+            
+        # self.flatten_pt(variation)

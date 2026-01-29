@@ -28,9 +28,9 @@ def get_era_lumi(dataset_data):
                 era_list.append("22 Era F")
             elif "EraG" in dataset:
                 era_list.append("22 Era G")
-            elif "GluGlu" in dataset and "preEE" in dataset:
+            elif "preEE" in dataset:
                 era_list.append("22 preEE")
-            elif "GluGlu" in dataset and "postEE" in dataset:
+            elif "postEE" in dataset:
                 era_list.append("22 postEE")
             else:
                 print("2022 data, but not identified")
@@ -47,6 +47,10 @@ def get_era_lumi(dataset_data):
                 era_list.append("23 Era Dv1")
             elif "EraDv1" in dataset:
                 era_list.append("23 Era Dv1")
+            elif "preBPix" in dataset:
+                era_list.append("23 preBPix")
+            elif "postBPix" in dataset:
+                era_list.append("23 postBPix")
             else:
                 print("2023 data, but not identified")
     print("Found eras in datasets")
