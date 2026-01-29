@@ -1120,21 +1120,6 @@ def get_variables_dict(
     return variables_dict
 
 
-SPANET_TRAINING_DEFAULT_COLUMN_PARAMS = [
-    "provenance",
-    "pt",
-    "eta",
-    "phi",
-    "mass",
-    "btagPNetB",
-]
-SPANET_TRAINING_DEFAULT_COLUMNS = {
-    "JetGoodMatched": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS,
-    "JetGoodHiggsMatched": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS,
-    "JetGood": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS,
-    "JetGoodHiggs": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS,
-}
-
 SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "provenance",
     "pt",
@@ -1151,6 +1136,28 @@ SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "JetGood": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodHiggs": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
 }
+
+SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
+    "provenance",
+    "provenance_higgs",
+    "provenance_vbf",
+    "pt",
+    "eta",
+    "phi",
+    "mass",
+    "btagPNetB_5wp",
+    "btagPNetB_3wp",
+    "btagPNetB",
+]
+
+SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
+    "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodVBFMergedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodHiggsPlusVBF1mjj": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "Jet": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+}
+
 
 DEFAULT_JET_COLUMN_PARAMS = [
     "pt",
@@ -1181,7 +1188,7 @@ def get_columns_list(
     columns = []
     for collection, attributes in columns_dict.items():
         columns.append(ColOut(collection, attributes, flatten))
-        
+
     # add the event number if not present in the columns
     add_event_number = True
     for col in columns:
@@ -1190,7 +1197,7 @@ def get_columns_list(
                 add_event_number = False
     if add_event_number:
         columns.append(ColOut("events", ["event"], flatten))
-    
+
     return columns
 
 
@@ -1270,14 +1277,25 @@ def define_single_category(category_name):
         else:
             cut_list.append(cuts.blindedRun2)
 
+    if  "vbf" in category_name:
+        cut_list.append(cuts.hh4b_vbf_region)
+    
     if len(cut_list) < 1:  # aka if no cut applied
         cut_list.append(passthrough)
+
     category_item = {category_name: cut_list}
+
     return category_item
 
 
 def define_categories(
-    bkg_morphing_dnn=False, blind=False, spanet=False, run2=False, vr1=False, btag_sf_comp=False,
+    bkg_morphing_dnn=False,
+    blind=False,
+    spanet=False,
+    run2=False,
+    vr1=False,
+    btag_sf_comp=False,
+    vbf_analysis=False,
 ):
     """
     Define the categories for the analysis.
@@ -1285,7 +1303,6 @@ def define_categories(
     categories_dict = {}
     if not vr1:
         if spanet:
-            # categories_dict |= define_single_category("4b_region")
             categories_dict |= define_single_category("4b_control_region")
             categories_dict |= define_single_category("2b_control_region_preW")
             categories_dict |= (
@@ -1355,7 +1372,6 @@ def define_categories(
                 )
 
     if not spanet and not run2:
-        # add the 2b control region post W for the old DNN
         categories_dict |= define_single_category("4b_region")
 
     if btag_sf_comp:
@@ -1363,6 +1379,9 @@ def define_categories(
         for key, value in categories_dict.items():
             btag_sf_categories[f"{key}_sf_btag"] = value
         categories_dict |= btag_sf_categories
+
+    if vbf_analysis:
+        categories_dict |= define_single_category("vbf_4b_region")
 
     return categories_dict
 
@@ -1382,10 +1401,10 @@ def define_preselection(options):
                 preselection = [cuts.hh4b_presel_tight]
             else:
                 preselection = [cuts.hh4b_presel]
-    
+
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
     preselection.append(cuts.hh4b_JetVetoMap)
-    
+
     return preselection

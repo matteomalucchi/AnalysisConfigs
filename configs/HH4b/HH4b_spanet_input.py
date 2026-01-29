@@ -25,7 +25,6 @@ from workflow import HH4bbQuarkMatchingProcessor
 
 import configs.HH4b_common.custom_cuts_common as cuts
 from configs.HH4b_common.config_files.configurator_tools import (
-    SPANET_TRAINING_DEFAULT_COLUMNS,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,

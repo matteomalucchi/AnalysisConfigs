@@ -15,6 +15,8 @@ import configs.HH4b_common.custom_cuts_common as cuts
 import utils.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
+    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+    SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
     define_preselection,
@@ -76,7 +78,7 @@ preselection = define_preselection(config_options_dict)
 
 
 sample_ggF_list = [
-    # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
@@ -120,83 +122,65 @@ categories_dict = define_categories(
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
+    vbf_analysis=config_options_dict["vbf_analysis"],
 )
 
-# categories_dict=define_single_category("control_region")
-# categories_dict|=define_single_category("signal_region")
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
-# print("categories_dict", categories_dict)
+column_list=[]
+column_listRun2=[]
 
-# VBF SPECIFIC REGIONS ###
-# **{f"4b_semiTight_LeadingPt_region": [hh4b_4b_region, semiTight_leadingPt]},
-# **{f"4b_semiTight_LeadingMjj_region": [hh4b_4b_region, semiTight_leadingMjj]},
-# **{f"4b_semiTight_LeadingMjj_region": [hh4b_4b_region, semiTight_leadingMjj]}
-# **{"4b_VBFtight_region": [hh4b_4b_region, VBFtight_region]},
-# **{"4b_VBFtight_region": [hh4b_4b_region, vbf_wrapper()]},
-#
-# **{
-#     f"4b_VBFtight_{list(ab[0].keys())[i]}_region": [
-#         hh4b_4b_region,
-#         vbf_wrapper(ab[i]),
-#     ]
-#     for i in range(0, 6)
-# },
-#
-# **{"4b_VBF_generalSelection_region": [hh4b_4b_region, VBF_generalSelection_region]},
-# **{"4b_VBF_region": [hh4b_4b_region, VBF_region]},
-# **{f"4b_VBF_0{i}qvg_region": [hh4b_4b_region, VBF_region, qvg_regions[f"qvg_0{i}_region"]] for i in range(5, 10)},
-# **{f"4b_VBF_0{i}qvg_generalSelection_region": [hh4b_4b_region, VBF_generalSelection_region, qvg_regions[f"qvg_0{i}_region"]] for i in range(5, 10)},
-
-
-# Define the columns to save
-total_input_variables = {}
-
-if config_options_dict["spanet"]:
-    total_input_variables |= {
-        "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
-        "Arctanh_Delta_pairing_probabilities": [
-            "events",
-            "Arctanh_Delta_pairing_probabilities",
-        ],
-        "Binned_Arctanh_Delta_pairing_probabilities": [
-            "events",
-            "Binned_Arctanh_Delta_pairing_probabilities",
-        ],
-        "Padded_Arctanh_Delta_pairing_probabilities": [
-            "events",
-            "Padded_Arctanh_Delta_pairing_probabilities",
-        ],
-    }
-
-if config_options_dict["dnn_variables"]:
-    total_input_variables |= (
-        config_options_dict["sig_bkg_dnn_input_variables"]
-        | config_options_dict["bkg_morphing_dnn_input_variables"]
-        | {"year": ["events", "year"]}
-    )
+# Add SPANet training inputs
+if not config_options_dict["spanet"] and not config_options_dict["run2"]:
+    if not config_options_dict["vbf_analysis"]:
+        column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+    else:
+        column_list += get_columns_list(SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+    
 else:
-    total_input_variables |= DEFAULT_JET_COLUMNS_DICT
-if BASELINE:
-    total_input_variables |= DEFAULT_JET_COLUMNS_DICT
-# print(total_input_variables)
+    # Define the other columns to save
+    total_input_columns = {}
 
-column_list = create_DNN_columns_list(
-    False, not config_options_dict["save_chunk"], total_input_variables, btag=False
-)
-column_listRun2 = create_DNN_columns_list(
-    True, not config_options_dict["save_chunk"], total_input_variables, btag=False
-)
+    if config_options_dict["spanet"]:
+        total_input_columns |= {
+            "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
+            "Arctanh_Delta_pairing_probabilities": [
+                "events",
+                "Arctanh_Delta_pairing_probabilities",
+            ],
+            "Binned_Arctanh_Delta_pairing_probabilities": [
+                "events",
+                "Binned_Arctanh_Delta_pairing_probabilities",
+            ],
+            "Padded_Arctanh_Delta_pairing_probabilities": [
+                "events",
+                "Padded_Arctanh_Delta_pairing_probabilities",
+            ],
+        }
 
-# print(column_list)
+    if config_options_dict["dnn_variables"]:
+        total_input_columns |= (
+            config_options_dict["sig_bkg_dnn_input_variables"]
+            | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | {"year": ["events", "year"]}
+        )
+    else:
+        total_input_columns |= DEFAULT_JET_COLUMNS_DICT
+    if BASELINE:
+        total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
-# Add special columns
-if config_options_dict["sig_bkg_dnn"] and config_options_dict["spanet"]:
-    column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
-if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
-    column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
-
+    column_list += create_DNN_columns_list(
+        False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+    )
+    column_listRun2 += create_DNN_columns_list(
+        True, not config_options_dict["save_chunk"], total_input_columns, btag=False
+    )
+    # Add special columns
+    if config_options_dict["sig_bkg_dnn"] and config_options_dict["spanet"]:
+        column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
+    if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
+        column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
@@ -229,7 +213,6 @@ for sample in sample_list:
                     else []
                 )
             )
-# print("bysample_bycategory_column_dict", bysample_bycategory_column_dict)
 
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
@@ -247,14 +230,12 @@ for sample in sample_list:
                         "bkg_morphing_dnn_weight"
                     ]
 
-# print("bysample_bycategory_weight_dict", bysample_bycategory_weight_dict)
-
 cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            # f"{localdir}/../HH4b_common/datasets/QCD.json",
             f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local_rucio.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_rucio_redirector.json",
@@ -289,7 +270,6 @@ cfg = Configurator(
         },
         "bysample": bysample_bycategory_weight_dict,
     },
-    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
     calibrators=[JetsCalibrator],
     variations={
         "weights": {
