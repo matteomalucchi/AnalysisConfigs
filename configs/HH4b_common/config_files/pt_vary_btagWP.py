@@ -2,6 +2,8 @@ import os
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
+from configs.HH4b_common.dnn_input_variables import pairing_spanet_btagWP5
+
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
 
 from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
@@ -32,5 +34,5 @@ config_options_dict |= {
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.,
     "add_jet_spanet": True,
-    "spanet_input_name_list": ["log_pt", "eta", "phi", "btagPNetB_wp"],
+    "spanet_input_name": pairing_spanet_btagWP5,
 } | onnx_model_dict

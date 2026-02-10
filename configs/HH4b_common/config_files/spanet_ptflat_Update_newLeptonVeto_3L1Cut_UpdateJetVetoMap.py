@@ -1,6 +1,7 @@
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
     sig_bkg_dnn_input_variables,
+    pairing_spanet_btagWP5,
 )
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
@@ -24,6 +25,6 @@ config_options_dict |= {
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
-    "spanet_input_name_list": ["log_pt", "eta", "phi", "btagPNetB_5wp"],
+    "spanet_input_name": pairing_spanet_btagWP5,
     "qt_postEE": "/work/tharte/datasets/samples_models_with_bkg_reweight/1_14_5_spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap/quantile_transformer/SRSpanet_qt/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
 }| onnx_model_dict

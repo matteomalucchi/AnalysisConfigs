@@ -1141,7 +1141,6 @@ SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "eta",
     "phi",
     "mass",
-    "btagPNetB_5wp",
     "btagPNetB_3wp",
     "btagPNetB",
 ]
