@@ -224,50 +224,50 @@ class HH4bCommonProcessor(BaseProcessorABC):
     #     super().apply_preselection(self, variation)
     #     self._preselections = self._preselections_temp
 
-    def flatten_pt(self, variation):
-        if self._isMC and self.random_pt:
-            if self.rand_type == 0.5:
-                random_weights = ak.Array(
-                    np.random.rand((len(self.events["nJetGood"]))) + 0.5
-                )  # [0.5,1.5]
-            elif self.rand_type == 0.3:
-                random_weights = ak.Array(
-                    np.random.rand((len(self.events["nJetGood"]))) * 1.4 + 0.3
-                )  # [0.3,1.7]
-            elif self.rand_type == 0.1:
-                random_weights = ak.Array(
-                    np.random.rand((len(self.events["nJetGood"]))) * 9.9 + 0.1
-                )  # [0.3,1.7]
-            else:
-                raise ValueError(
-                    f"Invalid input. self.rand_type {self.rand_type} not known."
-                )
-            self.events = ak.with_field(
-                self.events,
-                random_weights,
-                "random_pt_weights",
+    def flatten_pt(self, rand_type, jet_collection):
+        if rand_type == 0.5:
+            random_weights = ak.Array(
+                np.random.rand((len(self.events[jet_collection].pt))) + 0.5
+            )  # [0.5,1.5]
+        elif rand_type == 0.3:
+            random_weights = ak.Array(
+                np.random.rand((len(self.events[jet_collection].pt))) * 1.4 + 0.3
+            )  # [0.3,1.7]
+        elif rand_type == 0.1:
+            random_weights = ak.Array(
+                np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
+            )  # [0.1,10.0]
+        else:
+            raise ValueError(
+                f"Invalid input. rand_type {rand_type} not known."
             )
-            for jet_coll in ["JetGoodHiggs", "JetGood"]:
-                self.events[jet_coll] = ak.with_field(
-                    self.events[jet_coll],
-                    self.events[jet_coll].pt,
-                    "pt_orig",
-                )
-                self.events[jet_coll] = ak.with_field(
-                    self.events[jet_coll],
-                    self.events[jet_coll].pt * random_weights,
-                    "pt",
-                )
-                self.events[jet_coll] = ak.with_field(
-                    self.events[jet_coll],
-                    self.events[jet_coll].mass,
-                    "mass_orig",
-                )
-                self.events[jet_coll] = ak.with_field(
-                    self.events[jet_coll],
-                    self.events[jet_coll].mass * random_weights,
-                    "mass",
-                )
+            
+        self.events = ak.with_field(
+            self.events,
+            random_weights,
+            "random_pt_weights",
+        )
+        
+        self.events[jet_collection] = ak.with_field(
+            self.events[jet_collection],
+            self.events[jet_collection].pt,
+            "pt_orig",
+        )
+        self.events[jet_collection] = ak.with_field(
+            self.events[jet_collection],
+            self.events[jet_collection].pt * random_weights,
+            "pt",
+        )
+        self.events[jet_collection] = ak.with_field(
+            self.events[jet_collection],
+            self.events[jet_collection].mass,
+            "mass_orig",
+        )
+        self.events[jet_collection] = ak.with_field(
+            self.events[jet_collection],
+            self.events[jet_collection].mass * random_weights,
+            "mass",
+        )
 
     def generate_btag_workingpoints(self, jets, num_wp):
         # L, M, T, XT, XXT

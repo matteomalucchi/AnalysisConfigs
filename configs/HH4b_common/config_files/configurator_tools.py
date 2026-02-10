@@ -1,12 +1,10 @@
-import sys
 from collections import defaultdict
 
 from pocket_coffea.lib.columns_manager import ColOut
-from pocket_coffea.parameters.histograms import jet_hists, count_hist, parton_hists
+from pocket_coffea.parameters.histograms import jet_hists, count_hist
 from pocket_coffea.lib.hist_manager import HistConf, Axis
 from pocket_coffea.parameters.cuts import passthrough
 from utils.quantile_transformer import WeightedQuantileTransformer
-import numpy as np
 
 from utils.variables_helpers import jet_hists_dict, create_HistConf
 from utils.variables_helpers import jet_hists_dict, create_HistConf
@@ -1152,6 +1150,7 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodVBFMergedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodHiggsPlusVBF1mjj": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,

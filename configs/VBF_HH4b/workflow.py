@@ -55,9 +55,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             jet_good_idx_not_none = self.events.JetGoodClip.index
 
             # find the remaining jets to define the vbf candidates
-            self.events["JetVBF"] = self.get_jets_not_from_idx(
-                jet_good_idx_not_none
-            )
+            self.events["JetVBF"] = self.get_jets_not_from_idx(jet_good_idx_not_none)
             self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
                 self.events,
                 "JetVBF",
@@ -78,7 +76,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events["JetGoodVBF"],
                 ~ak.is_none(self.events["JetGoodVBF"].provenance_vbf, axis=1),
             )
-            
+
             # # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
             # jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
 
@@ -98,7 +96,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             #     pt_cut_name=self.pt_cut_name,
             #     forward_jet_veto=True,
             # )
-            
 
             # # create the provenance field
             # for jet_coll in ["JetGood", "JetGoodHiggs", "JetGoodMatched", "JetGoodHiggsMatched"]:
@@ -285,7 +282,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ],
                 axis=1,
             )
-            
+
             # create a new collection which is similar to the one of the AN
             self.events["JetGoodHiggsPlusVBF1mjj"] = ak.concatenate(
                 [
@@ -294,6 +291,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ],
                 axis=1,
             )
-            
-            
-        # self.flatten_pt(variation)
+
+            self.events["JetTotalSPANetPtFlattenPadded"] = copy.copy(
+                self.events["JetTotalSPANetPadded"]
+            )
+
+            if self._isMC and self.random_pt:
+                self.flatten_pt(self.rand_type, "JetTotalSPANetPtFlattenPadded")

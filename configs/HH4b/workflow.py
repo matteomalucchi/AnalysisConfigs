@@ -26,7 +26,10 @@ class HH4bbQuarkMatchingProcessor(HH4bCommonProcessor):
             )
             
     def process_extra_after_presel(self, variation):  # -> ak.Array
-        self.flatten_pt(variation)
+        if self._isMC and self.random_pt:
+            self.flatten_pt(self.rand_type, "JetGood")
+            self.flatten_pt(self.rand_type, "JetGoodHiggs")
+
         super().process_extra_after_presel(variation)
         
             

@@ -22,6 +22,7 @@ config_options_dict |= {
     "qt_postEE": None,
     "random_pt": True,
     "rand_type": 0.3,
+    # "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_SM_ptFlatten/parquet_files/",
     # VBF
     "vbf_parton_matching": True,
     "vbf_presel": False,
