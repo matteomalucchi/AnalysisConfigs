@@ -95,16 +95,17 @@ sample_ggF_list = [
 sample_list = [
     # "GluGlutoHHto4B_spanet_skimmed",
     # "GluGlutoHHto4B_spanet_skimmed_SM",
-    # "GluGlutoHHto4B_spanet_skimmed",
+    "GluGlutoHHto4B_spanet_skimmed",
     # "GluGlutoHHto4B",
-    "GluGlutoHHto4B_spanet"
+    # "GluGlutoHHto4B_spanet"
 ] + sample_ggF_list
 
 # AKA if no model is applied
 # print(onnx_model_dict)
 if all([model == "" for model in onnx_model_dict.values()]):
     print("Didn't find any onnx model. Will choose region for SPANet training")
-    categories_dict = define_single_category("4b_region")
+    # categories_dict = define_single_category("4b_region")
+    categories_dict = define_single_category("inclusive")
 
 # print("categories_dict", categories_dict)
 
