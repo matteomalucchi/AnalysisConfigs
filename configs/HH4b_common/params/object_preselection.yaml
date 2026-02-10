@@ -5,7 +5,6 @@ object_preselection:
     pt_tight: 35
     eta: 2.5
     jetId: 6 # 6 with lepveto or 2 w/o lepveto
-    btagPNetB: -2 
     #TODO: trigger matching?
   
   ## Lepton selection
@@ -29,26 +28,8 @@ object_preselection:
     dz: 0.5
 
   ## VBF jet selection
-  JetGoodVBF:
+  JetVBF:
     pt: 25
-    eta_min: 2.5
-    eta_max: 4.7
+    pt_tight: 35
+    eta: 4.7
     jetId: 6 # 6 with lepveto or 2 w/o lepveto
-    btagPNetB: -2 # 0.2605
-  # JetVBF_generalSelection:
-  #   pt: 10
-  #   ptSemiTight: 25
-  #   eta: 4.7
-  #   jetId: 6 # 6 with lepveto or 2 w/o lepveto
-  #   btagPNetB: -2 # 0.2605
-  # JetVBFNotFromHiggs:
-  #   pt: 10
-  #   ptSemiTight: 25
-  #   eta: 4.7
-  #   jetId: 6 # 6 with lepveto or 2 w/o lepveto
-  #   btagPNetB: -2 # 0.2605
-  # JetVBF_matching:
-  #   pt: 0
-  #   eta: 10
-  #   jetId: 6 # 6 with lepveto or 2 w/o lepveto
-  #   btagPNetB: -2 # 0.2605

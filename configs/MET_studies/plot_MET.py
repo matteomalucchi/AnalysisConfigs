@@ -44,11 +44,11 @@ parser.add_argument(
     help="If set, will plot 1d and 2d histograms of the recoil variables",
 )
 parser.add_argument(
-    "-a",
-    "--array",
+    "-v",
+    "--variables",
     action="store_true",
     default=False,
-    help="If set, the inputs are read from columns or parquet files instead of variables",
+    help="If set, the inputs are read from variables instead from columns or parquet files ",
 )
 parser.add_argument(
     "-w",
@@ -727,7 +727,7 @@ def main():
 
         return
     
-    if args.array:
+    if not args.variables:
         cat_col, total_datasets_list = get_columns_from_files(
             inputfiles_data, "nominal", None, True, args.novars
         )

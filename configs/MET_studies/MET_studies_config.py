@@ -46,20 +46,23 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/params/object_preselection.yaml",
     f"{localdir}/params/triggers.yaml",
     # f"{localdir}/params/jets_calibration_legacy_type1met.yaml",
-    f"{localdir}/params/jets_calibration_regression_json.yaml",
+    f"{localdir}/params/jets_calibration_regression_json_noMETcorr.yaml",
     update=True,
 )
 
 
 ### Configuring the MET studies config ###
-year = "2022_preEE"
-dataset = "DYJetsToLL_M-50"
-# dataset = "DYto2L-4Jets_MLL-50-v15"
-option = "option_5"
+year = "2023_postBPix"
+# dataset = "DYJetsToLL_M-50"
+# dataset = "DYto2L-4Jets_MLL-50-v12"
+dataset = "DYto2L-4Jets_MLL-50-v15"
+option = "option_2"
 add_str = ""
 output_chunks_name = (
-    f"/work/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
+    # f"/scratch/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
+    f"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
 )
+print("Output chunks path:", output_chunks_name)
 ##########################################
 
 
@@ -104,7 +107,7 @@ cfg = Configurator(
         "rescale_MET_with_regressed_pT": True,
         "jec_pt_threshold": 15.0,
         "consider_all_jets": True,
-        "add_low_pt_jets": False,
+        "add_low_pt_jets": True,
         "jet_regressed_option": option,
         "dump_columns_as_arrays_per_chunk": (
             output_chunks_name if DUMP_COLUMNS_AS_ARRAYS_PER_CHUNK else ""

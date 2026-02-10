@@ -26,7 +26,7 @@ def hh4b_presel_cuts(events, params, **kwargs):
     mask_4jet_nolep = at_least_four_jets & lepton_veto_mask
     # convert false to None
     mask_4jet_nolep_none = ak.mask(mask_4jet_nolep, mask_4jet_nolep)
-    
+
     jets_btag_order = (
         events[mask_4jet_nolep_none].JetGood
         if not params["tight_cuts"]
@@ -62,9 +62,9 @@ def hh4b_2b_cuts(events, params, **kwargs):
     at_least_four_jets = four_jets(events, {"njet": 4}, **kwargs)
     # convert false to None
     at_least_four_jets_none = ak.mask(at_least_four_jets, at_least_four_jets)
-    
+
     jets_btag_order = events.JetGoodHiggs[at_least_four_jets_none]
-    
+
     mask = (jets_btag_order.btagPNetB[:, 2] < params["third_pnet_jet"]) & (
         jets_btag_order.btagPNetB[:, 3] < params["fourth_pnet_jet"]
     )
@@ -77,7 +77,7 @@ def hh4b_4b_cuts(events, params, **kwargs):
     at_least_four_jets = four_jets(events, {"njet": 4}, **kwargs)
     # convert false to None
     at_least_four_jets_none = ak.mask(at_least_four_jets, at_least_four_jets)
-    
+
     jets_btag_order = events.JetGoodHiggs[at_least_four_jets_none]
 
     mask = (jets_btag_order.btagPNetB[:, 2] > params["third_pnet_jet"]) & (
@@ -121,6 +121,15 @@ def blinding_cuts(events, params, **kwargs):
     The idea is, to look at the data in the low score sideband to compare performance.
     """
     mask = events[params["score_variable"]] < params["score"]
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_vbf_cuts(events, params, **kwargs):
+    mask = (events.JetGoodVBFLeadingMjj_mjj > params["min_mjj"]) & (
+        abs(events.JetGoodVBFLeadingMjj_deta) > params["min_deta"]
+    )
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)

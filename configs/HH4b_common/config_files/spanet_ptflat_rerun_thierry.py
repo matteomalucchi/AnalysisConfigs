@@ -18,13 +18,10 @@ onnx_model_dict  |= {
 
 
 config_options_dict |= {
-    "higgs_parton_matching": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_rerun_thierry_histtest",
     "vbf_presel": False,
-    "semi_tight_vbf": True,
     "dnn_variables": True,
     "run2": False,
     "vr1": False,

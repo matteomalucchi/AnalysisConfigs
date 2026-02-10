@@ -201,7 +201,7 @@ blindedRun2 = Cut(
     function=cuts_f.blinding_cuts,
 )
 
-hh4b_JetVetoMap= Cut(
+hh4b_JetVetoMap = Cut(
     name="hh4b_JetVetoMap",
     params={
         "jet_type": "Jet",
@@ -209,6 +209,16 @@ hh4b_JetVetoMap= Cut(
     },
     function=get_custom_JetVetoMap_Mask,
 )
+
+hh4b_vbf_region = Cut(
+    name="hh4b_vbf_region",
+    params={
+        "min_mjj": 400,
+        "min_deta": 3.5,
+    },
+    function=cuts_f.hh4b_vbf_cuts,
+)
+
 
 def skimming_cut_list(configs):
     skimlist = [

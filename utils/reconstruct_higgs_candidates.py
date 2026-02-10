@@ -9,8 +9,8 @@ from utils.basic_functions import add_fields
 
 def reconstruct_higgs_from_provenance(matched_jets_higgs):
 
-    mask_h1 = matched_jets_higgs.provenance == 1
-    mask_h2 = matched_jets_higgs.provenance == 2
+    mask_h1 = matched_jets_higgs.provenance_higgs == 1
+    mask_h2 = matched_jets_higgs.provenance_higgs == 2
 
     jet_higgs1 = matched_jets_higgs[mask_h1]
     jet_higgs2 = matched_jets_higgs[mask_h2]
@@ -283,7 +283,7 @@ def run2_matching_algorithm(jet_collection):
 
 
 @njit
-def get_jets_no_higgs_from_idx(jets_index_all, jets_from_higgs_idx):
+def get_jets_idx_not_from_idx(jets_index_all, jets_from_higgs_idx):
     n = len(jets_index_all)
     out = jets_index_all.copy()  # important: avoid aliasing Awkward’s buffer
 

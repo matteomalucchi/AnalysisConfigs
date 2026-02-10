@@ -703,29 +703,8 @@
             }
         ]
     },
-    "VBFHHto4B": {
-        "sample": "VBF_HHto4B",
-        "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "Cross-section taken from AN-23-184",
-        "files": [
-            {
-                "das_names": [
-                    "/VBFHHto4B_CV_1_C2V_1_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM"
-                ],
-                "metadata": {
-                    "year": "2022_postEE",
-                    "isMC": true,
-                    "xsec": 0.0006410,
-                    "part": "CV_1_C2V_1_C3_1"
-                },
-                "das_parents_names": [
-                    "/VBFHHto4B_CV_1_C2V_1_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v3/MINIAODSIM"
-                ]
-            }
-        ]
-    },
-    "VBFHHto4B_BSM": {
-        "sample": "VBF_HHto4B_BSM",
+    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4": {
+        "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
         "json_output": "datasets/signal_VBF_HH4b.json",
         "description": "0.3952 Wrong cross section",
         "files": [
@@ -737,10 +716,199 @@
                     "year": "2022_postEE",
                     "isMC": true,
                     "xsec": 0.0006410,
-                    "part": "CV-1p74_C2V-1p37_C3-14p4"
+                    "part": ""
                 },
                 "das_parents_names": [
                     "/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2": {
+        "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3": {
+        "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43": {
+        "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94": {
+        "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36": {
+        "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39": {
+        "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96": {
+        "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV_1_C2V_0_C3_1": {
+        "sample": "VBFHHto4B_CV_1_C2V_0_C3_1",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV_1_C2V_0_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v1/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
+                ]
+            }
+        ]
+    },
+    "VBFHHto4B_CV_1_C2V_1_C3_1": {
+        "sample": "VBFHHto4B_CV_1_C2V_1_C3_1",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "description": "0.3952 Wrong cross section",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_CV_1_C2V_1_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0006410,
+                    "part": ""
+                },
+                "das_parents_names": [
+                    ""
                 ]
             }
         ]

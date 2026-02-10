@@ -8,13 +8,10 @@ from configs.HH4b_common.config_files.default_config import default_onnx_model_d
 from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
 
 config_options_dict |= {
-    "higgs_parton_matching": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": False,
     "vbf_presel": False,
-    "semi_tight_vbf": True,
     "dnn_variables": False,
     "run2": False,
     "vr1": False,

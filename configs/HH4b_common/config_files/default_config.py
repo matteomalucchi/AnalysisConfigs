@@ -13,13 +13,15 @@ default_onnx_model_dict = {
 }
 
 default_config_options_dict = {
-    "higgs_parton_matching": False,
-    "vbf_parton_matching": False,
     "tight_cuts": False,
-    "classification": False,
     "save_chunk": False,
+    # VBF
+    "vbf_parton_matching": False,
     "vbf_presel": False,
-    "semi_tight_vbf": True,
+    "vbf_analysis": False,
+    "which_vbf_quark": "with_status",  # "with_mothers_children"
+    "max_num_add_vbf_jets": 2,
+    #
     "dnn_variables": True,
     "run2": False,
     "vr1": False,
@@ -35,12 +37,12 @@ default_config_options_dict = {
     "donotscale_sumgenweights": False,
     "pad_value": -999.0,
     "arctanh_delta_prob_bin_edge": 2.44,
-    "arctanh_delta_prob_pad_limit": 2.,
+    "arctanh_delta_prob_pad_limit": 2.0,
     "add_jet_spanet": False,
     "spanet_input_name": pairing_spanet_btag,
     "old_wp_def": False,
     "qt_postEE": None,
     "qt_preEE": None,
     "only5jetsbSF": False,
-    "noL1": False
-}| default_onnx_model_dict
+    "noL1": False,
+} | default_onnx_model_dict
