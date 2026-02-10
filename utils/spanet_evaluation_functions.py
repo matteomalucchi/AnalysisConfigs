@@ -5,47 +5,56 @@ from utils.prediction_selection import extract_predictions
 
 PAD_VALUE_SPANET = 9999.0
 
-def define_spanet_sequential_inputs(events, max_num_jets, spanet_input_name_list):
+def define_spanet_sequential_inputs(events, max_num_jets, collection, spanet_input_name_list):
     """
     Define the sequential (2D arrays) input features for the SPANet model.
     """
     input_dict = {}
     
-    for variable_name in spanet_input_name_list: 
-        if variable_name not in ["log_pt", "btag12_ratioSubLead", "btag_ratioAll"]:
-            input_dict[variable_name] = np.array(
-                ak.to_numpy(
-                    ak.fill_none(
-                        ak.pad_none(
-                            getattr(events.JetGood, variable_name),
-                            max_num_jets,
-                            clip=True,
-                        ),
-                        value=PAD_VALUE_SPANET,
-                    ),
-                    allow_missing=True,
-                ),
-                dtype=np.float32,
-            )
+    for variable_name in spanet_input_name_list:
+        # Determine, if we have a log scale
+        islog = False
+        if ":" in variable_name:
+            variable_name, scale = variable_name.split(":")
+            if "log" in scale:
+                islog = True
 
-    if "log_pt" in spanet_input_name_list:
-        log_pt = np.array(
-            np.log(
-                ak.to_numpy(
-                    ak.fill_none(
-                        ak.pad_none(events.JetGood.pt, max_num_jets, clip=True),
-                        value=PAD_VALUE_SPANET,
-                    ),
-                    allow_missing=True,
+        if variable_name not in ["btag12_ratioSubLead", "btag_ratioAll"]:
+            if islog:
+                input_dict[variable_name] = np.array(
+                    np.log(
+                        ak.to_numpy(
+                            ak.fill_none(
+                                ak.pad_none(
+                                    getattr(events[collection], variable_name),
+                                    max_num_jets,
+                                    clip=True,
+                                ),
+                                value=PAD_VALUE_SPANET,
+                            ),
+                            allow_missing=True,
+                        ),
+                        dtype=np.float32,
+                    ) + 1
                 )
-                + 1
-            ),
-            dtype=np.float32,
-        )
-        input_dict["log_pt"] = log_pt
+            else:
+                input_dict[variable_name] = np.array(
+                    ak.to_numpy(
+                        ak.fill_none(
+                            ak.pad_none(
+                                getattr(events[collection], variable_name),
+                                max_num_jets,
+                                clip=True,
+                            ),
+                            value=PAD_VALUE_SPANET,
+                        ),
+                        allow_missing=True,
+                    ),
+                    dtype=np.float32,
+                )
 
     # Define btag and variations
-    btag_padded = ak.pad_none(events.JetGood.btagPNetB, max_num_jets, clip=True)
+    btag_padded = ak.pad_none(events[collection].btagPNetB, max_num_jets, clip=True)
 
     btag_ratio_sum_1 = btag_padded[:, 0] / (btag_padded[:, 0] + btag_padded[:, 1])
     btag_ratio_sum_2 = btag_padded[:, 1] / (btag_padded[:, 0] + btag_padded[:, 1])
@@ -106,13 +115,13 @@ def define_spanet_sequential_inputs(events, max_num_jets, spanet_input_name_list
     return input_dict
 
 
-def define_spanet_pairing_inputs(events, max_num_jets, spanet_input_name_list):    
+def define_spanet_pairing_inputs(events, max_num_jets, collection, spanet_input_name_list):    
     """
     Define the input features for the SPANet model used for jet pairing.
     """
     
     input_dict = define_spanet_sequential_inputs(
-        events, max_num_jets, spanet_input_name_list
+        events, max_num_jets, collection, spanet_input_name_list
     )
     # TODO: add global inputs for the pairing as well
     
@@ -129,7 +138,7 @@ def define_spanet_pairing_inputs(events, max_num_jets, spanet_input_name_list):
 
     # order the inputs according to the spanet_input_name_list
     input_list = [
-        input_dict[name] for name in spanet_input_name_list if name in input_dict
+            input_dict[name.split(":")[0]] for name in spanet_input_name_list if name.split(":")[0] in input_dict
     ]
 
     inputs = np.stack(input_list, axis=-1)
@@ -140,7 +149,7 @@ def define_spanet_pairing_inputs(events, max_num_jets, spanet_input_name_list):
 def get_pairing_information(
     session, input_name, output_name, events, max_num_jets, spanet_input_name_list
 ):
-
+    inputs_complete = {}
     inputs = define_spanet_pairing_inputs(events, max_num_jets, spanet_input_name_list)
 
     mask = np.array(
@@ -157,7 +166,7 @@ def get_pairing_information(
         ),
         dtype=np.bool_,
     )
-    inputs_complete = {input_name[0]: inputs, input_name[1]: mask}
+    inputs_complete |= {input_name[0]: inputs, input_name[1]: mask}
 
     outputs = session.run(output_name, inputs_complete)
 

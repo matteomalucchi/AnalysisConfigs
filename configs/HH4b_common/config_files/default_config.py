@@ -1,6 +1,7 @@
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
     sig_bkg_dnn_input_variables,
+    pairing_spanet_btag
 )
 
 default_onnx_model_dict = {
@@ -38,7 +39,7 @@ default_config_options_dict = {
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.0,
     "add_jet_spanet": False,
-    "spanet_input_name_list": ["log_pt", "eta", "phi", "btag"],
+    "spanet_input_name": pairing_spanet_btag,
     "old_wp_def": False,
     "qt_postEE": None,
     "qt_preEE": None,

@@ -39,6 +39,7 @@ from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
     # bkg_morphing_dnn_input_variables_altOrder,
     sig_bkg_dnn_input_variables,
+    sig_bkg_dnn_input_variables_spanet,
 )
 from configs.HH4b_common.params.CustomWeights import SF_btag_fixed_multiple_wp
 
@@ -93,17 +94,17 @@ preselection = define_preselection(config_options_dict)
 # Defining the used samples
 sample_ggF_list = [
       "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
@@ -189,10 +190,10 @@ if config_options_dict["dnn_variables"]:
     # print(total_input_variables)
 
     column_list = create_DNN_columns_list(
-        False, not config_options_dict["save_chunk"], total_input_variables, btag=False
+        False, not config_options_dict["save_chunk"], total_input_variables, btag=True
     )
     column_listRun2 = create_DNN_columns_list(
-        True, not config_options_dict["save_chunk"], total_input_variables, btag=False
+        True, not config_options_dict["save_chunk"], total_input_variables, btag=True
     )
 elif all([model == "" for model in onnx_model_dict.values()]):
     column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
