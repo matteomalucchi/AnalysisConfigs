@@ -1126,7 +1126,6 @@ SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "eta",
     "phi",
     "mass",
-    "btagPNetB_5wp",
     "btagPNetB_3wp",
     "btagPNetB",
 ]
@@ -1165,6 +1164,7 @@ DEFAULT_JET_COLUMN_PARAMS = [
     "phi",
     "mass",
     "btagPNetB",
+    "btagPNetB_5wp",
 ]
 DEFAULT_JET_COLUMNS = {
     "JetGood": DEFAULT_JET_COLUMN_PARAMS,
@@ -1201,7 +1201,7 @@ def get_columns_list(
     return columns
 
 
-def create_DNN_columns_list(run2, flatten, columns_dict, btag=False):
+def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     """Create the columns of the DNN input variables"""
     column_dict = defaultdict(set)
     for x, y in columns_dict.values():
@@ -1229,6 +1229,12 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=False):
     if btag:
         column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
             "btagPNetB"
+        )
+        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+            "btagPNetB_5wp"
+        )
+        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+            "provenance"
         )
     column_list = get_columns_list(column_dict, flatten)
 

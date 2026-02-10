@@ -1,6 +1,6 @@
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
-    sig_bkg_dnn_input_variables,
+    sig_bkg_dnn_input_variables_spanet,
     pairing_spanet_btagWP5,
 )
 
@@ -12,7 +12,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 onnx_model_dict  |= {
     "spanet": "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/spanet_1_14_5_h4b_5jets_ptvary_loose_300_btag_wp_newLeptonVeto_3L1Cut_UpdateJetVetoMap.onnx",
     "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/best_models/ratio/average_model_from_onnx.onnx",
-    "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/run100/state_dict/model_best_epoch_31.onnx",
+    "sig_bkg_dnn": "/work/tharte/datasets/onnx_spanet_models_for_classification_sig_bkg/1_15_1_from_1_14_5b_spanet_hh4b_classifier_test_signal_accuracy_metric_jet_ptetaphimass_glob_dr_ht_higgsleadsublead_HH.onnx",
 }
 
 
@@ -20,7 +20,7 @@ config_options_dict |= {
     "dnn_variables": True,
     "run2": False,
     "max_num_jets": 5,
-    "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
+    "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables_spanet,
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
     "fifth_jet": "pt",
     "pad_value": -999.0,

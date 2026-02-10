@@ -8,7 +8,8 @@ from pocket_coffea.lib.deltaR_matching import object_matching
 from pocket_coffea.workflows.base import BaseProcessorABC
 
 from utils.basic_functions import add_fields, align_by_eta
-from utils.dnn_evaluation_functions import get_dnn_prediction
+from utils.dnn_evaluation_functions import get_dnn_prediction, get_dnn_prediction_spanet_or_dnn
+
 
 # from utils.inference_session_onnx_slurm import get_model_session
 from utils.inference_session_onnx import get_model_session
@@ -976,13 +977,22 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
 
             # compute the pairing information using the SPANET model
-            pairing_outputs = get_pairing_information(
+            # pairing_outputs = get_pairing_information(
+            #     model_session_spanet,
+            #     input_name_spanet,
+            #     output_name_spanet,
+            #     self.events,
+            #     self.max_num_jets,
+            #     self.spanet_input_name_list,
+            # )
+            pairing_outputs, _ = get_dnn_prediction_spanet_or_dnn(
                 model_session_spanet,
                 input_name_spanet,
                 output_name_spanet,
                 self.events,
-                self.max_num_jets,
-                self.spanet_input_name_list,
+                self.spanet_input_name,
+                self.pad_value,
+                self.max_num_jets
             )
             # Not needed anymore
             del model_session_spanet
@@ -1034,6 +1044,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.pad_value,
                 self.events.Arctanh_Delta_pairing_probabilities,
             )
+            if self._isMC:
+                matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
+                    suffix="True",
+                    pairing_predictions=pairing_predictions,
+                    pairing_suffix="",
+                )
+            else:
+                self.dummy_provenance()
 
             (
                 self.events["HiggsLeading"],
@@ -1047,13 +1065,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 (self.events.HiggsLeading.mass - 125) ** 2
                 + (self.events.HiggsSubLeading.mass - 120) ** 2
             )
-            if self._isMC:
-                matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
-                    suffix="True",
-                    pairing_predictions=pairing_predictions,
-                    pairing_suffix="",
-                )
-
             # if the 5th jet is matched, then the add jet should be order by btag
             # because we want to consider the leading in btag which the pairing discarded
             self.events["btag_order_add_jet"] = ak.any(
@@ -1219,14 +1230,19 @@ class HH4bCommonProcessor(BaseProcessorABC):
             ) = get_model_session(self.sig_bkg_dnn, "sig_bkg_dnn")
 
             if self.spanet:
-                sig_bkg_dnn_score = get_dnn_prediction(
+                sig_bkg_dnn_score, out_type = get_dnn_prediction_spanet_or_dnn(
                     model_session_SIG_BKG_DNN,
                     input_name_SIG_BKG_DNN,
                     output_name_SIG_BKG_DNN,
                     self.events,
                     self.sig_bkg_dnn_input_variables,
                     pad_value=self.pad_value,
-                )[0]
+                    # max_num_jets=self.max_num_jets,
+                    max_num_jets=4,
+                )
+                if out_type == "spanet":
+                    sig_bkg_dnn_score = sig_bkg_dnn_score[-1][:, 1]
+
                 # if array is 1 dim just take it
                 if sig_bkg_dnn_score.ndim == 1:
                     self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score
@@ -1235,15 +1251,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score[:, -1]
 
             if self.run2:
-                sig_bkg_dnn_score = get_dnn_prediction(
+                sig_bkg_dnn_score, out_type = get_dnn_prediction_spanet_or_dnn(
                     model_session_SIG_BKG_DNN,
                     input_name_SIG_BKG_DNN,
                     output_name_SIG_BKG_DNN,
                     self.events,
                     self.sig_bkg_dnn_input_variables,
                     pad_value=self.pad_value,
+                    # max_num_jets=self.max_num_jets,
+                    max_num_jets=4,
                     run2=True,
-                )[0]
+                )
+                if out_type == "spanet":
+                    sig_bkg_dnn_score = sig_bkg_dnn_score[-1][:, 1]
+
                 # if array is 1 dim just take it
                 if sig_bkg_dnn_score.ndim == 1:
                     self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score
