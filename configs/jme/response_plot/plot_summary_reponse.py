@@ -94,7 +94,6 @@ for type_string in args.type:
         ax.set_xlabel(r"$p_{T}^{ptcl}$ (GeV)", loc="right")
 
         ax.set_ylim(top=1.05 * np.nanmax(data), bottom=0.99 * np.nanmin(data))
-        ax.set_ylim(top=1.053, bottom=0.989)
 
         ax.axhline(y=1, color="black", linestyle="--", linewidth=0.7)
         # add +- 1% lines
@@ -107,9 +106,24 @@ for type_string in args.type:
 
         ax.set_xscale("log")
 
-        hep.cms.lumitext(
-            f"{'2023' if '23' in args.dir else '2022'} (13.6 TeV)",
-        )
+        if "2016_PreVFP" in args.dir:
+            hep.cms.lumitext("2016_PreVFP (13 TeV)")
+        elif "2016_PostVFP" in args.dir:
+            hep.cms.lumitext("2016_PostVFP (13 TeV)")
+        elif "2017" in args.dir:
+            hep.cms.lumitext("2017 (13 TeV)")
+        elif "2018" in args.dir:
+            hep.cms.lumitext("2018 (13 TeV)")
+        elif "2022" in args.dir:
+            hep.cms.lumitext("2022 (13.6 TeV)")
+        elif "2023" in args.dir:
+            hep.cms.lumitext("2023 (13.6 TeV)")
+        elif "2024" in args.dir:
+            hep.cms.lumitext("2024 (13.6 TeV)")
+        else:
+            raise ValueError("Year string not found in directory name")
+
+
         hep.cms.text(
             text="Simulation\nPreliminary",
             loc=2,

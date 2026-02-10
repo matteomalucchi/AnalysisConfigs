@@ -41,6 +41,11 @@ else:
 
 mc_truth_corr_pnetreg = None
 corr_files_pnetreg = {
+    "2016_PreVFP": f"{localdir}/params/Summer20UL16APV_V1_MC_L2Relative_AK4PFPNet.txt",
+    "2016_PostVFP": f"{localdir}/params/Summer20UL16_V1_MC_L2Relative_AK4PFPNet.txt",
+    "2017": f"{localdir}/params/Summer20UL17_V1_MC_L2Relative_AK4PFPNet.txt",
+    "2017": f"{localdir}/params/Summer20UL17_V1_MC_L2Relative_AK4PFPNet.txt",
+    "2018": f"{localdir}/params/Summer20UL18_V1_MC_L2Relative_AK4PFPNet.txt",
     "2022_preEE": f"{localdir}/params/Summer22Run3_V3_MC_L2Relative_AK4PFPNet.txt",
     "2022_postEE": f"{localdir}/params/Summer22EERun3_V3_MC_L2Relative_AK4PFPNet.txt",
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFPNet.txt",
@@ -54,6 +59,10 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg = None
 corr_files_upartreg = {
+    "2016_PreVFP": f"{localdir}/params/Summer20UL16APV_V1_MC_L2Relative_AK4PFUparT.txt",
+    "2016_PostVFP": f"{localdir}/params/Summer20UL16_V1_MC_L2Relative_AK4PFUparT.txt",
+    "2017": f"{localdir}/params/Summer20UL17_V1_MC_L2Relative_AK4PFUparT.txt",
+    "2018": f"{localdir}/params/Summer20UL18_V1_MC_L2Relative_AK4PFUparT.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparT.txt",
     "2025": f"{localdir}/params/Winter25Run3_V3_MC_L2Relative_AK4PFUparT.txt",
 }
@@ -63,6 +72,10 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_pnetreg_neutrino = None
 corr_files_pnetreg_neutrino = {
+    "2016_PreVFP": f"{localdir}/params/Summer20UL16APV_V1_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
+    "2016_PostVFP": f"{localdir}/params/Summer20UL16_V1_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
+    "2017": f"{localdir}/params/Summer20UL17_V1_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
+    "2018": f"{localdir}/params/Summer20UL18_V1_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2022_preEE": f"{localdir}/params/Summer22Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2022_postEE": f"{localdir}/params/Summer22EERun3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
     "2023_preBPix": f"{localdir}/params/Summer23Run3_V3_MC_L2Relative_AK4PFPNetPlusNeutrino.txt",
@@ -78,6 +91,10 @@ if int(os.environ.get("CLOSURE", 0)) == 1:
 
 mc_truth_corr_upartreg_neutrino = None
 corr_files_upartreg_neutrino = {
+    "2016_PreVFP": f"{localdir}/params/Summer20UL16APV_V1_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2016_PostVFP": f"{localdir}/params/Summer20UL16_V1_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2017": f"{localdir}/params/Summer20UL17_V1_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
+    "2018": f"{localdir}/params/Summer20UL18_V1_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
     "2024": f"{localdir}/params/Summer24Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
     "2025": f"{localdir}/params/Winter25Run3_V3_MC_L2Relative_AK4PFUparTPlusNeutrino.txt",
 }
