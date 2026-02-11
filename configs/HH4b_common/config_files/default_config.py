@@ -6,7 +6,7 @@ from configs.HH4b_common.dnn_input_variables import (
 
 default_onnx_model_dict = {
     "spanet": "",
-    "vbf_ggf_dnn": "",
+    "vbf_discriminator": "",
     "bkg_morphing_dnn": "",
     "sig_bkg_dnn": "",
     "bkg_morphing_spread_dnn": "",
@@ -20,7 +20,7 @@ default_config_options_dict = {
     "vbf_presel": False,
     "vbf_analysis": False,
     "which_vbf_quark": "with_status",  # "with_mothers_children"
-    "max_num_add_vbf_jets": 2,
+    "max_num_jets_add_vbf": 2,
     #
     "dnn_variables": True,
     "run2": False,
@@ -31,7 +31,9 @@ default_config_options_dict = {
     "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
     "parton_jet_min_dR": 0.4,
-    "max_num_jets": 5,
+    "max_num_jets_good": 5,
+    "max_num_jets_spanet": 5,
+    "max_num_jets_spanet_class": 4,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "donotscale_sumgenweights": False,

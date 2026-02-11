@@ -13,7 +13,7 @@ onnx_model_dict |= {
     # "spanet": "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/hh4b_5jets_e300_s160_btag.onnx", # thierry's model, spanet baseline
     # "spanet": "params/out_hh4b_5jets_ATLAS_ptreg_c0_lr1e4_wp0_noklininp_oc_300e_kl3p5.onnx", # ruth's model
     #
-    # "vbf_ggf_dnn":"/t3home/rcereghetti/ML_pytorch/out/20241212_223142_SemitTightPtLearningRateConstant/models/model_28.onnx",
+    # "vbf_discriminator":"/t3home/rcereghetti/ML_pytorch/out/20241212_223142_SemitTightPtLearningRateConstant/models/model_28.onnx",
     #
     ### SPANET pt vary 0.3, 1.7
     # "bkg_morphing_dnn": "/work/mmalucch/out_ML_pytorch/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_oversample_split_20folds/batch06/best_models/average_model_from_onnx.onnx",  # full 2022, 20 k-folds, early stopping, 1e-5 minDelta, spanet pt vary
@@ -45,7 +45,7 @@ config_options_dict |= {
     "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
     "parton_jet_min_dR": 0.4,
-    "max_num_jets": 5,
+    "max_num_jets_good": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "donotscale_sumgenweights": False,

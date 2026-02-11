@@ -14,7 +14,7 @@ config_options_dict |= {
     "run2": False,
     "sig_bkg_dnn_input_variables": None,
     "bkg_morphing_dnn_input_variables": None,
-    "max_num_jets": 5,
+    "max_num_jets_good": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "pad_value": -999.0,

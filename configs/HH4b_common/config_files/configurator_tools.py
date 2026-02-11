@@ -1200,10 +1200,23 @@ def get_columns_list(
     return columns
 
 
+def unpack_dict(d):
+    out = []
+    for v in d.values():
+        if isinstance(v, dict):
+            out.extend(unpack_dict(v))
+        else:
+            out.append(v[:2])  # keep only first 2 elements
+    return out
+
+
 def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     """Create the columns of the DNN input variables"""
     column_dict = defaultdict(set)
-    for x, y in columns_dict.values():
+    
+    unpacked_columns=unpack_dict(columns_dict)
+    
+    for x,y in unpacked_columns:
         if run2:
             if x != "events":
                 column_dict[x.split(":")[0] + "Run2"].add(y)
@@ -1282,9 +1295,16 @@ def define_single_category(category_name):
         else:
             cut_list.append(cuts.blindedRun2)
 
-    if  "vbf" in category_name:
-        cut_list.append(cuts.hh4b_vbf_region)
-    
+    if "vbf" in category_name:
+        if "lead_mjj" in category_name:
+            cut_list.append(cuts.hh4b_vbf_lead_mjj_region)
+        elif "best_candidates" in category_name:
+            cut_list.append(cuts.hh4b_vbf_best_candidates_region)
+        elif "discriminator" in category_name:
+            cut_list.append(cuts.hh4b_vbf_discriminator_region)
+        else:
+            raise ValueError("Unrecognized region name")
+
     if len(cut_list) < 1:  # aka if no cut applied
         cut_list.append(passthrough)
 
@@ -1301,6 +1321,7 @@ def define_categories(
     vr1=False,
     btag_sf_comp=False,
     vbf_analysis=False,
+    vbf_discriminator=False,
 ):
     """
     Define the categories for the analysis.
@@ -1386,7 +1407,14 @@ def define_categories(
         categories_dict |= btag_sf_categories
 
     if vbf_analysis:
-        categories_dict |= define_single_category("vbf_4b_region")
+        # NOTE: this region requires at least 5 JetGood and 2 JetVBF
+        categories_dict |= define_single_category("vbf_lead_mjj_4b_region")
+        # NOTE: this region requires at least 6 jets
+        categories_dict |= define_single_category("vbf_best_candidates_4b_region")
+        
+        if vbf_discriminator:
+            # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above the threshold
+            categories_dict |= define_single_category("vbf_discriminator_4b_region")
 
     return categories_dict
 
@@ -1397,6 +1425,8 @@ def define_preselection(options):
         preselection = [cuts.hh4b_presel_nobtag]
     else:
         if options["vbf_presel"]:
+            # block vbf_presel because it's done on the wrong jet collection
+            raise ValueError("vbf_presel is not spported anymore!")
             if options["tight_cuts"]:
                 preselection = [vbf_cuts.vbf_hh4b_presel_tight]
             else:

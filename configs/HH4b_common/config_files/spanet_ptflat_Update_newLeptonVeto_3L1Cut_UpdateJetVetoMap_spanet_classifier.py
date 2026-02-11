@@ -19,7 +19,7 @@ onnx_model_dict  |= {
 config_options_dict |= {
     "dnn_variables": True,
     "run2": False,
-    "max_num_jets": 5,
+    "max_num_jets_good": 5,
     "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables_spanet,
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
     "fifth_jet": "pt",

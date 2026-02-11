@@ -10,7 +10,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 onnx_model_dict  |= {
     "spanet": "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/hh4b_5jets_e300_s100_ptvary_wide_loose_btag.onnx",
-    "vbf_ggf_dnn": "",
+    "vbf_discriminator": "",
     "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/SPANET_ptFlat_20_runs_postEE/best_models/ratio/average_model_from_onnx.onnx", # --> trained on postEE only
     #"sig_bkg_dnn": "",
     "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/SPANET_ptflat_norm_e5drop75_postEE/state_dict/model_best_epoch_23.onnx",
@@ -32,7 +32,7 @@ config_options_dict |= {
     "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
     "parton_jet_min_dR": 0.4,
-    "max_num_jets": 5,
+    "max_num_jets_good": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "donotscale_sumgenweights": False,

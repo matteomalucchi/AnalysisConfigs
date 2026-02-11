@@ -29,7 +29,7 @@ config_options_dict |= {
     "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_SigBkgVariables_input_variables,
     "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
     "parton_jet_min_dR": 0.4,
-    "max_num_jets": 5,
+    "max_num_jets_good": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "donotscale_sumgenweights": False,
