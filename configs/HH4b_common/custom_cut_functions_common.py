@@ -1,8 +1,11 @@
 import awkward as ak
 import numpy as np
+import copy
+
+from utils.basic_functions import add_fields
 
 
-def four_jets(events, params, **kwargs):
+def mask_num_jets(events, params, **kwargs):
     jet_collection = "JetGood"
     mask = events[f"n{jet_collection}"] >= params["njet"]
     return ak.where(ak.is_none(mask), False, mask)
@@ -19,7 +22,7 @@ def lepton_veto(events, params, **kwargs):
 
 
 def hh4b_presel_cuts(events, params, **kwargs):
-    at_least_four_jets = four_jets(events, params, **kwargs)
+    at_least_four_jets = mask_num_jets(events, params, **kwargs)
     pt_type = params["pt_type"]
     lepton_veto_mask = lepton_veto(events, params, **kwargs)
 
@@ -28,9 +31,9 @@ def hh4b_presel_cuts(events, params, **kwargs):
     mask_4jet_nolep_none = ak.mask(mask_4jet_nolep, mask_4jet_nolep)
 
     jets_btag_order = (
-        events[mask_4jet_nolep_none].JetGood
+        copy.copy(events[mask_4jet_nolep_none].JetGood)
         if not params["tight_cuts"]
-        else events[mask_4jet_nolep_none].JetGoodHiggs
+        else copy.copy(events[mask_4jet_nolep_none].JetGoodHiggs)
     )
 
     jets_pt_order = jets_btag_order[
@@ -59,7 +62,7 @@ def hh4b_presel_cuts(events, params, **kwargs):
 
 
 def hh4b_2b_cuts(events, params, **kwargs):
-    at_least_four_jets = four_jets(events, {"njet": 4}, **kwargs)
+    at_least_four_jets = mask_num_jets(events, {"njet": 4}, **kwargs)
     # convert false to None
     at_least_four_jets_none = ak.mask(at_least_four_jets, at_least_four_jets)
 
@@ -74,7 +77,7 @@ def hh4b_2b_cuts(events, params, **kwargs):
 
 
 def hh4b_4b_cuts(events, params, **kwargs):
-    at_least_four_jets = four_jets(events, {"njet": 4}, **kwargs)
+    at_least_four_jets = mask_num_jets(events, {"njet": 4}, **kwargs)
     # convert false to None
     at_least_four_jets_none = ak.mask(at_least_four_jets, at_least_four_jets)
 
@@ -126,10 +129,33 @@ def blinding_cuts(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
-def hh4b_vbf_cuts(events, params, **kwargs):
-    mask = (events.JetGoodVBFLeadingMjj_mjj > params["min_mjj"]) & (
-        abs(events.JetGoodVBFLeadingMjj_deta) > params["min_deta"]
+def hh4b_vbf_eta_mjj_cuts(events, params, **kwargs):
+    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
+    # do not count the None values
+    mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
+    mask_num_vbf_jets_none = ak.mask(mask_num_vbf_jets, mask_num_vbf_jets)
+
+    jet_vbf = add_fields(
+        jet_vbf[mask_num_vbf_jets_none], "all"
     )
+
+    vbf_mjj = (jet_vbf[:, 0] + jet_vbf[:, 1]).mass
+    vbf_deta = abs(jet_vbf[:, 0].eta - jet_vbf[:, 1].eta)
+
+    mask = (vbf_mjj > params["min_mjj"]) & (vbf_deta > params["min_deta"])
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_vbf_discriminator_cuts(events, params, **kwargs):
+    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
+    # do not count the None values
+    mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
+
+    mask_discriminator = events[params["discriminator"]] >= params["threshold"]
+
+    mask = mask_num_vbf_jets & mask_discriminator
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)

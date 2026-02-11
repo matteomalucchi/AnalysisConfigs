@@ -210,15 +210,35 @@ hh4b_JetVetoMap = Cut(
     function=get_custom_JetVetoMap_Mask,
 )
 
-hh4b_vbf_region = Cut(
-    name="hh4b_vbf_region",
+hh4b_vbf_lead_mjj_region = Cut(
+    name="hh4b_vbf_lead_mjj_region",
     params={
         "min_mjj": 400,
         "min_deta": 3.5,
+        "jet_vbf_coll":"JetGoodVBFLeadingMjj",
     },
-    function=cuts_f.hh4b_vbf_cuts,
+    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
 
+hh4b_vbf_best_candidates_region = Cut(
+    name="hh4b_vbf_best_candidates_region",
+    params={
+        "min_mjj": 400,
+        "min_deta": 3.5,
+        "jet_vbf_coll":"JetGoodFromVBFEnergyOrdered",
+    },
+    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
+)
+
+hh4b_vbf_discriminator_region = Cut(
+    name="hh4b_vbf_discriminator_region",
+    params={
+        "discriminator": "VBF_ggF_score",
+        "threshold": 0.8,
+        "jet_vbf_coll":"JetGoodFromVBFEnergyOrdered",
+    },
+    function=cuts_f.hh4b_vbf_discriminator_cuts,
+)
 
 def skimming_cut_list(configs):
     skimlist = [

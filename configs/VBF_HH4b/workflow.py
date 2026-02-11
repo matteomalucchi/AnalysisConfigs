@@ -14,15 +14,17 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
     def process_extra_after_skim(self):
         super().process_extra_after_skim()
 
-        if self.vbf_parton_matching:
-            if self._isMC and "VBFHHto4B" in self.events.metadata["dataset"]:
-                # do truth matching to get VBF-jets
-                self.do_vbf_parton_matching(
-                    which_vbf_quark=self.which_vbf_quark, jet_collection="Jet"
-                )
-            else:
-
-                self.dummy_provenance_vbf()
+        if (
+            self.vbf_parton_matching
+            and self._isMC
+            and "VBFHHto4B" in self.events.metadata["dataset"]
+        ):
+            # do truth matching to get VBF-jets
+            self.do_vbf_parton_matching(
+                which_vbf_quark=self.which_vbf_quark, jet_collection="Jet"
+            )
+        else:
+            self.dummy_provenance_vbf()
 
         # # check that provenance fields are ortherogonal
         # if self.vbf_analysis and self._isMC:
@@ -50,7 +52,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             # get idx of good jets after preselection
             self.events["JetGoodClip"] = copy.copy(
-                self.events.JetGood[:, : self.max_num_jets]
+                self.events.JetGood[:, : self.max_num_jets_good]
             )
             jet_good_idx_not_none = self.events.JetGoodClip.index
 
@@ -118,7 +120,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             self.events["nJetGoodVBF"] = ak.num(self.events.JetGoodVBF, axis=1)
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
-        super().process_extra_after_presel(variation=variation)
         if self.vbf_analysis:
             if self._isMC and self.vbf_parton_matching:
                 self.events["nJetGoodVBFMatched"] = ak.num(
@@ -168,13 +169,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 name="PtEtaPhiMCandidate",
             )
 
-            vbf_good_jet_leading_mjj_fields_dict = {
-                field: getattr(vbf_good_jet_leading_mjj, field)
-                for field in vbf_good_jet_leading_mjj.fields
-                if ("muon" not in field and "electron" not in field)
-            }
             jet_good_vbf_lead_mjj_none = add_fields(
-                vbf_good_jet_leading_mjj, vbf_good_jet_leading_mjj_fields_dict
+                vbf_good_jet_leading_mjj, "all"
             )
             # remove the vbf jets which were actually none
             # if an event was missing one or two vbf jets,
@@ -184,30 +180,12 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ak.pad_none(
                     ak.unflatten(ak.firsts(self.events.JetGoodVBF), 1), 2, axis=1
                 ),
-                vbf_good_jet_leading_mjj_fields_dict,
+                "all",
             )
             self.events["JetGoodVBFLeadingMjj"] = ak.where(
                 mask_event_not_none,
                 jet_good_vbf_lead_mjj_none,
                 jet_good_vbf_lead_mjj_padded,
-            )
-
-            # compute the mjj and delta eta
-            self.events = ak.with_field(
-                self.events,
-                (
-                    self.events.JetGoodVBFLeadingMjj[:, 0]
-                    + self.events.JetGoodVBFLeadingMjj[:, 1]
-                ).mass,
-                "JetGoodVBFLeadingMjj_mjj",
-            )
-            self.events = ak.with_field(
-                self.events,
-                abs(
-                    self.events.JetGoodVBFLeadingMjj[:, 0].eta
-                    - self.events.JetGoodVBFLeadingMjj[:, 1].eta
-                ),
-                "JetGoodVBFLeadingMjj_deta",
             )
 
             mask_jet_vbf_lead_mjj_not_none = ak.values_astype(
@@ -251,13 +229,13 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                         self.events.JetAdditionalGoodVBF.energy, axis=1, ascending=False
                     )
                 ],
-                self.max_num_add_vbf_jets,
+                self.max_num_jets_add_vbf,
                 axis=1,
                 clip=True,
             )
 
             self.events["JetGoodPadded"] = ak.pad_none(
-                self.events.JetGoodClip, self.max_num_jets, clip=True
+                self.events.JetGoodClip, self.max_num_jets_good, clip=True
             )
 
             # merge the 3 jet collections to feed to spanet training
@@ -298,3 +276,5 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             if self._isMC and self.random_pt:
                 self.flatten_pt(self.rand_type, "JetTotalSPANetPtFlattenPadded")
+
+        super().process_extra_after_presel(variation=variation)

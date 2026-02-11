@@ -7,8 +7,8 @@ import copy
 from pocket_coffea.lib.deltaR_matching import object_matching
 from pocket_coffea.workflows.base import BaseProcessorABC
 
-from utils.basic_functions import add_fields, align_by_eta
-from utils.dnn_evaluation_functions import get_dnn_prediction, get_dnn_prediction_spanet_or_dnn
+from utils.basic_functions import add_fields
+from utils.dnn_evaluation_functions import get_dnn_prediction, get_onnx_prediction
 
 
 # from utils.inference_session_onnx_slurm import get_model_session
@@ -16,11 +16,11 @@ from utils.inference_session_onnx import get_model_session
 from utils.parton_matching_function import get_parton_last_copy
 from utils.reconstruct_higgs_candidates import (
     get_jets_idx_not_from_idx,
-    reconstruct_higgs_from_idx,
+    reconstruct_resonances_from_idx,
     reconstruct_higgs_from_provenance,
     run2_matching_algorithm,
 )
-from utils.spanet_evaluation_functions import get_best_pairings, get_pairing_information
+from utils.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
 
 from .custom_object_preselection_common import (
     lepton_selection,
@@ -239,16 +239,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
             )  # [0.1,10.0]
         else:
-            raise ValueError(
-                f"Invalid input. rand_type {rand_type} not known."
-            )
-            
+            raise ValueError(f"Invalid input. rand_type {rand_type} not known.")
+
         self.events = ak.with_field(
             self.events,
             random_weights,
             "random_pt_weights",
         )
-        
+
         self.events[jet_collection] = ak.with_field(
             self.events[jet_collection],
             self.events[jet_collection].pt,
@@ -928,7 +926,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             else:
                 # keep up to 5 jets
                 pairing_true = ak.where(
-                    pairing_true < self.max_num_jets,
+                    pairing_true < self.max_num_jets_spanet,
                     pairing_true,
                     -1,
                 )
@@ -976,34 +974,34 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 get_model_session(self.spanet, "spanet")
             )
 
-            # compute the pairing information using the SPANET model
-            # pairing_outputs = get_pairing_information(
-            #     model_session_spanet,
-            #     input_name_spanet,
-            #     output_name_spanet,
-            #     self.events,
-            #     self.max_num_jets,
-            #     self.spanet_input_name_list,
-            # )
-            pairing_outputs, _ = get_dnn_prediction_spanet_or_dnn(
+            spanet_output, _ = get_onnx_prediction(
                 model_session_spanet,
                 input_name_spanet,
                 output_name_spanet,
                 self.events,
                 self.spanet_input_name,
                 self.pad_value,
-                self.max_num_jets
+                self.max_num_jets_spanet,
             )
             # Not needed anymore
             del model_session_spanet
             del input_name_spanet
             del output_name_spanet
 
+            jet_coll_pairing = [
+                x[0] for x in self.spanet_input_name["sequential"].values()
+            ][0]
+
+            # if an event has less than 6 jets, than remove the vbf prob matrix
+            cleaned_assignment_prob = clean_assignment_prob(
+                spanet_output["assignment_prob"], self.events[jet_coll_pairing]
+            )
+
             (
                 pairing_predictions,
                 self.events["best_pairing_probability"],
                 self.events["second_best_pairing_probability"],
-            ) = get_best_pairings(pairing_outputs)
+            ) = get_best_pairings(cleaned_assignment_prob)
 
             # get the probabilities difference between the best and second best jet assignment
             self.events["Delta_pairing_probabilities"] = (
@@ -1057,7 +1055,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],
                 self.events["JetGoodFromHiggsOrdered"],
-            ) = reconstruct_higgs_from_idx(self.events.JetGood, pairing_predictions)
+                self.events["JetGoodFromVBFEnergyOrdered"],
+            ) = reconstruct_resonances_from_idx(
+                self.events[jet_coll_pairing], pairing_predictions
+            )
 
             matched_jet_higgs_idx_not_none = self.events.JetGoodFromHiggsOrdered.index
             # Define distance parameter for selection:
@@ -1070,6 +1071,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["btag_order_add_jet"] = ak.any(
                 ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
             )
+
+            # Get classification probability if present
+            if len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
+                if self.vbf_analysis:
+                    self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+                else:
+                    raise ValueError("This case was not implemented")
 
         # reconstruct the higgs candidates for Run2 method
         if self.run2:
@@ -1107,15 +1115,16 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
 
-        if self.vbf_ggf_dnn:
+        if self.vbf_discriminator and self.vbf_discriminator != self.spanet:
             (
-                model_session_vbf_ggf_dnn,
-                input_name_vbf_ggf_dnn,
-                output_name_vbf_ggf_dnn,
-            ) = get_model_session(self.vbf_ggf_dnn, "vbf_ggf_dnn")
-            del model_session_vbf_ggf_dnn
-            del input_name_vbf_ggf_dnn
-            del output_name_vbf_ggf_dnn
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+            ) = get_model_session(self.vbf_discriminator, "vbf_discriminator")
+
+            del model_session_vbf_discriminator
+            del input_name_vbf_discriminator
+            del output_name_vbf_discriminator
 
         if self.dnn_variables and self.spanet:
             (
@@ -1230,47 +1239,45 @@ class HH4bCommonProcessor(BaseProcessorABC):
             ) = get_model_session(self.sig_bkg_dnn, "sig_bkg_dnn")
 
             if self.spanet:
-                sig_bkg_dnn_score, out_type = get_dnn_prediction_spanet_or_dnn(
+                onnx_output, out_type = get_onnx_prediction(
                     model_session_SIG_BKG_DNN,
                     input_name_SIG_BKG_DNN,
                     output_name_SIG_BKG_DNN,
                     self.events,
                     self.sig_bkg_dnn_input_variables,
                     pad_value=self.pad_value,
-                    # max_num_jets=self.max_num_jets,
-                    max_num_jets=4,
+                    max_num_jets_spanet=self.max_num_jets_spanet_class,
                 )
                 if out_type == "spanet":
-                    sig_bkg_dnn_score = sig_bkg_dnn_score[-1][:, 1]
-
-                # if array is 1 dim just take it
-                if sig_bkg_dnn_score.ndim == 1:
-                    self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score
+                    sig_bkg_dnn_score = onnx_output["class_prob"][0][:, 1]
                 else:
-                    # if array is 2 dim take the last column
-                    self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score[:, -1]
+                    # if array is 1 dim just take it
+                    if sig_bkg_dnn_score.ndim == 1:
+                        self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score
+                    else:
+                        # if array is 2 dim take the last column
+                        self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score[:, -1]
 
             if self.run2:
-                sig_bkg_dnn_score, out_type = get_dnn_prediction_spanet_or_dnn(
+                onnx_output, out_type = get_onnx_prediction(
                     model_session_SIG_BKG_DNN,
                     input_name_SIG_BKG_DNN,
                     output_name_SIG_BKG_DNN,
                     self.events,
                     self.sig_bkg_dnn_input_variables,
                     pad_value=self.pad_value,
-                    # max_num_jets=self.max_num_jets,
-                    max_num_jets=4,
+                    max_num_jets_spanet=self.max_num_jets_spanet_class,
                     run2=True,
                 )
                 if out_type == "spanet":
-                    sig_bkg_dnn_score = sig_bkg_dnn_score[-1][:, 1]
-
-                # if array is 1 dim just take it
-                if sig_bkg_dnn_score.ndim == 1:
-                    self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score
+                    sig_bkg_dnn_score = onnx_output["class_prob"][0][:, 1]
                 else:
-                    # if array is 2 dim take the last column
-                    self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score[:, -1]
+                    # if array is 1 dim just take it
+                    if sig_bkg_dnn_score.ndim == 1:
+                        self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score
+                    else:
+                        # if array is 2 dim take the last column
+                        self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score[:, -1]
 
                 del model_session_SIG_BKG_DNN
                 del input_name_SIG_BKG_DNN

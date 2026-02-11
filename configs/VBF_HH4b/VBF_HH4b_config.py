@@ -78,7 +78,7 @@ preselection = define_preselection(config_options_dict)
 
 
 sample_ggF_list = [
-    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
@@ -123,6 +123,7 @@ categories_dict = define_categories(
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
     vbf_analysis=config_options_dict["vbf_analysis"],
+    vbf_discriminator=config_options_dict["vbf_discriminator"],
 )
 
 if BASELINE:

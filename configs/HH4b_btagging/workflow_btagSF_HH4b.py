@@ -109,7 +109,7 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
                 input_name_spanet,
                 output_name_spanet,
                 self.events,
-                self.max_num_jets,
+                self.max_num_jets_spanet,
                 self.spanet_input_name_list,
             )
             # Not needed anymore

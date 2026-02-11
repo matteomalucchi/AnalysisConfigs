@@ -460,6 +460,19 @@ pairing_spanet_btagWP5 = OrderedDict(
             }
     }
 )
+
+pairing_spanet_vbf_ggf_btagWP5 = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetTotalSPANetPadded", "pt", "log_norm"],
+            "jet_eta": ["JetTotalSPANetPadded", "eta", "norm"],
+            "jet_phi": ["JetTotalSPANetPadded", "phi", "norm"],
+            "jet_btag_5wp": ["JetTotalSPANetPadded", "btagPNetB_5wp"],
+            },
+        "global": {
+            }
+    }
+)
 pairing_spanet_btag = OrderedDict(
     {
         "sequential": {

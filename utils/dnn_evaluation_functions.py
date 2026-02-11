@@ -2,7 +2,10 @@ import numpy as np
 import awkward as ak
 from collections import defaultdict
 
-from utils.spanet_evaluation_functions import define_spanet_pairing_inputs, get_pairing_information
+from utils.spanet_evaluation_functions import (
+    define_spanet_pairing_inputs,
+    get_pairing_information,
+)
 
 
 def get_input_name(collection, input_name):
@@ -17,7 +20,7 @@ def get_input_name(collection, input_name):
     raise ValueError(f"No {collection} found in {input_name}")
 
 
-def extract_inputs_global(session, input_name, output_name, events, variables, pad_value, run2):
+def extract_inputs_global(input_name, output_name, events, variables, pad_value, run2):
     """Extract inputs for SPANet global inputs."""
     variables_dict = {}
     for var_name, attributes in variables.items():
@@ -52,7 +55,9 @@ def extract_inputs_global(session, input_name, output_name, events, variables, p
             except AttributeError:
                 ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
             pos = int(collection.split(":")[1])
-            ak_array = ak.fill_none(ak.pad_none(ak_array, pos + 1, clip=True), pad_value)
+            ak_array = ak.fill_none(
+                ak.pad_none(ak_array, pos + 1, clip=True), pad_value
+            )
         else:
             try:
                 ak_array = ak.fill_none(
@@ -76,7 +81,7 @@ def extract_inputs_global(session, input_name, output_name, events, variables, p
             )
 
             if arr.ndim == 1:
-                arr = arr[:, None]   # <-- THIS is the missing axis
+                arr = arr[:, None]  # <-- THIS is the missing axis
 
             variables_dict[data_name].append(arr)
         else:
@@ -86,7 +91,7 @@ def extract_inputs_global(session, input_name, output_name, events, variables, p
             )
 
             if arr.ndim == 1:
-                arr = arr[:, None]   # <-- THIS is the missing axis
+                arr = arr[:, None]  # <-- THIS is the missing axis
 
             variables_dict[data_name].append(arr)
         if mask_name not in variables_dict.keys():
@@ -101,7 +106,7 @@ def extract_inputs_global(session, input_name, output_name, events, variables, p
     return variables_dict
 
 
-def extract_inputs(session, input_name, output_name, events, variables, pad_value, run2):
+def extract_inputs(input_name, output_name, events, variables, pad_value, run2):
     """Extract inputs for the DNN models."""
     variables_array = []
     for var_name, attributes in variables.items():
@@ -133,9 +138,9 @@ def extract_inputs(session, input_name, output_name, events, variables, pad_valu
             except AttributeError:
                 ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
             pos = int(collection.split(":")[1])
-            ak_array = ak.fill_none(ak.pad_none(ak_array, pos + 1, clip=True), pad_value)[
-                :, pos
-            ]
+            ak_array = ak.fill_none(
+                ak.pad_none(ak_array, pos + 1, clip=True), pad_value
+            )[:, pos]
         else:
             try:
                 ak_array = ak.fill_none(
@@ -174,13 +179,19 @@ def extract_inputs(session, input_name, output_name, events, variables, pad_valu
 
     return np.stack(variables_array, axis=-1)
 
-def get_dnn_prediction(session, input_name, output_name, events, variables, pad_value, run2=False):
-    inputs = extract_inputs(session, input_name, output_name, events, variables, pad_value, run2)
+
+def get_dnn_prediction(
+    session, input_name, output_name, events, variables, pad_value, run2=False
+):
+    inputs = extract_inputs(
+        session, input_name, output_name, events, variables, pad_value, run2
+    )
 
     inputs_complete = {input_name[0]: inputs}
 
     outputs = session.run(output_name, inputs_complete)
     return outputs
+
 
 def get_collections(input_dict):
     coll_dict = defaultdict(list)
@@ -192,20 +203,32 @@ def get_collections(input_dict):
         coll_dict[val_list[0]].append(feature)
     return coll_dict
 
-def get_dnn_prediction_spanet_or_dnn(session, input_name, output_name, events, variables, pad_value, max_num_jets, run2=False):
+
+def get_onnx_prediction(
+    session,
+    input_name,
+    output_name,
+    events,
+    variables,
+    pad_value,
+    max_num_jets_spanet,
+    run2=False,
+):
     if "sequential" in variables:
         assert "global" in variables
         input_name_forpop = input_name.copy()
         inputs_complete = {}
         collection_feature_dict = get_collections(variables["sequential"])
         for collection, features in collection_feature_dict.items():
-            sequential_inputs = define_spanet_pairing_inputs(events, max_num_jets, collection, features)  # Currently hardcode jets to 4
+            sequential_inputs = define_spanet_pairing_inputs(
+                events, max_num_jets_spanet, collection, features
+            )  # Currently hardcode jets to 4
             mask = np.array(
                 ak.to_numpy(
                     ak.fill_none(
                         ak.pad_none(
                             ak.ones_like(events[collection].pt),
-                            max_num_jets,
+                            max_num_jets_spanet,
                             clip=True,
                         ),
                         value=0,
@@ -215,10 +238,73 @@ def get_dnn_prediction_spanet_or_dnn(session, input_name, output_name, events, v
                 dtype=np.bool_,
             )
             # Added sequential part to inputs
-            inputs_complete |= {input_name_forpop.pop(0): sequential_inputs, input_name_forpop.pop(0): mask} # Take always the first element from input_name.
-        global_inputs_total = extract_inputs_global(session, input_name_forpop, output_name, events, variables["global"], pad_value, run2)  # use remaining input_name, which is reduced by the pops from before
+            inputs_complete |= {
+                input_name_forpop.pop(0): sequential_inputs,
+                input_name_forpop.pop(0): mask,
+            }  # Take always the first element from input_name.
+        global_inputs_total = extract_inputs_global(
+            input_name_forpop, output_name, events, variables["global"], pad_value, run2
+        )  # use remaining input_name, which is reduced by the pops from before
         inputs_complete |= global_inputs_total
-        spanet_score = session.run(output_name, inputs_complete)
-        return spanet_score, "spanet"  # Taking first column because I think that is the signal score
+        spanet_output = session.run(output_name, inputs_complete)
+
+        order = ["h1", "h2", "vbf"]
+
+        # separate the outputs
+        idx_assignment_prob = np.array(
+            [
+                i
+                for key in order
+                for i, name in enumerate(output_name)
+                if "assignment_probability" in name and key in name
+            ]
+        )
+        assignment_prob = [spanet_output[i] for i in idx_assignment_prob]
+        idx_detection_prob = np.array(
+            [
+                i
+                for key in order
+                for i, name in enumerate(output_name)
+                if "detection_probability" in name and key in name
+            ]
+        )
+        detection_prob = [spanet_output[i] for i in idx_detection_prob]
+
+        idx_class_prob = np.where(
+            [
+                "assignment_probability" not in x
+                and "detection_probability" not in x
+                and ("class" in x or "signal" in x)
+                for x in output_name
+            ]
+        )[0]
+        class_prob = [spanet_output[i] for i in idx_class_prob]
+
+        idx_regr_prob = np.where(
+            [
+                "assignment_probability" not in x
+                and "detection_probability" not in x
+                and "regr" in x
+                for x in output_name
+            ]
+        )[0]
+        regr_value = [spanet_output[i] for i in idx_regr_prob]
+
+        spanet_separated_output = {
+            "assignment_prob": assignment_prob,
+            "detection_prob": detection_prob,
+            "class_prob": class_prob,
+            "regr_value": regr_value,
+        }
+
+        return (
+            spanet_separated_output,
+            "spanet",
+        ) 
     else:
-        return get_dnn_prediction(session, input_name, output_name, events, variables, pad_value, run2)[0], "dnn"
+        return (
+            get_dnn_prediction(
+                session, input_name, output_name, events, variables, pad_value, run2
+            )[0],
+            "dnn",
+        )

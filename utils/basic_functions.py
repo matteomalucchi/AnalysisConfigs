@@ -7,6 +7,10 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
         for field in ["pt", "eta", "phi", "mass"]:
             if field not in fields:
                 fields.append(field)
+        
+        # remove 2d fields
+        fields=[f for f in fields if ("muon" not in f and "electron" not in f)]
+    
     elif fields is None:
         fields = ["pt", "eta", "phi", "mass"]
         fields_add = [

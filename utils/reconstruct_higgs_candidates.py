@@ -48,17 +48,25 @@ def reconstruct_higgs_from_provenance(matched_jets_higgs):
     return higgs_lead, higgs_sub, jets_ordered, idx_pairing
 
 
-def reconstruct_higgs_from_idx(jet_collection, idx_collection):
+def reconstruct_resonances_from_idx(jet_collection, idx_collection):
     # NOTE: idx_collection is referred to the index of the jets in the JetGood collection
     # and is not the index of the jets in the Jet
+
+    range_num_events = np.arange(len(idx_collection))
+
+    # consider only the higgs candidates idx
+    higgs_idx_collection = idx_collection[:, :2]
+
+    # get the higgs_1 from the first index
     higgs_1 = ak.unflatten(
-        jet_collection[np.arange(len(idx_collection)), idx_collection[:, 0, 0]]
-        + jet_collection[np.arange(len(idx_collection)), idx_collection[:, 0, 1]],
+        jet_collection[range_num_events, higgs_idx_collection[:, 0, 0]]
+        + jet_collection[range_num_events, higgs_idx_collection[:, 0, 1]],
         1,
     )
+    # get the higgs_2 from the second index
     higgs_2 = ak.unflatten(
-        jet_collection[np.arange(len(idx_collection)), idx_collection[:, 1, 0]]
-        + jet_collection[np.arange(len(idx_collection)), idx_collection[:, 1, 1]],
+        jet_collection[range_num_events, higgs_idx_collection[:, 1, 0]]
+        + jet_collection[range_num_events, higgs_idx_collection[:, 1, 1]],
         1,
     )
 
@@ -69,43 +77,47 @@ def reconstruct_higgs_from_idx(jet_collection, idx_collection):
 
     higgs_leading_index_expanded = higgs_leading_index[:, np.newaxis] * np.ones((2, 2))
     # order idx according to the higgs candidate
-    idx_ordered = ak.where(
-        higgs_leading_index_expanded == 0, idx_collection, idx_collection[:, ::-1]
+    idx_ordered = ak.to_numpy(
+        ak.where(
+            higgs_leading_index_expanded == 0,
+            higgs_idx_collection,
+            higgs_idx_collection[:, ::-1],
+        )
     )
 
     higgs1_jet1 = ak.unflatten(
         ak.where(
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 0]].pt
-            > jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 1]].pt,
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 0]],
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 1]],
+            jet_collection[range_num_events, idx_ordered[:, 0, 0]].pt
+            > jet_collection[range_num_events, idx_ordered[:, 0, 1]].pt,
+            jet_collection[range_num_events, idx_ordered[:, 0, 0]],
+            jet_collection[range_num_events, idx_ordered[:, 0, 1]],
         ),
         1,
     )
     higgs1_jet2 = ak.unflatten(
         ak.where(
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 0]].pt
-            > jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 1]].pt,
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 1]],
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 0, 0]],
+            jet_collection[range_num_events, idx_ordered[:, 0, 0]].pt
+            > jet_collection[range_num_events, idx_ordered[:, 0, 1]].pt,
+            jet_collection[range_num_events, idx_ordered[:, 0, 1]],
+            jet_collection[range_num_events, idx_ordered[:, 0, 0]],
         ),
         1,
     )
     higgs2_jet1 = ak.unflatten(
         ak.where(
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 0]].pt
-            > jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 1]].pt,
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 0]],
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 1]],
+            jet_collection[range_num_events, idx_ordered[:, 1, 0]].pt
+            > jet_collection[range_num_events, idx_ordered[:, 1, 1]].pt,
+            jet_collection[range_num_events, idx_ordered[:, 1, 0]],
+            jet_collection[range_num_events, idx_ordered[:, 1, 1]],
         ),
         1,
     )
     higgs2_jet2 = ak.unflatten(
         ak.where(
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 0]].pt
-            > jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 1]].pt,
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 1]],
-            jet_collection[np.arange(len(idx_collection)), idx_ordered[:, 1, 0]],
+            jet_collection[range_num_events, idx_ordered[:, 1, 0]].pt
+            > jet_collection[range_num_events, idx_ordered[:, 1, 1]].pt,
+            jet_collection[range_num_events, idx_ordered[:, 1, 1]],
+            jet_collection[range_num_events, idx_ordered[:, 1, 0]],
         ),
         1,
     )
@@ -118,7 +130,28 @@ def reconstruct_higgs_from_idx(jet_collection, idx_collection):
     higgs_lead = add_fields(ak.flatten(higgs_lead))
     higgs_sub = add_fields(ak.flatten(higgs_sub))
 
-    return higgs_lead, higgs_sub, jets_ordered
+    # get the vbf candidates from the third index
+    if len(idx_collection[0]) == 3:
+        vbf_1 = ak.unflatten(
+            jet_collection[range_num_events, idx_collection[:, 2, 0]], 1
+        )
+        vbf_2 = ak.unflatten(
+            jet_collection[range_num_events, idx_collection[:, 2, 1]], 1
+        )
+
+        vbf_jets = ak.with_name(
+            ak.concatenate([vbf_1, vbf_2], axis=1),
+            name="PtEtaPhiMCandidate",
+        )
+        # sort jets by energy
+        vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
+        # pad the vbf jets such that if an event doesn't have at least 6 jets
+        # the vbf jets are two None
+        vbf_jets_pad_none=ak.mask(vbf_jets, (ak.count(jet_collection.pt, axis=1) >= 6)[:, np.newaxis] * np.ones(2, dtype=np.bool))
+
+        return higgs_lead, higgs_sub, jets_ordered, vbf_jets_pad_none
+
+    return higgs_lead, higgs_sub, jets_ordered, None
 
 
 def possible_higgs_reco(jets, comb_idx):
