@@ -1,8 +1,5 @@
-from configs.HH4b_common.dnn_input_variables import (
-    bkg_morphing_dnn_input_variables,
-    sig_bkg_dnn_input_variables_spanet,
-    pairing_spanet_vbf_ggf_btagWP5,
-)
+import configs.HH4b_common.dnn_input_variables as dnn_vars
+
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
 
@@ -22,12 +19,12 @@ config_options_dict |= {
     "run2": False,
     "max_num_jets_good": 5,
     "max_num_jets_spanet": 9,
-    "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables_spanet,
-    "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
+    "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables_spanet,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
-    "spanet_input_name": pairing_spanet_vbf_ggf_btagWP5,
+    "spanet_input_name": dnn_vars.pairing_spanet_vbf_ggf_btagWP5,
     # VBF
     "vbf_parton_matching": False,
     "vbf_presel": False,

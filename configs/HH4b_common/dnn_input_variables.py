@@ -460,6 +460,70 @@ pairing_spanet_btagWP5 = OrderedDict(
             }
     }
 )
+pairing_spanet_btagWP3 = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGood", "pt", "log_norm"],
+            "jet_eta": ["JetGood", "eta", "norm"],
+            "jet_phi": ["JetGood", "phi", "norm"],
+            "jet_btag_3wp": ["JetGood", "btagPNetB_3wp"],
+            },
+        "global": {
+            }
+    }
+)
+
+pairing_spanet_btagDeltaWP5 = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGood", "pt", "log_norm"],
+            "jet_eta": ["JetGood", "eta", "norm"],
+            "jet_phi": ["JetGood", "phi", "norm"],
+            "jet_btag_delta5wp": ["JetGood", "btagPNetB_delta5wp"],
+            },
+        "global": {
+            }
+    }
+)
+
+pairing_spanet_btag12_ratioSubLead = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGood", "pt", "log_norm"],
+            "jet_eta": ["JetGood", "eta", "norm"],
+            "jet_phi": ["JetGood", "phi", "norm"],
+            "jet_btag12_ratioSubLead": ["JetGood", "btag12_ratioSubLead"],
+            },
+        "global": {
+            }
+    }
+)
+
+pairing_spanet_btag = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGood", "pt", "log_norm"],
+            "jet_eta": ["JetGood", "eta", "norm"],
+            "jet_phi": ["JetGood", "phi", "norm"],
+            "jet_btag": ["JetGood", "btagPNetB"],
+            },
+        "global": {
+            }
+    }
+)
+
+pairing_spanet_btag_ratioAll = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGood", "pt", "log_norm"],
+            "jet_eta": ["JetGood", "eta", "norm"],
+            "jet_phi": ["JetGood", "phi", "norm"],
+            "jet_btag_ratioAll": ["JetGood", "btag_ratioAll"],
+            },
+        "global": {
+            }
+    }
+)
 
 pairing_spanet_vbf_ggf_btagWP5 = OrderedDict(
     {
@@ -468,18 +532,6 @@ pairing_spanet_vbf_ggf_btagWP5 = OrderedDict(
             "jet_eta": ["JetTotalSPANetPadded", "eta", "norm"],
             "jet_phi": ["JetTotalSPANetPadded", "phi", "norm"],
             "jet_btag_5wp": ["JetTotalSPANetPadded", "btagPNetB_5wp"],
-            },
-        "global": {
-            }
-    }
-)
-pairing_spanet_btag = OrderedDict(
-    {
-        "sequential": {
-            "jet_log_pt": ["JetGood", "pt", "log_norm"],
-            "jet_eta": ["JetGood", "eta", "norm"],
-            "jet_phi": ["JetGood", "phi", "norm"],
-            "jet_btag": ["JetGood", "btagPNetB"],
             },
         "global": {
             }

@@ -1,7 +1,5 @@
-from configs.HH4b_common.dnn_input_variables import (
-    bkg_morphing_dnn_input_variables,
-    sig_bkg_dnn_input_variables,
-)
+import configs.HH4b_common.dnn_input_variables as dnn_vars
+
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
 

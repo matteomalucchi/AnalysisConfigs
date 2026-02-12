@@ -1,7 +1,5 @@
-from configs.HH4b_common.dnn_input_variables import (
-    bkg_morphing_dnn_input_variables,
-    sig_bkg_dnn_input_variables,
-)
+import configs.HH4b_common.dnn_input_variables as dnn_vars
+
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
 
@@ -29,8 +27,8 @@ config_options_dict |= {
     "rand_type": 0.3,
     # "blind": True if onnx_model_dict["sig_bkg_dnn"] else False,
     "blind": False,
-    "sig_bkg_dnn_input_variables": sig_bkg_dnn_input_variables,
-    "bkg_morphing_dnn_input_variables": bkg_morphing_dnn_input_variables,
+    "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
     "parton_jet_min_dR": 0.4,
     "max_num_jets_good": 5,
     "which_bquark": "last",
@@ -40,7 +38,7 @@ config_options_dict |= {
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.,
     "add_jet_spanet": False,
-    "spanet_input_name_list": ["log_pt", "eta", "phi", "btag"],
+    "spanet_input_name": dnn_vars.pairing_spanet_btag,
     "qt_postEE": "/work/tharte/datasets/quantile_transformer/qt_events_sig_bkg_dnn_score_kl_1.00_postEE_21bins.pkl",
     "qt_preEE": None
 } | onnx_model_dict
