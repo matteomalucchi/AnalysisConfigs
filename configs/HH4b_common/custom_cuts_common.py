@@ -210,35 +210,90 @@ hh4b_JetVetoMap = Cut(
     function=get_custom_JetVetoMap_Mask,
 )
 
-hh4b_vbf_lead_mjj_region = Cut(
-    name="hh4b_vbf_lead_mjj_region",
+hh4b_vbf_best_candidates_6_jets_region = Cut(
+    name="hh4b_vbf_best_candidates_6_jets_region",
     params={
         "min_mjj": 400,
         "min_deta": 3.5,
-        "jet_vbf_coll":"JetGoodVBFLeadingMjj",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
 
-hh4b_vbf_best_candidates_region = Cut(
-    name="hh4b_vbf_best_candidates_region",
+hh4b_vbf_best_candidates_6_jets_region_run2 = Cut(
+    name="hh4b_vbf_best_candidates_6_jets_region_run2",
     params={
         "min_mjj": 400,
         "min_deta": 3.5,
-        "jet_vbf_coll":"JetGoodFromVBFEnergyOrdered",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
 
-hh4b_vbf_discriminator_region = Cut(
-    name="hh4b_vbf_discriminator_region",
+hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
+    name="hh4b_vbf_best_candidates_6_jets_nokincut_region",
+    params={
+        "min_mjj": 0,
+        "min_deta": 0,
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+    },
+    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
+)
+
+hh4b_vbf_best_candidates_6_jets_nokincut_region_run2 = Cut(
+    name="hh4b_vbf_best_candidates_6_jets_nokincut_region_run2",
+    params={
+        "min_mjj": 0,
+        "min_deta": 0,
+        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
+    },
+    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
+)
+
+hh4b_vbf_pass_discriminator_region = Cut(
+    name="hh4b_vbf_pass_discriminator_region",
     params={
         "discriminator": "VBF_ggF_score",
+        "pass": True,
         "threshold": 0.8,
-        "jet_vbf_coll":"JetGoodFromVBFEnergyOrdered",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
     function=cuts_f.hh4b_vbf_discriminator_cuts,
 )
+
+hh4b_vbf_pass_discriminator_region_run2 = Cut(
+    name="hh4b_vbf_pass_discriminator_region_run2",
+    params={
+        "discriminator": "VBF_ggF_scoreRun2",
+        "pass": True,
+        "threshold": 0.8,
+        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
+    },
+    function=cuts_f.hh4b_vbf_discriminator_cuts,
+)
+
+hh4b_vbf_fail_discriminator_region = Cut(
+    name="hh4b_vbf_fail_discriminator_region",
+    params={
+        "discriminator": "VBF_ggF_score",
+        "pass": False,
+        "threshold": 0.8,
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+    },
+    function=cuts_f.hh4b_vbf_discriminator_cuts,
+)
+
+hh4b_vbf_fail_discriminator_region_run2 = Cut(
+    name="hh4b_vbf_fail_discriminator_region_run2",
+    params={
+        "discriminator": "VBF_ggF_scoreRun2",
+        "pass": False,
+        "threshold": 0.8,
+        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
+    },
+    function=cuts_f.hh4b_vbf_discriminator_cuts,
+)
+
 
 def skimming_cut_list(configs):
     skimlist = [

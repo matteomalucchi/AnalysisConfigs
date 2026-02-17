@@ -1131,7 +1131,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["JetGoodVBFEnergyOrderedRun2"] = get_lead_mjj_jet_pair(
                 self.events, "JetGoodVBFCandidatesRun2"
             )
-            breakpoint()
             
             matched_jet_higgs_idx_not_noneRun2 = (
                 self.events.JetGoodFromHiggsOrderedRun2.index

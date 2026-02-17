@@ -1128,8 +1128,8 @@ SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "btagPNetB",
 ]
 SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
-    "JetGoodMatched": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetGoodHiggsMatched": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetGoodMatched": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetGoodHiggsMatched": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGood": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodHiggs": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
 }
@@ -1150,10 +1150,10 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetGoodPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetGoodVBFMergedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetGoodHiggsPlusVBF1mjj": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "Jet": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetGoodPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetGoodVBFMergedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetGoodHiggsPlusVBF1mjj": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "Jet": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
 }
 
 
@@ -1213,10 +1213,10 @@ def unpack_dict(d):
 def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     """Create the columns of the DNN input variables"""
     column_dict = defaultdict(set)
-    
-    unpacked_columns=unpack_dict(columns_dict)
-    
-    for x,y in unpacked_columns:
+
+    unpacked_columns = unpack_dict(columns_dict)
+
+    for x, y in unpacked_columns:
         if run2:
             if x != "events":
                 column_dict[x.split(":")[0] + "Run2"].add(y)
@@ -1296,12 +1296,35 @@ def define_single_category(category_name):
             cut_list.append(cuts.blindedRun2)
 
     if "vbf" in category_name:
-        if "lead_mjj" in category_name:
-            cut_list.append(cuts.hh4b_vbf_lead_mjj_region)
-        elif "best_candidates" in category_name:
-            cut_list.append(cuts.hh4b_vbf_best_candidates_region)
+        if "best_candidates" in category_name:
+            if "nokincut" in category_name:
+                if "Run2" not in category_name:
+                    cut_list.append(
+                        cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region
+                    )
+                else:
+                    cut_list.append(
+                        cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region_run2
+                    )
+            else:
+                if "Run2" not in category_name:
+                    cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
+                else:
+                    cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region_run2)
         elif "discriminator" in category_name:
-            cut_list.append(cuts.hh4b_vbf_discriminator_region)
+            if "pass" in category_name:
+                if "Run2" not in category_name:
+                    cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
+                else:
+                    cut_list.append(cuts.hh4b_vbf_pass_discriminator_region_run2)
+            elif "fail" in category_name:
+                if "Run2" not in category_name:
+                    cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
+                else:
+                    cut_list.append(cuts.hh4b_vbf_fail_discriminator_region_run2)
+            else:
+                raise ValueError("Unrecognized region name")
+
         else:
             raise ValueError("Unrecognized region name")
 
@@ -1327,74 +1350,78 @@ def define_categories(
     Define the categories for the analysis.
     """
     categories_dict = {}
-    if not vr1:
-        if spanet:
-            categories_dict |= define_single_category("4b_control_region")
-            categories_dict |= define_single_category("2b_control_region_preW")
+
+    suffixes = []
+    if run2:
+        suffixes.append("Run2")
+    if spanet:
+        suffixes.append("")
+
+    for suffix in suffixes:
+        if not vr1:
+            categories_dict |= define_single_category(f"4b_region{suffix}")
+            categories_dict |= define_single_category(f"4b_control_region{suffix}")
+            categories_dict |= define_single_category(f"2b_control_region_preW{suffix}")
             categories_dict |= (
-                define_single_category("4b_signal_region" + "_blind") if blind else {}
-            )
-            categories_dict |= define_single_category("4b_signal_region")
-            categories_dict |= (
-                define_single_category("2b_signal_region_preW" + "_blind")
+                define_single_category(f"4b_signal_region_blind{suffix}")
                 if blind
                 else {}
             )
-            categories_dict |= define_single_category("2b_signal_region_preW")
+            categories_dict |= define_single_category(f"4b_signal_region{suffix}")
+            categories_dict |= (
+                define_single_category(f"2b_signal_region_preW_blind{suffix}")
+                if blind
+                else {}
+            )
+            categories_dict |= define_single_category(f"2b_signal_region_preW{suffix}")
+
             if bkg_morphing_dnn:
-                categories_dict |= define_single_category("2b_control_region_postW")
-                categories_dict |= (
-                    define_single_category("2b_signal_region_postW" + "_blind")
-                    if blind
-                    else {}
+                categories_dict |= define_single_category(
+                    f"2b_control_region_postW{suffix}"
                 )
-                categories_dict |= define_single_category("2b_signal_region_postW")
-        if run2:
-            categories_dict |= define_single_category("4b_regionRun2")
-            categories_dict |= define_single_category("4b_control_regionRun2")
-            categories_dict |= define_single_category("2b_control_region_preWRun2")
-            categories_dict |= (
-                define_single_category("4b_signal_region" + "_blind" + "Run2")
-                if blind
-                else {}
-            )
-            categories_dict |= define_single_category("4b_signal_region" + "Run2")
-            categories_dict |= (
-                define_single_category("2b_signal_region_preW" + "_blind" + "Run2")
-                if blind
-                else {}
-            )
-            categories_dict |= define_single_category("2b_signal_region_preW" + "Run2")
-            if bkg_morphing_dnn:
-                categories_dict |= define_single_category("2b_control_region_postWRun2")
                 categories_dict |= (
-                    define_single_category("2b_signal_region_postW" + "_blind" + "Run2")
+                    define_single_category(f"2b_signal_region_postW_blind{suffix}")
                     if blind
                     else {}
                 )
                 categories_dict |= define_single_category(
-                    "2b_signal_region_postW" + "Run2"
+                    f"2b_signal_region_postW{suffix}"
                 )
-    else:
-        if spanet:
-            categories_dict |= define_single_category("4b_VR1_control_region")
-            categories_dict |= define_single_category("2b_VR1_control_region_preW")
-            categories_dict |= define_single_category("4b_VR1_signal_region")
-            categories_dict |= define_single_category("2b_VR1_signal_region_preW")
-            if bkg_morphing_dnn:
-                categories_dict |= define_single_category("2b_VR1_control_region_postW")
-                categories_dict |= define_single_category("2b_VR1_signal_region_postW")
-        if run2:
-            categories_dict |= define_single_category("4b_VR1_control_regionRun2")
-            categories_dict |= define_single_category("2b_VR1_control_region_preWRun2")
-            categories_dict |= define_single_category("4b_VR1_signal_regionRun2")
-            categories_dict |= define_single_category("2b_VR1_signal_region_preWRun2")
+
+            if vbf_analysis:
+                # NOTE: this region requires at least 6 jets
+                categories_dict |= define_single_category(
+                    f"vbf_best_candidates_6_jets_4b_region{suffix}"
+                )
+                # NOTE: this region requires at least 6 jets
+                categories_dict |= define_single_category(
+                    f"vbf_best_candidates_6_jets_nokincut_4b_region{suffix}"
+                )
+
+                if vbf_discriminator:
+                    # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above/below the threshold
+                    categories_dict |= define_single_category(
+                        f"vbf_pass_discriminator_4b_region{suffix}"
+                    )
+                    categories_dict |= define_single_category(
+                        f"vbf_fail_discriminator_4b_region{suffix}"
+                    )
+
+        else:
+            categories_dict |= define_single_category(f"4b_VR1_control_region{suffix}")
+            categories_dict |= define_single_category(
+                f"2b_VR1_control_region_preW{suffix}"
+            )
+            categories_dict |= define_single_category(f"4b_VR1_signal_region{suffix}")
+            categories_dict |= define_single_category(
+                f"2b_VR1_signal_region_preW{suffix}"
+            )
             if bkg_morphing_dnn:
                 categories_dict |= define_single_category(
-                    "2b_VR1_control_region_postWRun2"
+                    f"2b_VR1_control_region_postW{suffix}"
                 )
                 categories_dict |= define_single_category(
-                    "2b_VR1_signal_region_postWRun2"
+                    f"2b_VR1_signal_region_postW{suffix}"
                 )
 
     if not spanet and not run2:
@@ -1405,16 +1432,6 @@ def define_categories(
         for key, value in categories_dict.items():
             btag_sf_categories[f"{key}_sf_btag"] = value
         categories_dict |= btag_sf_categories
-
-    if vbf_analysis:
-        # NOTE: this region requires at least 5 JetGood and 2 JetVBF
-        categories_dict |= define_single_category("vbf_lead_mjj_4b_region")
-        # NOTE: this region requires at least 6 jets
-        categories_dict |= define_single_category("vbf_best_candidates_4b_region")
-        
-        if vbf_discriminator:
-            # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above the threshold
-            categories_dict |= define_single_category("vbf_discriminator_4b_region")
 
     return categories_dict
 
