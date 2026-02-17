@@ -9,7 +9,7 @@ object_preselection:
     #TODO: trigger matching?
   FatJet:
     pt: 250
-    eta: 2.5
+    eta: 2.4
     jetId: 2 # 6 with lepveto or 2 w/o lepveto
     btagPNetB: -2
     msd: 50

@@ -377,11 +377,9 @@ bkg_morphing_dnn_SigBkgVariables_input_variables = OrderedDict(
 
 bkg_morphing_boosted_dnn_input_variables = OrderedDict(
     {
-        "era": ["events", "era"],
         "higgs1_reco_pt": ["HiggsLeading", "pt"],
         "higgs1_reco_eta": ["HiggsLeading", "eta"],
         "higgs1_reco_mass": ["HiggsLeading", "mass_regr"],
-        "higgs1_btagBB": ["HiggsLeading", "btagBB"],
         "higgs1_btagBB_wp": ["HiggsLeading", "btagBB_3wp"],
         "higgs2_reco_pt": ["HiggsSubLeading", "pt"],
         "higgs2_reco_eta": ["HiggsSubLeading", "eta"],

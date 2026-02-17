@@ -120,6 +120,7 @@ sample_ggF_list = [
     # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00",
     # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00",
     # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_spanet",
 ]
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
@@ -143,9 +144,9 @@ sample_list = [
     # "DATA_ParkingHH_2023_Cv4",
     # "DATA_ParkingHH_2023_Dv1",
     # "DATA_ParkingHH_2023_Dv2",
-    "TTtoLNu2Q_skimmed",
-    "TTto2L2Nu_skimmed",
-    "TTto4Q_skimmed",
+    # "TTtoLNu2Q_skimmed",
+    # "TTto2L2Nu_skimmed",
+    # "TTto4Q_skimmed",
 ] + sample_ggF_list
 
 # Define the categories to save
@@ -335,9 +336,10 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector_boosted.json",
+            #  f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
+            #  f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b.json",
+            #  f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector_boosted.json",
+            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_boosted_skimmed.json",
             f"{localdir}/../HH4b_common/datasets/background_TTtoX_skimmed.json",
             ## f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
             ## f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_SM.json",

@@ -183,6 +183,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 "mass_regr"
             )
 
+            self.events["FatJetGood"] = ak.with_field(
+                self.events["FatJetGood"],
+                self.events["FatJetGood"].pt * self.events["FatJetGood"].particleNet_massCorr,
+                "pt_regr"
+            )
+
             # here we propagate the btagging scores to the FatJetGood collection as is done in the pocket coffea jet_selection
             # if we're interested in other taggers, we need to add them here or swap to the mass correlated ones ("particleNetWithMass_HbbvsQCD", "particleNetWithMass_HccvsQCD")
             self.events["FatJetGood"] = ak.with_field(
