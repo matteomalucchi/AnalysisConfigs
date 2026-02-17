@@ -9,8 +9,8 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 onnx_model_dict  |= {
     "spanet": "/work/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_SM_ptFlatten_NoParquet/vbf_ggf_pairing_classification.onnx",
     "vbf_discriminator": "/work/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_SM_ptFlatten_NoParquet/vbf_ggf_pairing_classification.onnx",
-    # "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/best_models/ratio/average_model_from_onnx.onnx",
-    # "sig_bkg_dnn": "/work/tharte/datasets/onnx_spanet_models_for_classification_sig_bkg/1_15_1_from_1_14_5b_spanet_hh4b_classifier_test_signal_accuracy_metric_jet_ptetaphimass_glob_dr_ht_higgsleadsublead_HH.onnx",
+    # "bkg_morphing_dnn": "",
+    # "sig_bkg_dnn": "",
 }
 
 
