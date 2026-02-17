@@ -1054,6 +1054,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 if jet_vbf is not None:
                     self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
                 else:
+                    # get the vbf candidates as the leading in mjj
                     self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
                         self.events["JetGoodFromHiggsOrdered"].index
                     )
@@ -1111,10 +1112,27 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["HiggsLeadingRun2"],
                 self.events["HiggsSubLeadingRun2"],
                 self.events["JetGoodFromHiggsOrderedRun2"],
-                self.events["JetGoodVBFEnergyOrdered"],
-                #HERE
             ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
+            # get the vbf candidates as the leading in mjj
+            self.events["JetVBFCandidatesRun2"] = self.get_jets_not_from_idx(
+                self.events["JetGoodFromHiggsOrderedRun2"].index
+            )
+            self.events["JetGoodVBFCandidatesRun2"], _ = custom_jet_selection(
+                self.events,
+                "JetVBFCandidatesRun2",
+                "JetVBF",
+                self.params,
+                year=self._year,
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name,
+                forward_jet_veto=True,
+            )
+            self.events["JetGoodVBFEnergyOrderedRun2"] = get_lead_mjj_jet_pair(
+                self.events, "JetGoodVBFCandidatesRun2"
+            )
+            breakpoint()
+            
             matched_jet_higgs_idx_not_noneRun2 = (
                 self.events.JetGoodFromHiggsOrderedRun2.index
             )

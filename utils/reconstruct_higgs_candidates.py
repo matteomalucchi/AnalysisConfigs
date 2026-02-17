@@ -263,6 +263,11 @@ def get_lead_mjj_jet_pair(events, jet_coll):
         lead_mjj_jet_pair_padded,
     )
 
+    # order the jets according to the energy
+    lead_mjj_jet_pair_fixed = lead_mjj_jet_pair_fixed[
+        ak.argsort(lead_mjj_jet_pair_fixed.energy, axis=1, ascending=False)
+    ]
+
     return lead_mjj_jet_pair_fixed
 
 
