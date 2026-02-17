@@ -147,7 +147,11 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
         vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
         # pad the vbf jets such that if an event doesn't have at least 6 jets
         # the vbf jets are two None
-        vbf_jets_pad_none=ak.mask(vbf_jets, (ak.count(jet_collection.pt, axis=1) >= 6)[:, np.newaxis] * np.ones(2, dtype=np.bool))
+        vbf_jets_pad_none = ak.mask(
+            vbf_jets,
+            (ak.count(jet_collection.pt, axis=1) >= 6)[:, np.newaxis]
+            * np.ones(2, dtype=np.bool),
+        )
 
         return higgs_lead, higgs_sub, jets_ordered, vbf_jets_pad_none
 
@@ -191,6 +195,77 @@ def possible_higgs_reco(jets, comb_idx):
     return higgs_candidates_unflatten
 
 
+def get_lead_mjj_jet_pair(events, jet_coll):
+    """
+    Choose the two jets with the highest mjj
+    """
+
+    jet = events[jet_coll]
+
+    # Adds none jets to events that have less than 2 jets
+    # jet_padded for each event can be either
+    # [None, None], [Jet, None], [Jet, Jet, ...]
+    jet_padded = ak.pad_none(jet, 2)
+
+    # get combinations of jet and choose the one with highest mjj
+    jet_combinations = ak.combinations(jet_padded, 2)
+    jet_combinations_mass = (jet_combinations["0"] + jet_combinations["1"]).mass
+    jet_combinations_mass_max_idx = ak.to_numpy(
+        ak.argsort(jet_combinations_mass, axis=1, ascending=False)[:, 0]
+    )
+    jets_max_mass = jet_combinations[
+        ak.local_index(jet_combinations, axis=0), jet_combinations_mass_max_idx
+    ]
+
+    # get the two jets with the highest mjj
+    # have to fill none with -1 because of numpy indexing
+    # will remove the jets which are actually none after
+    lead_mjj_jet_0 = ak.unflatten(
+        events.Jet[
+            ak.local_index(events.Jet, axis=0),
+            ak.fill_none(jets_max_mass["0"].index, -1),
+        ],
+        1,
+    )
+    lead_mjj_jet_1 = ak.unflatten(
+        events.Jet[
+            ak.local_index(events.Jet, axis=0),
+            ak.fill_none(jets_max_mass["1"].index, -1),
+        ],
+        1,
+    )
+    lead_mjj_jet_pair = ak.with_name(
+        ak.concatenate([lead_mjj_jet_0, lead_mjj_jet_1], axis=1),
+        name="PtEtaPhiMCandidate",
+    )
+    lead_mjj_jet_pair_not_none = add_fields(lead_mjj_jet_pair, "all")
+
+    # get the mask for each event where there aren't none jets in the jet padded collection
+    mask_event_not_none = ak.all(~ak.is_none(jet_padded, axis=1), axis=1)
+    # remove the jets which were actually none
+    # if an event was missing one or two of these jets,
+    # set the leading mjj jet pair to the first lead_mjj_jet_pair (if present)
+    # and the other to None. This is to avoid having events with incomplete jet pairs.
+    lead_mjj_jet_pair_padded = add_fields(
+        ak.pad_none(ak.unflatten(ak.firsts(jet), 1), 2, axis=1),
+        "all",
+    )
+
+    # where there aren't any None values put lead_mjj_jet_pair_not_none
+    # where we never have None values and
+    # contains the correct pair when there at least 2 jets
+    # and otherwise  put lead_mjj_jet_pair_padded,
+    # which contains the None values (for each event
+    # either [None, None] or [Jet, None]
+    lead_mjj_jet_pair_fixed = ak.where(
+        mask_event_not_none,
+        lead_mjj_jet_pair_not_none,
+        lead_mjj_jet_pair_padded,
+    )
+
+    return lead_mjj_jet_pair_fixed
+
+
 def distance_pt_func(higgs_pair, k):
     if len(higgs_pair[0, 0]) == 0:
         return np.array([])
@@ -199,17 +274,6 @@ def distance_pt_func(higgs_pair, k):
     dist = abs(higgs1.mass - higgs2.mass * k) / sqrt(1 + k**2)
     max_pt = np.maximum(higgs1.pt, higgs2.pt)
     return dist, max_pt
-
-
-# def pt_list(higgs_pair):
-#    if len(higgs_pair[0,0]) == 0:
-#        return np.array([])
-#    higgs1 = higgs_pair[:,:,0]
-#    higgs2 = higgs_pair[:,:,1]
-#    # Find maximal pt for each higgs_pairing and just give it back as a nested list
-#    # (then we can do the same as with the distance term):
-#    #max_pt = [[max(h1_comb.pt,h2_comb.pt) for h1_comb,h2_comb in zip(h1,h2)] for h1,h2 in zip(higgs1,higgs2)]
-#    return max_pt
 
 
 def run2_matching_algorithm(jet_collection):
@@ -232,7 +296,6 @@ def run2_matching_algorithm(jet_collection):
 
     # Do the pt ordering for all events and fill later only the ones where the dhh is smaller than 30
     pt_order_idx = ak.argsort(max_pt, axis=1, ascending=False)
-    # pt_order = ak.sort(max_pt_list, axis=1, ascending=False)  # Maybe useful for debugging
 
     # Find idxes where the delta_dhh is smaller than 30 and if so, fill in by pt ordering.
     min_idx = ak.where(delta_dhh > 30, dist_order_idx[:, 0], pt_order_idx[:, 0])

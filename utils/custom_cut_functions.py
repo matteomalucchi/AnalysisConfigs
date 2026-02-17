@@ -49,6 +49,7 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
 def custom_jet_selection(
     events,
     jet_type,
+    jet_type_obj_presel,
     params,
     year,
     leptons_collection="",
@@ -78,10 +79,10 @@ def custom_jet_selection(
     # copy also the object_preselection to modify it
     params_copy = copy.copy(params)
     params_copy.object_preselection[jet_type_default] = params_copy.object_preselection[
-        jet_type
+        jet_type_obj_presel
     ].copy()
     params_copy.object_preselection[jet_type_default]["pt"] = (
-        params_copy.object_preselection[jet_type][pt_cut_name]
+        params_copy.object_preselection[jet_type_obj_presel][pt_cut_name]
     )
     params_copy.jets_calibration.collection[year] = {"AK4PFPuppi": jet_type_default}
 

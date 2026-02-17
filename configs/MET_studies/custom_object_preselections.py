@@ -15,6 +15,7 @@ def jet_type1_selection(
     _, mask = custom_jet_selection(
         events,
         jet_type,
+        jet_type,
         params,
         year,
         leptons_collection,

@@ -19,6 +19,7 @@ from utils.reconstruct_higgs_candidates import (
     reconstruct_resonances_from_idx,
     reconstruct_higgs_from_provenance,
     run2_matching_algorithm,
+    get_lead_mjj_jet_pair,
 )
 from utils.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
 
@@ -170,6 +171,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # Cut on the JEC pt (w/o regression)
         self.events["JetGood"], mask_jet_good = custom_jet_selection(
             self.events,
+            "Jet",
             "Jet",
             self.params,
             year=self._year,
@@ -686,14 +688,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
             jet_higgs_idx_per_event
         )
 
-        self.params.object_preselection.update(
-            {"JetNotFromHiggs": self.params.object_preselection["Jet"]}
-        )
-
         # Cut on the JEC pt (w/o regression)
         self.events["JetNotFromHiggs"], _ = custom_jet_selection(
             self.events,
             "JetNotFromHiggs",
+            "Jet",
             self.params,
             year=self._year,
             pt_type="pt_default",
@@ -1042,7 +1041,38 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.pad_value,
                 self.events.Arctanh_Delta_pairing_probabilities,
             )
+
+            (
+                self.events["HiggsLeading"],
+                self.events["HiggsSubLeading"],
+                self.events["JetGoodFromHiggsOrdered"],
+                jet_vbf,
+            ) = reconstruct_resonances_from_idx(
+                self.events[jet_coll_pairing], pairing_predictions
+            )
+            if self.vbf_analysis:
+                if jet_vbf is not None:
+                    self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
+                else:
+                    self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
+                        self.events["JetGoodFromHiggsOrdered"].index
+                    )
+                    self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
+                        self.events,
+                        "JetVBFCandidates",
+                        "JetVBF",
+                        self.params,
+                        year=self._year,
+                        pt_type="pt_default",
+                        pt_cut_name=self.pt_cut_name,
+                        forward_jet_veto=True,
+                    )
+                    self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
+                        self.events, "JetGoodVBFCandidates"
+                    )
+                    
             if self._isMC:
+                #HERE add also the vbf idx
                 matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
                     suffix="True",
                     pairing_predictions=pairing_predictions,
@@ -1050,15 +1080,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
             else:
                 self.dummy_provenance()
-
-            (
-                self.events["HiggsLeading"],
-                self.events["HiggsSubLeading"],
-                self.events["JetGoodFromHiggsOrdered"],
-                self.events["JetGoodFromVBFEnergyOrdered"],
-            ) = reconstruct_resonances_from_idx(
-                self.events[jet_coll_pairing], pairing_predictions
-            )
 
             matched_jet_higgs_idx_not_none = self.events.JetGoodFromHiggsOrdered.index
             # Define distance parameter for selection:
@@ -1073,7 +1094,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
 
             # Get classification probability if present
-            if len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
+            if (
+                len(spanet_output["class_prob"]) > 0
+                and self.vbf_discriminator == self.spanet
+            ):
                 if self.vbf_analysis:
                     self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
                 else:
@@ -1087,6 +1111,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["HiggsLeadingRun2"],
                 self.events["HiggsSubLeadingRun2"],
                 self.events["JetGoodFromHiggsOrderedRun2"],
+                self.events["JetGoodVBFEnergyOrdered"],
+                #HERE
             ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             matched_jet_higgs_idx_not_noneRun2 = (
@@ -1097,6 +1123,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 + (self.events.HiggsSubLeadingRun2.mass - 120) ** 2
             )
             if self._isMC:
+                #HERE add also the vbf idx
                 matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
                     suffix="True",
                     pairing_predictions=pairing_predictions,
