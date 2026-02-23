@@ -228,6 +228,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
     #     self._preselections = self._preselections_temp
 
     def flatten_pt(self, rand_type, jet_collection):
+        np.random.seed(42)
         if rand_type == 0.5:
             random_weights = ak.Array(
                 np.random.rand((len(self.events[jet_collection].pt))) + 0.5
