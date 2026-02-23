@@ -121,8 +121,8 @@ echo "${cmd[@]}"
 # DEBUG MODE → run without trapping
 ###################################
 if $is_debug; then
-    "${cmd[@]}"
-    status=$?
+    # "${cmd[@]}"
+    # status=$?
     # cleanup
     exit $status
 fi

@@ -216,11 +216,27 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 axis=1,
             )
 
-            self.events["JetTotalSPANetPtFlattenPadded"] = copy.copy(
-                self.events["JetTotalSPANetPadded"]
-            )
 
             if self._isMC and self.random_pt:
+                # flatten pt for all jets to train spanet 
+                self.events["JetTotalSPANetPtFlattenPadded"] = copy.copy(
+                    self.events["JetTotalSPANetPadded"]
+                )
                 self.flatten_pt(self.rand_type, "JetTotalSPANetPtFlattenPadded")
-
+                # flatten pt only for jets matched to the Higgs for the training of spanet
+                self.events["JetTotalSPANetPtFlattenHiggsMatchedPadded"] = ak.where(
+                    ak.is_none(self.events["JetTotalSPANetPtFlattenPadded"].provenance_higgs, axis=1),
+                    self.events["JetTotalSPANetPadded"],
+                    self.events["JetTotalSPANetPtFlattenPadded"]
+                )
+                
+            # Define mjj and delta eta of leading mjj vbf jet candidates
+            for jet_coll in ["JetTotalSPANetPadded", "JetTotalSPANetPtFlattenPadded"]:
+                vbf_mjj = (self.events[jet_coll][:, 5] + self.events[jet_coll][:, 6]).mass
+                vbf_deta = abs(self.events[jet_coll][:, 5].eta - self.events[jet_coll][:, 6].eta)
+                
+                self.events[f"mjj{jet_coll}"]=vbf_mjj
+                self.events[f"deta{jet_coll}"]=vbf_deta
+                
+        
         super().process_extra_after_presel(variation=variation)
