@@ -27,22 +27,31 @@ parser.add_argument(
     help="Type of plot (jec, reg, neutrino)",
     default=["reg", "neutrino"],
 )
+parser.add_argument(
+    "--upart",
+    help="Use UparT Regression instead of PNet one",
+    action="store_true",
+    default=False,
+)
 args = parser.parse_args()
 
-pt_bins = pt_bins_all if "pnetreg15" in args.dir else pt_bins_reduced
+pt_bins = pt_bins_all if "pnetreg15" in args.dir else (pt_bins_extended if "extendedPT" in args.dir else pt_bins_reduced)
 type_plot_dict = {
     "jec": "ResponseJEC",
-    "reg": "ResponsePNetReg",
-    "neutrino": "ResponsePNetRegNeutrino",
+    "reg": f"Response{'UparT' if args.upart else 'PNet'}Reg",
+    "neutrino": f"Response{'UparT' if args.upart else 'PNet'}RegNeutrino",
 }
 
 label_dict = {
     "jec": "JEC",
-    "reg": "PNet",
-    "neutrino": "PNet incl. neutrinos",
+    "reg": f"{'UparT' if args.upart else 'PNet'}",
+    "neutrino": f"{'UparT' if args.upart else 'PNet'} incl. neutrinos",
 }
 
 tot_string = "Tot" if "splitpnetreg15" in args.dir else ""
+
+if args.upart:
+    inclusive_bins = inclusive_bins_upart
 
 for type_string in args.type:
     for flav in args.flav:
@@ -84,8 +93,8 @@ for type_string in args.type:
         ax.set_ylabel("Median jet response", loc="top")
         ax.set_xlabel(r"$p_{T}^{ptcl}$ (GeV)", loc="right")
 
-        ax.set_ylim(top=1.05 * np.nanmax(data), bottom=0.99 * np.nanmin(data))
-        # ax.set_ylim(top=1.06, bottom=0.95)
+        #ax.set_ylim(top=1.05 * np.nanmax(data), bottom=0.99 * np.nanmin(data))
+        ax.set_ylim(top=1.08, bottom=0.92)
 
         ax.axhline(y=1, color="black", linestyle="--", linewidth=0.7)
         # add +- 1% lines
@@ -99,7 +108,7 @@ for type_string in args.type:
         ax.set_xscale("log")
 
         hep.cms.lumitext(
-            f"{'2023' if '23' in args.dir else '2022'} (13.6 TeV)",
+            f"{'2025' if '25' in args.dir else ('2024' if '24' in args.dir else ('2023' if '23' in args.dir else '2022'))}{' preBPix' if 'preBPix' in args.dir else (' postBPix' if 'postBPix' in args.dir else '')}{' preEE' if 'preEE' in args.dir else (' postEE' if 'postEE' in args.dir else '')} (13.6 TeV)",
         )
         hep.cms.text(
             text="Simulation\nPreliminary",

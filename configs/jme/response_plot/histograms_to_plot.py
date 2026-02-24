@@ -41,15 +41,14 @@ histograms_to_plot = [
     # ["pos1", ("inclusive",), "inclusive", "ResponsePNetRegTot", 0, 14],
     # ["pos1", ("inclusive",), "inclusive", "ResponsePNetRegNeutrinoTot", 0, 14],
 
-
-    ["pos1", ("inclusive",), "inclusive", "JetPtPNetReg", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegSplit15", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegTot", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrino", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrinoSplit15", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrinoTot", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtJEC", 0, 0],
-    ["pos1", ("inclusive",), "inclusive", "JetPtRaw", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtPNetReg", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegSplit15", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegTot", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrino", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrinoSplit15", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrinoTot", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtJEC", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtRaw", 0, 0],
 
     # ["pos1", ("inclusive",), "inclusive", "JetPtPNetReg", 0, 1],
     # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegSplit15", 0, 1],
@@ -83,4 +82,69 @@ histograms_to_plot = [
     # ["pos1", ("inclusive",), "inclusive", "JetPtRaw", 0, 14],
     # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegTot", 0, 14],
     # ["pos1", ("inclusive",), "inclusive", "JetPtPNetRegNeutrinoTot", 0, 14],
+
+    ###########################""
+
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTReg", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegTot", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrino", 0, 0],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrinoTot", 0, 0],
+
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTReg", 0, 1],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegTot", 0, 1],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrino", 0, 1],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrinoTot", 0, 1],
+
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTReg", 0, 2],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegTot", 0, 2],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrino", 0, 2],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrinoTot", 0, 2],
+    # #
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTReg", 0, 0],
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTRegTot", 0, 0],
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTRegNeutrino", 0, 0],
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTRegNeutrinoTot", 0, 0],
+
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTReg", 5, 0],
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTRegTot", 5, 0],
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTRegNeutrino", 5, 0],
+    # ["pos3", ("inclusive",), "inclusive", "ResponseUparTRegNeutrinoTot", 5, 0],
+    #
+    # ["pos1", ("inclusive",), "inclusive", "ResponseJEC", 0, 14],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseRaw", 0, 14],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegTot", 0, 14],
+    # ["pos1", ("inclusive",), "inclusive", "ResponseUparTRegNeutrinoTot", 0, 14],
+
+    ["pos1", ("inclusive",), "inclusive", "JetPtUparTReg", 0, 0],
+    ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegTot", 0, 0],
+    ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrino", 0, 0],
+    ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrinoTot", 0, 0],
+    ["pos1", ("inclusive",), "inclusive", "JetPtJEC", 0, 0],
+    ["pos1", ("inclusive",), "inclusive", "JetPtRaw", 0, 0],
+
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTReg", 0, 1],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegTot", 0, 1],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrino", 0, 1],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrinoTot", 0, 1],
+
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTReg", 0, 2],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegTot", 0, 2],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrino", 0, 2],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrinoTot", 0, 2],
+    # #
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTReg", 0, 0],
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTRegTot", 0, 0],
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTRegNeutrino", 0, 0],
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTRegNeutrinoTot", 0, 0],
+
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTReg", 5, 0],
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTRegTot", 5, 0],
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTRegNeutrino", 5, 0],
+    # ["pos3", ("inclusive",), "inclusive", "JetPtUparTRegNeutrinoTot", 5, 0],
+    #
+    # ["pos1", ("inclusive",), "inclusive", "JetPtJEC", 0, 14],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtRaw", 0, 14],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegTot", 0, 14],
+    # ["pos1", ("inclusive",), "inclusive", "JetPtUparTRegNeutrinoTot", 0, 14],
+
 ]

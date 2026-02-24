@@ -4,15 +4,17 @@ import sys
 # sys.path.append("../")
 from configs.jme.params.binning import *
 
-
 def create_pol_string(num_params):
     pol_string = "[0]"
     for i in range(1, num_params - 2):
         pol_string += f"+[{i}]*pow(log10(x),{i})"
     return pol_string
 
+def create_std_gaus_string():
+    return "(x<[10])*([9])+(x>=[10])*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8]))))))"
 
-def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split15, flavs):
+
+def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split15, flavs, upart):
     for flav_group in flavs:
         # create string for flavour
         flav_group_str = ""
@@ -23,17 +25,22 @@ def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split
 
             # create txt file for L2Relative
             file_names = [
-                f"{year}_{version}_MC_L2Relative_AK4PFPNet{flav_str}.txt",
-                f"{year}_{version}_MC_L2Relative_AK4PFPNetPlusNeutrino{flav_str}.txt",
+                f"{year}_{version}_MC_L2Relative_AK4PF{'UparT' if upart else 'PNet'}{flav_str}.txt",
+                f"{year}_{version}_MC_L2Relative_AK4PF{'UparT' if upart else 'PNet'}PlusNeutrino{flav_str}.txt",
             ]
             for file_name in file_names:
                 with open(f"{main_dir}/{file_name}", "w") as l2_file:
                     suffix = ("Neutrino" if "Neutrino" in file_name else "") + (
                         "Tot" if split15 else ""
                     )
-                    l2_file.write(
-                        f"{{1 JetEta 1 JetPt ({create_pol_string(num_params)})  Correction L2Relative }}\n"
-                    )
+                    if "extendedPT" in main_dir:
+                        l2_file.write(
+                            f"{{1 JetEta 1 JetPt ({create_std_gaus_string()})  Correction L2Relative }}\n"
+                        )
+                    else:
+                        l2_file.write(
+                            f"{{1 JetEta 1 JetPt ({create_pol_string(num_params)})  Correction L2Relative }}\n"
+                        )
                     for i in range(len(correct_eta_bins) - 1):
                         try:
                             with open(
@@ -44,26 +51,26 @@ def write_l2rel_txt(main_dir, correct_eta_bins, year, num_params, version, split
 
                                 params_string = ""
                                 for param in fit_results_dict[
-                                    f"{flav}_ResponsePNetReg{suffix}"
+                                    f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"
                                 ]["parameters"]:
                                     params_string += "    {}".format(param)
                                 for j in range(
                                     num_params
                                     - 2
                                     - len(
-                                        fit_results_dict[f"{flav}_ResponsePNetReg{suffix}"][
+                                        fit_results_dict[f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"][
                                             "parameters"
                                         ]
                                     )
                                 ):
                                     params_string += " 0"
                                 jetpt_low = "    {}".format(
-                                    fit_results_dict[f"{flav}_ResponsePNetReg{suffix}"][
+                                    fit_results_dict[f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"][
                                         "jet_pt"
                                     ][0]
                                 )
                                 jetpt_up = "    {}".format(
-                                    fit_results_dict[f"{flav}_ResponsePNetReg{suffix}"][
+                                    fit_results_dict[f"{flav}_Response{'UparT' if upart else 'PNet'}Reg{suffix}"][
                                         "jet_pt"
                                     ][1]
                                 )
