@@ -95,6 +95,8 @@ BIN_VARIABLES = {
     "PV_npvs": {"bin_edges": PV_bins, "label": "#PV", "name_plot": "nPV"},
 }
 
+MASK=False
+
 outputdir = args.output if args.output else "plots_MET"
 
 # Create output directory if it does not exist
@@ -850,6 +852,13 @@ def main():
             hists_dict = {}
             for bin_var in BIN_VARIABLES.keys():
                 met_dict = {}
+                
+                if MASK:
+                    # define a mask for the events
+                    mask=col_var["ll_pt"]>100
+                    for var in col_var:
+                        col_var[var]=col_var[var][mask]
+                
                 print(f"Processing category: {category} and bin in variable {bin_var}")
                 bin_var_array = col_var[bin_var]
 
