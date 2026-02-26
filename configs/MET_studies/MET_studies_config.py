@@ -162,7 +162,7 @@ cfg = Configurator(
                 (
                     [
                         ColOut("ll", ["mass", "pt", "eta", "phi"]),
-                        ColOut("GenMET", ["pt", "phi"]),
+                        ColOut("PV", ["npvs", "npvsGood"]),
                     ]
                     + met_cols
                 )

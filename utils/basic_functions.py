@@ -7,10 +7,10 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
         for field in ["pt", "eta", "phi", "mass"]:
             if field not in fields:
                 fields.append(field)
-        
-        # remove 2d fields
-        fields=[f for f in fields if ("muon" not in f and "electron" not in f)]
-    
+
+        # remove 3d fields
+        fields = [f for f in fields if collection[f].ndim <= 2]
+
     elif fields is None:
         fields = ["pt", "eta", "phi", "mass"]
         fields_add = [
@@ -28,16 +28,12 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
 
     if four_vec == "PtEtaPhiMLorentzVector":
         fields_dict = {field: getattr(collection, field) for field in fields}
-        # remove fields with 2d
-        # fields_dict = {k: v for k, v in fields_dict.items() if v.ndim == 1}
         collection = ak.zip(
             fields_dict,
             with_name="PtEtaPhiMLorentzVector",
         )
     elif four_vec == "Momentum4D":
         fields_dict = {field: getattr(collection, field) for field in fields}
-        # remove fields with 2d
-        # fields_dict = {k: v for k, v in fields_dict.items() if v.ndim == 1}
         collection = ak.zip(
             fields_dict,
             with_name="Momentum4D",
@@ -47,8 +43,6 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
             collection = ak.with_field(collection, getattr(collection, field), field)
 
     return collection
-
-
 
 
 def align_by_eta(full, reduced, put_none=False):

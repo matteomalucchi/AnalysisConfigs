@@ -13,7 +13,7 @@ from pocket_coffea.lib.deltaR_matching import object_matching, deltaR_matching_n
 
 from configs.jme.workflow import QCDBaseProcessor
 from configs.jme.custom_cut_functions import jet_selection_nopu
-from utils.basic_functions import add_fields, align_by_eta
+from utils.basic_functions import add_fields
 from configs.MET_studies.custom_object_preselections import (
     jet_type1_selection,
     muon_selection_custom,
@@ -106,6 +106,25 @@ class METProcessor(BaseProcessorABC):
 
         return jet_low_pt
 
+    def subtr_muon_angles(self, jet):
+        jet_subtr_muon=copy.copy(jet)
+        if "muonSubtrDeltaEta" in jet_subtr_muon.fields:
+            jet_subtr_muon = ak.with_field(
+                jet_subtr_muon,
+                jet_subtr_muon.muonSubtrDeltaEta
+                + jet_subtr_muon.eta,
+                "eta",
+            )
+            
+        if "muonSubtrDeltaPhi" in jet_subtr_muon.fields:
+            jet_subtr_muon = ak.with_field(
+                jet_subtr_muon,
+                jet_subtr_muon.muonSubtrDeltaPhi
+                + jet_subtr_muon.phi,
+                "phi",
+            )
+        return jet_subtr_muon
+
     def process_extra_after_skim(self):
         self.jet_good_list = ["JetGood"]
 
@@ -155,49 +174,42 @@ class METProcessor(BaseProcessorABC):
         self.events["JetPNetMuonSubtr"] = copy.copy(self.events["Jet"])
         self.events["JetPNetPlusNeutrinoMuonSubtr"] = copy.copy(self.events["Jet"])
 
-        for jet_coll in [
+        self.jet_muon_subtr_apply_jec = [
             "JetMuonSubtr",
             "JetLowPtMuonSubtr",
             "JetPNetMuonSubtr",
             "JetPNetPlusNeutrinoMuonSubtr",
-        ]:
-            # Change the rawFactor to account for muon subtraction
-            # This is not exactly the correct thing to do. We shouldn't be using the full
-            # jet eta and phi but the eta and phi of muon-less jet p4. Not possible with
-            # current NanoAODs.
-            # This is the factor that is used to get the raw muon-less jet pT and mass
-            self.events[jet_coll] = ak.with_field(
-                self.events[jet_coll],
-                1
-                - (
-                    (1 - self.events[jet_coll].rawFactor)
-                    * (1 - self.events[jet_coll].muonSubtrFactor)
-                ),
-                "rawFactor",
-            )
+        ]
 
-            if "muonSubtrDeltaEta" in self.events[jet_coll].fields:
+        if self.jet_regressed_option != "option_6":
+            for jet_coll in self.jet_muon_subtr_apply_jec:
+                # Change the rawFactor to account for muon subtraction
+                # This is not exactly the correct thing to do. We shouldn't be using the full
+                # jet eta and phi but the eta and phi of muon-less jet p4. Not possible with
+                # current NanoAODs.
+                # This is the factor that is used to get the raw muon-less jet pT and mass
                 self.events[jet_coll] = ak.with_field(
                     self.events[jet_coll],
-                    self.events[jet_coll].muonSubtrDeltaEta + self.events[jet_coll].eta,
-                    "eta",
+                    1
+                    - (
+                        (1 - self.events[jet_coll].rawFactor)
+                        * (1 - self.events[jet_coll].muonSubtrFactor)
+                    ),
+                    "rawFactor",
                 )
-            if "muonSubtrDeltaPhi" in self.events[jet_coll].fields:
-                self.events[jet_coll] = ak.with_field(
-                    self.events[jet_coll],
-                    self.events[jet_coll].muonSubtrDeltaPhi + self.events[jet_coll].phi,
-                    "phi",
-                )
+                self.events[jet_coll]=self.subtr_muon_angles(self.events[jet_coll])
 
         # Create uncorrected collection for type 1 met correction
         # where only muon subtraction and not JECs are applied
         self.events["JetMuonSubtrUncorrected"] = copy.copy(self.events["Jet"])
-        for field in [
+        self.fields_for_muon_subtr_factor=[
             "pt",
             "mass",
             "pt_raw",
             "mass_raw",
-        ]:
+        ]
+        
+        for field in self.fields_for_muon_subtr_factor:
             self.events["JetMuonSubtrUncorrected"] = ak.with_field(
                 self.events["JetMuonSubtrUncorrected"],
                 self.events["JetMuonSubtrUncorrected"][field]
@@ -218,6 +230,20 @@ class METProcessor(BaseProcessorABC):
             "pt_raw",
             "mass_raw",
         ]
+
+        if self.jet_regressed_option == "option_6":
+            for jet_coll in self.jet_muon_subtr_apply_jec:
+                for field in self.fields_for_muon_subtr_factor:
+                    # apply the JEC computed in pt_raw to the pt_raw_muon_subtr and save it as the pT
+                    # Equivalent to subtracting the muons from the pT_JEC
+                    self.events[jet_coll] = ak.with_field(
+                        self.events[jet_coll],
+                        self.events[jet_coll][field]
+                        * (1 - self.events[jet_coll].muonSubtrFactor),
+                        field,
+                    )
+                # change also the angles
+                self.events[jet_coll]=self.subtr_muon_angles(self.events[jet_coll])
 
         # cut the low pt jets
         self.events["JetGoodLowPtMuonSubtr"] = low_pt_jet_type1_selection(
@@ -242,6 +268,7 @@ class METProcessor(BaseProcessorABC):
                 elif (
                     self.jet_regressed_option == "option_2"
                     or self.jet_regressed_option == "option_5"
+                    or self.jet_regressed_option == "option_6"
                 ):
                     # add the jets without the regression back in the collection
                     jets = ak.where(
@@ -340,9 +367,10 @@ class METProcessor(BaseProcessorABC):
 
             if self.rescale_MET_with_regressed_pT:
                 for met_branch, jet_coll_to_remove in zip(
-                    # ["RawPuppiMET", "PuppiMET"],
                     ["RawPuppiMET"],
-                    [jets_raw, self.events.JetGood],
+                    [jets_raw],
+                    # ["RawPuppiMET", "PuppiMET"],
+                    # [jets_raw, self.events.JetGood],
                 ):
 
                     new_MET = met_correction_after_jec(

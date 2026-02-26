@@ -10,31 +10,31 @@ object_preselection:
   JetMuonSubtr:
     pt: 15
     EmEF: 0.9
-    eta: 5.2
+    eta: 10 #5.2
     jetId: 0 #6
   
   JetMuonSubtrUncorrected:
     pt: 15
     EmEF: 0.9
-    eta: 5.2
+    eta: 10 #5.2
     jetId: 0 #6
 
   JetPNetMuonSubtr:
     pt: 15
     EmEF: 0.9
-    eta: 5.2
+    eta: 10 #5.2
     jetId: 0 #6
 
   JetPNetPlusNeutrinoMuonSubtr:
     pt: 15
     EmEF: 0.9
-    eta: 5.2
+    eta: 10 #5.2
     jetId: 0 #6
 
   JetLowPtMuonSubtr:
     pt: 15
     EmEF: 0.9
-    eta: 5.2
+    eta: 10 #5.2
 
   GenJet:
     pt: 8
