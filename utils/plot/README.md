@@ -9,8 +9,10 @@ Supports:
 * ✅ 2D histograms (heatmaps)
 * ✅ Graphs with error bars (e.g. efficiency or response curves)
 
-> [!WARNING] 
+> [!WARNING]
+>
 > ### 🧾 Disclaimer
+>
 > 📘 This documentation and example set were generated with the assistance of ChatGPT (GPT-5), so there may be errors and inconsistencies w.r.t. the actual `HEPPlotter` class  
 
 ---
@@ -128,7 +130,7 @@ series_dict = {
 
 📄 **Output files:**
 
-```
+```bash
 plots/response_map.png
 plots/response_map.pdf
 plots/response_map.svg
@@ -200,7 +202,7 @@ series_dict = {
 
 📄 **Output files:**
 
-```
+```bash
 plots/response_curve.png
 plots/response_curve.pdf
 plots/response_curve.svg
@@ -212,8 +214,6 @@ plots/response_curve.svg
 * `"fmt"` controls the matplotlib marker format (e.g., `"o"`, `"s"`, `"^"`).
 * Use `.add_line("h", y=1.0)` to mark reference values.
 * Supports multiple graphs with different styles.
-
-
 
 ---
 
@@ -235,7 +235,7 @@ plots/response_curve.svg
 HEPPlotter(style="CMS", debug=False)
 ```
 
-**Arguments**
+### Arguments
 
 * `style`: mplhep style name (e.g. `"CMS"`, `"ATLAS"`, `"LHCb"`)
 * `debug`: print internal steps (default `False`)
@@ -400,7 +400,7 @@ Each process runs its own plot cleanly.
 
 By default, each plot is saved as:
 
-```
+```bash
 {output_base}.png
 {output_base}.pdf
 {output_base}.svg
@@ -423,15 +423,6 @@ You can customize formats with:
 * Can add multiple ratio histograms or precomputed ratio curves
 * Clears internal state after each plot (safe for multiprocessing)
 
----
-
-## 🧩 Example Output
-
-| Plot Type                                                                              | Description                  |
-| -------------------------------------------------------------------------------------- | ---------------------------- |
-| ![](https://raw.githubusercontent.com/scikit-hep/mplhep/main/docs/images/example1.png) | 1D histogram with ratio plot |
-| ![](https://raw.githubusercontent.com/scikit-hep/mplhep/main/docs/images/example2.png) | 2D heatmap                   |
-| ![](https://raw.githubusercontent.com/scikit-hep/mplhep/main/docs/images/example3.png) | Graph with error bars        |
 
 ---
 
