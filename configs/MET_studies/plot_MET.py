@@ -12,6 +12,7 @@ from multiprocessing import Pool
 import argparse
 from hist import Hist
 from coffea.util import load, save
+
 # from coffea import hist as coffea_hist
 
 from utils.plot.get_columns_from_files import get_columns_from_files
@@ -20,6 +21,7 @@ from plot_config import (
     total_var_dict,
     response_var_name_dict,
     qT_bins,
+    PV_bins,
     met_dict_names,
     u_dict_names,
     N_bins,
@@ -64,6 +66,13 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "-m",
+    "--max-parquet",
+    type=int,
+    help="Maximum number of parquet files to load",
+    default=None,
+)
+parser.add_argument(
     "-l",
     "--load",
     type=str,
@@ -77,6 +86,14 @@ args = parser.parse_args()
 
 YEARS = ["2022_preEE", "2022_postEE", "2023_preBPix", "2023_postBPix", "2024"]
 
+BIN_VARIABLES = {
+    "ll_pt": {
+        "bin_edges": qT_bins,
+        "label": "Z q$_{\\mathrm{T}}$ [GeV]",
+        "name_plot": "Z_qT",
+    },
+    "PV_npvs": {"bin_edges": PV_bins, "label": "#PV", "name_plot": "nPV"},
+}
 
 outputdir = args.output if args.output else "plots_MET"
 
@@ -99,6 +116,20 @@ histograms_2d_dir = os.path.join(outputdir, "2d_response_histograms")
 if not os.path.exists(histograms_2d_dir):
     os.makedirs(histograms_2d_dir)
 
+
+def extract_labels(var_name):
+    y_var_name, x_var_name = var_name.split("VS")
+    y_label = (
+        y_var_name
+        if y_var_name not in response_var_name_dict
+        else response_var_name_dict[y_var_name]
+    )
+    x_label = [
+        v["label"] for k, v in BIN_VARIABLES.items() if v["name_plot"] == x_var_name
+    ][0]
+    return y_label, x_label
+
+
 def save_dict_to_file(dict_to_save, output_path):
     """Save multiple dictionaries to a single coffea file.
 
@@ -113,31 +144,6 @@ def save_dict_to_file(dict_to_save, output_path):
     save(dict_to_save, output_path)
     print(f"Saved histograms to {output_path}")
 
-def do_plots(reponses_dict, hists_dict, met_dict, category, year):
-    """Plot all the required plots.
-
-    Parameters
-    ----------
-    reponses_dict : dict
-        Response summary information from `create_reponses_info`.
-    hists_dict : dict
-        Histogram dictionary from `create_reponses_info`.
-    met_dict : dict
-        Dictionary of histogram plotting configurations.
-    category : str
-        Category name.
-    year : str
-        Year string for labeling.
-    """
-
-    # plot response curves
-    plot_reponses(reponses_dict, category, year)
-    # plot per-bin response histograms
-    if args.histo:
-        plot_1d_response_histograms(hists_dict, category, year)
-        plot_2d_response_histograms(hists_dict, category, year)
-    # plot MET histograms
-    plot_histo_met(met_dict, year)
 
 def extract_year_tag(s):
     match = re.search(r"(19|20)\d{2}(?:_[A-Za-z0-9]+)?", s)
@@ -201,7 +207,7 @@ def weighted_std_dev(x, w):
     return std_w, std_err_w
 
 
-def compute_u_info(u_i, weights_i, distribution_name, all_responses):
+def compute_u_info(u_i, weights_i, distribution_name, all_responses, bin_var):
     """
     Compute mean, quantile resolution, and std. dev for a given distribution
     and fill the results into the histogram dictionary.
@@ -209,19 +215,27 @@ def compute_u_info(u_i, weights_i, distribution_name, all_responses):
     Parameters
     ----------
     u_i : array-like
-        Distribution values in one qT bin.
+        Distribution values in one bin.
     weights_i : array-like
         Weights corresponding to u_i.
     distribution_name : str
         Name of the distribution (e.g. 'u_perp', 'u_paral').
     all_responses : dict
         Dictionary where results (values/errors) are stored.
+    bin_var: str
+        Name of the variable used for binning
     """
     mean_u_i, err_mean_u_i = weighted_mean(u_i, weights_i)
-    all_responses[f"{distribution_name}_mean"]["data"]["y"][0].append(mean_u_i)
-    all_responses[f"{distribution_name}_mean"]["data"]["y"][1].append(err_mean_u_i)
+    all_responses[f"{distribution_name}_meanVS{bin_var}"]["data"]["y"][0].append(
+        mean_u_i
+    )
+    all_responses[f"{distribution_name}_meanVS{bin_var}"]["data"]["y"][1].append(
+        err_mean_u_i
+    )
 
-    all_responses[f"{distribution_name}_quantile_resolution"]["data"]["y"][0].append(
+    all_responses[f"{distribution_name}_quantile_resolutionVS{bin_var}"]["data"]["y"][
+        0
+    ].append(
         (
             float(weighted_quantile(u_i, 0.84, weights_i))
             - float(weighted_quantile(u_i, 0.16, weights_i))
@@ -230,92 +244,113 @@ def compute_u_info(u_i, weights_i, distribution_name, all_responses):
         / 2.0,
     )
     # TODO: compute error on quantile resolution
-    all_responses[f"{distribution_name}_quantile_resolution"]["data"]["y"][1].append(0)
+    all_responses[f"{distribution_name}_quantile_resolutionVS{bin_var}"]["data"]["y"][
+        1
+    ].append(0)
 
     stddev_u_i, err_stddev_u_i = weighted_std_dev(u_i, weights_i)
-    all_responses[f"{distribution_name}_stddev_resolution"]["data"]["y"][0].append(
-        stddev_u_i
-    )
-    all_responses[f"{distribution_name}_stddev_resolution"]["data"]["y"][1].append(
-        err_stddev_u_i
-    )
+    all_responses[f"{distribution_name}_stddev_resolutionVS{bin_var}"]["data"]["y"][
+        0
+    ].append(stddev_u_i)
+    all_responses[f"{distribution_name}_stddev_resolutionVS{bin_var}"]["data"]["y"][
+        1
+    ].append(err_stddev_u_i)
 
 
 def create_hist(
     hists_dict,
-    qT_arr,
-    u_array,
+    dict_info_x,
+    dict_info_y,
     weights,
-    distribution_name,
-    bin_edges,
     style,
-    rescale_array=None,
 ):
     """
-    Create and fill a 2D histogram (qT vs variable).
+    Create and fill a 2D histogram.
 
     Parameters
     ----------
     hists_dict : dict
         Dictionary where histograms are stored.
-    qT_arr : array-like
-        Array of Z boson transverse momentum (qT).
-    u_array : array-like
-        Variable to be histogrammed (e.g. u_perp, u_paral, response).
+    dict_info_x: dict
+        Dictionary where info about the variable on the x-axis are stored.
+    dict_info_y: dict
+        Dictionary where info about the variable on the y-axis are stored.
     weights : array-like
         Event weights.
-    distribution_name : str
-        Name of the variable.
-    bin_edges : array-like
-        Bin edges for the histogram.
     style : dict
         Plotting style metadata to attach to the histogram.
     """
     h = (
-        Hist.new.Var(qT_bins, name="qT", label=r"Z q$_{\mathrm{T}}$ [GeV]", flow=False)
-        .Var(bin_edges, name=distribution_name, label=distribution_name, flow=False)
+        Hist.new.Var(
+            dict_info_x["bin_edges"],
+            name=dict_info_x["name_plot"],
+            label=dict_info_x["label"],
+            flow=False,
+        )
+        .Var(
+            dict_info_y["bin_edges"],
+            name=dict_info_y["name_plot"],
+            label=dict_info_y["label"],
+            flow=False,
+        )
         .Weight()
     )
     h.style = style
-    if rescale_array is not None:
-        # rescale u by the average response in each qT bin
-        bin_indices = np.digitize(qT_arr, qT_bins) - 1
+    if "rescale_array" in dict_info_y:
+        # rescale u by the average response in each bin
+        bin_indices = np.digitize(dict_info_x["array"], dict_info_x["bin_edges"]) - 1
         # avoid out of range indices
-        bin_indices = np.clip(bin_indices, 0, len(rescale_array) - 1)
-        u_array = u_array / np.array(rescale_array)[bin_indices]
+        bin_indices = np.clip(bin_indices, 0, len(dict_info_y["rescale_array"]) - 1)
+        dict_info_y["array"] = (
+            dict_info_y["array"] / np.array(dict_info_y["rescale_array"])[bin_indices]
+        )
 
-    h.fill(qT_arr, u_array, weight=weights)
-    hists_dict[f"{distribution_name}"] = h
+    h.fill(dict_info_x["array"], dict_info_y["array"], weight=weights)
+    hists_dict[f"{dict_info_y['name_plot']}VS{dict_info_x['name_plot']}"] = h
 
 
-def create_reponses_info(qT_arr, u_dict, weights):
+def create_reponses_info(bin_var_array, u_dict, weights, bin_var):
     """
     Build response summaries and histograms for each MET type.
 
     Parameters
     ----------
-    qT_arr : array-like
-        Z boson transverse momentum (qT).
+    bin_var_array : array-like
+        Array of the variable to use for binning.
     u_dict : dict
         Dictionary with variables for each MET type (u_perp, u_paral, response).
     weights : array-like
         Event weights.
+    bin_var: str
+        Name of the variable used for binning
 
     Returns
     -------
-    reponses_dict : dict
+    responses_dict : dict
         Nested dictionary with response summaries (mean, stddev, quantiles).
     hists_dict : dict
         Nested dictionary with histograms for each variable and MET type.
-    """  # compute mean of all metrics in summary
+    """
 
-    bin_edges = qT_bins
+    bin_edges = BIN_VARIABLES[bin_var]["bin_edges"]
     bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
 
-    inds = np.digitize(qT_arr, bin_edges)
+    inds = np.digitize(bin_var_array, bin_edges)
+
+    name_bin_var = BIN_VARIABLES[bin_var]["name_plot"]
 
     all_responses = {}
     all_hists = {}
+
+    u_info_list = [
+        "R",
+        "u_perp",
+        "u_perp_scaled",
+        "u_paral",
+        "u_paral_scaled",
+    ]
+    metric_list = ["mean", "quantile_resolution", "stddev_resolution"]
+
     for met_type, style in met_dict_names.items():
         met_type = f"u{met_type}"
         print(met_type)
@@ -333,25 +368,40 @@ def create_reponses_info(qT_arr, u_dict, weights):
 
         for i in range(1, len(bin_edges)):
             weights_i = weights[np.where(inds == i)[0]]
+            if i == 1:
+                # initialize the dicts and add style info
+                for var in u_info_list:
+                    for metric in metric_list:
+                        complete_name = f"{var}_{metric}VS{name_bin_var}"
+                        if complete_name not in all_responses[met_type]:
+                            all_responses[met_type][complete_name] = {
+                                "data": {"x": [[], []], "y": [[], []]},
+                                "style": style,
+                            }
+                        all_responses[met_type][complete_name]["data"]["x"][
+                            0
+                        ] = bin_centers.tolist()
+                        all_responses[met_type][complete_name]["data"]["x"][1] = (
+                            (bin_edges[1:] - bin_edges[:-1]) / 2.0
+                        ).tolist()
+
             # check if the bin is empty and put nan
             if sum(weights_i) < 1e-6:
-                for var in [
-                    "R",
-                    "u_perp",
-                    "u_perp_scaled",
-                    "u_paral",
-                    "u_paral_scaled",
-                ]:
-                    for metric in ["mean", "quantile_resolution", "stddev_resolution"]:
-                        all_responses[met_type][f"{var}_{metric}"]["data"]["y"][
-                            0
-                        ].append(np.nan)
-                        all_responses[met_type][f"{var}_{metric}"]["data"]["y"][
-                            1
-                        ].append(0)
+                for var in u_info_list:
+                    for metric in metric_list:
+                        complete_name = f"{var}_{metric}VS{name_bin_var}"
+                        if complete_name not in all_responses[met_type]:
+                            all_responses[met_type][complete_name] = {
+                                "data": {"x": [[], []], "y": [[], []]},
+                                "style": style,
+                            }
+                        all_responses[met_type][complete_name]["data"]["y"][0].append(
+                            np.nan
+                        )
+                        all_responses[met_type][complete_name]["data"]["y"][1].append(0)
                 continue
 
-            # Define quantities for this qT bin
+            # Define quantities for this bin
             R_i = R_arr[np.where(inds == i)[0]]
             av_R_i, _ = weighted_mean(R_i, weights_i)
             u_perp_i = u_perp_arr[np.where(inds == i)[0]]
@@ -367,66 +417,70 @@ def create_reponses_info(qT_arr, u_dict, weights):
                 "u_paral_scaled": u_par_scaled_i,
             }
 
-            if i == 1:
-                # initialize the dicts and add style info
-                for var in u_info_dict:
-                    for metric in ["mean", "quantile_resolution", "stddev_resolution"]:
-                        if f"{var}_{metric}" not in all_responses[met_type]:
-                            all_responses[met_type][f"{var}_{metric}"] = {
-                                "data": {"x": [[], []], "y": [[], []]},
-                                "style": style,
-                            }
-                        all_responses[met_type][f"{var}_{metric}"]["data"]["x"][
-                            0
-                        ] = bin_centers.tolist()
-                        all_responses[met_type][f"{var}_{metric}"]["data"]["x"][1] = (
-                            (bin_edges[1:] - bin_edges[:-1]) / 2.0
-                        ).tolist()
-
             for var, u_arr in u_info_dict.items():
-                compute_u_info(u_arr, weights_i, var, all_responses[met_type])
+                compute_u_info(
+                    u_arr, weights_i, var, all_responses[met_type], name_bin_var
+                )
 
-        # Create 2D histograms of qT vs response, u_perp, u_paral
+        # Create 2D histograms of bin variable vs response, u_perp, u_paral
         all_hists[met_type] = {}
 
         array_dict = {
-            "R": {"array": R_arr, "bin_edges": R_bin_edges},
-            "u_perp": {"array": u_perp_arr, "bin_edges": u_bin_edges},
+            "R": {
+                "array": R_arr,
+                "label": response_var_name_dict["R"],
+                "name_plot": "R",
+                "bin_edges": R_bin_edges,
+            },
+            "u_perp": {
+                "array": u_perp_arr,
+                "label": response_var_name_dict["u_perp"],
+                "name_plot": "u_perp",
+                "bin_edges": u_bin_edges,
+            },
             "u_perp_scaled": {
                 "array": u_perp_arr,
+                "label": response_var_name_dict["u_perp_scaled"],
+                "name_plot": "u_perp_scaled",
                 "bin_edges": u_bin_edges,
-                "rescale_array": all_responses[met_type]["R_mean"]["data"]["y"][0],
+                "rescale_array": all_responses[met_type][f"R_meanVS{name_bin_var}"][
+                    "data"
+                ]["y"][0],
             },
-            "u_paral": {"array": u_par_arr, "bin_edges": u_bin_edges},
+            "u_paral": {
+                "array": u_par_arr,
+                "label": response_var_name_dict["u_paral"],
+                "name_plot": "u_paral",
+                "bin_edges": u_bin_edges,
+            },
             "u_paral_scaled": {
                 "array": u_par_arr,
+                "label": response_var_name_dict["u_paral_scaled"],
+                "name_plot": "u_paral_scaled",
                 "bin_edges": u_bin_edges,
-                "rescale_array": all_responses[met_type]["R_mean"]["data"]["y"][0],
+                "rescale_array": all_responses[met_type][f"R_meanVS{name_bin_var}"][
+                    "data"
+                ]["y"][0],
             },
         }
+
+        bin_var_dict = {"array": bin_var_array} | BIN_VARIABLES[bin_var]
         for var in array_dict:
             create_hist(
                 all_hists[met_type],
-                qT_arr,
-                array_dict[var]["array"],
+                bin_var_dict,
+                array_dict[var],
                 weights,
-                var,
-                array_dict[var]["bin_edges"],
                 style,
-                (
-                    array_dict[var]["rescale_array"]
-                    if "rescale_array" in array_dict[var]
-                    else None
-                ),
             )
 
     # change the gerarchy of the keys
-    reponses_dict = {}
+    responses_dict = {}
     for met_type in all_responses:
         for var_name in all_responses[met_type]:
-            if var_name not in reponses_dict:
-                reponses_dict[var_name] = {}
-            reponses_dict[var_name][met_type] = all_responses[met_type][var_name]
+            if var_name not in responses_dict:
+                responses_dict[var_name] = {}
+            responses_dict[var_name][met_type] = all_responses[met_type][var_name]
 
     hists_dict = {}
     for met_type in all_hists:
@@ -435,10 +489,10 @@ def create_reponses_info(qT_arr, u_dict, weights):
                 hists_dict[var_name] = {}
             hists_dict[var_name][met_type] = all_hists[met_type][var_name]
 
-    return reponses_dict, hists_dict
+    return responses_dict, hists_dict
 
 
-def create_met_histos(col_var, category, met_dict):
+def create_met_histos(col_var, category):
     """
     Build MET comparison histograms for a given category.
 
@@ -448,8 +502,6 @@ def create_met_histos(col_var, category, met_dict):
         Dictionary of input variables (columns).
     category : str
         Category name (e.g. event selection).
-    met_dict : dict
-        Dictionary to be filled with histogram plotting configurations.
     """
 
     for quantity_name, var_dict in total_var_dict.items():
@@ -458,7 +510,6 @@ def create_met_histos(col_var, category, met_dict):
         ref_var = var_dict["reference"]
 
         for i, variable in enumerate(var_dict["variables"]):
-            # print(f"Preparing {category} - {quantity_name} - {variable}")
             col_num = col_var[variable]
             weight = col_var["weight"]
             var_name = variable.split("_")[0]
@@ -494,16 +545,16 @@ def create_met_histos(col_var, category, met_dict):
             "ratio_label": var_dict.get("ratio_label", "Ratio"),
         }
 
-        met_dict[quantity_name]=info
+        return {quantity_name: info}
 
 
-def plot_reponses(reponses_dict, cat, year):
+def plot_reponses(responses_dict, cat, year):
     """
-    Plot response curves (mean, stddev, quantile resolutions) vs qT.
+    Plot response curves (mean, stddev, quantile resolutions) vs the bin variable.
 
     Parameters
     ----------
-    reponses_dict : dict
+    responses_dict : dict
         Response summary information from `create_reponses_info`.
     cat : str
         Category name.
@@ -513,21 +564,16 @@ def plot_reponses(reponses_dict, cat, year):
 
     plotters = []
 
-    for var_name in reponses_dict:
-        print(f"Plotting response for {var_name} in category {cat}")
-        y_label = (
-            var_name
-            if var_name not in response_var_name_dict
-            else response_var_name_dict[var_name]
-        )
+    for var_name in responses_dict:
+        y_label, x_label = extract_labels(var_name)
 
         p = (
             HEPPlotter()
             .set_plot_config(lumitext=f"{year} (13.6 TeV)")
             .set_options(split_legend=False, set_ylim=False)
             .set_output(f"{response_dir}/{cat}_{var_name}")
-            .set_labels(r"Z q$_{\mathrm{T}}$ [GeV]", y_label)
-            .set_data(reponses_dict[var_name], plot_type="graph")
+            .set_data(responses_dict[var_name], plot_type="graph")
+            .set_labels(x_label, y_label)
         )
         if "R" in var_name and "mean" in var_name:
             p = p.add_line(
@@ -539,16 +585,20 @@ def plot_reponses(reponses_dict, cat, year):
         plotters.append(p)
 
     if args.workers > 1:
+        print(f"Plotting responses in parallel in category {cat}")
         with Pool(args.workers) as pool:
             pool.map(run_plot, plotters)
     else:
-        for p in plotters:
+        for i, p in enumerate(plotters):
+            print(
+                f"Plotting response for {list(responses_dict.keys())[i]} in category {cat}"
+            )
             p.run()
 
 
 def plot_2d_response_histograms(hists_dict, cat, year):
     """
-    Plot 2D histograms (qT vs variable) for each MET type.
+    Plot 2D histograms (bin variable vs response) for each MET type.
 
     Parameters
     ----------
@@ -562,12 +612,8 @@ def plot_2d_response_histograms(hists_dict, cat, year):
 
     plotters = []
     for var_name in hists_dict:
-        print(f"Plotting 2d histogram for {var_name} in category {cat}")
-        ylabel = (
-            var_name
-            if var_name not in response_var_name_dict
-            else response_var_name_dict[var_name]
-        )
+        y_label, x_label = extract_labels(var_name)
+
         for met_type in hists_dict[var_name]:
             series_dict = {
                 f"{var_name} {met_type}": {
@@ -578,28 +624,34 @@ def plot_2d_response_histograms(hists_dict, cat, year):
 
             p = (
                 HEPPlotter()
-                .set_plot_config(lumitext=f"{year} (13.6 TeV)")
+                .set_plot_config(
+                    figsize=(14, 13), lumitext=f"{met_type}     {year} (13.6 TeV)"
+                )
                 .set_options(legend=False, cbar_log=True)
                 .set_output(f"{histograms_2d_dir}/2d_histo_{cat}_{var_name}_{met_type}")
-                .set_labels(r"Z q$_{\mathrm{T}}$ [GeV]", ylabel)
                 .set_data(
                     series_dict,
                     plot_type="2d",
                 )
+                .set_labels(x_label, y_label)
             )
             plotters.append(p)
 
     if args.workers > 1:
+        print(f"Plotting 2d histograms in parallel in category {cat}")
         with Pool(args.workers) as pool:
             pool.map(run_plot, plotters)
     else:
         for p in plotters:
+            print(
+                f"Plotting 2d histogram for {p.output_base.split('/')[-1]} in category {cat}"
+            )
             p.run()
 
 
 def plot_1d_response_histograms(hists_dict, cat, year):
     """
-    Plot 1D histograms of variables in each qT bin.
+    Plot 1D histograms of variables in each bin.
 
     Parameters
     ----------
@@ -611,50 +663,60 @@ def plot_1d_response_histograms(hists_dict, cat, year):
         Year string for labeling.
     """
 
-    # for each bin on qT, plot the distribution of the variable
+    # for each bin, plot the distribution of the variable
     plotters = []
 
-    for i in range(len(qT_bins) - 1):
-        bin_edges_string = f"{qT_bins[i]}_{qT_bins[i+1]}"
-        for var_name in hists_dict:
-            print(
-                f"Plotting 1d histogram for {var_name} in category {cat}, qT bin {bin_edges_string}"
-            )
-            hist_1d_dict = {}
-            for met_type in hists_dict[var_name]:
-                hist = hists_dict[var_name][met_type]
-                # Select the bin corresponding to the current qT bin
-                hist_1d_u = hist[{"qT": i}]
-                hist_1d_dict[met_type] = {
+    for var_name in hists_dict:
+        hist_1d_dict = {}
+        var_label, _ = extract_labels(var_name)
+        for met_type in hists_dict[var_name]:
+            hist = hists_dict[var_name][met_type]
+            bin_edges = hist.axes[0].edges
+            bin_var = hist.axes[0].name
+            label = [
+                v["label"]
+                for k, v in BIN_VARIABLES.items()
+                if v["name_plot"] == bin_var
+            ][0]
+
+            for i in range(len(bin_edges) - 1):
+                bin_name = f"{bin_var}:{i}"
+                if bin_name not in hist_1d_dict.keys():
+                    hist_1d_dict[bin_name] = {}
+
+                bin_edges_string = f"{bin_var}{bin_edges[i]}-{bin_edges[i+1]}"
+                output_name = f"{histograms_dir}/{cat}_{var_name}_{bin_edges_string}"
+
+                # Select the bin corresponding to the current bin
+                hist_1d_u = hist[{bin_var: i}]
+                hist_1d_dict[bin_name][met_type] = {
                     "data": hist_1d_u,
                     "style": hist.style,
                 }
 
-            output_name = f"{histograms_dir}/{cat}_{var_name}_{bin_edges_string}"
-            var_label = (
-                var_name
-                if var_name not in response_var_name_dict
-                else response_var_name_dict[var_name]
-            )
+                hist_1d_dict[bin_name]["infos"] = {
+                    "output_name": output_name,
+                    "lumitext_prefix": f"{bin_edges[i]} < {label} < {bin_edges[i+1]}",
+                }
+
+        for bin_name, hist_met_dict in hist_1d_dict.items():
+            lumitext_prefix = hist_met_dict["infos"]["lumitext_prefix"]
+            output_name = hist_met_dict["infos"]["output_name"]
+            hist_met_dict.pop("infos")
 
             p = (
                 HEPPlotter()
                 .set_plot_config(
                     figsize=(14, 13),
-                    lumitext=f"{qT_bins[i]} < q$_{{\\mathrm{{T}}}}$ (GeV) < {qT_bins[i+1]}      {year} (13.6 TeV)",
+                    lumitext=f"{lumitext_prefix}      {year} (13.6 TeV)",
                 )
                 .set_output(output_name)
                 .set_labels(var_label, "Events")
                 .set_options(y_log=False, split_legend=False, set_ylim_ratio=0.5)
-                .set_data(hist_1d_dict, plot_type="1d")
-                # .add_annotation(
-                #     x=0.05,
-                #     y=0.9,
-                #     s=f"{qT_bins[i]} < q$_{{\\mathrm{{T}}}}$ (GeV) < {qT_bins[i+1]}",
-                # )
+                .set_data(hist_met_dict, plot_type="1d")
                 .add_line(
                     orientation="v",
-                    x=1.0 if var_name == "R" else 0.0,
+                    x=1.0 if "R" in var_name else 0.0,
                     color="black",
                     linestyle="--",
                 )
@@ -662,10 +724,14 @@ def plot_1d_response_histograms(hists_dict, cat, year):
             plotters.append(p)
 
     if args.workers > 1:
+        print(f"Plotting 1d histograms in parallel in category {cat}")
         with Pool(args.workers) as pool:
             pool.map(run_plot, plotters)
     else:
         for p in plotters:
+            print(
+                f"Plotting 1d histogram for {p.output_base.split('/')[-1]} in category {cat}"
+            )
             p.run()
 
 
@@ -706,6 +772,36 @@ def plot_histo_met(met_dict, year):
             p.run()
 
 
+def do_plots(responses_dict, hists_dict, met_dict, category, year):
+    """Plot all the required plots.
+
+    Parameters
+    ----------
+    responses_dict : dict
+        Response summary information from `create_reponses_info`.
+    hists_dict : dict
+        Histogram dictionary from `create_reponses_info`.
+    met_dict : dict
+        Dictionary of histogram plotting configurations.
+    category : str
+        Category name.
+    year : str
+        Year string for labeling.
+    bin_vars : list
+        Variables used for binning.
+    """
+
+    # plot per-bin response histograms
+    if args.histo:
+        plot_1d_response_histograms(hists_dict, category, year)
+        plot_2d_response_histograms(hists_dict, category, year)
+
+    # plot response curves
+    plot_reponses(responses_dict, category, year)
+    # plot MET histograms
+    plot_histo_met(met_dict, year)
+
+
 def main():
     inputfiles_data = [
         os.path.join(args.input_dir, file)
@@ -717,19 +813,25 @@ def main():
         # load precomputed histograms
         print(f"Loading precomputed histograms from {args.load}")
         loaded_dict = load(args.load)
-        reponses_dict = loaded_dict["responses"]
+        responses_dict = loaded_dict["responses"]
         hists_dict = loaded_dict["hists"]
         met_dict = loaded_dict["met_histos"]
         year = loaded_dict.get("year", "unknown_year")
         category = loaded_dict.get("category", "unknown_category")
-        
-        do_plots(reponses_dict, hists_dict, met_dict, category, year)
+
+        do_plots(responses_dict, hists_dict, met_dict, category, year)
 
         return
-    
+
     if not args.variables:
+        print("Loading the columns...")
         cat_col, total_datasets_list = get_columns_from_files(
-            inputfiles_data, "nominal", None, True, args.novars
+            inputfiles_data,
+            "nominal",
+            None,
+            True,
+            args.novars,
+            max_num_parquet_files=args.max_parquet,
         )
 
         # get year from dataset
@@ -744,37 +846,44 @@ def main():
         print(f"Year: {year}")
 
         for category, col_var in cat_col.items():
-            met_dict = {}
-            print(f"Processing category: {category}")
-            v_qT = col_var["ll_pt"]
+            responses_dict = {}
+            hists_dict = {}
+            for bin_var in BIN_VARIABLES.keys():
+                met_dict = {}
+                print(f"Processing category: {category} and bin in variable {bin_var}")
+                bin_var_array = col_var[bin_var]
 
-            u_dict = {}
-            for var in col_var:
-                coll = var.split("_")[0]
-                if (
-                    any(
-                        x in var
-                        for x in ["u_perp_predict", "u_paral_predict", "response"]
-                    )
-                    and coll in u_dict_names
-                ):
+                u_dict = {}
+                for var in col_var:
+                    coll = var.split("_")[0]
+                    if (
+                        any(
+                            x in var
+                            for x in ["u_perp_predict", "u_paral_predict", "response"]
+                        )
+                        and coll in u_dict_names
+                    ):
 
-                    if coll not in u_dict:
-                        u_dict[coll] = {}
-                    print(var)
-                    u_dict[coll][var] = col_var[var]
-                elif "weight" in var:
-                    weights = col_var[var]
-            
-            # build response info
-            reponses_dict, hists_dict = create_reponses_info(v_qT, u_dict, weights)
-            # build MET histograms
-            create_met_histos(col_var, category, met_dict)
-            
+                        if coll not in u_dict:
+                            u_dict[coll] = {}
+                        u_dict[coll][var] = col_var[var]
+                    elif "weight" in var:
+                        weights = col_var[var]
+
+                # build response info
+                new_responses_dict, new_hists_dict = create_reponses_info(
+                    bin_var_array, u_dict, weights, bin_var
+                )
+                responses_dict |= new_responses_dict
+                hists_dict |= new_hists_dict
+
+                # build MET histograms
+                met_dict |= create_met_histos(col_var, category)
+
             # save all the histograms
             save_dict_to_file(
                 {
-                    "responses": reponses_dict,
+                    "responses": responses_dict,
                     "hists": hists_dict,
                     "met_histos": met_dict,
                     "year": year,
@@ -784,12 +893,12 @@ def main():
                     outputdir, f"histograms_{category.replace(' ','_')}.coffea"
                 ),
             )
-            
+
             # plot all the required plots
-            do_plots(reponses_dict, hists_dict, met_dict, category, year)
-            
+            do_plots(responses_dict, hists_dict, met_dict, category, year)
 
     else:
+        raise ValueError("Not implemented")
         # read input variables
         accumulator = load(inputfiles_data[0])
 
@@ -798,12 +907,9 @@ def main():
                 for dataset in histos_dict[sample]:
                     print(f"Variable: {var}, Sample: {sample}", f"Dataset: {dataset}")
                     hist_obj = histos_dict[sample][dataset]
-                    histo=hist_obj[{"cat": list(hist_obj.axes["cat"])[0]}][
+                    histo = hist_obj[{"cat": list(hist_obj.axes["cat"])[0]}][
                         {"variation": list(hist_obj.axes["variation"])[0]}
                     ]
-                    # breakpoint()
-
-        # input_2d_histograms=
 
     print("Finished plotting!")
 

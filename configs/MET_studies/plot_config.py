@@ -41,7 +41,7 @@ met_dict_names = {
 }
 # u_dict_names = {f"u{met}": infos for met, infos in met_dict_names.items()}
 
-plot_met_list=[
+plot_met_list = [
     "RawPuppiMET",
     # "RawPuppiMET-Type1",
     # "RawPuppiMET-Type1JEC",
@@ -57,10 +57,10 @@ plot_met_list=[
     # "PuppiMET-Type1PNetPlusNeutrino",
 ]
 # keep only the key in plot_met_list
-met_dict_names= {met: infos for met, infos in met_dict_names.items() if met in plot_met_list}
-u_dict_names= {f"u{met}": infos for met, infos in met_dict_names.items()}
-
-
+met_dict_names = {
+    met: infos for met, infos in met_dict_names.items() if met in plot_met_list
+}
+u_dict_names = {f"u{met}": infos for met, infos in met_dict_names.items()}
 
 
 total_var_dict = {
@@ -195,7 +195,51 @@ qT_bins = np.array(
     ]
 )
 
-N_bins=40
+# PV_bins = np.arange(0, 80, 4)
+# PV_bins = np.array(
+#     [
+#         0,
+#         5.5,
+#         7.5,
+#         9.5,
+#         11.5,
+#         13.5,
+#         15.5,
+#         17.5,
+#         19.5,
+#         21.5,
+#         23.5,
+#         27.5,
+#         31.5,
+#         35.5,
+#         40.5,
+#         50.5,
+#         60.5,
+#         80.5,
+#     ]
+# )
+
+PV_bins = np.array(
+    [
+        0,
+        7.5,
+        11.5,
+        13.5,
+        17.5,
+        21.5,
+        23.5,
+        27.5,
+        31.5,
+        35.5,
+        40.5,
+        50.5,
+        60.5,
+        80.5,
+    ]
+)
+
+
+N_bins = 40
 
 R_bin_edges = np.linspace(-2, 2, N_bins)
 u_bin_edges = np.linspace(-200, 200, N_bins)
