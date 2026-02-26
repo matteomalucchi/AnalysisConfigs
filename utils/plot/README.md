@@ -8,10 +8,11 @@ Supports:
 * ✅ 1D histograms (with ratio plots)
 * ✅ 2D histograms (heatmaps)
 * ✅ Graphs with error bars (e.g. efficiency or response curves)
+* ✅ Categorical plots (e.g. efficiencies per category, grouped bar charts)
 
 > [!WARNING]
 >
-> ### 🧾 Disclaimer
+> ## 🧾 Disclaimer
 >
 > 📘 This documentation and example set were generated with the assistance of ChatGPT (GPT-5), so there may be errors and inconsistencies w.r.t. the actual `HEPPlotter` class  
 
@@ -217,6 +218,117 @@ plots/response_curve.svg
 
 ---
 
+## 🏷️ Example: Categorical Plot (Efficiency per Category)
+
+This plot type is designed for **efficiencies, selection yields, or other quantities defined per discrete category**.
+
+Supports:
+
+* categorical x-axis (strings)
+* multiple entries per category
+* automatic grouping
+* custom colors and hatching
+* automatic value labels on each bar
+
+---
+
+### Example: Single efficiency per category
+
+```python
+from hep_plotter import HEPPlotter
+import numpy as np
+
+categories = ["Higgs 1", "Higgs 2", "VBF"]
+efficiencies = np.array([0.82, 0.76, 0.91])
+
+series_dict = {
+    "Efficiency": {
+        "data": {
+            "categories": categories,
+            "values": efficiencies,
+        },
+        "style": {
+            "color": "tab:blue",
+            "hatch": "",
+        },
+    }
+}
+
+(
+    HEPPlotter("CMS")
+    .set_output("plots/efficiency_simple")
+    .set_labels(
+        xlabel="Category",
+        ylabel="Efficiency"
+    )
+    .set_data(series_dict, plot_type="categorical")
+    .set_options(grid=True)
+    .run()
+)
+```
+
+---
+
+### Example: Multiple efficiencies per category (grouped bars)
+
+```python
+series_dict = {
+    "AK4 | signal": {
+        "data": {
+            "categories": ["Higgs 1", "Higgs 2", "VBF"],
+            "values": [0.85, 0.78, 0.92],
+        },
+        "style": {
+            "color": "tab:blue",
+            "hatch": "",
+        },
+    },
+    "AK4 | control": {
+        "data": {
+            "categories": ["Higgs 1", "Higgs 2", "VBF"],
+            "values": [0.80, 0.74, 0.88],
+        },
+        "style": {
+            "color": "tab:blue",
+            "hatch": "//",
+        },
+    },
+    "AK8 | signal": {
+        "data": {
+            "categories": ["Higgs 1", "Higgs 2", "VBF"],
+            "values": [0.90, 0.83, 0.95],
+        },
+        "style": {
+            "color": "tab:red",
+            "hatch": "",
+        },
+    },
+}
+```
+
+Produces grouped bar chart:
+
+```bash
+Category   AK4 signal   AK4 control   AK8 signal
+-----------------------------------------------
+Higgs 1      ███           ▒▒▒           ████
+Higgs 2      ███           ▒▒▒           ████
+VBF          ████          ▒▒▒▒          █████
+```
+
+---
+
+### Automatic value labels
+
+Each bar automatically displays its value above it:
+
+```bash
+0.85
+████
+```
+
+Formatting is handled automatically.
+
 ## 🧠 Design Philosophy
 
 * Modular configuration with chainable `.set_...()` methods
@@ -338,6 +450,27 @@ series_dict = {
 
 ---
 
+### Categorical Plot
+
+```python
+series_dict = {
+    "label": {
+        "data": {
+            "categories": ["cat1", "cat2", "cat3"],
+            "values": [0.8, 0.9, 0.75],
+        },
+        "style": {
+            "color": "tab:blue",
+            "hatch": "//",
+            "edgecolor": "black",
+        },
+    }
+}
+```
+
+
+---
+
 ## 🧾 Annotations and Lines
 
 ```python
@@ -422,7 +555,6 @@ You can customize formats with:
 * Supports stacked histograms and split legends
 * Can add multiple ratio histograms or precomputed ratio curves
 * Clears internal state after each plot (safe for multiprocessing)
-
 
 ---
 
