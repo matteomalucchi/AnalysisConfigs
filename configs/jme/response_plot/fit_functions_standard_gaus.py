@@ -28,7 +28,7 @@ def std_gaus_enhanced(x, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11):
         + p9 * np.exp(-p10 * (np.log10(x) - p11) ** 2)
     )
 
-def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_settings,xmin):
+def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_settings,xmin_user):
     
     print("fit_inv_median", variable, name_plot)
     yerr_cor = yerr.copy()
@@ -104,6 +104,7 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
         50.,
     ]
     #mask to only use points above xmin
+    xmin = max(xmin_user, x[0])
     mask = x>=xmin
     # do the fit
     popt, pcov = curve_fit(
