@@ -38,6 +38,7 @@ default_config_options_dict = {
     "fifth_jet": "pt",
     "donotscale_sumgenweights": False,
     "pad_value": -999.0,
+    "pad_value_spanet": 9999.0,
     "arctanh_delta_prob_bin_edge": 2.44,
     "arctanh_delta_prob_pad_limit": 2.0,
     "add_jet_spanet": False,
@@ -47,4 +48,5 @@ default_config_options_dict = {
     "qt_preEE": None,
     "only5jetsbSF": False,
     "noL1": False,
+    "approach": "first"
 } | default_onnx_model_dict

@@ -13,9 +13,11 @@ from utils.reconstruct_higgs_candidates import (
 )
 from utils.spanet_evaluation_functions import get_best_pairings, get_pairing_information
 
-logging.basicConfig(format='%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+)
 logger = logging.getLogger()
 
 vector.register_awkward()
@@ -63,18 +65,20 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
 
         bTaggers = ["btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B"]
         bTaggerCorrlibNames = ["deepJet", "particleNet", "robustParticleTransformer"]
-        cset = correctionlib.CorrectionSet.from_file(self.params["jet_scale_factors"]["btagSF"][self._year]["file"])
+        cset = correctionlib.CorrectionSet.from_file(
+            self.params["jet_scale_factors"]["btagSF"][self._year]["file"]
+        )
         for btagName, btagAlgo in zip(bTaggerCorrlibNames, bTaggers):
             for wp in ["L", "M", "T", "XT", "XXT"]:
                 fieldName = "BJetGood_" + btagName + "_" + wp
                 wp_value = cset[btagName + "_wp_values"].evaluate(wp)
                 if self.only5jetsbSF:
                     self.events[fieldName] = self.btagging_custom(
-                            self.events["JetGood"][:, :5], btagAlgo, wp_value
+                        self.events["JetGood"][:, :5], btagAlgo, wp_value
                     )
                 else:
                     self.events[fieldName] = self.btagging_custom(
-                            self.events["JetGood"], btagAlgo, wp_value
+                        self.events["JetGood"], btagAlgo, wp_value
                     )
                 self.events[fieldName] = self.events[fieldName][
                     ak.argsort(self.events[fieldName].pt, axis=1, ascending=False)
@@ -110,7 +114,8 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
                 output_name_spanet,
                 self.events,
                 self.max_num_jets_spanet,
-                self.spanet_input_name_list,
+                self.spanet_input_name,
+                self.pad_value_spanet,
             )
             # Not needed anymore
             del model_session_spanet
@@ -189,12 +194,8 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
         # HT : scalar sum of all jets with pT > 25 GeV inside | η | < 2.5
         self.events["HT"] = ak.sum(self.events.JetGood.pt, axis=1)
         if any(np.isnan(self.events["HT"])):
-            raise Exception(
-                "NaN values in the column HT",
-                f"Data: {self.events['HT']}"
-            )
+            raise Exception("NaN values in the column HT", f"Data: {self.events['HT']}")
         if any(np.isnan(self.events["nJetGood"])):
             raise Exception(
-                "NaN values in the column HT",
-                f"Data: {self.events['nJetGood']}"
+                "NaN values in the column HT", f"Data: {self.events['nJetGood']}"
             )

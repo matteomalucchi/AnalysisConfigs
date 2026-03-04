@@ -1287,15 +1287,23 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 ]
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
-    "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # collections with provenance_higgs and provenance_vbf saved separately
+    "JetGoodProvHiggsPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodProvHiggsPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodVBFMergedProvVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodVBFMergedProvVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # globabl collections
     "events": [
         "random_pt_weights",
         "mjjJetTotalSPANetPadded",
-        "mjjJetTotalSPANetPtFlattenPadded",
         "detaJetTotalSPANetPadded",
+        "mjjJetTotalSPANetPtFlattenPadded",
         "detaJetTotalSPANetPtFlattenPadded",
+        "mjjJetGoodVBFMergedProvVBFPadded",
+        "detaJetGoodVBFMergedProvVBFPadded",
+        "mjjJetGoodVBFMergedProvVBFPtFlattenPadded",
+        "detaJetGoodVBFMergedProvVBFPtFlattenPadded",
     ],
 }
 
@@ -1408,6 +1416,16 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
             "btagPNetB_5wp"
         )
         column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+            "provenance"
+        )
+    if f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}" in column_dict:
+        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+            "btagPNetB"
+        )
+        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+            "btagPNetB_5wp"
+        )
+        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
             "provenance"
         )
     column_list = get_columns_list(column_dict, flatten)

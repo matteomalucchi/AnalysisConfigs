@@ -3,7 +3,6 @@ import os
 localdir = os.path.dirname(os.path.abspath(__file__))
 
 import configs.HH4b_common.dnn_input_variables as dnn_vars
-from configs.HH4b_common.dnn_input_variables import pairing_spanet_btagWP5
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
 
@@ -32,4 +31,5 @@ config_options_dict |= {
     "arctanh_delta_prob_pad_limit": 2.,
     "add_jet_spanet": True,
     "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
+    "approach": "second"
 } | onnx_model_dict

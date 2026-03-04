@@ -81,6 +81,7 @@ class HEPPlotter:
         self.xticklabels = None
         self.label_pos = None
         self.rotate_xticks = False
+        self.xtick_fontsize = 18
 
         # extra kwargs for plotting functions
         self.extra_kwargs = {}
@@ -161,6 +162,7 @@ class HEPPlotter:
         xticklabels=None,
         label_pos=None,
         rotate_xticks=False,
+        xtick_fontsize=18,
     ):
         """Set the axis labels."""
         self.xlabel = xlabel
@@ -171,6 +173,7 @@ class HEPPlotter:
         self.xticklabels = xticklabels
         self.label_pos = label_pos
         self.rotate_xticks = rotate_xticks
+        self.xtick_fontsize = xtick_fontsize
 
         return self
 
@@ -618,6 +621,12 @@ class HEPPlotter:
                 if style.get("appear_in_legend", True)
                 else None
             )
+            
+            if x_errors is None:
+                x_errors = [0] * len(x_values)
+            if y_errors is None:
+                y_errors = [0] * len(y_values)
+            
             if np.any(np.array(x_errors) > 0) or np.any(np.array(y_errors) > 0):
                 # plot with error bars
                 ax.errorbar(
@@ -628,6 +637,7 @@ class HEPPlotter:
                     fmt=style.get("fmt", "o"),
                     label=legend_name,
                     color=style.get("color"),
+                    linestyle=style.get("linestyle"),
                     markersize=style.get("markersize"),
                     **self.extra_kwargs,
                 )
@@ -639,6 +649,7 @@ class HEPPlotter:
                     style.get("fmt", "o"),
                     label=legend_name,
                     color=style.get("color"),
+                    linestyle=style.get("linestyle"),
                     markersize=style.get("markersize"),
                     **self.extra_kwargs,
                 )
@@ -953,7 +964,7 @@ class HEPPlotter:
                 self.xticklabels,
                 rotation=45 if self.rotate_xticks else 0,
                 ha="right" if self.rotate_xticks else "center",
-                fontsize=18,
+                fontsize=self.xtick_fontsize,
             )
 
         # ----------------------------

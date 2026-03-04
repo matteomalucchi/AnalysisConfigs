@@ -2,7 +2,7 @@ import os
 
 localdir = os.path.dirname(os.path.abspath(__file__))
 
-from configs.HH4b_common.dnn_input_variables import pairing_spanet_btag
+import configs.HH4b_common.dnn_input_variables as dnn_vars
 
 from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
 
@@ -20,8 +20,8 @@ config_options_dict |= {
     "random_pt": True,
     "rand_type": 0.3,
     "blind": True if onnx_model_dict["sig_bkg_dnn"] else False,
-    "sig_bkg_dnn_input_variables": dnn_vars.None,
-    "bkg_morphing_dnn_input_variables": dnn_vars.None,
+    "sig_bkg_dnn_input_variables": None,
+    "bkg_morphing_dnn_input_variables": None,
     "parton_jet_min_dR": 0.4,
     "max_num_jets_good": 5,
     "which_bquark": "last",

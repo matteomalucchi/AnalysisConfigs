@@ -42,7 +42,7 @@ defaults.register_configuration_dir("config_dir", localdir)
 year = ["2022_postEE"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection.yaml",
+    f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",

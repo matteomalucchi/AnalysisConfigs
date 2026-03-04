@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from utils.spanet_evaluation_functions import (
     define_spanet_pairing_inputs,
-    get_pairing_information,
 )
 
 
@@ -14,13 +13,13 @@ def get_input_name(collection, input_name):
         if collection == "events":
             collection = "event"
         if collection.lower() in name.lower():
-            data_name = f"{name.split('_')[0]}_data"
-            mask_name = f"{name.split('_')[0]}_mask"
+            data_name = f"{'_'.join(name.split('_')[:-1])}_data"
+            mask_name = f"{'_'.join(name.split('_')[:-1])}_mask"
             return data_name, mask_name
     raise ValueError(f"No {collection} found in {input_name}")
 
 
-def extract_inputs_global(input_name, output_name, events, variables, pad_value, run2):
+def extract_inputs_global(input_name, output_name, events, variables, pad_value_spanet, run2):
     """Extract inputs for SPANet global inputs."""
     variables_dict = {}
     for var_name, attributes in variables.items():
@@ -56,7 +55,7 @@ def extract_inputs_global(input_name, output_name, events, variables, pad_value,
                 ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
             pos = int(collection.split(":")[1])
             ak_array = ak.fill_none(
-                ak.pad_none(ak_array, pos + 1, clip=True), pad_value
+                ak.pad_none(ak_array, pos + 1, clip=True), pad_value_spanet
             )
         else:
             try:
@@ -65,19 +64,17 @@ def extract_inputs_global(input_name, output_name, events, variables, pad_value,
                         getattr(events, f"{collection}Run2" if run2 else collection),
                         feature,
                     ),
-                    pad_value,
+                    pad_value_spanet,
                 )
             except AttributeError:
                 ak_array = ak.fill_none(
-                    getattr(getattr(events, collection), feature), pad_value
+                    getattr(getattr(events, collection), feature), pad_value_spanet
                 )
         if scale and "log" in scale:
+            # apply the log to the padded value
             arr = np.array(
-                np.log(
-                    ak.to_numpy(ak_array, allow_missing=True),
-                    dtype=np.float32,
-                )
-                + 1
+                np.log(ak.to_numpy(ak_array, allow_missing=True) + 1),
+                dtype=np.float32,
             )
 
             if arr.ndim == 1:
@@ -155,15 +152,17 @@ def extract_inputs(input_name, output_name, events, variables, pad_value, run2):
                     getattr(getattr(events, collection), feature), pad_value
                 )
         if scale and "log" in scale:
+            # apply the log to the padded value
             variables_array.append(
                 np.array(
                     np.log(
                         ak.to_numpy(
                             ak_array,
                             allow_missing=True,
-                        ),
-                        dtype=np.float32,
-                    )
+                        )
+                        + 1
+                    ),
+                    dtype=np.float32,
                 )
             )
         else:
@@ -184,7 +183,7 @@ def get_dnn_prediction(
     session, input_name, output_name, events, variables, pad_value, run2=False
 ):
     inputs = extract_inputs(
-        session, input_name, output_name, events, variables, pad_value, run2
+        input_name, output_name, events, variables, pad_value, run2
     )
 
     inputs_complete = {input_name[0]: inputs}
@@ -211,17 +210,19 @@ def get_onnx_prediction(
     events,
     variables,
     pad_value,
+    pad_value_spanet,
     max_num_jets_spanet,
     run2=False,
 ):
     if "sequential" in variables:
+        # SPANet
         assert "global" in variables
         input_name_forpop = input_name.copy()
         inputs_complete = {}
         collection_feature_dict = get_collections(variables["sequential"])
         for collection, features in collection_feature_dict.items():
             sequential_inputs = define_spanet_pairing_inputs(
-                events, max_num_jets_spanet, collection, features
+                events, max_num_jets_spanet, collection, features, pad_value_spanet
             )  # Currently hardcode jets to 4
             mask = np.array(
                 ak.to_numpy(
@@ -243,7 +244,7 @@ def get_onnx_prediction(
                 input_name_forpop.pop(0): mask,
             }  # Take always the first element from input_name.
         global_inputs_total = extract_inputs_global(
-            input_name_forpop, output_name, events, variables["global"], pad_value, run2
+            input_name_forpop, output_name, events, variables["global"], pad_value_spanet, run2
         )  # use remaining input_name, which is reduced by the pops from before
         inputs_complete |= global_inputs_total
         spanet_output = session.run(output_name, inputs_complete)
@@ -300,8 +301,9 @@ def get_onnx_prediction(
         return (
             spanet_separated_output,
             "spanet",
-        ) 
+        )
     else:
+        # DNN
         return (
             get_dnn_prediction(
                 session, input_name, output_name, events, variables, pad_value, run2

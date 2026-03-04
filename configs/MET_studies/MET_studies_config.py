@@ -52,11 +52,11 @@ parameters = defaults.merge_parameters_from_files(
 
 
 ### Configuring the MET studies config ###
-year = "2023_postBPix"
+year = "2024"
 # dataset = "DYJetsToLL_M-50"
 # dataset = "DYto2L-4Jets_MLL-50-v12"
 dataset = "DYto2L-4Jets_MLL-50-v15"
-option = "option_2"
+option = "option_6"
 add_str = ""
 output_chunks_name = (
     # f"/scratch/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
@@ -87,13 +87,11 @@ cfg = Configurator(
         ],
         "filter": {
             "samples": [
-                (
-                    # dataset
-                    # "DYto2L-4Jets_MLL-50-v12"
-                    "DYto2L-4Jets_MLL-50-v15"
-                    # "DYJetsToLL_M-50"
-                    # "DYJetsToLL_M-50_local"
-                )
+                # dataset
+                # "DYto2L-4Jets_MLL-50-v12"
+                "DYto2L-4Jets_MLL-50-v15"
+                # "DYJetsToLL_M-50"
+                # "DYJetsToLL_M-50_local"
             ],
             "samples_exclude": [],
             "year": [year],
