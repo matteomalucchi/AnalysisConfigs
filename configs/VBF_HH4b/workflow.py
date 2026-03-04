@@ -200,6 +200,16 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 "provenance",
             )
 
+            # create a combined jet collection with the provenance separate for higgs and vbf
+            self.events["JetTotalSPANetSeparateProvHiggsVBFPadded"]= ak.concatenate(
+                [
+                    self.events["JetGoodProvHiggsPadded"],
+                    self.events["JetGoodVBFMergedProvVBFPadded"],
+                ],
+                axis=1
+                
+            )
+
             if self._isMC and self.random_pt:
                 # flatten pt for all jets to train spanet
                 for jet_coll in [
@@ -221,7 +231,24 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events["JetTotalSPANetPadded"],
                     self.events["JetTotalSPANetPtFlattenPadded"],
                 )
-
+                
+                # create a combined jet collection with the provenance separate for higgs and vbf
+                self.events["JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded"] = ak.concatenate(
+                    [
+                        self.events["JetGoodProvHiggsPtFlattenPadded"],
+                        self.events["JetGoodVBFMergedProvVBFPtFlattenPadded"],
+                    ],
+                    axis=1
+                )
+                self.events["JetTotalSPANetSeparateProvHiggsVBFPtFlattenOnlyHiggsPadded"]= ak.concatenate(
+                    [
+                        self.events["JetGoodProvHiggsPtFlattenPadded"],
+                        self.events["JetGoodVBFMergedProvVBFPadded"],
+                    ],
+                    axis=1
+                )
+            
+            
             # Define mjj and delta eta of leading mjj vbf jet candidates
             for jet_coll, jet_idx in zip(
                 [
