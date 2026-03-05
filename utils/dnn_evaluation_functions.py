@@ -13,8 +13,8 @@ def get_input_name(collection, input_name):
         if collection == "events":
             collection = "event"
         if collection.lower() in name.lower():
-            data_name = f"{name.split('_')[0]}_data"
-            mask_name = f"{name.split('_')[0]}_mask"
+            data_name = f"{'_'.join(name.split('_')[:-1])}_data"
+            mask_name = f"{'_'.join(name.split('_')[:-1])}_mask"
             return data_name, mask_name
     raise ValueError(f"No {collection} found in {input_name}")
 
@@ -183,7 +183,7 @@ def get_dnn_prediction(
     session, input_name, output_name, events, variables, pad_value, run2=False
 ):
     inputs = extract_inputs(
-        session, input_name, output_name, events, variables, pad_value, run2
+        input_name, output_name, events, variables, pad_value, run2
     )
 
     inputs_complete = {input_name[0]: inputs}

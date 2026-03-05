@@ -436,6 +436,17 @@ sig_bkg_dnn_input_variables = OrderedDict(
         "sigma_over_higgs2_reco_mass": ["events", "sigma_over_higgs2_reco_mass"],
     }
 )
+pairing_spanet_nobtag = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGood", "pt", "log_norm"],
+            "jet_eta": ["JetGood", "eta", "norm"],
+            "jet_phi": ["JetGood", "phi", "norm"],
+            },
+        "global": {
+            }
+    }
+)
 pairing_spanet_btagWP = OrderedDict(
     {
         "sequential": {
@@ -541,10 +552,10 @@ pairing_spanet_vbf_ggf_btagWP5 = OrderedDict(
 sig_bkg_dnn_input_variables_spanet = OrderedDict(
     {
         "sequential": {
-            "jet_log_pt": ["JetGoodFromHiggsOrdered", "pt", "log_norm"],
-            "jet_eta": ["JetGoodFromHiggsOrdered", "eta", "norm"],
-            "jet_phi": ["JetGoodFromHiggsOrdered", "phi", "norm"],
-            "jet_log_mass": ["JetGoodFromHiggsOrdered", "mass", "log_norm"],
+            "jet_log_pt": ["JetGoodFromHiggsOrdered5Jets", "pt", "log_norm"],
+            "jet_eta": ["JetGoodFromHiggsOrdered5Jets", "eta", "norm"],
+            "jet_phi": ["JetGoodFromHiggsOrdered5Jets", "phi", "norm"],
+            "jet_log_mass": ["JetGoodFromHiggsOrdered5Jets", "mass", "log_norm"],
             },
         "global": {
             # "Arctanh_Delta_pairing_probabilities": ["events", "Arctanh_Delta_pairing_probabilities"],
@@ -573,6 +584,60 @@ sig_bkg_dnn_input_variables_spanet = OrderedDict(
             }
     }
 )
+
+
+sig_bkg_dnn_input_variables_spanet_AN23_184_vars = OrderedDict(
+    {
+        "sequential": {
+            "jet_eta": ["JetGoodFromHiggsOrdered5Jets", "eta", "norm"],
+            "jet_log_mass": ["JetGoodFromHiggsOrdered5Jets", "mass", "log_norm"],
+            "jet_phi": ["JetGoodFromHiggsOrdered5Jets", "phi", "norm"],
+            "jet_log_pt": ["JetGoodFromHiggsOrdered5Jets", "pt", "log_norm"],
+            },
+        "global": {
+            "HT": ["events", "HT", "log_norm"],
+            "maxDeltaR_Higgjj": ["events", "dR_max", "norm"],
+            "minDeltaR_Higgjj": ["events", "dR_min", "norm"],
+            "sigma_over_higgs1_reco_mass": ["events", "sigma_over_higgs1_reco_mass", "norm"],
+            "sigma_over_higgs2_reco_mass": ["events", "sigma_over_higgs2_reco_mass", "norm"],
+            "higgs1_DeltaEtajj": ["HiggsLeading", "dEta", "norm"],
+            "higgs1_DeltaPhijj": ["HiggsLeading", "dPhi", "norm"],
+            # "higgs1_reco_dR": ["HiggsLeading", "dR", "norm"],
+            "higgs1_reco_eta": ["HiggsLeading", "eta", "norm"],
+            "higgs1_helicityCosTheta": ["HiggsLeading", "helicityCosTheta", "norm"],
+            "higgs1_reco_phi": ["HiggsLeading", "phi", "norm"],
+            "higgs1_reco_mass": ["HiggsLeading", "mass", "log_norm"],
+            "higgs1_reco_pt": ["HiggsLeading", "pt", "log_norm"],
+            "higgs2_DeltaEtajj": ["HiggsSubLeading", "dEta", "norm"],
+            "higgs2_DeltaPhijj": ["HiggsSubLeading", "dPhi", "norm"],
+            # "higgs2_reco_dR": ["HiggsSubLeading", "dR", "norm"],
+            "higgs2_reco_eta": ["HiggsSubLeading", "eta", "norm"],
+            "higgs2_helicityCosTheta": ["HiggsSubLeading", "helicityCosTheta", "norm"],
+            "higgs2_reco_phi": ["HiggsSubLeading", "phi", "norm"],
+            "higgs2_reco_mass": ["HiggsSubLeading", "mass", "log_norm"],
+            "higgs2_reco_pt": ["HiggsSubLeading", "pt", "log_norm"],
+            "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS", "norm"],
+            "hh_vec_DeltaEta": ["HH", "dEta", "norm"],
+            "hh_vec_DeltaPhi": ["HH", "dPhi", "norm"],
+            "hh_vec_DeltaR": ["HH", "dR", "norm"],
+            "hh_vec_eta": ["HH", "eta", "norm"],
+            "hh_vec_mass": ["HH", "mass", "log_norm"],
+            "hh_vec_phi": ["HH", "phi", "norm"],
+            "hh_vec_pt": ["HH", "pt", "log_norm"],
+            "add_jet1pt_Higgs1_deta": ["add_jet1pt", "LeadingHiggs_dEta", "norm"],
+            "add_jet1pt_Higgs1_dphi": ["add_jet1pt", "LeadingHiggs_dPhi", "norm"],
+            "add_jet1pt_Higgs1_m": ["add_jet1pt", "LeadingHiggs_mass", "norm"],
+            "add_jet1pt_Higgs2_deta": ["add_jet1pt", "SubLeadingHiggs_dEta", "norm"],
+            "add_jet1pt_Higgs2_dphi": ["add_jet1pt", "SubLeadingHiggs_dPhi", "norm"],
+            "add_jet1pt_Higgs2_m": ["add_jet1pt", "SubLeadingHiggs_mass", "norm"],
+            "add_jet1pt_eta": ["add_jet1pt", "eta", "norm"],
+            "add_jet1pt_mass": ["add_jet1pt", "mass", "norm"],
+            "add_jet1pt_phi": ["add_jet1pt", "phi", "norm"],
+            "add_jet1pt_pt": ["add_jet1pt", "pt", "norm"],
+            }
+    }
+)
+
 
 sig_bkg_dnn_DeltaProb_input_variables = OrderedDict(
     {

@@ -26,6 +26,7 @@ from workflow import HH4bbQuarkMatchingProcessor
 import configs.HH4b_common.custom_cuts_common as cuts
 from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
+    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
     define_single_category,
@@ -55,7 +56,7 @@ defaults.register_configuration_dir("config_dir", localdir)
 year = ["2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection.yaml",
+    f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
@@ -78,23 +79,26 @@ preselection = define_preselection(config_options_dict)
 
 # Defining the used samples
 sample_ggF_list = [
-    #  "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-    #  "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-    #  "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-#     "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+    #  "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 sample_list = [
     # "GluGlutoHHto4B_spanet_skimmed",
     # "GluGlutoHHto4B_spanet_skimmed_SM",
-    "GluGlutoHHto4B_spanet_skimmed",
+    # "GluGlutoHHto4B_spanet_skimmed",
+    # "DATA_JetMET_JMENano_E_skimmed",
+    "DATA_JetMET_JMENano_F_skimmed",
+    "DATA_JetMET_JMENano_G_skimmed",
     # "GluGlutoHHto4B",
     # "GluGlutoHHto4B_spanet"
 ] + sample_ggF_list
@@ -113,6 +117,7 @@ total_input_variables = {}
 column_list = []
 column_listRun2 = []
 column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+# column_list += get_columns_list(SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
 if config_options_dict["random_pt"]:
     column_list += get_columns_list({"events": ["random_pt_weights"]})
         
@@ -146,6 +151,7 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
             f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_SM.json",
             f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
             # f"{localdir}/../HH4b_common/datasets/QCD.json",
             # f"{localdir}/../HH4b_common/datasets/SPANet_classification.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local.json",

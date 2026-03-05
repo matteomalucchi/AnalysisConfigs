@@ -1125,6 +1125,7 @@ SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "phi",
     "mass",
     "btagPNetB_3wp",
+    "btagPNetB_5wp",
     "btagPNetB",
 ]
 SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
@@ -1146,8 +1147,6 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 ]
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
-    "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     
     # collections with provenance_higgs and provenance_vbf saved separately
@@ -1182,6 +1181,7 @@ DEFAULT_JET_COLUMN_PARAMS = [
     "mass",
     "btagPNetB",
     "btagPNetB_5wp",
+    "btagPNetB_3wp",
 ]
 DEFAULT_JET_COLUMNS = {
     "JetGood": DEFAULT_JET_COLUMN_PARAMS,
@@ -1264,6 +1264,16 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
             "btagPNetB_5wp"
         )
         column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+            "provenance"
+        )
+    if f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}" in column_dict:
+        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+            "btagPNetB"
+        )
+        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+            "btagPNetB_5wp"
+        )
+        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
             "provenance"
         )
     column_list = get_columns_list(column_dict, flatten)

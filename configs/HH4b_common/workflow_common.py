@@ -112,6 +112,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         f"This happens {(n_events_with_jets_both_not_none/len(self.events)):.2f} % of the times",
                     )
         else:
+            self.dummy_provenance_vbf(jet_collection)
             provenance = provenance_higgs
 
         self.events[jet_collection] = ak.with_field(
@@ -131,11 +132,21 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # otherwise use the JEC corrected pt collection
         # This way we consider correctly all fields which change depending on
         # the pt definition, namely the pt, mass and the associated systematic variations
-        self.events["Jet"] = ak.where(
-            ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
+        if self.approach == "first":
+            self.events["Jet"] = ak.where(
+                ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
             self.events["JetPNetPlusNeutrino"],
             self.events.JetDefault,
         )
+        elif self.approach == "second":
+            self.events["Jet"] = ak.where(
+                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0) | (self.events["JetPNetPlusNeutrino"].btagPNetB > self.params["btagging"]["working_point"][self._year]["btagging_WP"]["btagPNetB"]["L"]),
+            self.events["JetPNetPlusNeutrino"],
+            self.events.JetDefault,
+        )
+        else:
+            raise ValueError(f"Approach {self.approach} not known. Choose either 'first' or 'second' according to HIG24-010")
+
         # save also the different pt definitions for bookkeeping
         # we anyway miss the different mass definitions and the various variations
         self.events["Jet"] = ak.with_field(
@@ -1082,8 +1093,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     pairing_predictions=pairing_predictions,
                     pairing_suffix="",
                 )
-            else:
-                self.dummy_provenance()
 
             matched_jet_higgs_idx_not_none = self.events.JetGoodFromHiggsOrdered.index
             # Define distance parameter for selection:
@@ -1203,7 +1212,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_noneRun2,
                 sb_variables=True,  # if self.sig_bkg_dnn else False,
             )
-
+        # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
+        add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
+        self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
+            [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
+            axis=1,
+        )
         if self.bkg_morphing_dnn and not self._isMC:
             (
                 model_session_bkg_morphing_dnn,
@@ -1297,14 +1311,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     max_num_jets_spanet=self.max_num_jets_spanet_class,
                 )
                 if out_type == "spanet":
-                    sig_bkg_dnn_score = onnx_output["class_prob"][0][:, 1]
+                    onnx_output = onnx_output["class_prob"][0][:, 1]
+                # if array is 1 dim just take it
+                if onnx_output.ndim == 1:
+                    self.events["sig_bkg_dnn_score"] = onnx_output
                 else:
-                    # if array is 1 dim just take it
-                    if sig_bkg_dnn_score.ndim == 1:
-                        self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score
-                    else:
-                        # if array is 2 dim take the last column
-                        self.events["sig_bkg_dnn_score"] = sig_bkg_dnn_score[:, -1]
+                    # if array is 2 dim take the last column
+                    self.events["sig_bkg_dnn_score"] = onnx_output[:, -1]
 
             if self.run2:
                 onnx_output, out_type = get_onnx_prediction(
@@ -1319,14 +1332,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     run2=True,
                 )
                 if out_type == "spanet":
-                    sig_bkg_dnn_score = onnx_output["class_prob"][0][:, 1]
+                    onnx_output = onnx_output["class_prob"][0][:, 1]
+                # if array is 1 dim just take it
+                if onnx_output.ndim == 1:
+                    self.events["sig_bkg_dnn_scoreRun2"] = onnx_output
                 else:
-                    # if array is 1 dim just take it
-                    if sig_bkg_dnn_score.ndim == 1:
-                        self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score
-                    else:
-                        # if array is 2 dim take the last column
-                        self.events["sig_bkg_dnn_scoreRun2"] = sig_bkg_dnn_score[:, -1]
+                    # if array is 2 dim take the last column
+                    self.events["sig_bkg_dnn_scoreRun2"] = onnx_output[:, -1]
 
                 del model_session_SIG_BKG_DNN
                 del input_name_SIG_BKG_DNN

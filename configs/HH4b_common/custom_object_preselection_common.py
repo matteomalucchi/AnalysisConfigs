@@ -1,4 +1,5 @@
 import numpy as np
+import awkward as ak
 
 
 def lepton_selection(events, lepton_flavour, params):
@@ -10,8 +11,15 @@ def lepton_selection(events, lepton_flavour, params):
     passes_pt = leptons.pt > cuts["pt"]
 
     # Requirements on the impact parameters
-    passes_dxy = leptons.dxy < cuts["dxy"]
-    passes_dz = leptons.dz < cuts["dz"]
+    if "eta_threshold" in cuts.keys():
+        mask_highEta = leptons.eta > cuts["eta_threshold"]
+        threshold_dxy = ak.where(mask_highEta, cuts["dxy_highEta"], cuts["dxy_lowEta"])
+        threshold_dz = ak.where(mask_highEta, cuts["dz_highEta"], cuts["dz_lowEta"])
+        passes_dxy = leptons.dxy < threshold_dxy
+        passes_dz = leptons.dz < threshold_dz
+    else:
+        passes_dxy = leptons.dxy < cuts["dxy"]
+        passes_dz = leptons.dz < cuts["dz"]
 
     if lepton_flavour == "Electron":
         # Requirements on isolation and id

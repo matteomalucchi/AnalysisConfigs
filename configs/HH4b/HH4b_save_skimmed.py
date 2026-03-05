@@ -21,7 +21,7 @@ defaults.register_configuration_dir("config_dir", localdir + "/params")
 year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection.yaml",
+    f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
