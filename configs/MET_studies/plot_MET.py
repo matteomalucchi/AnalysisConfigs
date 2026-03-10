@@ -95,7 +95,7 @@ BIN_VARIABLES = {
     "PV_npvs": {"bin_edges": PV_bins, "label": "#PV", "name_plot": "nPV"},
 }
 
-MASK=False
+MASK = False
 
 outputdir = args.output if args.output else "plots_MET"
 
@@ -311,7 +311,7 @@ def create_hist(
     hists_dict[f"{dict_info_y['name_plot']}VS{dict_info_x['name_plot']}"] = h
 
 
-def create_reponses_info(bin_var_array, u_dict, weights, bin_var):
+def create_responses_info(bin_var_array, u_dict, weights, bin_var):
     """
     Build response summaries and histograms for each MET type.
 
@@ -505,12 +505,10 @@ def create_met_histos(col_var, category):
     category : str
         Category name (e.g. event selection).
     """
-
+    met_dict = {}
     for quantity_name, var_dict in total_var_dict.items():
-
         hist_1d_dict = {}
         ref_var = var_dict["reference"]
-
         for i, variable in enumerate(var_dict["variables"]):
             col_num = col_var[variable]
             weight = col_var["weight"]
@@ -546,18 +544,73 @@ def create_met_histos(col_var, category):
             "y_log": var_dict["log"],
             "ratio_label": var_dict.get("ratio_label", "Ratio"),
         }
+        met_dict[quantity_name] = info
 
-        return {quantity_name: info}
+    # Add histograms of the difference between PuppiMET_pt and RawPuppiMET-Type1CorrMET_pt/RawPuppiMET-Type1CorrMETUncorrected_pt
+    met_diff = {}
+    for variable in ["PuppiMET_pt", "RawPuppiMET-Type1CorrMET_pt", "RawPuppiMET-Type1CorrMETUncorrected_pt"]:
+        try:
+            met_diff[variable] = col_var[variable]
+        except KeyError:
+            print(
+                f"Variable {variable} not found in the file, skipping the met difference plot"
+            )
+            met_diff = {}
+            break
+        
+    for met_type1 in ["RawPuppiMET-Type1CorrMET_pt", "RawPuppiMET-Type1CorrMETUncorrected_pt"]:
+        rel_diff_perc = (
+            (met_diff["PuppiMET_pt"] - met_diff[met_type1])
+            / met_diff[met_type1]
+            * 100
+        )
+        hist_diff = Hist.new.Reg(
+            1000,
+            -25,
+            25,
+            name="met_diff",
+            flow=False,
+        ).Double()
+        hist_diff.fill(rel_diff_perc)
+        # compute the percentage which is less than 0.5%
+        num_less_0p5 = len(np.where(abs(rel_diff_perc) < 0.5)[0])
+        num_events = len(rel_diff_perc)
+        frac_0p5 = num_less_0p5 / num_events
+        print(
+            f"Number of events with diff less than 0.5%: {num_less_0p5} out of {num_events}, fraction: {frac_0p5}"
+        )
+
+        hist_diff_dict = {
+            "met_diff": {
+                "data": hist_diff,
+                "style": {
+                    "is_reference": False,
+                    "legend_name": f"PuppiMET - {met_type1.replace('_pt', '')} \n {frac_0p5*100:.6f}% of the time < 0.5%",
+                },
+            }
+        }
+
+        met_dict[f"met_diff_PuppiMET_{met_type1.replace('_pt', '')}"] = {
+            "series_dict": hist_diff_dict,
+            "output_base": os.path.join(met_histograms_dir, f"{category}_met_diff_PuppiMET_{met_type1.replace('_pt', '')}"),
+            "xlabel": "MET $p_{T}$ relative difference [%]",
+            "ylabel": "Events",
+            "y_log": True,
+            # "set_ylim": False,
+            "ratio_label": "Ratio",
+        }
+
+    return met_dict
 
 
-def plot_reponses(responses_dict, cat, year):
+def plot_responses(responses_dict, cat, year):
     """
     Plot response curves (mean, stddev, quantile resolutions) vs the bin variable.
 
     Parameters
     ----------
     responses_dict : dict
-        Response summary information from `create_reponses_info`.
+        Response summary information from `create_responses_info`.
     cat : str
         Category name.
     year : str
@@ -605,7 +658,7 @@ def plot_2d_response_histograms(hists_dict, cat, year):
     Parameters
     ----------
     hists_dict : dict
-        Histogram dictionary from `create_reponses_info`.
+        Histogram dictionary from `create_responses_info`.
     cat : str
         Category name.
     year : str
@@ -658,7 +711,7 @@ def plot_1d_response_histograms(hists_dict, cat, year):
     Parameters
     ----------
     hists_dict : dict
-        Histogram dictionary from `create_reponses_info`.
+        Histogram dictionary from `create_responses_info`.
     cat : str
         Category name.
     year : str
@@ -751,7 +804,6 @@ def plot_histo_met(met_dict, year):
 
     plotters = []
     for info in met_dict.values():
-        print(f"Plotting MET histogram: {info['output_base']}")
         p = (
             HEPPlotter()
             .set_plot_config(figsize=(14, 13), lumitext=f"{year} (13.6 TeV)")
@@ -759,7 +811,7 @@ def plot_histo_met(met_dict, year):
             .set_labels(info["xlabel"], info["ylabel"], ratio_label=info["ratio_label"])
             .set_options(
                 y_log=info["y_log"],
-                set_ylim=True,
+                set_ylim=info.get("set_ylim", True),
                 split_legend=False,
                 set_ylim_ratio=0.5,
             )
@@ -767,10 +819,12 @@ def plot_histo_met(met_dict, year):
         )
         plotters.append(p)
     if args.workers > 1:
+        print(f"Plotting MET histograms in parallel")
         with Pool(args.workers) as pool:
             pool.map(run_plot, plotters)
     else:
         for p in plotters:
+            print(f"Plotting MET histogram  {p.output_base.split('/')[-1]}")
             p.run()
 
 
@@ -780,9 +834,9 @@ def do_plots(responses_dict, hists_dict, met_dict, category, year):
     Parameters
     ----------
     responses_dict : dict
-        Response summary information from `create_reponses_info`.
+        Response summary information from `create_responses_info`.
     hists_dict : dict
-        Histogram dictionary from `create_reponses_info`.
+        Histogram dictionary from `create_responses_info`.
     met_dict : dict
         Dictionary of histogram plotting configurations.
     category : str
@@ -799,7 +853,7 @@ def do_plots(responses_dict, hists_dict, met_dict, category, year):
         plot_2d_response_histograms(hists_dict, category, year)
 
     # plot response curves
-    plot_reponses(responses_dict, category, year)
+    # plot_responses(responses_dict, category, year)
     # plot MET histograms
     plot_histo_met(met_dict, year)
 
@@ -851,14 +905,13 @@ def main():
             responses_dict = {}
             hists_dict = {}
             for bin_var in BIN_VARIABLES.keys():
-                met_dict = {}
-                
+
                 if MASK:
                     # define a mask for the events
-                    mask=col_var["ll_pt"]>100
+                    mask = col_var["ll_pt"] > 100
                     for var in col_var:
-                        col_var[var]=col_var[var][mask]
-                
+                        col_var[var] = col_var[var][mask]
+
                 print(f"Processing category: {category} and bin in variable {bin_var}")
                 bin_var_array = col_var[bin_var]
 
@@ -880,14 +933,14 @@ def main():
                         weights = col_var[var]
 
                 # build response info
-                new_responses_dict, new_hists_dict = create_reponses_info(
+                new_responses_dict, new_hists_dict = create_responses_info(
                     bin_var_array, u_dict, weights, bin_var
                 )
                 responses_dict |= new_responses_dict
                 hists_dict |= new_hists_dict
 
-                # build MET histograms
-                met_dict |= create_met_histos(col_var, category)
+            # build MET histograms
+            met_dict = create_met_histos(col_var, category)
 
             # save all the histograms
             save_dict_to_file(
