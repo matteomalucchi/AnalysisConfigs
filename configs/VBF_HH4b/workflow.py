@@ -58,38 +58,37 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
             ]
 
-            # # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
-            # jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
+            # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
+            jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
 
-            # # find the remaining jets to define the vbf candidates
-            # self.events["JetVBFAN"] = self.get_jets_not_from_idx(
-            #     jet_goodhiggs_idx_not_none
-            # )
-            # self.events["JetGoodVBFAN"], mask_jet_vbf = custom_jet_selection(
-            #     self.events,
-            #     "JetVBFAN",
-            #     "JetVBF",
-            #     self.params,
-            #     year=self._year,
-            #     pt_type="pt_default",
-            #     pt_cut_name=self.pt_cut_name,
-            #     forward_jet_veto=True,
-            # )
+            # find the remaining jets to define the vbf candidates
+            self.events["JetVBFAN"] = self.get_jets_not_from_idx(
+                jet_goodhiggs_idx_not_none
+            )
+            self.events["JetGoodVBFAN"], mask_jet_vbf = custom_jet_selection(
+                self.events,
+                "JetVBFAN",
+                "JetVBF",
+                self.params,
+                year=self._year,
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name,
+                forward_jet_veto=True,
+            )
 
-            # # create the provenance field
-            # for jet_coll in ["JetGood", "JetGoodHiggs"]:
-            #     self.events[jet_coll] = ak.with_field(
-            #         self.events[jet_coll],
-            #         self.events[jet_coll].provenance_higgs,
-            #         "provenance",
-            #     )
-
-            # for jet_coll in ["JetGoodVBFAN"]:
-            #     self.events[jet_coll] = ak.with_field(
-            #         self.events[jet_coll],
-            #         self.events[jet_coll].provenance_vbf,
-            #         "provenance",
-            #     )
+            # # create the provenance field separate for higgs and vbf
+            for jet_coll in ["JetGoodHiggs"]:
+                self.events[jet_coll] = ak.with_field(
+                    self.events[jet_coll],
+                    self.events[jet_coll].provenance_higgs,
+                    "provenance",
+                )
+            for jet_coll in ["JetGoodVBFAN"]:
+                self.events[jet_coll] = ak.with_field(
+                    self.events[jet_coll],
+                    self.events[jet_coll].provenance_vbf,
+                    "provenance",
+                )
 
     def count_objects(self, variation):
         super().count_objects(variation=variation)
@@ -105,6 +104,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             # choose vbf jet candidates as the ones with the highest mjj that are not from higgs decay
             self.events["JetGoodVBFLeadingMjj"] = get_lead_mjj_jet_pair(
                 self.events, "JetGoodVBF"
+            )
+            # choose vbf jet candidates as the ones with the highest mjj that are not from higgs decay
+            self.events["JetGoodVBFLeadingMjjAN"] = get_lead_mjj_jet_pair(
+                self.events, "JetGoodVBFAN"
             )
 
             # Get additional VBF jets
@@ -179,11 +182,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             )
 
             # create a new collection which is similar to the one of the AN
-            # WARNING: JetGoodVBFLeadingMjj is not the same as in the AN if max_num_jets_good!=4
-            self.events["JetGoodHiggsPlusVBF1mjj"] = ak.concatenate(
+            self.events["JetGoodHiggsPlusVBF1mjjAN"] = ak.concatenate(
                 [
                     self.events["JetGoodHiggs"],
-                    self.events["JetGoodVBFLeadingMjj"],
+                    self.events["JetGoodVBFLeadingMjjAN"],
                 ],
                 axis=1,
             )

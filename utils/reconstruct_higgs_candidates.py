@@ -18,7 +18,7 @@ def reconstruct_higgs_from_provenance(matched_jets_higgs):
     jet_higgs2 = jet_higgs2[ak.argsort(jet_higgs2.pt, axis=1, ascending=False)]
     jet_higgs1 = jet_higgs1[ak.argsort(jet_higgs1.pt, axis=1, ascending=False)]
 
-    # NOTE: if an event is not fully macthed, it means that the mactched_jets_higgs
+    # NOTE: if an event is not fully macthed, it means that the matched_jets_higgs
     # has less than 4 jets != None. In any case it has >= 4 jets because we preselected
     # events with >=4 jets. So if the event is not fully matched, some of the jets are None and
     # the higgs candidate associated is set to None so it doesn't crash.
@@ -218,57 +218,26 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     ]
 
     # get the two jets with the highest mjj
-    # have to fill none with -1 because of numpy indexing
-    # will remove the jets which are actually none after
     lead_mjj_jet_0 = ak.unflatten(
-        events.Jet[
-            ak.local_index(events.Jet, axis=0),
-            ak.fill_none(jets_max_mass["0"].index, -1),
-        ],
+        jets_max_mass["0"],
         1,
     )
     lead_mjj_jet_1 = ak.unflatten(
-        events.Jet[
-            ak.local_index(events.Jet, axis=0),
-            ak.fill_none(jets_max_mass["1"].index, -1),
-        ],
+        jets_max_mass["1"],
         1,
     )
     lead_mjj_jet_pair = ak.with_name(
         ak.concatenate([lead_mjj_jet_0, lead_mjj_jet_1], axis=1),
         name="PtEtaPhiMCandidate",
     )
-    lead_mjj_jet_pair_not_none = add_fields(lead_mjj_jet_pair, "all")
-
-    # get the mask for each event where there aren't none jets in the jet padded collection
-    mask_event_not_none = ak.all(~ak.is_none(jet_padded, axis=1), axis=1)
-    # remove the jets which were actually none
-    # if an event was missing one or two of these jets,
-    # set the leading mjj jet pair to the first lead_mjj_jet_pair (if present)
-    # and the other to None. This is to avoid having events with incomplete jet pairs.
-    lead_mjj_jet_pair_padded = add_fields(
-        ak.pad_none(ak.unflatten(ak.firsts(jet), 1), 2, axis=1),
-        "all",
-    )
-
-    # where there aren't any None values put lead_mjj_jet_pair_not_none
-    # where we never have None values and
-    # contains the correct pair when there at least 2 jets
-    # and otherwise  put lead_mjj_jet_pair_padded,
-    # which contains the None values (for each event
-    # either [None, None] or [Jet, None]
-    lead_mjj_jet_pair_fixed = ak.where(
-        mask_event_not_none,
-        lead_mjj_jet_pair_not_none,
-        lead_mjj_jet_pair_padded,
-    )
+    lead_mjj_jet_pair = add_fields(lead_mjj_jet_pair, "all")
 
     # order the jets according to the energy
-    lead_mjj_jet_pair_fixed = lead_mjj_jet_pair_fixed[
-        ak.argsort(lead_mjj_jet_pair_fixed.energy, axis=1, ascending=False)
+    lead_mjj_jet_pair = lead_mjj_jet_pair[
+        ak.argsort(lead_mjj_jet_pair.energy, axis=1, ascending=False)
     ]
-
-    return lead_mjj_jet_pair_fixed
+    
+    return lead_mjj_jet_pair
 
 
 def distance_pt_func(higgs_pair, k):
