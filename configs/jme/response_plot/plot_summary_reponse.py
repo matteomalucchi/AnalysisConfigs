@@ -107,9 +107,30 @@ for type_string in args.type:
 
         ax.set_xscale("log")
 
-        hep.cms.lumitext(
-            f"{'2025' if '25' in args.dir else ('2024' if '24' in args.dir else ('2023' if '23' in args.dir else '2022'))}{' preBPix' if 'preBPix' in args.dir else (' postBPix' if 'postBPix' in args.dir else '')}{' preEE' if 'preEE' in args.dir else (' postEE' if 'postEE' in args.dir else '')} (13.6 TeV)",
-        )
+        if "2016_PreVFP" in args.dir:
+            hep.cms.lumitext("2016_PreVFP (13 TeV)")
+        elif "2016_PostVFP" in args.dir:
+            hep.cms.lumitext("2016_PostVFP (13 TeV)")
+        elif "2017" in args.dir:
+            hep.cms.lumitext("2017 (13 TeV)")
+        elif "2018" in args.dir:
+            hep.cms.lumitext("2018 (13 TeV)")
+        elif "2022_preEE" in args.dir:
+            hep.cms.lumitext("2022_preEE (13.6 TeV)")
+        elif "2022_postEE" in args.dir:
+            hep.cms.lumitext("2022_postEE (13.6 TeV)")
+        elif "2023_preBPix" in args.dir:
+            hep.cms.lumitext("2023_preBPix (13.6 TeV)")
+        elif "2023_postBPix" in args.dir:
+            hep.cms.lumitext("2023_postBPix (13.6 TeV)")
+        elif "2024" in args.dir:
+            hep.cms.lumitext("2024 (13.6 TeV)")
+        elif "2025" in args.dir:
+            hep.cms.lumitext("2025 (13.6 TeV)")
+        else:
+            raise ValueError("Year string not found in directory name")
+
+
         hep.cms.text(
             text="Simulation\nPreliminary",
             loc=2,

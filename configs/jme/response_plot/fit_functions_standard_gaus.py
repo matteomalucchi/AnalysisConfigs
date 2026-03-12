@@ -34,8 +34,8 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
     yerr_cor = yerr.copy()
     ratio_yerr = yerr / y
     for i in range(len(y)):
-        if ratio_yerr[i] < 0.001:
-            yerr_cor[i] = y[i] * 0.001
+        if ratio_yerr[i] < 0.25:
+            yerr_cor[i] = y[i] * 0.25
 
     # p_initial = [
     #     9.14823123e-01,
@@ -82,24 +82,24 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
         2.909490540551297,
     ]
     p_minimum = [
-        -5.,
-        0.,
-        0.,
-        -500.,
+        -1000.,
+        -100000.,
+        -10.,
+        -10000000.,
         -100.,
-        0.,
-        -20.,
-        0.,
         -50.,
+        -1000.,
+        -100.,
+        -1000.,
     ]
     p_maximum = [
-        25.,
-        250.,
+        1000.,
+        5000.,
         4000.,
-        15.,
+        100.,
         2000.,
         50.,
-        10.,
+        50.,
         100.,
         50.,
     ]
@@ -108,7 +108,7 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
     mask = x>=xmin
     # do the fit
     popt, pcov = curve_fit(
-        std_gaus, x[mask], y[mask], p0=p_initial, sigma=yerr_cor[mask], absolute_sigma=True, maxfev=20000, bounds=(p_minimum, p_maximum)
+        std_gaus, x[mask], y[mask], p0=p_initial, sigma=yerr_cor[mask], absolute_sigma=True, maxfev=5000000, bounds=(p_minimum, p_maximum)
     )
     # popt, pcov = p_initial, [[0]*len(p_initial)]*len(p_initial)
 
@@ -137,17 +137,16 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
     ndof = len(x) - len(popt)
     p_value = 1 - stats.chi2.cdf(chi2, ndof)
 
-    # ax.plot(x_fit, y_fit, color=variables_plot_settings[variable][0], linestyle="--")
-    # ax.text(
-    #     0.98,
-    #     0.2 + y_pos,
-    #     f"$\chi^2$ / ndof = {chi2:.2f} / {ndof}" + f", p-value = {p_value:.2f}",
-    #     horizontalalignment="right",
-    #     verticalalignment="top",
-    #     transform=ax.transAxes,
-    #     color=variables_plot_settings[variable][0],
-    #
-    # )
+    ax.plot(x_fit, y_fit, color=variables_plot_settings[variable][0], linestyle="--")
+    ax.text(
+        0.98,
+        0.2 + y_pos,
+        f"$\chi^2$ / ndof = {chi2:.2f} / {ndof}" + f", p-value = {p_value:.2f}",
+        horizontalalignment="right",
+        verticalalignment="top",
+        transform=ax.transAxes,
+        color=variables_plot_settings[variable][0],
+    )
 
     # print(
     #     "\n",

@@ -143,6 +143,17 @@ class QCDBaseProcessor(BaseProcessorABC):
             corr_function = string_to_pol_function(function_string)
         else:
             corr_function = standard_gaus_function
+            if not all(n == 13 for n in num_params):
+                # parse older function string format used in Run 2
+                # where the pt threshold is given explicitly in the formula, not as a parameter
+                # e.g. "((x<14)*([9]))+((x>=14)*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8])))))))"
+                if all(n == 12 for n in num_params):
+                    num_params = [n+1 for n in num_params]
+                    x_lessthan_idx = function_string.find("x<")
+                    x_lessthan_closingparenthesis = function_string.find(")", x_lessthan_idx)
+                    params = [[*p, float(function_string[x_lessthan_idx + 2 : x_lessthan_closingparenthesis])] for p in params]
+                else:
+                    raise ValueError(f"Invalid number of parameters for standard_gaus_function evaluation.")
 
         pt = ak.values_astype(pt, "float64")
 
