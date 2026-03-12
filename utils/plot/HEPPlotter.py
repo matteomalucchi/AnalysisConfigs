@@ -37,7 +37,7 @@ class HEPPlotter:
 
     Methods
     -------
-    - set_plot_config(figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", formats=None)
+    - set_plot_config(figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", formats=None, lumitext_font_size=None, cmstext_font_size=None)
     - set_output(output_base)
     - set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio")
     - set_data(series_dict, plot_type="1d")
@@ -61,6 +61,8 @@ class HEPPlotter:
         self.lumitext = "(13.6 TeV)"
         self.cmstext = "Preliminary"
         self.data_formats = ["png", "pdf", "svg"]
+        self.lumitext_font_size = None
+        self.cmstext_font_size = None
 
         # output
         self.output_base = None
@@ -136,7 +138,13 @@ class HEPPlotter:
     # ----------------------------
 
     def set_plot_config(
-        self, figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", formats=None
+        self,
+        figsize=None,
+        lumitext="(13.6 TeV)",
+        cmstext="Preliminary",
+        formats=None,
+        lumitext_font_size=None,
+        cmstext_font_size=None,
     ):
         """Set the plotting style and related options."""
         self.figsize = figsize
@@ -144,6 +152,8 @@ class HEPPlotter:
         self.cmstext = cmstext
         if formats:
             self.data_formats = formats
+        self.lumitext_font_size = lumitext_font_size
+        self.cmstext_font_size = cmstext_font_size
         return self
 
     def set_output(self, output_base, create_dir=False):
@@ -296,8 +306,8 @@ class HEPPlotter:
 
     def _apply_cms_labels(self, ax):
         """Add CMS style labels to the plot."""
-        hep.cms.lumitext(self.lumitext, ax=ax)
-        hep.cms.text(self.cmstext, ax=ax)
+        hep.cms.lumitext(self.lumitext, ax=ax, fontsize=self.lumitext_font_size)
+        hep.cms.text(self.cmstext, ax=ax, fontsize=self.cmstext_font_size)
 
     def _apply_annotations(self, ax):
         """Internal helper to draw all stored annotations on a given axis."""
@@ -621,12 +631,12 @@ class HEPPlotter:
                 if style.get("appear_in_legend", True)
                 else None
             )
-            
+
             if x_errors is None:
                 x_errors = [0] * len(x_values)
             if y_errors is None:
                 y_errors = [0] * len(y_values)
-            
+
             if np.any(np.array(x_errors) > 0) or np.any(np.array(y_errors) > 0):
                 # plot with error bars
                 ax.errorbar(
