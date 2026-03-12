@@ -77,11 +77,18 @@ default_jets_calibration:
         level: L1L2L3Res
 
       "2024":
-        json_path: ${cvmfs:Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15,JME,jet_jerc.json.gz}
-        jec_mc: Summer24Prompt24_V2_MC
-        jec_data: Summer24Prompt24_V2_DATA
+        json_path: ${cvmfs:Run3-24Prompt-Winter24-NanoAODv14,JME,jet_jerc.json.gz,2024-07-09}
+        jec_mc: Winter24Prompt24_V1_MC
+        jec_data: Winter24Prompt24_RunBCD_V1_DATA
         jer: Summer23BPixPrompt23_RunD_JRV1_MC  # For the time being the 2023 jers shall be used https://cms-jerc.web.cern.ch/Recommendations/#2024_1
         level: L1L2L3Res
+
+      # "2024":
+      #   json_path: ${cvmfs:Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15,JME,jet_jerc.json.gz}
+      #   jec_mc: Summer24Prompt24_V2_MC
+      #   jec_data: Summer24Prompt24_V2_DATA
+      #   jer: Summer23BPixPrompt23_RunD_JRV1_MC  # For the time being the 2023 jers shall be used https://cms-jerc.web.cern.ch/Recommendations/#2024_1
+      #   level: L1L2L3Res
     
 
     AK4PFPuppiPNetRegression:
@@ -633,40 +640,40 @@ jets_calibration:
       AK4PFchs: True
       AK8PFPuppi: True
     2022_preEE: 
-      AK4PFPuppi: True
+      AK4PFPuppi: False
       AK4PFPuppiPNetRegression: False
       AK4PFPuppiPNetRegressionPlusNeutrino: False
       # AK4PFPuppiLowPtMuonSubtr: True
       # AK4PFPuppiMuonSubtr: True
-      AK8PFPuppi: True
+      AK8PFPuppi: False
     2022_postEE: 
-      AK4PFPuppi: True
+      AK4PFPuppi: False
       AK4PFPuppiPNetRegression: False
       AK4PFPuppiPNetRegressionPlusNeutrino: False
       # AK4PFPuppiLowPtMuonSubtr: True
       # AK4PFPuppiMuonSubtr: True
-      AK8PFPuppi: True
+      AK8PFPuppi: False
     2023_preBPix: 
-      AK4PFPuppi: True
+      AK4PFPuppi: False
       AK4PFPuppiPNetRegression: False
       AK4PFPuppiPNetRegressionPlusNeutrino: False
       # AK4PFPuppiLowPtMuonSubtr: True
       # AK4PFPuppiMuonSubtr: True
-      AK8PFPuppi: True
+      AK8PFPuppi: False
     2023_postBPix: 
-      AK4PFPuppi: True
+      AK4PFPuppi: False
       AK4PFPuppiPNetRegression: False
       AK4PFPuppiPNetRegressionPlusNeutrino: False
       # AK4PFPuppiLowPtMuonSubtr: True
       # AK4PFPuppiMuonSubtr: True
-      AK8PFPuppi: True
+      AK8PFPuppi: False
     "2024": 
-      AK4PFPuppi: True
+      AK4PFPuppi: False
       AK4PFPuppiPNetRegression: False
       AK4PFPuppiPNetRegressionPlusNeutrino: False
       # AK4PFPuppiLowPtMuonSubtr: True
       # AK4PFPuppiMuonSubtr: True
-      AK8PFPuppi: True
+      AK8PFPuppi: False
 
   apply_jec_Data:  # this is needed to know which collection is corrected with which jet factory
     2016_PreVFP: 
