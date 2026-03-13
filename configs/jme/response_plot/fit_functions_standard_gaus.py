@@ -34,8 +34,8 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
     yerr_cor = yerr.copy()
     ratio_yerr = yerr / y
     for i in range(len(y)):
-        if ratio_yerr[i] < 0.25:
-            yerr_cor[i] = y[i] * 0.25
+        if ratio_yerr[i] < 0.001:
+            yerr_cor[i] = y[i] * 0.001
 
     # p_initial = [
     #     9.14823123e-01,
@@ -82,24 +82,24 @@ def fit_inv_median(ax, x, y, yerr, variable, y_pos, name_plot, variables_plot_se
         2.909490540551297,
     ]
     p_minimum = [
-        -1000.,
-        -100000.,
-        -10.,
-        -10000000.,
+        -5.,
+        0.,
+        0.,
+        -500.,
         -100.,
+        0.,
+        -20.,
+        0.,
         -50.,
-        -1000.,
-        -100.,
-        -1000.,
     ]
     p_maximum = [
-        1000.,
-        5000.,
+        25.,
+        250.,
         4000.,
-        100.,
+        15.,
         2000.,
         50.,
-        50.,
+        10.,
         100.,
         50.,
     ]
