@@ -165,6 +165,13 @@ else:
 
 variables_dict=get_variables_dict(cuts_names_eta, cuts_names_reco_eta, cuts_names_eta_neutrino)
 
+# samples_dict = {
+    # "2022_preEE": "QCD_PT-15to7000_JMENano_Summer22",
+    # "2022_postEE": "QCD_PT-15to7000_JMENano_Summer22EE",
+    # "2023_preBPix": "QCD_PT-15to7000_JMENano_Summer23",
+    # "2023_postBPix": "QCD_PT-15to7000_JMENano_Summer23BPix",
+# }
+
 samples_dict = {
     "2016_PreVFP": "QCD_PT-15to7000_JMENano_Summer20UL16APV",
     "2016_PostVFP": "QCD_PT-15to7000_JMENano_Summer20UL16",
