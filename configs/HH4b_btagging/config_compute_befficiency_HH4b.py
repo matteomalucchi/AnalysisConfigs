@@ -1,10 +1,12 @@
 import os
 
-from histConfigBtagEfficiency import btag_sf_hist
-from pocket_coffea.lib.calibrators.legacy.legacy_calibrators import (
-    JetsCalibrator,
-    JetsPtRegressionCalibrator,
+from configs.HH4b_common.config_files.bWPeff_studies_no_model_alljets import (
+    config_options_dict,
+    onnx_model_dict,
 )
+from histConfigBtagEfficiency import btag_sf_hist
+import pocket_coffea.lib.calibrators.legacy.legacy_calibrators as legacy_cal
+from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.weights.common.common import common_weights
 from pocket_coffea.parameters import defaults
 from pocket_coffea.parameters.histograms import *
@@ -16,10 +18,6 @@ from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS,
     define_single_category,
     get_columns_list,
-)
-from configs.HH4b_common.config_files.bWPeff_studies_no_model_alljets.py import (
-    config_options_dict,
-    onnx_model_dict,
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
@@ -40,14 +38,16 @@ defaults.register_configuration_dir("config_dir", localdir)
 year = ["2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection.yaml",
+    f"{localdir}/../HH4b_common/params/object_preselection_first_approach.yaml",
+    # f"{localdir}/../HH4b_common/params/object_preselection.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
-    f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
+    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
     # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
+    f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
     update=True,
-    )
+)
 parameters["run_period"] = "Run3"
 config_options_dict["num_bins"] = 20
 preselection = [
@@ -134,18 +134,18 @@ cfg = Configurator(
 
     workflow=HH4bbtagWPefficiencyProcessor,
     workflow_options=config_options_dict,
-    skim=cuts.skimming_cut_list,
+    skim=cuts.skimming_cut_list({"noL1": False}),
     preselections=preselection,
     categories=categories_dict,
     # calibrators=default_calibrators_sequence,
-    calibrators=[JetsCalibrator, JetsPtRegressionCalibrator],
+    calibrators=[JetsCalibrator],  # , JetsPtRegressionCalibrator],
 
     weights_classes=common_weights
     + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2],
     weights={
         "common": {
 			"inclusive": ["genWeight", "lumi", "XS",
-                          "pileup"
+                          # "pileup"
                           ],
             "bycategory": {}
         },
@@ -155,7 +155,7 @@ cfg = Configurator(
     variations={
         "weights": {
             "common": {
-                "inclusive": ["pileup",
+                "inclusive": [  # "pileup",
                               ],
                 "bycategory": {}
             },

@@ -9,7 +9,7 @@ import vector
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 from utils.inference_session_onnx import get_model_session
 from utils.reconstruct_higgs_candidates import (
-    reconstruct_higgs_from_idx,
+    reconstruct_resonances_from_idx,
 )
 from utils.spanet_evaluation_functions import get_best_pairings, get_pairing_information
 
@@ -54,6 +54,10 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
 
         for key, value in self.workflow_options.items():
             setattr(self, key, value)
+
+    def process_extra_after_skim(self):
+        super().process_extra_after_skim()
+        self.define_jet_collections()
 
     def apply_object_preselection(self, variation):
         super().apply_object_preselection(variation)
@@ -165,7 +169,7 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],
                 self.events["JetGoodFromHiggsOrdered"],
-            ) = reconstruct_higgs_from_idx(self.events.JetGood, pairing_predictions)
+            ) = reconstruct_resonances_from_idx(self.events.JetGood, pairing_predictions)
 
             matched_jet_higgs_idx_not_none = self.events.JetGoodFromHiggsOrdered.index
             # Define distance parameter for selection:
