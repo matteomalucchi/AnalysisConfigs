@@ -35,12 +35,6 @@ from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
     bkg_morphing_dnn_weightRun2,
 )
-from configs.HH4b_common.dnn_input_variables import (
-    bkg_morphing_dnn_input_variables,
-    # bkg_morphing_dnn_input_variables_altOrder,
-    sig_bkg_dnn_input_variables,
-    sig_bkg_dnn_input_variables_spanet,
-)
 from configs.HH4b_common.params.CustomWeights import SF_btag_fixed_multiple_wp
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -55,7 +49,7 @@ defaults.register_configuration_dir("config_dir", localdir)
 year = ["2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection.yaml",
+    f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
@@ -93,25 +87,25 @@ preselection = define_preselection(config_options_dict)
 
 # Defining the used samples
 sample_ggF_list = [
-      "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
     # "DATA_JetMET_JMENano_D_skimmed",
-    "DATA_JetMET_JMENano_E_skimmed",
+    # "DATA_JetMET_JMENano_E_skimmed",
     "DATA_JetMET_JMENano_F_skimmed",
-    "DATA_JetMET_JMENano_G_skimmed",
+    # "DATA_JetMET_JMENano_G_skimmed",
     # "GluGlutoHHto4B_spanet_skimmed",
     # "GluGlutoHHto4B_spanet_skimmed_SM",
     # "GluGlutoHHto4B_spanet_skimmed",
@@ -326,7 +320,7 @@ cfg = Configurator(
     calibrators=[JetsCalibrator],
     weights={
         "common": {
-            "inclusive": ["genWeight", "lumi", "XS", "pileup"],  # , "sf_btag_fixed_multiple_wp"],
+            "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
             # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
             # "inclusive": ["genWeight", "lumi", "XS"],
             # "inclusive": [],
@@ -338,7 +332,7 @@ cfg = Configurator(
     variations={
         "weights": {
             "common": {
-                "inclusive": ["pileup"],  # , "sf_btag_fixed_multiple_wp"],
+                "inclusive": ["XS", "lumi", "pileup", "sf_btag_fixed_multiple_wp"],
                 # "inclusive": [],
                 "bycategory": {},
             },
