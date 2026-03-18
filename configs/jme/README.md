@@ -1,6 +1,6 @@
 # MC Truth corrections for pT regression
 
-Repository to compute MC Truth corrections for regressed pT jets, structured as an analysis configurations for a specific development branch from a fork [PocketCoffea](https://github.com/PocketCoffea/PocketCoffea/tree/main).
+Repository to compute MC Truth corrections for regressed pT jets, structured as an analysis configurations for a specific development branch from a fork [PocketCoffea](https://github.com/matteomalucchi/PocketCoffea/tree/jme-pnet-reg).
 
 ## Setup
 
