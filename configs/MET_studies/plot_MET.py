@@ -638,7 +638,7 @@ def create_met_histos(col_var, category):
         "RawPuppiMET-Type1CorrMETUncorrected_pt",
     ]:
         rel_diff_perc = (
-            (met_diff["PuppiMET_pt"] - met_diff[met_type1]) / met_diff[met_type1] * 100
+            (met_diff["PuppiMET_pt"] - met_diff[met_type1]) / met_diff["PuppiMET_pt"] * 100
         )
         hist_diff = Hist.new.Reg(
             1000,
@@ -661,7 +661,7 @@ def create_met_histos(col_var, category):
                 "data": hist_diff,
                 "style": {
                     "is_reference": False,
-                    "legend_name": f"PuppiMET - {met_type1.replace('_pt', '')} \n {frac_0p5*100:.6f}% of the time < 0.5%",
+                    "legend_name": f"(PuppiMET - {met_type1.replace('_pt', '')})/PuppiMET \n {frac_0p5*100:.6f}% of the time < 0.5%",
                 },
             }
         }

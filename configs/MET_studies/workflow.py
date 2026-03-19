@@ -126,6 +126,8 @@ class METProcessor(BaseProcessorABC):
         return jet_subtr_muon
 
     def process_extra_after_skim(self):
+        self.events["PuppiMETCalibrator"]=copy.copy(self.events["PuppiMET"])
+        
         self.jet_good_list = ["JetGood"]
 
         # compute EmEF for the jets
@@ -478,6 +480,7 @@ class METProcessor(BaseProcessorABC):
             self.events[f"u{MET_coll}"] = ak.with_field(
                 self.events[f"u{MET_coll}"], response, "response"
             )
+        breakpoint()
 
     def count_objects(self, variation):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood)

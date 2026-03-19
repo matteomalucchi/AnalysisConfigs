@@ -8,7 +8,7 @@ from pocket_coffea.lib.cut_functions import get_HLTsel
 
 from pocket_coffea.parameters import defaults
 import pocket_coffea.lib.calibrators.legacy.legacy_calibrators as legacy_cal
-from pocket_coffea.lib.calibrators.common.common import JetsCalibrator,METCalibrator
+from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.cut_functions import (
     get_HLTsel,
     # get_L1sel,
@@ -17,7 +17,7 @@ from pocket_coffea.lib.cut_functions import (
     get_nPVgood,
 )
 
-from configs.MET_studies.workflow import METProcessor
+from configs.MET_studies.workflow_dummy import METProcessor
 import custom_cuts as cuts
 from output_quantities import get_met_columns, get_met_variables
 
@@ -45,22 +45,20 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/params/object_preselection.yaml",
     f"{localdir}/params/triggers.yaml",
     f"{localdir}/params/jets_calibration_MET_calibrator_noJER.yaml",
-    # f"{localdir}/params/jets_calibration_regression_json_noMETcorr_noJER.yaml",
-    # f"{localdir}/params/jets_calibration_regression_json_noMETcorr_noJER_oldJECs2024.yaml",
     update=True,
 )
 
 
 ### Configuring the MET studies config ###
-year = "2024"
+year = "2022_preEE"
 # dataset = "DYJetsToLL_M-50"
 # dataset = "DYto2L-4Jets_MLL-50-v12"
 dataset = "DYto2L-4Jets_MLL-50-v15"
 option = "option_6"
-add_str = ""
+add_str = "_METType1Calibrator"
 output_chunks_name = (
     # f"/scratch/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
-    f"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
+    # f"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_MET/out_{option}_{dataset}_{year}{add_str}/parquet_files"
 )
 print("Output chunks path:", output_chunks_name)
 ##########################################
@@ -107,9 +105,6 @@ cfg = Configurator(
         "consider_all_jets": True,
         "add_low_pt_jets": True,
         "jet_regressed_option": option,
-        "dump_columns_as_arrays_per_chunk": (
-            output_chunks_name if DUMP_COLUMNS_AS_ARRAYS_PER_CHUNK else ""
-        ),
     },
     skim=[
         get_HLTsel(primaryDatasets=["SingleMuon"]),
@@ -119,9 +114,9 @@ cfg = Configurator(
     ],
     preselections=[
         # cuts.custom_JetVetoMap,
-        cuts.PV_presel,
-        cuts.at_least_one_jet,
-        cuts.dimuon_presel,
+        # cuts.PV_presel,
+        # cuts.at_least_one_jet,
+        # cuts.dimuon_presel,
     ],
     categories={
         **common_cats,
@@ -138,7 +133,7 @@ cfg = Configurator(
         "bysample": {},
     },
     # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
-    calibrators=[JetsCalibrator, METCalibrator],
+    calibrators=[JetsCalibrator],
     variations={
         "weights": {
             "common": {
@@ -159,13 +154,9 @@ cfg = Configurator(
             "inclusive": (
                 (
                     [
-                        ColOut("ll", ["mass", "pt", "eta", "phi"]),
-                        ColOut("PV", ["npvs", "npvsGood"]),
+                        ColOut("PuppiMET", ["pt", "phi"]),
                     ]
-                    + met_cols
                 )
-                if SAVE_COLUMNS
-                else []
             ),
         },
         "bysample": {},
