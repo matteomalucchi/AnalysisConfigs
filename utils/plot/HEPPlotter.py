@@ -224,6 +224,8 @@ class HEPPlotter:
                 self._configurable_options[key] = value
                 setattr(self, key, value)
             else:
+                print(f"Unknown option '{key}'")
+                print("Available options:", self._configurable_options.keys())
                 raise ValueError(f"Unknown option '{key}'")
         return self
 
