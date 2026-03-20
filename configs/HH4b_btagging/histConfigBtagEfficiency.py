@@ -14,8 +14,8 @@ def btag_sf_hist(colName):
             Axis(
                 coll=colName,
                 field="abseta",
-                # bins=[0, 1.305, 2.5],
-                bins=[0, 2.5],
+                bins=[0, 1.305, 2.5],
+                # bins=[0, 2.5],
                 label=colName + " eta",
                 pos=None),
             Axis(
