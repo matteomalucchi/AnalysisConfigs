@@ -146,11 +146,11 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 forward_jet_veto=True,
             )
 
-            # order in energy because of the high eta
+            # order in the additional VBF jets
             self.events["JetAdditionalGoodVBF"] = ak.pad_none(
                 self.events["JetAdditionalGoodVBF"][
                     ak.argsort(
-                        self.events.JetAdditionalGoodVBF.energy, axis=1, ascending=False
+                        self.events.JetAdditionalGoodVBF[self.jets_add_vbf_order], axis=1, ascending=False
                     )
                 ],
                 self.max_num_jets_add_vbf,
