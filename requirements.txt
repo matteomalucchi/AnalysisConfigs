@@ -1,6 +1,6 @@
 matplotlib
 hist
-scipy
+scipy==1.15.3
 numpy
 mplhep==0.4.1
 scikit-learn

@@ -7,6 +7,14 @@ Repository containing analysis configurations for PocketCoffea
 ### Fast installation with micromamba
 
 ```bash
+# Clone PocketCoffea
+git clone git@github.com:PocketCoffea/PocketCoffea.git
+
+# Clone AnalysisConfigs
+git git@github.com:matteomalucchi/AnalysisConfigs.git
+
+# Create a local environment and install the packages
+cd AnalysisConfigs
 micromamba env create -f pocket-coffea-environment.yml
 micromamba activate pocket-coffea-env
 ```
@@ -23,7 +31,7 @@ the import of customization code into the framework configuration and also to ma
 
 Once you have a `PocketCoffea` local installation, you can install the `configs` and `utils` package with:
 
-```python
+```bash
 cd AnalysisConfigs
 pip install -e .
 ```
