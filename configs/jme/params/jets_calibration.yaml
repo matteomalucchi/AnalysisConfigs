@@ -212,17 +212,17 @@ default_jets_calibration:
 
     AK4PFPuppi:
       JES_JER_Syst:
-        "2016_PreVFP":
-          - "${default_params_dir:}/jec/Summer20UL16APV_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+        # "2016_PreVFP":
+        #   - "${default_params_dir:}/jec/Summer20UL16APV_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
-        "2016_PostVFP":
-          - "${default_params_dir:}/jec/Summer20UL16_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+        # "2016_PostVFP":
+        #   - "${default_params_dir:}/jec/Summer20UL16_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
-        "2017":
-          - "${default_params_dir:}/jec/Summer20UL17_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+        # "2017":
+        #   - "${default_params_dir:}/jec/Summer20UL17_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
-        "2018":
-          - "${default_params_dir:}/jec/Summer20UL18_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+        # "2018":
+        #   - "${default_params_dir:}/jec/Summer20UL18_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
         2022_preEE:
           - "${default_params_dir:}/jec/Summer22/Summer22_22Sep2023_V2_MC_L1FastJet_AK4PFPuppi.jec.txt.gz"
@@ -256,11 +256,11 @@ default_jets_calibration:
           - "${default_params_dir:}/jec/Summer23BPix/Summer23BPixPrompt23_JRV1_MC_PtResolution_AK4PFPuppi.jr.txt.gz"
           - "${default_params_dir:}/jec/Summer23BPix/Summer23BPixPrompt23_JRV1_MC_SF_AK4PFPuppi.jersf.txt.gz"
 
-        "2024":
-          - "${default_params_dir:}/jec/Summer24/Summer24Prompt24_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+        # "2024":
+        #   - "${default_params_dir:}/jec/Summer24/Summer24Prompt24_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
-        "2025":
-          - "${default_params_dir:}/jec/Winter25/Winter25Prompt25_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
+        # "2025":
+        #   - "${default_params_dir:}/jec/Winter25/Winter25Prompt25_V1_MC_L2Relative_AK4PFPuppi.txt.gz"
 
 
     AK4PFPNet:
@@ -524,28 +524,28 @@ jets_calibration:
   jec_name_map_MC: "${default_jets_calibration.jec_name_map_MC}"
   jec_name_map_Data: "${default_jets_calibration.jec_name_map_Data}"
   apply_jec_nominal:  # this is needed to know which collection is corrected with which jet factory
-    2016_PreVFP: True
-    2016_PostVFP: True
-    "2017": True
-    "2018": True
-    2022_preEE: True
-    2022_postEE: True
-    2023_preBPix: True
-    2023_postBPix: True
-    "2024": True
-    "2025": True
+    2016_PreVFP: False
+    2016_PostVFP: False
+    "2017": False
+    "2018": False
+    2022_preEE: False
+    2022_postEE: False
+    2023_preBPix: False
+    2023_postBPix: False
+    "2024": False
+    "2025": False
 
   rescale_MET:
-    2016_PreVFP: True
-    2016_PostVFP: True
-    "2017": True
-    "2018": True
-    2022_preEE: True
-    2022_postEE: True
-    2023_preBPix: True
-    2023_postBPix: True
-    "2024": True
-    "2025": True
+    2016_PreVFP: False
+    2016_PostVFP: False
+    "2017": False
+    "2018": False
+    2022_preEE: False
+    2022_postEE: False
+    2023_preBPix: False
+    2023_postBPix: False
+    "2024": False
+    "2025": False
 
   rescale_MET_branch:
      2016_PreVFP: "PuppiMET"
