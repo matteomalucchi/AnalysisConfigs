@@ -7,7 +7,7 @@ from pocket_coffea.lib.cut_functions import (
     eventFlags,
     get_nPVgood,
 )
-from utils.custom_cut_functions import get_custom_JetVetoMap_Mask
+from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
 
 hh4b_presel = Cut(
     name="hh4b_presel",

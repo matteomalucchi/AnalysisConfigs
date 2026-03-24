@@ -2,13 +2,13 @@
 import argparse
 import logging
 import os
-from utils.plot.get_era_lumi import get_era_lumi
+from utils_configs.plot.get_era_lumi import get_era_lumi
 import numpy as np
 import mplhep as hep
 
 import matplotlib
 from coffea.util import load
-from utils.plot.HEPPlotter import HEPPlotter
+from utils_configs.plot.HEPPlotter import HEPPlotter
 
 matplotlib.rcParams["figure.dpi"] = 300
 

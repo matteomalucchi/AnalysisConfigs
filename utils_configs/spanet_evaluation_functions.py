@@ -2,7 +2,7 @@ import numpy as np
 import awkward as ak
 import copy
 
-from utils.prediction_selection import extract_predictions
+from utils_configs.prediction_selection import extract_predictions
 
 
 def define_spanet_sequential_inputs(

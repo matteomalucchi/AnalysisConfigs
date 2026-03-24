@@ -3,11 +3,11 @@ import sys
 import numpy as np
 
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils.reconstruct_higgs_candidates import (
+from utils_configs.reconstruct_higgs_candidates import (
     possible_higgs_reco,
     distance_pt_func
 )
-from utils.basic_functions import add_fields
+from utils_configs.basic_functions import add_fields
 
 class HH4bCutflowProcessor(HH4bCommonProcessor):
     def __init__(self, cfg) -> None:

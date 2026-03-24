@@ -2,7 +2,7 @@ import awkward as ak
 import numpy as np
 import copy
 
-from utils.basic_functions import add_fields
+from utils_configs.basic_functions import add_fields
 
 
 def mask_num_jets(events, params, **kwargs):

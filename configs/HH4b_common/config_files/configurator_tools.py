@@ -4,10 +4,10 @@ from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.histograms import jet_hists, count_hist
 from pocket_coffea.lib.hist_manager import HistConf, Axis
 from pocket_coffea.parameters.cuts import passthrough
-from utils.quantile_transformer import WeightedQuantileTransformer
+from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
-from utils.variables_helpers import jet_hists_dict, create_HistConf
-from utils.variables_helpers import jet_hists_dict, create_HistConf
+from utils_configs.variables_helpers import jet_hists_dict, create_HistConf
+from utils_configs.variables_helpers import jet_hists_dict, create_HistConf
 import configs.HH4b_common.custom_cuts_common as cuts
 import configs.VBF_HH4b.custom_cuts as vbf_cuts
 

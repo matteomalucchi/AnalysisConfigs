@@ -2,10 +2,10 @@ import awkward as ak
 import copy
 import numpy as np
 
-from utils.custom_cut_functions import custom_jet_selection
-from utils.basic_functions import add_fields
+from utils_configs.custom_cut_functions import custom_jet_selection
+from utils_configs.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils.reconstruct_higgs_candidates import get_lead_mjj_jet_pair
+from utils_configs.reconstruct_higgs_candidates import get_lead_mjj_jet_pair
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):

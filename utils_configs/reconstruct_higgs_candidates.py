@@ -4,7 +4,7 @@ from numba import njit
 
 from math import sqrt
 
-from utils.basic_functions import add_fields
+from utils_configs.basic_functions import add_fields
 
 
 def reconstruct_higgs_from_provenance(matched_jets_higgs):

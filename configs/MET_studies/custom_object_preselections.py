@@ -1,4 +1,4 @@
-from utils.custom_cut_functions import custom_jet_selection
+from utils_configs.custom_cut_functions import custom_jet_selection
 
 
 def jet_type1_selection(

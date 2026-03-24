@@ -6,11 +6,11 @@ from hist import Hist
 import awkward as ak
 
 import configs.HH4b_common.dnn_input_variables as dnn_input_variables
-from utils.get_DNN_input_list import get_DNN_input_list
-from utils.inference_session_onnx import get_model_session
-from utils.plot.args_plot import args
-from utils.plot.get_columns_from_files import get_columns_from_files
-from utils.quantile_transformer import WeightedQuantileTransformer
+from utils_configs.get_DNN_input_list import get_DNN_input_list
+from utils_configs.inference_session_onnx import get_model_session
+from utils_configs.plot.args_plot import args
+from utils_configs.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",

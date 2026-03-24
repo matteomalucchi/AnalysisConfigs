@@ -12,7 +12,7 @@ from pocket_coffea.parameters.histograms import *
 from pocket_coffea.utils.configurator import Configurator
 
 import configs.HH4b_common.custom_cuts_common as cuts
-import utils.quantile_transformer as quantile_transformer
+import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,

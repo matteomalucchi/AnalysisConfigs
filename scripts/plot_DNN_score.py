@@ -6,16 +6,16 @@ from hist import Hist
 from multiprocessing import Pool
 
 import configs.HH4b_common.dnn_input_variables as dnn_input_variables
-from utils.inference_session_onnx import get_model_session
-from utils.get_DNN_input_list import get_DNN_input_list
+from utils_configs.inference_session_onnx import get_model_session
+from utils_configs.get_DNN_input_list import get_DNN_input_list
 
-from utils.plot.get_era_lumi import get_era_lumi
-from utils.plot.get_columns_from_files import get_columns_from_files
-from utils.plot.weighted_quantile import weighted_quantile
-from utils.plot.plot_names import plot_regions_names
-from utils.plot.args_plot import args
+from utils_configs.plot.get_era_lumi import get_era_lumi
+from utils_configs.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.plot.weighted_quantile import weighted_quantile
+from utils_configs.plot.plot_names import plot_regions_names
+from utils_configs.plot.args_plot import args
 
-from utils.plot.HEPPlotter import HEPPlotter
+from utils_configs.plot.HEPPlotter import HEPPlotter
 
 if not args.output:
     if not args.test:

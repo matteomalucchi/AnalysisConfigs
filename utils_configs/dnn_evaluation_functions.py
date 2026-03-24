@@ -2,7 +2,7 @@ import numpy as np
 import awkward as ak
 from collections import defaultdict
 
-from utils.spanet_evaluation_functions import (
+from utils_configs.spanet_evaluation_functions import (
     define_spanet_pairing_inputs,
 )
 

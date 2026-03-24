@@ -7,11 +7,11 @@ import numpy as np
 import vector
 
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils.inference_session_onnx import get_model_session
-from utils.reconstruct_higgs_candidates import (
+from utils_configs.inference_session_onnx import get_model_session
+from utils_configs.reconstruct_higgs_candidates import (
     reconstruct_resonances_from_idx,
 )
-from utils.spanet_evaluation_functions import get_best_pairings, get_pairing_information
+from utils_configs.spanet_evaluation_functions import get_best_pairings, get_pairing_information
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",

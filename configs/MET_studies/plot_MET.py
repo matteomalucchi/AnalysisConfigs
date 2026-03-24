@@ -12,8 +12,8 @@ import argparse
 from hist import Hist
 from coffea.util import load
 
-from utils.plot.get_columns_from_files import get_columns_from_files
-from utils.plot.weighted_quantile import weighted_quantile
+from utils_configs.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.plot.weighted_quantile import weighted_quantile
 from plot_config import (
     total_var_dict,
     response_var_name_dict,
@@ -25,7 +25,7 @@ from plot_config import (
     R_bin_edges,
     u_bin_edges,
 )
-from utils.plot.HEPPlotter import HEPPlotter
+from utils_configs.plot.HEPPlotter import HEPPlotter
 import helpers
 
 parser = argparse.ArgumentParser(description="Plot MET distributions from coffea files")

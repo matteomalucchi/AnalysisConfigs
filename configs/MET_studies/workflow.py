@@ -13,7 +13,7 @@ from pocket_coffea.lib.deltaR_matching import object_matching, deltaR_matching_n
 
 from configs.jme.workflow import QCDBaseProcessor
 from configs.jme.custom_cut_functions import jet_selection_nopu
-from utils.basic_functions import add_fields
+from utils_configs.basic_functions import add_fields
 from configs.MET_studies.custom_object_preselections import (
     jet_type1_selection,
     muon_selection_custom,
