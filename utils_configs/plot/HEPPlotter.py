@@ -37,7 +37,7 @@ class HEPPlotter:
 
     Methods
     -------
-    - set_plot_config(figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", formats=None, lumitext_font_size=None, cmstext_font_size=None)
+    - set_plot_config(figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", data_formats=["png", "pdf", "svg"], lumitext_font_size=None, cmstext_font_size=None, cmstext_loc=0)
     - set_output(output_base)
     - set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio")
     - set_data(series_dict, plot_type="1d")
@@ -63,6 +63,7 @@ class HEPPlotter:
         self.data_formats = ["png", "pdf", "svg"]
         self.lumitext_font_size = None
         self.cmstext_font_size = None
+        self.cmstext_loc = 0
 
         # output
         self.output_base = None
@@ -115,10 +116,14 @@ class HEPPlotter:
             "xlim_left_factor": 1,
             "xlim_right_value": None,
             "xlim_left_value": None,
+            ## cbar lim
+            "cbar_lim_top_value": None,
+            "cbar_lim_bottom_value": None,
             ## other
             "reference_to_den": True,
             "grid": True,
             "enable_watermark": True,
+            "mpl_magic": False,
         }
 
         # expose as attributes too (so they're accessible normally)
@@ -142,18 +147,19 @@ class HEPPlotter:
         figsize=None,
         lumitext="(13.6 TeV)",
         cmstext="Preliminary",
-        formats=None,
+        data_formats=["png", "pdf", "svg"],
         lumitext_font_size=None,
         cmstext_font_size=None,
+        cmstext_loc=None,
     ):
         """Set the plotting style and related options."""
         self.figsize = figsize
         self.lumitext = lumitext
         self.cmstext = cmstext
-        if formats:
-            self.data_formats = formats
+        self.data_formats = data_formats
         self.lumitext_font_size = lumitext_font_size
         self.cmstext_font_size = cmstext_font_size
+        self.cmstext_loc = cmstext_loc
         return self
 
     def set_output(self, output_base, create_dir=False):
@@ -309,7 +315,9 @@ class HEPPlotter:
     def _apply_cms_labels(self, ax):
         """Add CMS style labels to the plot."""
         hep.cms.lumitext(self.lumitext, ax=ax, fontsize=self.lumitext_font_size)
-        hep.cms.text(self.cmstext, ax=ax, fontsize=self.cmstext_font_size)
+        hep.cms.text(
+            self.cmstext, ax=ax, fontsize=self.cmstext_font_size, loc=self.cmstext_loc
+        )
 
     def _apply_annotations(self, ax):
         """Internal helper to draw all stored annotations on a given axis."""
@@ -592,6 +600,8 @@ class HEPPlotter:
                 label=label,
                 norm=matplotlib.colors.LogNorm() if self.cbar_log else None,
                 cmap=props["style"].get("cmap", "viridis"),
+                cmin=self.cbar_lim_bottom_value,
+                cmax=self.cbar_lim_top_value,
                 **self.extra_kwargs,
             )
         self._finalize(fig, ax)
@@ -1039,6 +1049,12 @@ class HEPPlotter:
         # CMS LABELS
         # ----------------------------
         self._apply_cms_labels(ax)
+        
+        # ----------------------------
+        # MPL MAGIC
+        # ----------------------------
+        if self.mpl_magic:
+            hep.utils.mpl_magic(ax=ax)
 
         # ----------------------------
         # LEGEND
