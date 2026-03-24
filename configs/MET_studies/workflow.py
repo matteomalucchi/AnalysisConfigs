@@ -11,9 +11,9 @@ from pocket_coffea.lib.jets import met_correction_after_jec
 from pocket_coffea.lib.leptons import lepton_selection, get_dilepton
 from pocket_coffea.lib.deltaR_matching import object_matching, deltaR_matching_nonunique
 
-from configs.jme.workflow import QCDBaseProcessor
-from configs.jme.custom_cut_functions import jet_selection_nopu
+from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.basic_functions import add_fields
+
 from configs.MET_studies.custom_object_preselections import (
     jet_type1_selection,
     muon_selection_custom,
@@ -33,6 +33,76 @@ class METProcessor(BaseProcessorABC):
         self.add_low_pt_jets = self.workflow_options["add_low_pt_jets"]
         self.jet_regressed_option = self.workflow_options["jet_regressed_option"]
 
+
+    def add_neutrinos_to_genjets(self, genjets, neutrinos):
+        neutrinos_matched = deltaR_matching_nonunique(genjets, neutrinos, 0.4)
+
+        # sum the 4-vecs of all the matched neutrinos an save just the 4-vec of the sum
+        neutrinos_matched_sum_px = ak.sum(neutrinos_matched.px, axis=-1)
+        neutrinos_matched_sum_py = ak.sum(neutrinos_matched.py, axis=-1)
+        neutrinos_matched_sum_pz = ak.sum(neutrinos_matched.pz, axis=-1)
+        neutrinos_matched_sum_e = ak.sum(neutrinos_matched.energy, axis=-1)
+
+        # compute pt, eta, phi, mass of the sum
+        neutrinos_matched_sum_pt = ak.nan_to_num(
+            np.sqrt(neutrinos_matched_sum_px**2 + neutrinos_matched_sum_py**2), nan=0
+        )
+        neutrinos_matched_sum_eta = ak.nan_to_num(
+            np.arctanh(
+                neutrinos_matched_sum_pz
+                / np.sqrt(neutrinos_matched_sum_pt**2 + neutrinos_matched_sum_pz**2)
+            ),
+            nan=0,
+        )
+        neutrinos_matched_sum_phi = ak.nan_to_num(
+            np.arctan2(neutrinos_matched_sum_py, neutrinos_matched_sum_px), nan=0
+        )
+        neutrinos_matched_sum_mass = ak.nan_to_num(
+            np.sqrt(
+                neutrinos_matched_sum_e**2
+                - neutrinos_matched_sum_pt**2
+                - neutrinos_matched_sum_pz**2
+            ),
+            nan=0,
+        )
+
+        # create the 4-vec of the sum
+        neutrinos_matched_sum = ak.zip(
+            {
+                "pt": neutrinos_matched_sum_pt,
+                "eta": neutrinos_matched_sum_eta,
+                "phi": neutrinos_matched_sum_phi,
+                "mass": neutrinos_matched_sum_mass,
+            },
+            with_name="PtEtaPhiMLorentzVector",
+        )
+
+        # recompute the matched jets quadrivector summing the 4-vecs of the genjets and the gen neutrinos
+        genjets_with_neutrinos = genjets + neutrinos_matched_sum
+
+        genjets_with_neutrinos = ak.with_field(
+            genjets,
+            genjets_with_neutrinos.pt,
+            "pt",
+        )
+        genjets_with_neutrinos = ak.with_field(
+            genjets_with_neutrinos,
+            genjets_with_neutrinos.eta,
+            "eta",
+        )
+        genjets_with_neutrinos = ak.with_field(
+            genjets_with_neutrinos,
+            genjets_with_neutrinos.phi,
+            "phi",
+        )
+        genjets_with_neutrinos = ak.with_field(
+            genjets_with_neutrinos,
+            genjets_with_neutrinos.mass,
+            "mass",
+        )
+
+        return genjets_with_neutrinos
+    
     def add_GenMET_plus_neutrino(self):
         # Add the neutrinos to the GetJets to compute the MET with neutrinos
         neutrinos = self.events["GenPart"][
@@ -40,7 +110,7 @@ class METProcessor(BaseProcessorABC):
             | (abs(self.events.GenPart.pdgId) == 14)
             | (abs(self.events.GenPart.pdgId) == 16)
         ]
-        self.events["GenJetPlusNeutrino"] = QCDBaseProcessor.add_neutrinos_to_genjets(
+        self.events["GenJetPlusNeutrino"] = self.add_neutrinos_to_genjets(
             self, self.events["GenJetGood"], neutrinos
         )
 
@@ -152,8 +222,8 @@ class METProcessor(BaseProcessorABC):
             self.events["JetGood"] = copy.copy(self.events["Jet"])
         else:
             # keep only jets with pt_raw > 15 GeV and |eta| < 4.7
-            self.events["JetGood"] = jet_selection_nopu(
-                self.events, "Jet", self.params, "pt_raw"
+            self.events["JetGood"] = custom_jet_selection(
+                self.events, "Jet",  "Jet", self.params, self._year, pt_type="pt_raw", pt_cut_name="pt_raw"
             )
             if self.only_physical_jet:
                 physisical_jet_mask = (
