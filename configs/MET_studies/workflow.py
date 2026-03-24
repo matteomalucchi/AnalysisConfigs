@@ -480,7 +480,6 @@ class METProcessor(BaseProcessorABC):
             self.events[f"u{MET_coll}"] = ak.with_field(
                 self.events[f"u{MET_coll}"], response, "response"
             )
-        breakpoint()
 
     def count_objects(self, variation):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood)

@@ -45,6 +45,7 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/params/object_preselection.yaml",
     f"{localdir}/params/triggers.yaml",
     f"{localdir}/params/jets_calibration_MET_calibrator_noJER.yaml",
+    f"{localdir}/params/met_calibration.yaml",
     # f"{localdir}/params/jets_calibration_regression_json_noMETcorr_noJER.yaml",
     # f"{localdir}/params/jets_calibration_regression_json_noMETcorr_noJER_oldJECs2024.yaml",
     update=True,
