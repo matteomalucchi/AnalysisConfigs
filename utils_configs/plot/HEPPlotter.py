@@ -150,7 +150,7 @@ class HEPPlotter:
         data_formats=["png", "pdf", "svg"],
         lumitext_font_size=None,
         cmstext_font_size=None,
-        cmstext_loc=None,
+        cmstext_loc=0,
     ):
         """Set the plotting style and related options."""
         self.figsize = figsize
