@@ -44,6 +44,9 @@ dependencies = {file = ["requirements.txt"]}
 include = ["configs*", "utils*"]
 exclude = ["tests/*", "output/*"]
 
+[tool.setuptools.package-dir]
+"configs.utils" = "utils"
+
 [tool.setuptools]
 include-package-data = true
 
