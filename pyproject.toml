@@ -41,11 +41,8 @@ readme = {file = ["README.md"], content-type = "text/markdown"}
 dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
-include = ["configs*", "utils*"]
+include = ["configs*", "utils_configs*"]
 exclude = ["tests/*", "output/*"]
-
-[tool.setuptools.package-dir]
-"configs.utils" = "utils"
 
 [tool.setuptools]
 include-package-data = true
