@@ -603,7 +603,7 @@ class HEPPlotter:
                         self.cbar_lim_bottom_value, self.cbar_lim_top_value
                     )
                     if self.cbar_log
-                    else matplotlib.colors.NoNorm(
+                    else matplotlib.colors.Normalize(
                         self.cbar_lim_bottom_value, self.cbar_lim_top_value
                     )
                 ),
