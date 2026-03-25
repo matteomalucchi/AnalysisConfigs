@@ -598,10 +598,16 @@ class HEPPlotter:
                 hist2d,
                 ax=ax,
                 label=label,
-                norm=matplotlib.colors.LogNorm() if self.cbar_log else None,
+                norm=(
+                    matplotlib.colors.LogNorm(
+                        self.cbar_lim_bottom_value, self.cbar_lim_top_value
+                    )
+                    if self.cbar_log
+                    else matplotlib.colors.NoNorm(
+                        self.cbar_lim_bottom_value, self.cbar_lim_top_value
+                    )
+                ),
                 cmap=props["style"].get("cmap", "viridis"),
-                cmin=self.cbar_lim_bottom_value,
-                cmax=self.cbar_lim_top_value,
                 **self.extra_kwargs,
             )
         self._finalize(fig, ax)
@@ -1049,7 +1055,7 @@ class HEPPlotter:
         # CMS LABELS
         # ----------------------------
         self._apply_cms_labels(ax)
-        
+
         # ----------------------------
         # MPL MAGIC
         # ----------------------------
