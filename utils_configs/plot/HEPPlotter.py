@@ -110,6 +110,8 @@ class HEPPlotter:
             "ylim_bottom_factor": 1e-2,
             "ylim_top_value": None,
             "ylim_bottom_value": None,
+            "ylim_ratio_top_value": None,
+            "ylim_ratio_bottom_value": None,
             ## x lim
             "set_xlim": False,
             "xlim_right_factor": 1,
@@ -458,7 +460,7 @@ class HEPPlotter:
         y_offset = self._mean_std_style.get("y", 0.95) - index * 0.06
 
         ax.text(
-            self._mean_std_style.get("x", 0.05),
+            self._mean_std_style.get("x", 0.95),
             y_offset,
             text,
             transform=ax.transAxes,
@@ -1095,11 +1097,23 @@ class HEPPlotter:
                 ax_ratio.grid()
             if self.y_log_ratio:
                 ax_ratio.set_yscale("log")
-            if not self.y_log_ratio and self.set_ylim_ratio:
+            if not self.y_log_ratio:
+                ylim_top_ratio=None
+                ylim_bottom_ratio=None
+                
+                if self.set_ylim_ratio:
+                    ylim_top_ratio=1 - self.set_ylim_ratio
+                    ylim_bottom_ratio=1 + self.set_ylim_ratio
+                if self.ylim_ratio_top_value:
+                    ylim_top_ratio=self.ylim_ratio_top_value
+                if self.ylim_ratio_bottom_value:
+                    ylim_bottom_ratio=self.ylim_ratio_bottom_value
+                
                 ax_ratio.set_ylim(
-                    1 - self.set_ylim_ratio,
-                    1 + self.set_ylim_ratio,
+                    top=ylim_top_ratio if ylim_top_ratio is not None else ax_ratio.get_ylim()[1],
+                    bottom=ylim_bottom_ratio if ylim_bottom_ratio is not None else ax_ratio.get_ylim()[0],
                 )
+                    
             if self.legend_ratio:
                 self._set_legend(ax_ratio, self.legend_ratio_loc)
         else:
