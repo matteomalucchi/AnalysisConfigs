@@ -124,6 +124,7 @@ class HEPPlotter:
             "grid": True,
             "enable_watermark": True,
             "mpl_magic": False,
+            "normalize_1d_histo": False,
         }
 
         # expose as attributes too (so they're accessible normally)
@@ -239,6 +240,30 @@ class HEPPlotter:
         """Display the plot interactively (for debugging)."""
         self.show_plot = True
         return self
+    
+    def get_figure(self):
+        """
+        Execute the plot and return the matplotlib Figure object directly,
+        without saving to disk or closing it.
+        
+        Returns
+        -------
+        matplotlib.figure.Figure
+            The fully configured figure, ready for display or further manipulation.
+        
+        Example
+        -------
+        fig = (HEPPlotter("CMS")
+                .set_labels(xlabel="pT [GeV]")
+                .set_data(series_dict)
+                .get_figure())
+        fig.savefig("my_plot.png")   # or display in a notebook
+        """
+        self._return_figure = True
+        self.run()
+        fig = self._returned_figure
+        self._return_figure = False
+        return fig
 
     def add_ratio_hists(self, ratio_hists):
         """Add precomputed ratio histograms to be plotted on the ratio subplot.
@@ -468,6 +493,38 @@ class HEPPlotter:
 
         return hist_1d, style
 
+    def _normalize(self, hist):
+        """
+        Normalize a 1D histogram to unit integral.
+
+        Parameters
+        ----------
+        hist : hist.Hist
+
+        Returns
+        -------
+        hist.Hist
+            Normalized histogram (in-place).
+        """
+
+        values = hist.values()
+        variances = hist.variances()
+
+        integral = values.sum()
+
+        # Avoid division by zero
+        if integral == 0:
+            return hist
+
+        # Normalize values
+        hist.view().value = values / integral
+
+        # Propagate uncertainties: Var -> Var / integral^2
+        if variances is not None:
+            hist.view().variance = variances / (integral ** 2)
+
+        return hist
+    
     # ----------------------------
     # IMPLEMENTATIONS
     # ----------------------------
@@ -478,10 +535,15 @@ class HEPPlotter:
         fig, ax, ax_ratio = self._create_figure(ratio_plot)
 
         ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
+        if self.normalize_1d_histo:
+            ref_hist=self._normalize(ref_hist)
 
         for index, (name, props) in enumerate(self.series_dict.items()):
 
             hist_1d = props["data"]
+            if self.normalize_1d_histo:
+                hist_1d=self._normalize(hist_1d)
+                
             style = props.get("style", {})
             hist_1d, style = self._stack_plot_order(hist_1d.copy(), style.copy())
 
@@ -1073,6 +1135,10 @@ class HEPPlotter:
         # ----------------------------
         if self.create_dir:
             os.makedirs(os.path.dirname(self.output_base), exist_ok=True)
+
+        if getattr(self, "_return_figure", False):
+            self._returned_figure = fig
+            return  # skip save and close
 
         self._save(fig)
 
