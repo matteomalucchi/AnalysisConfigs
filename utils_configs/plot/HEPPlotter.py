@@ -132,10 +132,16 @@ class HEPPlotter:
             setattr(self, key, val)
 
         # internal
-        self._plot_chi_square = None
+        self._plot_chi_square = False
+        self._chi_square_add_prediction_uncertainty = None
+        self._chi_square_style = {}
+        
         self._ratio_hists = {}
         self._annotations = []
         self._lines = []
+        
+        self._plot_mean_std = False
+        self._mean_std_style = {}
 
         self._change_histogram_binning = False
 
@@ -315,6 +321,23 @@ class HEPPlotter:
         self._chi_square_style = kwargs
         return self
 
+    def add_mean_std(self,  **kwargs):
+        """
+        Compute and annotate the mean and std dev of each 1D histogram on the plot.
+
+        Parameters
+        ----------
+        x, y : float
+            Position in axes coordinates (default: top-right).
+        fontsize : int
+            Font size for the annotation text.
+        **kwargs
+            Extra kwargs passed to ax.text().
+        """
+        self._plot_mean_std = True
+        self._mean_std_style = kwargs
+        return self
+
     def add_line(self, orientation="h", **kwargs):
         """Add a horizontal or vertical line to the plot.
         orientation: 'h' for horizontal, 'v' for vertical
@@ -410,8 +433,43 @@ class HEPPlotter:
             transform=ax.transAxes,
             fontsize=self._chi_square_style.get("fontsize", 20),
             color=color_chi2,
+            **{k: v for k, v in self._mean_std_style.items()
+            if k not in ("x", "y", "fontsize", "color")},
         )
 
+    def _apply_mean_std(self, ax, hist_1d, name, style, index):
+        """Compute mean and std dev from histogram bin centers and plot on ax."""
+        centers = hist_1d.axes[0].centers
+        values  = hist_1d.values()
+
+        total = values.sum()
+        if total == 0:
+            return
+
+        mean = np.average(centers, weights=values)
+        variance = np.average((centers - mean) ** 2, weights=values)
+        std = np.sqrt(variance)
+
+        color = style.get("color", style.get("edgecolor", style.get("facecolor")))
+        label = style.get("legend_name", name)
+
+        text = f"{label}:  $\\mu$ = {mean:.3f},  $\\sigma$ = {std:.3f}"
+
+        y_offset = self._mean_std_style.get("y", 0.95) - index * 0.06
+
+        ax.text(
+            self._mean_std_style.get("x", 0.05),
+            y_offset,
+            text,
+            transform=ax.transAxes,
+            fontsize=self._mean_std_style.get("fontsize", 16),
+            color=color,
+            ha="right",
+            va="top",
+            **{k: v for k, v in self._mean_std_style.items()
+            if k not in ("x", "y", "fontsize")},
+        )
+        
     def _draw_watermark(self, ax):
         """Draw a small, faint watermark in a guaranteed empty area."""
         if not self.enable_watermark:
@@ -601,6 +659,10 @@ class HEPPlotter:
 
             if self._plot_chi_square and ratio_plot and not is_ref:
                 self._apply_chi_square(ax, hist_1d, ref_hist, index, style)
+            
+            if self._plot_mean_std:
+                self._apply_mean_std(ax, hist_1d, name, style, index)
+                
 
             # ratio
             if ratio_plot and ax_ratio is not None:
