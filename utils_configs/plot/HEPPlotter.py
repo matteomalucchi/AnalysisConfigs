@@ -1097,22 +1097,22 @@ class HEPPlotter:
                 ax_ratio.grid()
             if self.y_log_ratio:
                 ax_ratio.set_yscale("log")
-            if not self.y_log_ratio:
-                ylim_top_ratio=None
-                ylim_bottom_ratio=None
-                
-                if self.set_ylim_ratio:
-                    ylim_top_ratio=1 - self.set_ylim_ratio
-                    ylim_bottom_ratio=1 + self.set_ylim_ratio
-                if self.ylim_ratio_top_value:
-                    ylim_top_ratio=self.ylim_ratio_top_value
-                if self.ylim_ratio_bottom_value:
-                    ylim_bottom_ratio=self.ylim_ratio_bottom_value
-                
-                ax_ratio.set_ylim(
-                    top=ylim_top_ratio if ylim_top_ratio is not None else ax_ratio.get_ylim()[1],
-                    bottom=ylim_bottom_ratio if ylim_bottom_ratio is not None else ax_ratio.get_ylim()[0],
-                )
+            
+            ylim_top_ratio=None
+            ylim_bottom_ratio=None
+            
+            if self.set_ylim_ratio:
+                ylim_top_ratio=1 + self.set_ylim_ratio
+                ylim_bottom_ratio=1 - self.set_ylim_ratio
+            if self.ylim_ratio_top_value:
+                ylim_top_ratio=self.ylim_ratio_top_value
+            if self.ylim_ratio_bottom_value:
+                ylim_bottom_ratio=self.ylim_ratio_bottom_value
+            
+            ax_ratio.set_ylim(
+                top=ylim_top_ratio if ylim_top_ratio is not None else ax_ratio.get_ylim()[1],
+                bottom=ylim_bottom_ratio if ylim_bottom_ratio is not None else ax_ratio.get_ylim()[0],
+            )
                     
             if self.legend_ratio:
                 self._set_legend(ax_ratio, self.legend_ratio_loc)
