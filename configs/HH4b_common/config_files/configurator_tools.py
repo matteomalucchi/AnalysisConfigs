@@ -1166,14 +1166,26 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     # global collections
     "events": [
         "random_pt_weights",
+        # merged collections with combined provenance
         "mjjJetTotalSPANetPadded",
         "detaJetTotalSPANetPadded",
+        "centralityHiggsLeadingRun2JetTotalSPANetPadded",
+        "centralityHiggsSubLeadingRun2JetTotalSPANetPadded",
+        ## pt flatten
         "mjjJetTotalSPANetPtFlattenPadded",
         "detaJetTotalSPANetPtFlattenPadded",
+        "centralityHiggsLeadingRun2JetTotalSPANetPtFlattenPadded",
+        "centralityHiggsSubLeadingRun2JetTotalSPANetPtFlattenPadded",
+        # collections with provenance_vbf saved separately
         "mjjJetGoodVBFMergedProvVBFPadded",
         "detaJetGoodVBFMergedProvVBFPadded",
+        "centralityHiggsLeadingRun2JetGoodVBFMergedProvVBFPadded",
+        "centralityHiggsSubLeadingRun2JetGoodVBFMergedProvVBFPadded",
+        ## pt flatten
         "mjjJetGoodVBFMergedProvVBFPtFlattenPadded",
         "detaJetGoodVBFMergedProvVBFPtFlattenPadded",
+        "centralityHiggsLeadingRun2JetGoodVBFMergedProvVBFPtFlattenPadded",
+        "centralityHiggsSubLeadingRun2JetGoodVBFMergedProvVBFPtFlattenPadded",
     ],
 }
 

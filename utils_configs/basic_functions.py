@@ -9,7 +9,7 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
                 fields.append(field)
 
         # remove 3d fields
-        fields = [f for f in fields if collection[f].ndim <= 2]
+        fields = [f for f in fields if getattr(collection, f).ndim <= 2]
 
     elif fields is None:
         fields = ["pt", "eta", "phi", "mass"]
@@ -25,6 +25,9 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
         for field in fields_add:
             if field in list(collection.fields):
                 fields.append(field)
+
+    if not isinstance(fields, list):
+        raise ValueError("fields must be a list of fields or 'all' or None")
 
     if four_vec == "PtEtaPhiMLorentzVector":
         fields_dict = {field: getattr(collection, field) for field in fields}
