@@ -20,11 +20,12 @@ config_options_dict |= {
     "qt_postEE": None,
     "random_pt": True,
     "rand_type": 0.3,
-    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_SM_ptFlattenMatchedHiggs_AllKlambda_DetaMjj_SeparateHiggsVBF_MergedCollections/parquet_files/",
+    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_AllKlambda_DetaMjjCentrality_AddVBFJetPtOrder/parquet_files/",
     # VBF
     "vbf_parton_matching": True,
     "vbf_presel": False,
     "vbf_analysis": True,
     "which_vbf_quark":"with_mothers_children",
     "max_num_jets_add_vbf": 3,
+    "jets_add_vbf_order": "pt",
 }| onnx_model_dict

@@ -7,21 +7,21 @@ import copy
 from pocket_coffea.lib.deltaR_matching import object_matching
 from pocket_coffea.workflows.base import BaseProcessorABC
 
-from utils.basic_functions import add_fields
-from utils.dnn_evaluation_functions import get_dnn_prediction, get_onnx_prediction
+from utils_configs.basic_functions import add_fields
+from utils_configs.dnn_evaluation_functions import get_dnn_prediction, get_onnx_prediction
 
 
-# from utils.inference_session_onnx_slurm import get_model_session
-from utils.inference_session_onnx import get_model_session
-from utils.parton_matching_function import get_parton_last_copy
-from utils.reconstruct_higgs_candidates import (
+# from utils_configs.inference_session_onnx_slurm import get_model_session
+from utils_configs.inference_session_onnx import get_model_session
+from utils_configs.parton_matching_function import get_parton_last_copy
+from utils_configs.reconstruct_higgs_candidates import (
     get_jets_idx_not_from_idx,
     reconstruct_resonances_from_idx,
     reconstruct_higgs_from_provenance,
     run2_matching_algorithm,
     get_lead_mjj_jet_pair,
 )
-from utils.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
+from utils_configs.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
 
 from .custom_object_preselection_common import (
     lepton_selection,
@@ -114,7 +114,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     # )
                     print(
                         f"WARNING: Some jets are matched to both Higgs and VBF quarks in {n_events_with_jets_both_not_none} events!",
-                        f"This happens {(n_events_with_jets_both_not_none/len(self.events)):.2f} % of the times",
+                        f"This happens {(n_events_with_jets_both_not_none / len(self.events)):.2f} % of the times",
                     )
         else:
             self.dummy_provenance_vbf(jet_collection)
@@ -127,7 +127,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
 
     def define_jet_collections(self):
-        # create copies of the different pt definitions
+        """Define new jet collections to allow for different pT estimates.
+
+        This function is not called in the common workflow currently. This is to be executed in the specific workflows of the configurations.
+        Create copies of the different pt definitions.
+        """
         self.events["JetDefault"] = copy.copy(self.events["Jet"])
         self.events["JetPNet"] = copy.copy(self.events["Jet"])
         self.events["JetPNetPlusNeutrino"] = copy.copy(self.events["Jet"])
@@ -1462,7 +1466,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_none,
                 sb_variables=True,  # if self.SIG_BKG_DNN else False,
             )
+<<<<<<< HEAD
         if self.dnn_variables and self.run2 and not self.boosted:
+=======
+            # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
+            add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
+            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
+                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
+                axis=1,
+            )
+        if self.dnn_variables and self.run2:
+>>>>>>> matteo/main
             (
                 self.events["HiggsLeadingRun2"],
                 self.events["HiggsSubLeadingRun2"],
@@ -1477,12 +1491,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_noneRun2,
                 sb_variables=True,  # if self.sig_bkg_dnn else False,
             )
-        # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-        add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
-        self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
-            [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
-            axis=1,
-        )
+            # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
+            add_jet1pt_list = ak.singletons(self.events.add_jet1ptRun2)
+            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
+                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
+                axis=1,
+            )
         if self.bkg_morphing_dnn and not self._isMC:
             (
                 model_session_bkg_morphing_dnn,

@@ -7,11 +7,11 @@ import mplhep as hep
 import matplotlib
 import vector
 
-from utils.plot.get_era_lumi import get_era_lumi
-from utils.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.plot.get_era_lumi import get_era_lumi
+from utils_configs.plot.get_columns_from_files import get_columns_from_files
 
-# from utils.plot.weighted_quantile import weighted_quantile
-# from utils.plot.plot_names import plot_regions_names
+# from utils_configs.plot.weighted_quantile import weighted_quantile
+# from utils_configs.plot.plot_names import plot_regions_names
 import argparse
 
 

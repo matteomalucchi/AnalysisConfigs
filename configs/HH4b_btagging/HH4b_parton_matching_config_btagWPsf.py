@@ -23,7 +23,7 @@ from pocket_coffea.utils.configurator import Configurator
 from workflow_btagSF_HH4b import HH4bbtagWPefficiencyProcessor
 
 import configs.HH4b_common.custom_cuts_common as cuts
-import utils.quantile_transformer as quantile_transformer
+import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     define_single_category,
@@ -56,7 +56,8 @@ parameters = defaults.merge_parameters_from_files(
     # f"{localdir}/../HH4b_common/params/btagging_multipleWP_single_eta_bin.yaml",
     # f"{localdir}/../HH4b_common/params/btagging_multipleWP_5jets.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
-    f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
+    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
+    f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
     # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
     update=True,
 )

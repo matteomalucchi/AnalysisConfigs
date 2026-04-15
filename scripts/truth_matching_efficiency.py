@@ -11,9 +11,9 @@ import logging
 matplotlib.rcParams["figure.dpi"] = 300
 hep.style.use("CMS")
 
-from utils.plot.get_era_lumi import get_era_lumi
-from utils.plot.get_columns_from_files import get_columns_from_files
-from utils.plot.HEPPlotter import HEPPlotter
+from utils_configs.plot.get_era_lumi import get_era_lumi
+from utils_configs.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.plot.HEPPlotter import HEPPlotter
 
 parser = argparse.ArgumentParser(description="Plot truth matching efficiencies")
 parser.add_argument(
@@ -43,7 +43,7 @@ JETS_ORDER = [
     "JetGood",
     "JetGoodVBFMerged",
     "JetTotalSPANet",
-    "JetGoodHiggsPlusVBF1mjj",
+    "JetGoodHiggsPlusVBF1mjjAN",
 ]
 CATEGORIES_ORDER = ["4b_region", "vbf_4b_region"]
 
