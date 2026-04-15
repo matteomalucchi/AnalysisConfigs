@@ -1669,15 +1669,6 @@ def define_categories(
             btag_sf_categories[f"{key}_sf_btag"] = value
         categories_dict |= btag_sf_categories
 
-    if vbf_analysis:
-        # NOTE: this region requires at least 5 JetGood and 2 JetVBF
-        categories_dict |= define_single_category("vbf_lead_mjj_4b_region")
-        # NOTE: this region requires at least 6 jets
-        categories_dict |= define_single_category("vbf_best_candidates_4b_region")
-
-        if vbf_discriminator:
-            # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above the threshold
-            categories_dict |= define_single_category("vbf_discriminator_4b_region")
     return categories_dict
 
 

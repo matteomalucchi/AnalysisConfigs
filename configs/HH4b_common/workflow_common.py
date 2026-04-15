@@ -231,6 +231,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["FatJetGood"], _ = custom_jet_selection(
                 self.events,
                 jet_type="FatJet",
+                jet_type_obj_presel="FatJet",
                 params=self.params,
                 year=self._year,
                 jet_tagger="PNet",
@@ -317,10 +318,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             # here I select the jets to be used for VBF in boosted category
             # first we remove the jets overlapping with the FatJets
-            self.events["JetGoodVBF_boosted"] = self.events.Jet
             self.events["JetGoodVBF_boosted"], _ = custom_jet_selection(
                 self.events,
-                "JetGoodVBF_boosted",
+                "Jet",
+                "FatJet",
                 self.params,
                 year=self._year,
                 pt_type="pt",
@@ -1378,9 +1379,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         pairing_predictions=pairing_predictions,
                         pairing_suffix="",
                     )
-                else:
-                    self.dummy_provenance_higgs()
-                    self.dummy_provenance_vbf()
 
             # reconstruct the higgs candidates for Run2 method
             if self.run2:
@@ -1466,9 +1464,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_none,
                 sb_variables=True,  # if self.SIG_BKG_DNN else False,
             )
-<<<<<<< HEAD
         if self.dnn_variables and self.run2 and not self.boosted:
-=======
             # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
             add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
             self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
@@ -1476,7 +1472,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 axis=1,
             )
         if self.dnn_variables and self.run2:
->>>>>>> matteo/main
             (
                 self.events["HiggsLeadingRun2"],
                 self.events["HiggsSubLeadingRun2"],
@@ -1493,8 +1488,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
             # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
             add_jet1pt_list = ak.singletons(self.events.add_jet1ptRun2)
-            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
-                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
+            self.events["JetGoodFromHiggsOrdered5JetsRun2"] = ak.concatenate(
+                [self.events.JetGoodFromHiggsOrderedRun2, add_jet1pt_list],
                 axis=1,
             )
         if self.bkg_morphing_dnn and not self._isMC:

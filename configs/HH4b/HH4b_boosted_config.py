@@ -120,7 +120,19 @@ sample_ggF_list = [
     # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00",
     # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00",
     # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00",
-    "GluGlutoHHto4B_spanet",
+    # "GluGlutoHHto4B_spanet",
+]
+sample_VBF_list=[
+    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+    "VBFHHto4B_CV_1_C2V_0_C3_1",
+    "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
@@ -128,9 +140,9 @@ sample_list = [
     # "DATA_JetMET_JMENano_E_skimmed",
     # "DATA_JetMET_JMENano_F_skimmed",
     # "DATA_JetMET_JMENano_G_skimmed",
-    # "DATA_JetMET_JMENano_E_boosted_skimmed",
-    # "DATA_JetMET_JMENano_F_boosted_skimmed",
-    # "DATA_JetMET_JMENano_G_boosted_skimmed",
+    "DATA_JetMET_JMENano_E_boosted_skimmed",
+    "DATA_JetMET_JMENano_F_boosted_skimmed",
+    "DATA_JetMET_JMENano_G_boosted_skimmed",
     # "DATA_JetMET_JMENano_E",
     # "DATA_JetMET_JMENano_F",
     # "DATA_JetMET_JMENano_G",
@@ -147,7 +159,7 @@ sample_list = [
     # "TTtoLNu2Q_skimmed",
     # "TTto2L2Nu_skimmed",
     # "TTto4Q_skimmed",
-] + sample_ggF_list
+] + sample_VBF_list
 
 # Define the categories to save
 categories_dict = define_categories(
