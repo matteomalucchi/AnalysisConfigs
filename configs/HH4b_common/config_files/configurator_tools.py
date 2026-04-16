@@ -1512,7 +1512,7 @@ def define_single_category(category_name):
         else:
             cut_list.append(cuts.blindedRun2)
 
-    if "vbf" in category_name:
+    if "vbf" in category_name and "boosted" not in category_name:
         if "best_candidates" in category_name:
             if "nokincut" in category_name:
                 if "Run2" not in category_name:
@@ -1573,7 +1573,7 @@ def define_categories(
     suffixes = []
     if run2:
         suffixes.append("Run2")
-    if spanet:
+    else:
         suffixes.append("")
 
     for suffix in suffixes:

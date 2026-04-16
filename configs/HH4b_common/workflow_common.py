@@ -27,7 +27,7 @@ from .custom_object_preselection_common import (
     lepton_selection,
     object_cleaning,
 )
-from utils.custom_cut_functions import custom_jet_selection
+from utils_configs.custom_cut_functions import custom_jet_selection
 from .custom_cuts_common import (
     hh4b_boosted_presel,
     hh4b_boosted_vbf_region,
@@ -321,19 +321,23 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["JetGoodVBF_boosted"], _ = custom_jet_selection(
                 self.events,
                 "Jet",
-                "FatJet",
+                "JetVBF",
                 self.params,
                 year=self._year,
-                pt_type="pt",
-                pt_cut_name="pt",
+                pt_type="pt_default",
+                pt_cut_name=self.pt_cut_name,
+                forward_jet_veto=True,
             )
 
-            self.events["JetVBFClean"] = object_cleaning(
+            self.events["JetGoodVBFCandidates"] = object_cleaning(
                 self.events["JetGoodVBF_boosted"],
                 self.events["FatJetGoodSelected"],
                 dr_min=0.8
             )
-            vbf_pool = self.events["JetVBFClean"]
+            self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
+                self.events, "JetGoodVBFCandidates"
+            )
+            vbf_pool = self.events["JetGoodVBFCandidates"]
 
             # looser VBF cuts
             mask_pt_vbf = ak.fill_none(vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_pt"], False)
@@ -1281,7 +1285,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.spanet_input_name,
                     self.pad_value,
                     self.max_num_jets_spanet,
-               )
+                )
                 # Not needed anymore
                 del model_session_spanet
                 del input_name_spanet
@@ -1464,14 +1468,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_none,
                 sb_variables=True,  # if self.SIG_BKG_DNN else False,
             )
-        if self.dnn_variables and self.run2 and not self.boosted:
-            # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-            add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
-            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
-                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
-                axis=1,
-            )
-        if self.dnn_variables and self.run2:
+        elif self.dnn_variables and self.run2 and not self.boosted:
             (
                 self.events["HiggsLeadingRun2"],
                 self.events["HiggsSubLeadingRun2"],
@@ -1492,6 +1489,21 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 [self.events.JetGoodFromHiggsOrderedRun2, add_jet1pt_list],
                 axis=1,
             )
+        elif self.dnn_variables and self.boosted:
+            (
+                self.events["HiggsLeading"],
+                self.events["HiggsSubLeading"],
+                self.events["HH"],
+                self.events["LeadingVBFJet"],
+                self.events["SubLeadingVBFJet"]
+            ) = self.define_boosted_dnn_variables(
+                self.events["FatJetGoodSelected"][:, 0],
+                self.events["FatJetGoodSelected"][:, 1],
+                self.events.JetGoodVBFCandidates,
+                self.events.DiJetVBFCandidates,
+                vbf_variables=True
+            )
+
         if self.bkg_morphing_dnn and not self._isMC:
             (
                 model_session_bkg_morphing_dnn,
