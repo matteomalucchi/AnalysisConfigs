@@ -1365,7 +1365,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
                             self.events,
                             "JetVBFCandidates",
-                            "JetVBF",
+                            "JetGoodVBF_boosted",
                             self.params,
                             year=self._year,
                             pt_type="pt_default",
