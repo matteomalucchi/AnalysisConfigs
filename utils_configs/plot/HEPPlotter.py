@@ -1,0 +1,1532 @@
+import matplotlib.pyplot as plt
+import matplotlib
+from hist import Hist
+import matplotlib.ticker as mtick
+from scipy.stats.distributions import chi2
+
+import numpy as np
+import mplhep as hep
+import os
+
+
+class HEPPlotter:
+    """
+    A helper class for standardized plotting in HEP analyses using `mplhep`.
+
+    Supports:
+    - 1D histograms with optional ratio plots
+    - 2D histograms
+    - Graph plotting (values with error bars)
+
+    Usage
+    -----
+    job = (HEPPlotter("CMS")
+            .set_output("out/plot")
+            .set_labels(xlabel="pT [GeV]", ylabel="Events")
+            .set_data(series_dict)
+            .set_options(y_log=True, ratio_label="Data/MC"))
+    job.run()  # produces the plot
+
+    Parameters
+    ----------
+    style : str
+        The mplhep style to use (default "CMS").
+    debug : bool
+        If True, print debug information during plotting (default False).
+    -----------
+
+    Methods
+    -------
+    - set_plot_config(figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", data_formats=["png", "pdf", "svg"], lumitext_font_size=None, cmstext_font_size=None, cmstext_loc=0)
+    - set_output(output_base)
+    - set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio")
+    - set_data(series_dict, plot_type="1d")
+    - set_extra_kwargs(**kwargs)
+    - set_options(**kwargs)
+    - add_ratio_hists(ratio_hists)
+    - add_ratio_graphs(ratio_graphs)
+    - add_annotation(**kwargs)
+    - add_chi_square(**kwargs)
+    - add_line(orientation="h", **kwargs)
+    - run()
+    """
+
+    def __init__(self, style="CMS", debug=False):
+        # core settings
+        self.style = style
+        self.debug = debug
+        hep.style.use(style)
+
+        # plot config
+        self.figsize = None
+        self.lumitext = "(13.6 TeV)"
+        self.cmstext = "Preliminary"
+        self.data_formats = ["png", "pdf", "svg"]
+        self.lumitext_font_size = None
+        self.cmstext_font_size = None
+        self.cmstext_loc = 0
+
+        # output
+        self.output_base = None
+
+        # show plot interactively (for debugging)
+        self.show_plot = False
+
+        # inputs
+        self.series_dict = None
+        self.plot_type = "1d"  # "1d", "2d", "graph"
+
+        # labels
+        self.xlabel = None
+        self.ylabel = "Events"
+        self.cbar_label = "Events"
+        self.ratio_label = "Ratio"
+        ## special for categorical plots
+        self.xticklabels = None
+        self.label_pos = None
+        self.rotate_xticks = False
+        self.xtick_fontsize = 18
+
+        # extra kwargs for plotting functions
+        self.extra_kwargs = {}
+
+        # --- ATTRIBUTES THAT CAN BE SET WITH set_options ---
+        self._configurable_options = {
+            ## log scales
+            "y_log": False,
+            "x_log": False,
+            "y_log_ratio": False,
+            "cbar_log": False,
+            ## legend
+            "legend": True,
+            "legend_font_size": None,
+            "split_legend": True,
+            "legend_loc": "best",
+            "legend_ratio": False,
+            "legend_ratio_loc": "best",
+            ## y lim
+            "set_ylim": True,
+            "set_ylim_ratio": 0,  # If a number is set, this will be used.
+            "ylim_top_factor": 1.7,
+            "ylim_bottom_factor": 1e-2,
+            "ylim_top_value": None,
+            "ylim_bottom_value": None,
+            "ylim_ratio_top_value": None,
+            "ylim_ratio_bottom_value": None,
+            ## x lim
+            "set_xlim": False,
+            "xlim_right_factor": 1,
+            "xlim_left_factor": 1,
+            "xlim_right_value": None,
+            "xlim_left_value": None,
+            ## cbar lim
+            "cbar_lim_top_value": None,
+            "cbar_lim_bottom_value": None,
+            ## other
+            "reference_to_den": True,
+            "grid": True,
+            "enable_watermark": True,
+            "mpl_magic": False,
+            "normalize_1d_histo": False,
+        }
+
+        # expose as attributes too (so they're accessible normally)
+        for key, val in self._configurable_options.items():
+            setattr(self, key, val)
+
+        # internal
+        self._plot_chi_square = False
+        self._chi_square_add_prediction_uncertainty = None
+        self._chi_square_style = {}
+
+        self._ratio_hists = {}
+        self._ratio_graphs = {}
+        self._annotations = []
+        self._lines = []
+
+        self._plot_mean_std = False
+        self._mean_std_style = {}
+
+        self._change_histogram_binning = False
+
+    # ----------------------------
+    # CONFIGURATION METHODS
+    # ----------------------------
+
+    def set_plot_config(
+        self,
+        figsize=None,
+        lumitext="(13.6 TeV)",
+        cmstext="Preliminary",
+        data_formats=["png", "pdf", "svg"],
+        lumitext_font_size=None,
+        cmstext_font_size=None,
+        cmstext_loc=0,
+    ):
+        """Set the plotting style and related options."""
+        self.figsize = figsize
+        self.lumitext = lumitext
+        self.cmstext = cmstext
+        self.data_formats = data_formats
+        self.lumitext_font_size = lumitext_font_size
+        self.cmstext_font_size = cmstext_font_size
+        self.cmstext_loc = cmstext_loc
+        return self
+
+    def set_output(self, output_base, create_dir=False):
+        """Set the base name for output files (without extension) and optionally create the output directory."""
+        # remove the extension if provided
+        self.output_base = os.path.splitext(output_base)[0]
+        self.create_dir = create_dir
+        return self
+
+    def set_labels(
+        self,
+        xlabel,
+        ylabel="Events",
+        cbar_label="Events",
+        ratio_label="Ratio",
+        xticklabels=None,
+        label_pos=None,
+        rotate_xticks=False,
+        xtick_fontsize=18,
+    ):
+        """Set the axis labels."""
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.cbar_label = cbar_label
+        self.ratio_label = ratio_label
+
+        self.xticklabels = xticklabels
+        self.label_pos = label_pos
+        self.rotate_xticks = rotate_xticks
+        self.xtick_fontsize = xtick_fontsize
+
+        return self
+
+    def set_data(self, series_dict, plot_type="1d"):
+        """Provide the plotting data (dict structure varies by plot_type).
+        series_dict structure:
+        - For 1D histograms:
+            series_dict : dict
+                Dictionary mapping names to {name:{"data": hist.Hist, "style": dict}}.
+                To plot the ratio plot, the reference histogram must include {"is_reference": True} inside the style dict.
+        - For 2D histograms:
+            series_dict : dict
+                {name:{"data": hist.Hist, "style": dict}}
+        - For graphs:
+            series_dict : dict
+                Dictionary mapping names to {name:{
+                                                "data": {
+                                                    "x":[list, list],
+                                                    "y":[list, list],
+                                                },
+                                                "style": dict
+                                                }
+                                            }.
+        """
+        self.series_dict = series_dict
+        self.plot_type = plot_type
+        return self
+
+    def set_extra_kwargs(self, **kwargs):
+        """Extra kwargs passed to the plotting functions."""
+        self.extra_kwargs.update(kwargs)
+        return self
+
+    def set_options(self, **kwargs):
+        """Generic options setter for configurable attributes."""
+        for key, value in kwargs.items():
+            if key in self._configurable_options:
+                self._configurable_options[key] = value
+                setattr(self, key, value)
+            else:
+                print(f"Unknown option '{key}'")
+                print("Available options:", self._configurable_options.keys())
+                raise ValueError(f"Unknown option '{key}'")
+        return self
+
+    def show(self):
+        """Display the plot interactively (for debugging)."""
+        self.show_plot = True
+        return self
+
+    def get_figure(self):
+        """
+        Execute the plot and return the matplotlib Figure object directly,
+        without saving to disk or closing it.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            The fully configured figure, ready for display or further manipulation.
+
+        Example
+        -------
+        fig = (HEPPlotter("CMS")
+                .set_labels(xlabel="pT [GeV]")
+                .set_data(series_dict)
+                .get_figure())
+        fig.savefig("my_plot.png")   # or display in a notebook
+        """
+        self._return_figure = True
+        self.run()
+        fig = self._returned_figure
+        self._return_figure = False
+        return fig
+
+    def add_ratio_hists(self, ratio_hists):
+        """Add precomputed ratio histograms to be plotted on the ratio subplot.
+        ratio_hists: dict of histograms with the same keys as series_dict
+        """
+        self._ratio_hists = ratio_hists
+        return self
+
+    def add_ratio_graphs(self, ratio_graphs):
+        """Add precomputed ratio graphs to be plotted on the ratio subplot.
+        ratio_graphs: dict of graph data with the same keys as series_dict
+        Each entry should have 'data' and 'style' keys, where 'data' contains:
+            {'x': x_values, 'y': [y_values, y_errors] or just y_values}
+        """
+        self._ratio_graphs = ratio_graphs
+        return self
+
+    def add_annotation(self, x, y, s, **kwargs):
+        """
+        Add a text annotation to the plot.
+
+        Parameters
+        ----------
+        x, y : float
+            Coordinates of the annotation. By default, interpreted as relative
+            (0–1) coordinates within the axes (like ax.transAxes).
+        s : str
+            Text to display.
+        coord_type : {"axes", "data", "figure"}, optional (in kwargs)
+            Coordinate system for annotation position.
+            - "axes": relative to plot area (default) -> ax.transAxes
+            - "data": use data coordinates (axis values) -> ax.transData
+            - "figure": relative to the whole figure -> ax.figure.transFigure
+        **kwargs : dict
+            Additional arguments passed directly to `ax.text()`,
+            e.g. color, fontsize, ha, va, coord_type, etc.
+        """
+        coord_type = kwargs.pop("coord_type", "axes")  # safely extract if present
+
+        self._annotations.append(
+            {
+                "x": x,
+                "y": y,
+                "s": s,
+                "coord_type": coord_type,
+                "kwargs": kwargs,
+            }
+        )
+        return self
+
+    def add_chi_square(self, pred_unc=False, **kwargs):
+        """Add chi-square text to the plot (only for 1D with ratio).
+        pred_unc: if True, include the prediction uncertainty in the chi-square calculation
+        kwargs: passed directly to ax.text()
+        """
+        self._plot_chi_square = True
+        self._chi_square_add_prediction_uncertainty = pred_unc
+        self._chi_square_style = kwargs
+        return self
+
+    def add_mean_std(self, **kwargs):
+        """
+        Compute and annotate the mean and std dev of each 1D histogram on the plot.
+
+        Parameters
+        ----------
+        x, y : float
+            Position in axes coordinates (default: top-right).
+        fontsize : int
+            Font size for the annotation text.
+        **kwargs
+            Extra kwargs passed to ax.text().
+        """
+        self._plot_mean_std = True
+        self._mean_std_style = kwargs
+        return self
+
+    def add_line(self, orientation="h", **kwargs):
+        """Add a horizontal or vertical line to the plot.
+        orientation: 'h' for horizontal, 'v' for vertical
+        kwargs: passed directly to ax.axhline or ax.axvline
+        """
+        self._lines.append((orientation, kwargs))
+        return self
+
+    # ----------------------------
+    # INTERNAL HELPERS
+    # ----------------------------
+
+    def _close_fig(self, fig):
+        """Close the figure to free memory."""
+        plt.close(fig)
+
+    def _save(self, fig):
+        """Save the figure in all specified formats."""
+        if self.output_base:
+            for ext in self.data_formats:
+                fig.savefig(f"{self.output_base}.{ext}", bbox_inches="tight", dpi=300)
+
+    def _apply_cms_labels(self, ax):
+        """Add CMS style labels to the plot."""
+        hep.cms.lumitext(self.lumitext, ax=ax, fontsize=self.lumitext_font_size)
+        hep.cms.text(
+            self.cmstext, ax=ax, fontsize=self.cmstext_font_size, loc=self.cmstext_loc
+        )
+
+    def _apply_annotations(self, ax):
+        """Internal helper to draw all stored annotations on a given axis."""
+        for ann in self._annotations:
+            coord_type = ann.get("coord_type", "axes")
+            transform = {
+                "axes": ax.transAxes,
+                "data": ax.transData,
+                "figure": ax.figure.transFigure,
+            }.get(coord_type, ax.transAxes)
+
+            ax.text(
+                ann["x"],
+                ann["y"],
+                ann["s"],
+                transform=transform,
+                **ann["kwargs"],
+            )
+
+    def _apply_lines(self, ax):
+        """Add all stored horizontal/vertical lines to the axes."""
+        for orient, kwargs in self._lines:
+            if orient == "h":
+                ax.axhline(**kwargs)
+            else:
+                ax.axvline(**kwargs)
+
+    def _apply_chi_square(self, ax, hist_1d, ref_hist, index, style):
+        """Compute and add chi-square text to the plot."""
+
+        num = (hist_1d.values() - ref_hist.values()) ** 2
+        den = ref_hist.variances() + (
+            hist_1d.variances() if self._chi_square_add_prediction_uncertainty else 0
+        )
+
+        chi2_value = np.sum(
+            np.divide(
+                num,
+                den,
+                out=np.zeros_like(num, dtype=float),
+                where=den > 0,
+            )
+        )
+
+        ndof = len(hist_1d.values()) - 1
+
+        chi2_norm = chi2_value / (ndof if ndof > 0 else 1)
+
+        pvalue = chi2.sf(chi2_value, ndof)
+
+        self.chi_square_text = (
+            r"$\chi^2$/ndof= {:.3f},".format(chi2_norm) + f"  p-value= {pvalue:.3f}"
+        )
+
+        color_chi2 = self._chi_square_style.get(
+            "color",
+            style.get("color", style.get("edgecolor", style.get("facecolor"))),
+        )
+
+        # plot the chi2 text
+        ax.text(
+            self._chi_square_style.get("x", 0.05),
+            self._chi_square_style.get("y", 0.95) - index * 0.05,
+            self.chi_square_text,
+            transform=ax.transAxes,
+            fontsize=self._chi_square_style.get("fontsize", 20),
+            color=color_chi2,
+            **{
+                k: v
+                for k, v in self._mean_std_style.items()
+                if k not in ("x", "y", "fontsize", "color")
+            },
+        )
+
+    def _apply_mean_std(self, ax, hist_1d, name, style, index):
+        """Compute mean and std dev from histogram bin centers and plot on ax."""
+        centers = hist_1d.axes[0].centers
+        values = hist_1d.values()
+
+        total = values.sum()
+        if total == 0:
+            return
+
+        mean = np.average(centers, weights=values)
+        variance = np.average((centers - mean) ** 2, weights=values)
+        std = np.sqrt(variance)
+
+        color = style.get("color", style.get("edgecolor", style.get("facecolor")))
+        label = style.get("legend_name", name)
+
+        text = f"{label}:  $\\mu$ = {mean:.3f},  $\\sigma$ = {std:.3f}"
+
+        y_offset = self._mean_std_style.get("y", 0.95) - index * 0.06
+
+        ax.text(
+            self._mean_std_style.get("x", 0.95),
+            y_offset,
+            text,
+            transform=ax.transAxes,
+            fontsize=self._mean_std_style.get("fontsize", 16),
+            color=color,
+            ha="right",
+            va="top",
+            **{
+                k: v
+                for k, v in self._mean_std_style.items()
+                if k not in ("x", "y", "fontsize")
+            },
+        )
+
+    def _draw_watermark(self, ax):
+        """Draw a small, faint watermark in a guaranteed empty area."""
+        if not self.enable_watermark:
+            return
+
+        fig = ax.figure
+
+        fig.text(
+            0.01,
+            -0.12,  # bottom-left margin of the whole figure
+            "HEPPlotter",
+            fontsize=6,  # very small
+            color="white",  # invisible on white backgrounds
+            # alpha=0.03,                # extremely faint
+            ha="left",
+            va="bottom",
+            rotation=0,
+            zorder=0,  # behind everything else
+            transform=ax.transAxes,
+        )
+
+    def _color_handler(self, histtype, style, kwargs, use_lists=False):
+        if use_lists:
+            if histtype == "fill":
+                if "edgecolor" not in kwargs:
+                    kwargs.update(
+                        {
+                            "edgecolor": [style.get("edgecolor", style.get("color"))],
+                            "facecolor": [style.get("facecolor", style.get("color"))],
+                            "alpha": [style.get("alpha", 0.5)],
+                        }
+                    )
+                else:
+                    kwargs["edgecolor"].append(
+                        style.get("edgecolor", style.get("color"))
+                    )
+                    kwargs["facecolor"].append(
+                        style.get("facecolor", style.get("color"))
+                    )
+                    kwargs["alpha"].append(style.get("alpha", 0.5))
+            else:
+                if "color" not in kwargs:
+                    kwargs.update(
+                        {
+                            "color": [style.get("color")],
+                        }
+                    )
+                else:
+                    kwargs["color"].append(style.get("color"))
+        else:
+            if histtype == "fill":
+                kwargs.update(
+                    {
+                        "edgecolor": style.get("edgecolor", style.get("color")),
+                        "facecolor": style.get("facecolor", style.get("color")),
+                        "alpha": style.get("alpha", 0.5),
+                    }
+                )
+            else:
+                kwargs.update(
+                    {
+                        "color": style.get("color"),
+                    }
+                )
+
+    def _stack_plot_order(self, hist_1d, style):
+        # reorder the histograms to be plotted in stack order (first is bottom)
+        if isinstance(hist_1d, list):
+            # get the sorting indexes
+            idxes = sorted(
+                range(len(hist_1d)),
+                key=lambda i: hist_1d[i].integrate(name=hist_1d[i].axes[0].name).value,
+            )
+            hist_1d = [hist_1d[i] for i in idxes]
+            # orer the elements in the style dict if they are lists
+            for key in style:
+                if isinstance(style[key], list):
+                    style[key] = [style[key][i] for i in idxes]
+
+        return hist_1d, style
+
+    def _normalize(self, hist):
+        """
+        Normalize a 1D histogram to unit integral.
+
+        Parameters
+        ----------
+        hist : hist.Hist
+
+        Returns
+        -------
+        hist.Hist
+            Normalized histogram (in-place).
+        """
+
+        values = hist.values()
+        variances = hist.variances()
+
+        integral = values.sum()
+
+        # Avoid division by zero
+        if integral == 0:
+            return hist
+
+        # Normalize values
+        hist.view().value = values / integral
+
+        # Propagate uncertainties: Var -> Var / integral^2
+        if variances is not None:
+            hist.view().variance = variances / (integral**2)
+
+        return hist
+
+    # ----------------------------
+    # IMPLEMENTATIONS
+    # ----------------------------
+
+    def _plot_1d(self):
+        """Plot 1D histograms with optional ratio plot."""
+
+        ratio_plot, ref_name = self._validate_inputs(self.series_dict)
+        ratio_plot = ratio_plot or self._ratio_hists
+
+        fig, ax, ax_ratio = self._create_figure(ratio_plot)
+
+        ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
+        if self.normalize_1d_histo:
+            ref_hist = self._normalize(ref_hist)
+
+        for index, (name, props) in enumerate(self.series_dict.items()):
+
+            hist_1d = props["data"]
+            if self.normalize_1d_histo:
+                hist_1d = self._normalize(hist_1d)
+
+            style = props.get("style", {})
+            hist_1d, style = self._stack_plot_order(hist_1d.copy(), style.copy())
+
+            is_ref = style.get("is_reference", False)
+
+            legend_name = (
+                style.get("legend_name", name)
+                if style.get("appear_in_legend", True)
+                else None
+            )
+            legend_name_ratio = (
+                style.get("legend_name_ratio", name)
+                if style.get("appear_in_legend_ratio", True)
+                else None
+            )
+
+            kwargs = self.extra_kwargs.copy()
+            histtype = style.get("histtype", "step")
+            stack = style.get("stack", False)
+            kwargs.update(
+                {
+                    "histtype": histtype,
+                    "linewidth": style.get("linewidth", 2),
+                    "stack": stack,
+                }
+            )
+
+            self._color_handler(histtype, style, kwargs)
+
+            # rebin for plotting if requested
+            bin_edges_plotting = style.get("bin_edges_plotting", None)
+            if bin_edges_plotting is not None:
+                hist_1d = self._set_plotting_binning(hist_1d, bin_edges_plotting)
+                # rebin also the reference histogram if not already done
+                if index == 0:
+                    ref_hist = self._set_plotting_binning(ref_hist, bin_edges_plotting)
+
+            # draw histogram
+            self._plot_histogram(
+                ax,
+                legend_name,
+                hist_1d,
+                style.get("plot_errors", True),
+                **kwargs,
+            )
+
+            # if stack, sum the histograms
+            if isinstance(hist_1d, list):
+                hist_1d = sum(hist_1d)
+
+            # if stack, keep the style of the last histogram in the list
+            for key in style:
+                if isinstance(style[key], list):
+                    style[key] = style[key][-1]
+
+            if self._plot_chi_square and ratio_plot and not is_ref:
+                self._apply_chi_square(ax, hist_1d, ref_hist, index, style)
+
+            if self._plot_mean_std:
+                self._apply_mean_std(ax, hist_1d, name, style, index)
+
+            # ratio
+            if ratio_plot and ax_ratio is not None:
+                if self.reference_to_den:
+                    self._plot_ratio(
+                        ax_ratio,
+                        hist_1d,
+                        ref_hist,
+                        legend_name_ratio,
+                        is_ref,
+                        style,
+                    )
+                else:
+                    self._plot_ratio(
+                        ax_ratio,
+                        ref_hist,
+                        hist_1d,
+                        legend_name_ratio,
+                        is_ref,
+                        style,
+                    )
+
+        # plot precomputed ratio hists
+        if self._ratio_hists and ratio_plot and ax_ratio is not None:
+            for name, props in self._ratio_hists.items():
+                style = self._ratio_hists[name].get("style", {})
+                is_ref = self._ratio_hists[name]["style"].get("is_reference", False)
+                ratio_hist = props["data"]
+                legend_name_ratio = (
+                    style.get("legend_name_ratio", name)
+                    if style.get("appear_in_legend_ratio", True)
+                    else None
+                )
+                self._plot_ratio(
+                    ax_ratio,
+                    None,
+                    None,
+                    legend_name_ratio,
+                    is_ref,
+                    style,
+                    ratio_hist=ratio_hist,
+                )
+
+        self._finalize(fig, ax, ax_ratio)
+
+    def _plot_2d(self):
+        """Plot 2D histograms."""
+        fig, ax, _ = self._create_figure()
+        for name, props in self.series_dict.items():
+            if not isinstance(props["data"], Hist) or props["data"].ndim != 2:
+                raise ValueError(
+                    f"Expected 2D hist.Hist for {name}, got {type(props['data'])} with ndim={props['data'].ndim}"
+                )
+            hist2d = props["data"]
+            label = props["style"].get("label", "")
+            hep.hist2dplot(
+                hist2d,
+                ax=ax,
+                label=label,
+                norm=(
+                    matplotlib.colors.LogNorm(
+                        self.cbar_lim_bottom_value, self.cbar_lim_top_value
+                    )
+                    if self.cbar_log
+                    else matplotlib.colors.Normalize(
+                        self.cbar_lim_bottom_value, self.cbar_lim_top_value
+                    )
+                ),
+                cmap=props["style"].get("cmap", "viridis"),
+                **self.extra_kwargs,
+            )
+        self._finalize(fig, ax)
+
+    def _plot_graph(self):
+        """Plot graphs with error bars, optionally with ratio plot."""
+        # First, detect if there's a reference series (is_reference=True in style)
+        ratio_plot = False
+        ref_name = None
+        ref_data = None
+
+        for name, props in self.series_dict.items():
+            style = props.get("style", {})
+            if style.get("is_reference", False):
+                if ratio_plot:
+                    raise ValueError("Multiple reference graphs found.")
+                ratio_plot = True
+                ref_name = name
+
+                # Extract reference data
+                if isinstance(props["data"]["y"][0], list) or isinstance(
+                    props["data"]["y"][0], np.ndarray
+                ):
+                    ref_y_values = np.asarray(props["data"]["y"][0])
+                    ref_y_errors = np.asarray(props["data"]["y"][1])
+                else:
+                    ref_y_values = np.asarray(props["data"]["y"])
+                    ref_y_errors = None
+
+                if isinstance(props["data"]["x"][0], list) or isinstance(
+                    props["data"]["x"][0], np.ndarray
+                ):
+                    ref_x_values = np.asarray(props["data"]["x"][0])
+                else:
+                    ref_x_values = np.asarray(props["data"]["x"])
+
+                ref_data = {
+                    "x": ref_x_values,
+                    "y": ref_y_values,
+                    "y_err": ref_y_errors,
+                }
+
+        ratio_plot = ratio_plot or self._ratio_graphs
+        # Create figure with or without ratio subplot
+        fig, ax, ax_ratio = self._create_figure(ratio_plot=ratio_plot)
+
+        # Plot all graphs
+        for index, (name, props) in enumerate(self.series_dict.items()):
+            # check if the first element of y is also an array to get the errors
+            if isinstance(props["data"]["y"][0], list) or isinstance(
+                props["data"]["y"][0], np.ndarray
+            ):
+                y_values = props["data"]["y"][0]
+                y_errors = props["data"]["y"][1]
+            else:
+                y_values = props["data"]["y"]
+                y_errors = None
+
+            if isinstance(props["data"]["x"][0], list) or isinstance(
+                props["data"]["x"][0], np.ndarray
+            ):
+                x_values = props["data"]["x"][0]
+                x_errors = props["data"]["x"][1]
+            else:
+                x_values = props["data"]["x"]
+                x_errors = None
+
+            style = props.get("style", {})
+            is_ref = style.get("is_reference", False)
+
+            # extra_kwargs = self.extra_kwargs.copy()
+            # extra_kwargs.update(
+            #     {
+            #         "color": style.get("color"),
+            #         "markersize": style.get("markersize", 6),
+            #     }
+            # )
+            # hep.histplot(
+            #     (y_values, x_values),
+            #     yerr=y_errors,
+            #     xerr=x_errors,
+            #     histtype="errorbar",
+            #     # fmt=style.get("fmt", "o"),
+            #     label=name,
+            #     color=style.get("color"),
+            #     markersize=style.get("markersize"),
+            #     **self.extra_kwargs,
+            # )
+
+            legend_name = (
+                style.get("legend_name", name)
+                if style.get("appear_in_legend", True)
+                else None
+            )
+
+            if x_errors is None:
+                x_errors = [0] * len(x_values)
+            if y_errors is None:
+                y_errors = [0] * len(y_values)
+
+            if np.any(np.array(x_errors) > 0) or np.any(np.array(y_errors) > 0):
+                # plot with error bars
+                ax.errorbar(
+                    x=x_values,
+                    y=y_values,
+                    xerr=x_errors,
+                    yerr=y_errors,
+                    fmt=style.get("fmt", "o"),
+                    label=legend_name,
+                    color=style.get("color"),
+                    linestyle=style.get("linestyle"),
+                    markersize=style.get("markersize"),
+                    **self.extra_kwargs,
+                )
+            else:
+                # plot a curve or a graph without errors
+                ax.plot(
+                    x_values,
+                    y_values,
+                    style.get("fmt", "o"),
+                    label=legend_name,
+                    color=style.get("color"),
+                    linestyle=style.get("linestyle"),
+                    markersize=style.get("markersize"),
+                    **self.extra_kwargs,
+                )
+
+            # Plot ratio if ratio subplot exists and this is not the reference
+            if (
+                ratio_plot
+                and ax_ratio is not None
+                and ref_data is not None
+                and not is_ref
+            ):
+                if self.reference_to_den:
+                    # ratio = test / reference
+                    self._plot_graph_ratio(
+                        ax_ratio,
+                        x_values,
+                        y_values,
+                        y_errors,
+                        ref_data["x"],
+                        ref_data["y"],
+                        ref_data["y_err"],
+                        legend_name,
+                        is_ref,
+                        style,
+                    )
+                else:
+                    # ratio = reference / test
+                    self._plot_graph_ratio(
+                        ax_ratio,
+                        ref_data["x"],
+                        ref_data["y"],
+                        ref_data["y_err"],
+                        x_values,
+                        y_values,
+                        y_errors,
+                        legend_name,
+                        is_ref,
+                        style,
+                    )
+
+        # plot precomputed ratio graphs
+        if self._ratio_graphs and ratio_plot and ax_ratio is not None:
+            for name, props in self._ratio_graphs.items():
+                style = self._ratio_graphs[name].get("style", {})
+                is_ref = self._ratio_graphs[name]["style"].get("is_reference", False)
+                graph_data = props["data"]
+
+                # Extract x and y values from graph data
+                if isinstance(graph_data["x"][0], list) or isinstance(
+                    graph_data["x"][0], np.ndarray
+                ):
+                    x_values = graph_data["x"][0]
+                else:
+                    x_values = graph_data["x"]
+
+                if isinstance(graph_data["y"][0], list) or isinstance(
+                    graph_data["y"][0], np.ndarray
+                ):
+                    y_values = graph_data["y"][0]
+                    y_errors = graph_data["y"][1]
+                else:
+                    y_values = graph_data["y"]
+                    y_errors = None
+
+                legend_name_ratio = (
+                    style.get("legend_name_ratio", name)
+                    if style.get("appear_in_legend_ratio", True)
+                    else None
+                )
+
+                # Use _plot_graph_ratio with precomputed ratio values
+                self._plot_graph_ratio(
+                    ax_ratio,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    legend_name_ratio,
+                    is_ref,
+                    style,
+                    ratio_graph={
+                        "x": x_values,
+                        "y_values": y_values,
+                        "y_errors": y_errors,
+                    },
+                )
+
+        self._finalize(fig, ax, ax_ratio)
+
+    def _plot_categorical(self):
+        """
+        Plot categorical data as grouped bar charts.
+        """
+        fig, ax = plt.subplots(figsize=self.figsize)
+
+        series_names = list(self.series_dict.keys())
+        first = self.series_dict[series_names[0]]
+
+        categories = first["data"]["categories"]
+        n_cats = len(categories)
+        n_series = len(series_names)
+
+        x = np.arange(n_cats)
+        width = 0.8 / n_series
+
+        if self.xticklabels is not None or self.label_pos is not None:
+            print(
+                "WARNING: xticklabels and label_pos will be overridden for categorical plots"
+            )
+        self.xticklabels = categories
+        self.label_pos = x + width * (n_series - 1) / 2
+
+        offset = 0
+        for name in series_names:
+            entry = self.series_dict[name]
+            values = np.asarray(entry["data"]["values"])
+            style = entry.get("style", {}).copy()
+
+            label = style.pop("label", name)
+
+            self._draw_categorical_bars(
+                ax=ax,
+                x=x + offset,
+                values=values,
+                width=width,
+                style={**style, "label": label},
+            )
+
+            offset += width
+
+        self._finalize(
+            fig,
+            ax,
+        )
+
+    # ----------------------------
+    # UTILITIES
+    # ----------------------------
+
+    def _validate_inputs(self, series_dict):
+        """Validate the input series_dict for 1D plotting."""
+        ratio_plot = False
+        ref_name = None
+        for name, props in series_dict.items():
+            # check that the props has only the "data" and "style" keys
+            if not all(key in ["data", "style"] for key in props.keys()):
+                raise ValueError(
+                    f"Invalid keys in series_dict for {name}. Expected only 'data' and 'style', got {list(props.keys())}. The provided key should probably be inside the 'style' dictionary."
+                )
+
+            hist_1d = props["data"]
+            if not isinstance(hist_1d, Hist) and not isinstance(hist_1d[0], Hist):
+                raise ValueError(f"Expected hist.Hist for {name}, got {type(hist_1d)}")
+            if props.get("style", {}).get("is_reference", False):
+                if ratio_plot:
+                    raise ValueError("Multiple reference histograms found.")
+                ratio_plot = True
+                ref_name = name
+            if isinstance(hist_1d[0], Hist):
+                style = props.get("style", {})
+                # check that the lists of histograms have the same dimension
+                lenght_hists = len(hist_1d)
+                for key in style:
+                    if isinstance(style[key], list):
+                        if len(style[key]) != lenght_hists:
+                            raise ValueError(
+                                f"Length mismatch in style lists for {name}: expected {lenght_hists}, got {len(style[key])} for key {key}"
+                            )
+
+        return ratio_plot, ref_name
+
+    def _create_figure(self, ratio_plot=False):
+        """Create figure and axes, with optional ratio subplot."""
+        if ratio_plot:
+            fig, (ax, ax_ratio) = plt.subplots(
+                2,
+                1,
+                figsize=self.figsize,
+                sharex=True,
+                gridspec_kw={"height_ratios": [2.5, 1]},
+                constrained_layout=True,
+            )
+            return fig, ax, ax_ratio
+        else:
+            fig, ax = plt.subplots(figsize=self.figsize)
+            return fig, ax, None
+
+    def _check_bin_consistency(self, hist_1d, bin_edges_plotting):
+        """Check that the provided bin edges for plotting are consistent with the histogram."""
+        if bin_edges_plotting is not None:
+            if isinstance(hist_1d, list):
+                for i in range(len(hist_1d)):
+                    self._check_bin_consistency(hist_1d[i], bin_edges_plotting[i])
+
+                return
+
+            hist_bins = hist_1d.axes[0].edges
+            if not np.all(np.diff(bin_edges_plotting) > 0):
+                raise ValueError(
+                    "Provided bin_edges_plotting must be strictly increasing"
+                )
+            # check that the provided bin edges have the same length
+            if len(bin_edges_plotting) != len(hist_bins):
+                raise ValueError(
+                    f"Provided bin_edges_plotting {bin_edges_plotting} must have the same number of edges as histogram bins {hist_bins}"
+                )
+            self._change_histogram_binning = True
+
+    def _set_plotting_binning(self, hist_1d, bin_edges_plotting):
+        self._check_bin_consistency(hist_1d, bin_edges_plotting)
+        if not self._change_histogram_binning:
+            return hist_1d
+
+        # project histogram values into new bins (for plotting only)
+        if isinstance(hist_1d, list):
+            histplots = []
+            for i in range(len(hist_1d)):
+                histplots.append(
+                    self._set_plotting_binning(hist_1d[i], bin_edges_plotting[i])
+                )
+            return histplots
+
+        counts = hist_1d.values()
+
+        # replace only for plotting
+        histplot = Hist.new.Var(
+            bin_edges_plotting, name=hist_1d.axes[0].name, flow=False
+        ).Weight()
+        bin_edges_plotting_centers = (
+            bin_edges_plotting[1:] + bin_edges_plotting[:-1]
+        ) / 2
+        histplot.fill(bin_edges_plotting_centers, weight=counts)
+        # handle variances properly,
+        histplot.variances()[:] = hist_1d.variances()
+
+        return histplot
+
+    def _plot_histogram(self, ax, name, hist_1d, plot_errors, **kwargs):
+        """Plot a single 1D histogram on the given axes."""
+
+        # The errorbars are computed as sqrt(w2) taking
+        # the weights from hist.variances() without the w2 argument
+        hep.histplot(
+            hist_1d,
+            w2method="sqrt" if plot_errors else None,
+            label=name,
+            yerr=False if not plot_errors else None,
+            xerr=True,
+            ax=ax,
+            **kwargs,
+        )
+        ax.set_xlabel("")
+
+    def _plot_ratio(
+        self, ax_ratio, hist_num, hist_den, name, is_reference, style, ratio_hist=None
+    ):
+        """Plot the ratio of hist_1d to ref_hist on the ratio axes."""
+
+        if not ratio_hist:
+            bins = hist_num.axes[0].edges
+            ratio, err_up, err_down = hep.get_comparison(
+                hist_num,
+                hist_den,
+                comparison="split_ratio" if is_reference else "ratio",
+                h1_w2method="sqrt",
+            )
+        else:
+            bins = None
+            ratio = ratio_hist
+            err_up, err_down = None, None
+
+        color = style.get("color", style.get("edgecolor", style.get("facecolor")))
+        histtype_ratio = style.get("histtype_ratio", "errorbar")
+
+        if is_reference:
+            ax_ratio.axhline(y=1, linestyle="--", color=color, zorder=0)
+
+            # centers = (bins[1:] + bins[:-1]) / 2
+            # ax_ratio.fill_between(
+            #     centers, 1 - err_up, 1 + err_up, alpha=0.2, color=color, label=name,zorder=0
+            # )
+            hep.histplot(
+                ratio,
+                bins=bins,
+                yerr=err_up,
+                xerr=True,
+                histtype="band",
+                label=name,
+                ax=ax_ratio,
+                facecolor=color,
+                zorder=0,
+                alpha=0.2,
+            )
+        else:
+            hep.histplot(
+                ratio,
+                bins=bins,
+                yerr=err_up if style.get("plot_errors", True) else None,
+                xerr=True,
+                histtype=histtype_ratio,
+                label=name,
+                ax=ax_ratio,
+                color=color,
+                edges=style.get("edges_ratio", True),
+                linewidth=style.get("linewidth", 2),
+            )
+
+    def _plot_graph_ratio(
+        self,
+        ax_ratio,
+        x_values,
+        y_values,
+        y_errors,
+        ref_x_values,
+        ref_y_values,
+        ref_y_errors,
+        name,
+        is_reference,
+        style,
+        ratio_graph=None,
+    ):
+        """Plot the ratio of a graph to the reference graph on the ratio axes.
+
+        If ratio_graph is provided, it should be a dict with 'x', 'y_values', and optionally 'y_errors'.
+        In this case, the precomputed ratio values are used directly without computing from numerator/denominator.
+        """
+
+        # If precomputed ratio is provided, use it directly
+        if ratio_graph is not None:
+            x_values = np.asarray(ratio_graph["x"], dtype=float)
+            y_values = np.asarray(ratio_graph["y_values"], dtype=float)
+            y_errors = (
+                np.asarray(ratio_graph["y_errors"], dtype=float)
+                if ratio_graph.get("y_errors") is not None
+                else None
+            )
+            ratio = y_values
+            ratio_errors = y_errors if y_errors is not None else np.zeros_like(y_values)
+        else:
+            # Convert to numpy arrays for easier manipulation
+            x_values = np.asarray(x_values, dtype=float)
+            y_values = np.asarray(y_values, dtype=float)
+            y_errors = (
+                np.asarray(y_errors, dtype=float) if y_errors is not None else None
+            )
+
+            ref_x_values = np.asarray(ref_x_values, dtype=float)
+            ref_y_values = np.asarray(ref_y_values, dtype=float)
+            ref_y_errors = (
+                np.asarray(ref_y_errors, dtype=float)
+                if ref_y_errors is not None
+                else None
+            )
+
+            # Calculate ratio: y / ref_y
+            with np.errstate(divide="ignore", invalid="ignore"):
+                ratio = y_values / ref_y_values
+
+            # Calculate error propagation for ratio: (y/ref_y) * sqrt((dy/y)^2 + (dref_y/ref_y)^2)
+            ratio_errors = np.zeros_like(ratio)
+            if y_errors is not None and ref_y_errors is not None:
+                # Error propagation for division: dr/r = sqrt((dy/y)^2 + (dref_y/ref_y)^2)
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    rel_y_err = np.abs(y_errors / y_values)
+                    rel_ref_err = np.abs(ref_y_errors / ref_y_values)
+                    ratio_errors = np.abs(ratio) * np.sqrt(
+                        rel_y_err**2 + rel_ref_err**2
+                    )
+
+        # Handle invalid values (division by zero, etc.)
+        valid = np.isfinite(ratio) & np.isfinite(x_values)
+        x_ratio = x_values[valid]
+        ratio_plot = ratio[valid]
+        ratio_err = (
+            ratio_errors[valid] if np.any(ratio_errors) else np.zeros_like(ratio_plot)
+        )
+
+        if len(x_ratio) == 0:
+            return
+
+        color = style.get("color", "black")
+        legend_name = (
+            style.get("legend_name_ratio", name)
+            if style.get("appear_in_legend_ratio", True)
+            else None
+        )
+
+        # Plot ratio with error bars
+        if np.any(ratio_err > 0):
+            ax_ratio.errorbar(
+                x=x_ratio,
+                y=ratio_plot,
+                yerr=ratio_err,
+                xerr=0,
+                fmt=style.get("fmt", "o"),
+                label=legend_name,
+                color=color,
+                linestyle=style.get("linestyle", ""),
+                markersize=style.get("markersize", 6),
+                **self.extra_kwargs,
+            )
+        else:
+            ax_ratio.plot(
+                x_ratio,
+                ratio_plot,
+                style.get("fmt", "o"),
+                label=legend_name,
+                color=color,
+                linestyle=style.get("linestyle", ""),
+                markersize=style.get("markersize", 6),
+                **self.extra_kwargs,
+            )
+
+        if is_reference:
+            # Add horizontal line at y=1 for reference
+            ax_ratio.axhline(y=1, linestyle="--", color=color, zorder=0, alpha=0.5)
+            # add shaded band for reference uncertainty if available
+            if ref_y_errors is not None:
+                ax_ratio.fill_between(
+                    x_ratio,
+                    1 - (ref_y_errors[valid] / ref_y_values[valid]),
+                    1 + (ref_y_errors[valid] / ref_y_values[valid]),
+                    alpha=0.2,
+                    color=color,
+                    label=f"{legend_name} uncertainty" if legend_name else None,
+                    zorder=0,
+                )
+
+    def _set_legend(self, ax, pos):
+        """Set the legend on the axes."""
+        handles, labels = ax.get_legend_handles_labels()
+        if not handles:
+            return
+
+        if len(handles) > 5 and self.split_legend:
+            ax.legend(
+                loc=pos,
+                ncol=2,
+                fontsize=(
+                    "small"
+                    if self.legend_font_size is None
+                    else (self.legend_font_size / 2)
+                ),
+            )
+        else:
+            ax.legend(loc=pos, fontsize=self.legend_font_size)
+
+    def _autolabel_categorical(self, ax, bars):
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(
+                f"{height * 100:.1f}",
+                xy=(bar.get_x() + bar.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=12,
+            )
+
+    def _draw_categorical_bars(self, ax, x, values, width, style):
+        bars = ax.bar(
+            x,
+            values,
+            width,
+            **style,
+        )
+        self._autolabel_categorical(ax, bars)
+        return bars
+
+    def _finalize(self, fig, ax, ax_ratio=None):
+        """Final adjustments and saving the figure."""
+
+        # ----------------------------
+        # AXIS SCALES
+        # ----------------------------
+        if self.y_log:
+            ax.set_yscale("log")
+        if self.x_log:
+            ax.set_xscale("log")
+
+        # ----------------------------
+        # GRID
+        # ----------------------------
+        if self.grid:
+            ax.grid()
+
+        # ----------------------------
+        # X / Y LABELS
+        # ----------------------------
+        if ax_ratio:
+            ax_ratio.set_xlabel(self.xlabel)
+            ax_ratio.set_ylabel(self.ratio_label)
+
+            if self.grid:
+                ax_ratio.grid()
+            if self.y_log_ratio:
+                ax_ratio.set_yscale("log")
+
+            ylim_top_ratio = None
+            ylim_bottom_ratio = None
+
+            if self.set_ylim_ratio:
+                ylim_top_ratio = 1 + self.set_ylim_ratio
+                ylim_bottom_ratio = 1 - self.set_ylim_ratio
+            if self.ylim_ratio_top_value:
+                ylim_top_ratio = self.ylim_ratio_top_value
+            if self.ylim_ratio_bottom_value:
+                ylim_bottom_ratio = self.ylim_ratio_bottom_value
+
+            ax_ratio.set_ylim(
+                top=(
+                    ylim_top_ratio
+                    if ylim_top_ratio is not None
+                    else ax_ratio.get_ylim()[1]
+                ),
+                bottom=(
+                    ylim_bottom_ratio
+                    if ylim_bottom_ratio is not None
+                    else ax_ratio.get_ylim()[0]
+                ),
+            )
+
+            if self.legend_ratio:
+                self._set_legend(ax_ratio, self.legend_ratio_loc)
+        else:
+            # categorical plots may intentionally leave xlabel empty
+            if self.xlabel:
+                ax.set_xlabel(self.xlabel)
+
+        ax.set_ylabel(self.ylabel)
+
+        # print xticklabels
+        if self.xticklabels is not None and self.label_pos is not None:
+            ax.set_xticks(self.label_pos)
+            ax.set_xticklabels(
+                self.xticklabels,
+                rotation=45 if self.rotate_xticks else 0,
+                ha="right" if self.rotate_xticks else "center",
+                fontsize=self.xtick_fontsize,
+            )
+
+        # ----------------------------
+        # AUTO Y-LIMITS
+        # ----------------------------
+        if self.set_ylim and self.plot_type != "2d":
+            top_value = (
+                self.ylim_top_value
+                if self.ylim_top_value is not None
+                else (
+                    self.ylim_top_factor * ax.get_ylim()[1]
+                    if not self.y_log
+                    else ax.get_ylim()[1] ** self.ylim_top_factor
+                )
+            )
+            bottom_value = (
+                self.ylim_bottom_value
+                if self.ylim_bottom_value is not None
+                else self.ylim_bottom_factor * ax.get_ylim()[0]
+            )
+
+            ax.set_ylim(top=top_value, bottom=bottom_value)
+
+        # ----------------------------
+        # AUTO X-LIMITS
+        # ----------------------------
+        if self.set_xlim and self.plot_type != "2d":
+            right_value = (
+                self.xlim_right_value
+                if self.xlim_right_value is not None
+                else (
+                    self.xlim_right_factor * ax.get_xlim()[1]
+                    if not self.y_log
+                    else ax.get_xlim()[1] ** self.xlim_right_factor
+                )
+            )
+            left_value = (
+                self.xlim_left_value
+                if self.xlim_left_value is not None
+                else self.xlim_left_factor * ax.get_xlim()[0]
+            )
+
+            ax.set_xlim(left=left_value, right=right_value)
+
+        # ----------------------------
+        # 2D COLORBAR
+        # ----------------------------
+        if self.plot_type == "2d":
+            cbar = ax.collections[0].colorbar
+            cbar.set_label(self.cbar_label)
+
+        # ----------------------------
+        # ANNOTATIONS / LINES / WATERMARK
+        # ----------------------------
+        self._apply_annotations(ax)
+        self._apply_lines(ax)
+        self._draw_watermark(ax)
+
+        # ----------------------------
+        # CMS LABELS
+        # ----------------------------
+        self._apply_cms_labels(ax)
+
+        # ----------------------------
+        # MPL MAGIC
+        # ----------------------------
+        if self.mpl_magic:
+            hep.utils.mpl_magic(ax=ax)
+
+        # ----------------------------
+        # LEGEND
+        # ----------------------------
+        if self.legend:
+            self._set_legend(ax, self.legend_loc)
+
+        # ----------------------------
+        # OUTPUT
+        # ----------------------------
+        if self.create_dir:
+            os.makedirs(os.path.dirname(self.output_base), exist_ok=True)
+
+        if getattr(self, "_return_figure", False):
+            self._returned_figure = fig
+            return  # skip save and close
+
+        self._save(fig)
+
+        if self.show_plot:
+            plt.show()
+        else:
+            self._close_fig(fig)
+
+    # ----------------------------
+    # PLOTTING DISPATCH
+    # ----------------------------
+
+    def run(self):
+        """Execute the plotting based on the configured plot_type."""
+        if self.debug:
+            print(
+                f"Running HEPPlotter with plot_type={self.plot_type}, output_base={self.output_base}"
+            )
+        if self.plot_type == "1d":
+            self._plot_1d()
+        elif self.plot_type == "2d":
+            self._plot_2d()
+        elif self.plot_type == "graph":
+            self._plot_graph()
+        elif self.plot_type == "categorical":
+            self._plot_categorical()
+        else:
+            raise ValueError(f"Unknown plot_type={self.plot_type}")

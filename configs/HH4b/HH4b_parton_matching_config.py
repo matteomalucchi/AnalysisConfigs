@@ -1,6 +1,6 @@
 import os
 import cloudpickle
-import utils.quantile_transformer as quantile_transformer
+import utils_configs.quantile_transformer as quantile_transformer
 
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,

@@ -18,6 +18,7 @@ default_config_options_dict = {
     "vbf_analysis": False,
     "which_vbf_quark": "with_mothers_children",  # "with_status"
     "max_num_jets_add_vbf": 2,
+    "jets_add_vbf_order": "energy",
     #
     "dnn_variables": True,
     "run2": False,

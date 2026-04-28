@@ -4,10 +4,10 @@ from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.histograms import jet_hists, count_hist
 from pocket_coffea.lib.hist_manager import HistConf, Axis
 from pocket_coffea.parameters.cuts import passthrough
-from utils.quantile_transformer import WeightedQuantileTransformer
+from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
-from utils.variables_helpers import jet_hists_dict, create_HistConf
-from utils.variables_helpers import jet_hists_dict, create_HistConf
+from utils_configs.variables_helpers import jet_hists_dict, create_HistConf
+from utils_configs.variables_helpers import jet_hists_dict, create_HistConf
 import configs.HH4b_common.custom_cuts_common as cuts
 import configs.VBF_HH4b.custom_cuts as vbf_cuts
 
@@ -1130,7 +1130,7 @@ SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 ]
 SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "JetGood": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetGoodHiggs": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetGoodPtFlatten": SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
 }
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
@@ -1147,6 +1147,9 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 ]
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
+    # merged collections with combined provenance
+    "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     
     # collections with provenance_higgs and provenance_vbf saved separately
@@ -1155,21 +1158,34 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "JetGoodVBFMergedProvVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodVBFMergedProvVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     
+    # merged collections with provenance_higgs and provenance_vbf saved separately
     "JetTotalSPANetSeparateProvHiggsVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetTotalSPANetSeparateProvHiggsVBFPtFlattenOnlyHiggsPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     
-    # globabl collections
+    # global collections
     "events": [
         "random_pt_weights",
+        # merged collections with combined provenance
         "mjjJetTotalSPANetPadded",
         "detaJetTotalSPANetPadded",
+        "centralityHiggsLeadingRun2JetTotalSPANetPadded",
+        "centralityHiggsSubLeadingRun2JetTotalSPANetPadded",
+        ## pt flatten
         "mjjJetTotalSPANetPtFlattenPadded",
         "detaJetTotalSPANetPtFlattenPadded",
+        "centralityHiggsLeadingRun2JetTotalSPANetPtFlattenPadded",
+        "centralityHiggsSubLeadingRun2JetTotalSPANetPtFlattenPadded",
+        # collections with provenance_vbf saved separately
         "mjjJetGoodVBFMergedProvVBFPadded",
         "detaJetGoodVBFMergedProvVBFPadded",
+        "centralityHiggsLeadingRun2JetGoodVBFMergedProvVBFPadded",
+        "centralityHiggsSubLeadingRun2JetGoodVBFMergedProvVBFPadded",
+        ## pt flatten
         "mjjJetGoodVBFMergedProvVBFPtFlattenPadded",
         "detaJetGoodVBFMergedProvVBFPtFlattenPadded",
+        "centralityHiggsLeadingRun2JetGoodVBFMergedProvVBFPtFlattenPadded",
+        "centralityHiggsSubLeadingRun2JetGoodVBFMergedProvVBFPtFlattenPadded",
     ],
 }
 

@@ -7,26 +7,26 @@ import copy
 from pocket_coffea.lib.deltaR_matching import object_matching
 from pocket_coffea.workflows.base import BaseProcessorABC
 
-from utils.basic_functions import add_fields
-from utils.dnn_evaluation_functions import get_dnn_prediction, get_onnx_prediction
+from utils_configs.basic_functions import add_fields
+from utils_configs.dnn_evaluation_functions import get_dnn_prediction, get_onnx_prediction
 
 
-# from utils.inference_session_onnx_slurm import get_model_session
-from utils.inference_session_onnx import get_model_session
-from utils.parton_matching_function import get_parton_last_copy
-from utils.reconstruct_higgs_candidates import (
+# from utils_configs.inference_session_onnx_slurm import get_model_session
+from utils_configs.inference_session_onnx import get_model_session
+from utils_configs.parton_matching_function import get_parton_last_copy
+from utils_configs.reconstruct_higgs_candidates import (
     get_jets_idx_not_from_idx,
     reconstruct_resonances_from_idx,
     reconstruct_higgs_from_provenance,
     run2_matching_algorithm,
     get_lead_mjj_jet_pair,
 )
-from utils.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
+from utils_configs.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
 
 from .custom_object_preselection_common import (
     lepton_selection,
 )
-from utils.custom_cut_functions import custom_jet_selection
+from utils_configs.custom_cut_functions import custom_jet_selection
 
 vector.register_awkward()
 

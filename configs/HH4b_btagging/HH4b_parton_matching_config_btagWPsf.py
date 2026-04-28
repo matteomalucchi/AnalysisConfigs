@@ -23,7 +23,7 @@ from pocket_coffea.utils.configurator import Configurator
 from workflow_btagSF_HH4b import HH4bbtagWPefficiencyProcessor
 
 import configs.HH4b_common.custom_cuts_common as cuts
-import utils.quantile_transformer as quantile_transformer
+import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     define_single_category,
