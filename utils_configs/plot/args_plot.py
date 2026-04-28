@@ -109,6 +109,13 @@ parser.add_argument(
     help="Text shown on CMS plot",
     default="Private",
 )
+parser.add_argument(
+    "-mw",
+    "--mask-large-weights",
+    action="store_true",
+    help="Removes events with large weights from the plots (w>100)",
+    default=True,
+)
 
 args = parser.parse_args()
 

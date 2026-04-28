@@ -23,9 +23,7 @@ config_options_dict |= {
     "pad_value": -999.0,
     "add_jet_spanet": True,
     "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
-    "max_num_jets_spanet_class": 5,
-    # "mixeddata": True,
     # "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap",
-    # "qt_postEE": "/work/tharte/datasets/quantile_transformer/1_19_1_3L1_trigger_cuts/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
-    "qt_postEE": "/work/tharte/datasets/sig_bkg_classifier/1_19_4_spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap_forPhDseminar_with_systs_qt_transform_fixed/quantile_transformer_directfromscore/SRSpanet_qt/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
+    "qt_postEE": "/work/tharte/datasets/quantile_transformer/1_19_1_3L1_trigger_cuts/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
+    # "qt_postEE": "/work/tharte/datasets/sig_bkg_classifier/1_19_3_spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap_forPhDseminar_with_systs/quantile_transformer/SRSpanet_qt/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
 }| onnx_model_dict

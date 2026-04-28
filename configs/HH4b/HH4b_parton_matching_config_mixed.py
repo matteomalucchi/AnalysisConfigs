@@ -1,6 +1,6 @@
 import os
 import cloudpickle
-import utils_configs.quantile_transformer as quantile_transformer
+import utils.quantile_transformer as quantile_transformer
 
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
@@ -87,31 +87,31 @@ preselection = define_preselection(config_options_dict)
 
 # Defining the used samples
 sample_ggF_list = [
-      "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 sample_mixed_list = [
     # "MixedData_2022_preEE",
-    # "MixedData_2022_postEE",
+    "MixedData_2022_postEE",
     # "MixedData_2023_preBPix",
     # "MixedData_2023_postBPix"
         ]
 sample_list = [
     # "DATA_JetMET_JMENano_C_skimmed",
     # "DATA_JetMET_JMENano_D_skimmed",
-    "DATA_JetMET_JMENano_E_skimmed",
-    "DATA_JetMET_JMENano_F_skimmed",
-    "DATA_JetMET_JMENano_G_skimmed",
+    # "DATA_JetMET_JMENano_E_skimmed",
+    # "DATA_JetMET_JMENano_F_skimmed",
+    # "DATA_JetMET_JMENano_G_skimmed",
     # "GluGlutoHHto4B_spanet_skimmed",
     # "GluGlutoHHto4B_spanet_skimmed_SM",
     # "GluGlutoHHto4B_spanet_skimmed",
@@ -186,6 +186,11 @@ if config_options_dict["dnn_variables"]:
                 "events",
                 "Arctanh_Delta_pairing_probabilities",
             ],
+            # "Delta_pairing_probabilities_best_worst": ["events", "Delta_pairing_probabilities_best_worst"],
+            # "Arctanh_Delta_pairing_probabilities_best_worst": [
+            #     "events",
+            #     "Arctanh_Delta_pairing_probabilities_best_worst",
+            # ],
             "Binned_Arctanh_Delta_pairing_probabilities": [
                 "events",
                 "Binned_Arctanh_Delta_pairing_probabilities",
@@ -218,7 +223,7 @@ if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
     column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
 if config_options_dict["spanet"] and not any(
     ["DATA" in sample for sample in sample_list]
-) and not any(["Mixed" in sample for sample in sample_list]):
+) and not config_options_dict["mixeddata"]:
     column_list += get_columns_list(
         {
             "events": [
@@ -268,8 +273,8 @@ for sample in sample_list:
                     get_columns_list(
                         {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
                     )
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
+                    # if "DATA" in sample
+                    if config_options_dict["bkg_morphing_spread_dnn"]
                     and "postW" in category
                     else []
                 )
@@ -290,18 +295,18 @@ for sample in sample_list:
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
-    if "DATA" in sample:
-        bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
-        for category in categories_dict.keys():
-            if "postW" in category:
-                if "Run2" in category:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weightRun2"
-                    ]
-                else:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weight"
-                    ]
+    # if "DATA" in sample:
+    bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
+    for category in categories_dict.keys():
+        if "postW" in category:
+            if "Run2" in category:
+                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                    "bkg_morphing_dnn_weightRun2"
+                ]
+            else:
+                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                    "bkg_morphing_dnn_weight"
+                ]
 
 # print("bysample_bycategory_weight_dict", bysample_bycategory_weight_dict)
 
@@ -335,17 +340,17 @@ cfg = Configurator(
     skim=cuts.skimming_cut_list(config_options_dict),
     preselections=preselection,
     categories=categories_dict,
-    # weights_classes=[bkg_morphing_dnn_weight],# common_weights
-    weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp],
+    weights_classes=[bkg_morphing_dnn_weight],# common_weights
+    # weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp],
     # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
-    # calibrators=[],# [JetsCalibrator],
-    calibrators=[JetsCalibrator],
+    calibrators=[],# [JetsCalibrator],
+    # calibrators=[JetsCalibrator],
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
-            "inclusive": ["genWeight", "lumi", "XS", "pileup"],
+            # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
             # "inclusive": ["genWeight", "lumi", "XS"],
-            # "inclusive": [],
+                "inclusive": [],
             "bycategory": {
             },
         },

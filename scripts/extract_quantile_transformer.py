@@ -1,6 +1,7 @@
 import logging
 import matplotlib.pyplot as plt
 import os
+import re
 import numpy as np
 from hist import Hist
 import awkward as ak
@@ -118,9 +119,14 @@ def extract_quantile_transformer(cat_col, outputdir):
         cat_mc = f"{category}_MC"
         input_variables_array = []
         for input_var in dnn_input_list:
-            input_variables_array.append(
-                np.array(col_dict[input_var][cat_mc], dtype=np.float32)
-            )
+            if re.search(r'_\d+$', input_var) and input_var not in col_dict.keys():
+                index = re.search(r'\d+$', input_var).group(0)
+                arr = np.vstack(col_dict[input_var[:-2]][cat_mc])
+                input_variables_array.append(np.array(arr[:,int(index)], dtype=np.float32))
+            else:
+                input_variables_array.append(
+                    np.array(col_dict[input_var][cat_mc], dtype=np.float32)
+                )
         input_variables_array = np.stack(input_variables_array, axis=-1)
         inputs_complete = {input_name_SIG_BKG_DNN[0]: input_variables_array}
         outputs = model_session_SIG_BKG_DNN.run(

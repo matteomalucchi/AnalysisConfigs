@@ -20,6 +20,8 @@ config_options_dict |= {
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
-    "save_chunk":"/work/mmalucch/out_hh4b/full_analysis/out_MC_DATA_DHH_newUpdates_JECRegression_newLeptonVeto_OrOfL1Cut_UpdateJetVetoMap/sig_vs_bkg/parquet_files/",
-    "qt_postEE": "/work/mmalucch/out_hh4b/full_analysis/out_MC_DATA_DHH_newUpdates_JECRegression_newLeptonVeto_OrOfL1Cut_UpdateJetVetoMap/bkg_morphing/quantile_transformer/SRRun2_qt/qt_events_sig_bkg_dnn_score_DHH_kl_1.00.pkl",
+    # "save_chunk":"/work/mmalucch/out_hh4b/full_analysis/out_MC_DATA_DHH_newUpdates_JECRegression_newLeptonVeto_OrOfL1Cut_UpdateJetVetoMap/sig_vs_bkg/parquet_files/",
+    # "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/DHH_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap",
+    # "qt_postEE": "/work/mmalucch/out_hh4b/full_analysis/out_MC_DATA_DHH_newUpdates_JECRegression_newLeptonVeto_OrOfL1Cut_UpdateJetVetoMap/bkg_morphing/quantile_transformer/SRRun2_qt/qt_events_sig_bkg_dnn_score_DHH_kl_1.00.pkl",
+    "qt_postEE": "/work/tharte/datasets/sig_bkg_classifier/1_19_3_DHH_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap_forPhDseminar_with_systs/quantile_transformer/SRRun2_qt/qt_events_sig_bkg_dnn_score_DHH_kl_1.00.pkl",
 }| onnx_model_dict
