@@ -38,7 +38,7 @@ outputdir = args.output + f"_{args.normalisation}"
 # because first the name of the variables is try with the Run2 string
 # and after without it
 # First region: data 4b (blinded)
-# Second region: data 2b reweighted (unblinded)
+# Second region: data signal depleted reweighted (unblinded)
 # Third region: mc 4b (unblinded)
 cat_dict = {}
 if args.run2:
@@ -52,6 +52,18 @@ if args.run2:
         f"4b{args.region_suffix}_signal_regionRun2",
         f"2b{args.region_suffix}_signal_region_postWRun2",
         f"4b{args.region_suffix}_signal_regionRun2",
+    ]
+elif args.mixed:
+    cat_dict[f"CR{args.region_suffix}"] = [
+        f"4b{args.region_suffix}_control_region",
+        f"4b{args.region_suffix}_control_region_postW",
+        f"4b{args.region_suffix}_control_region",
+    ]
+    # cat_dict[f"SR{args.region_suffix}_blindRun2"] = [f"4b{args.region_suffix}_signal_region_blindRun2", f"4b{args.region_suffix}_signal_regionRun2", f"2b{args.region_suffix}_signal_region_postWRun2"]
+    cat_dict[f"SR{args.region_suffix}"] = [
+        f"4b{args.region_suffix}_signal_region",
+        f"4b{args.region_suffix}_signal_region_postW",
+        f"4b{args.region_suffix}_signal_region",
     ]
 else:
     cat_dict[f"CR{args.region_suffix}"] = [
@@ -125,6 +137,10 @@ else:
     ]
 
 inputfiles_mc = args.input_mc
+if args.mixed:
+    inputfiles_rew = args.input_rew
+else:
+    inputfiles_rew = inputfiles_data
 
 filter_lambda = (
     (
@@ -149,6 +165,15 @@ cat_col_mc, total_datasets_list_mc = get_columns_from_files(
 ## Collecting DATA dataset
 cat_col_data, total_datasets_list_data = get_columns_from_files(
     inputfiles_data,
+    sel_var="nominal",
+    filter_lambda=filter_lambda,
+    debug=False,
+    novars=args.novars,
+)
+
+## Collecting BKG dataset
+cat_col_rew, total_datasets_list_rew = get_columns_from_files(
+    inputfiles_rew,
     sel_var="nominal",
     filter_lambda=filter_lambda,
     debug=False,
@@ -190,7 +215,7 @@ def compute_sob(hist_1d_dict):
     # s/np.sqrt(bg-s) with s being the MC_signal and bg being the reweighted data
     # Assuming the mc did already go through
     for idx in range(len(hist_1d_dict["Sig+Bkg"]["data"])):
-        if "DATA" in hist_1d_dict["Sig+Bkg"]["style"]["legend_name"][idx]:
+        if "BKG" in hist_1d_dict["Sig+Bkg"]["style"]["legend_name"][idx]:
             b_hist = hist_1d_dict["Sig+Bkg"]["data"][idx]
         else:
             s_hist = hist_1d_dict["Sig+Bkg"]["data"][idx]
@@ -272,7 +297,7 @@ def plot_single_var_from_columns(
         weights_den = weights_den[col_den != PAD_VALUE]
         if args.normalisation == "density":
             weights_den = weights_den / np.sum(weights_den)
-        if "DATA" in cat and "2b" in cat:
+        if "postW" in cat:
             weights_den = weights_den * ratio2b4b
         bins_center = (bin_edges[1:] + bin_edges[:-1]) / 2
 
@@ -396,7 +421,7 @@ def plot_single_var_from_columns(
         p_sob = (
             HEPPlotter(debug=True)
             .set_plot_config(
-                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
                 figsize=[13, 13],
             )
             .set_output(os.path.join(dir_cat, f"{var}_{plot_name}"))
@@ -416,7 +441,7 @@ def plot_single_var_from_columns(
     p = (
         HEPPlotter(debug=True)
         .set_plot_config(
-            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
             figsize=[13, 13],
         )
         .set_output(os.path.join(dir_cat, f"{var}"))
@@ -457,20 +482,31 @@ def main(cat_cols, lumi, era_string):
     ## Calculating a ratio between the 2b-reweighted and the 4b region
     # Needs to be done here, as afterwards, we don't have access to all the regions anymore...
     # This will be calculated in the CR and also applied to SR. But in order to make sure that it makes sense, I also calculate both weights.
-    print("Calculating ratios as weight from 2b-reweighted to 4b region")
+    print("Calculating ratios as weight from signal depleted reweighted to 4b region")
     # HARDCODED:
     # - First region is CR
     # - In this region, 1st element is 4b, 3rd element is 2b-reweighted
+    # PEP-8 compliance: replace lambda expression with function
     if args.normalisation == "sum_weights":
-        op_norm = lambda x, y: sum(x) / sum(y)
+        def op_norm(x, y): return sum(x) / sum(y)
     elif args.normalisation == "num_events":
-        op_norm = lambda x, y: len(x) / len(y)
+        def op_norm(x, y): return len(x) / len(y)
     elif args.normalisation == "density":
-        op_norm = lambda x, y: 1
+        def op_norm(x, y): return 1
     else:
         raise ValueError(
             f"Unknown normalisation type {args.normalisation}. Use num_events, sum_weights or density"
         )
+
+    # In background, filter out all events with a weight > 100 for the reweighted dataset
+    CR_region_rew = cat_dict[f"CR{args.region_suffix}"][1]
+    SR_region_rew = cat_dict[f"SR{args.region_suffix}"][1]
+    CR_weights = cat_cols[1][CR_region_rew]["weight"]
+    SR_weights = cat_cols[1][SR_region_rew]["weight"]
+    if args.mask_large_weights:
+        for key in cat_cols[1][CR_region_rew].keys():
+            cat_cols[1][CR_region_rew][key] = cat_cols[1][CR_region_rew][key][CR_weights < 100]
+            cat_cols[1][SR_region_rew][key] = cat_cols[1][SR_region_rew][key][SR_weights < 100]
 
     try:
         if args.run2:
@@ -480,13 +516,13 @@ def main(cat_cols, lumi, era_string):
                 CR_region_keys = cat_dict[f"CR{args.region_suffix}Run2"]
                 CRratio_4b_2bpostW_Run2 = op_norm(
                     cat_cols[0][CR_region_keys[0]]["weight"],
-                    cat_cols[0][CR_region_keys[1]]["weight"],
+                    cat_cols[1][CR_region_keys[1]]["weight"],
                 )
 
             SR_region_keys = cat_dict[f"SR{args.region_suffix}Run2"]
             SRratio_4b_2bpostW_Run2 = op_norm(
                 cat_cols[0][SR_region_keys[0]]["weight"],
-                cat_cols[0][SR_region_keys[1]]["weight"],
+                cat_cols[1][SR_region_keys[1]]["weight"],
             )
 
             print(f"CR ratio Run2: {CRratio_4b_2bpostW_Run2}")
@@ -499,13 +535,13 @@ def main(cat_cols, lumi, era_string):
 
                 CRratio_4b_2bpostW = op_norm(
                     cat_cols[0][CR_region_keys[0]]["weight"],
-                    cat_cols[0][CR_region_keys[1]]["weight"],
+                    cat_cols[1][CR_region_keys[1]]["weight"],
                 )
 
             SR_region_keys = cat_dict[f"SR{args.region_suffix}"]
             SRratio_4b_2bpostW = op_norm(
                 cat_cols[0][SR_region_keys[0]]["weight"],
-                cat_cols[0][SR_region_keys[1]]["weight"],
+                cat_cols[1][SR_region_keys[1]]["weight"],
             )
 
             print(f"CR ratio: {CRratio_4b_2bpostW}")
@@ -519,7 +555,7 @@ def main(cat_cols, lumi, era_string):
         sys.exit(1)
 
     # cat_dict defined on top (global variable)
-    for cats_name, cat_list in cat_dict.items():
+    for cats_name, cat_list in cat_dict.items(): # Signal and background regions
         if "Run2SPANet" in cats_name:
             chi_squared = False
             color_list = color_list_alt
@@ -533,12 +569,10 @@ def main(cat_cols, lumi, era_string):
         # :param: data_mc means that we make the dictionary one longer such that for each category we save the data and the MC values.
         col_dict = {}
         col_list_data_mc = []
-        for data_mc, cat_col in zip(["DATA", "MC"], cat_cols):
+        for data_mc, cat_col, cat in zip(["DATA", "BKG", "MC"], cat_cols, cat_list):
             print(data_mc)
             print(cat_col.keys())
-            vars_tot = list(cat_col[cat_list[0]].keys())
-            if args.test:
-                vars_tot = vars_tot[:3]
+            vars_tot = list(cat_col[cat_list[0]].keys()) # We only consider observables present in data
             # print("vars_tot", vars_tot)
             vars_to_plot = []
             # vars_tot = [v for v in vars_tot if "add" in v or "weight"  in v]
@@ -558,55 +592,55 @@ def main(cat_cols, lumi, era_string):
                         continue
 
                     for idx in range(N):
-                        if not f"{v}_{idx}" in col_dict.keys():
+                        if f"{v}_{idx}" not in col_dict.keys():
                             col_dict[f"{v}_{idx}"] = {}
                         vars_to_plot.append(f"{v}_{idx}")
-                        for cat in cat_list:
-                            cat_data_mc = f"{cat}_{data_mc}"
-                            if "2b" in cat and data_mc == "MC":
-                                print(f"Skipping {v} for {cat} in {data_mc}")
-                                continue  # skip 2b MC
-                            # if not cat in col_dict[f"{v}_{idx}"].keys():
-                            #     col_dict[f"{v}_{idx}"][cat] = {}
-                            try:
-                                col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][v][
-                                    np.arange(len(cat_col[cat][v])) % N == idx
-                                ]
-                            except KeyError:
-                                col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][
-                                    v.replace("Run2", "")
-                                ][
-                                    np.arange(len(cat_col[cat][v.replace("Run2", "")]))
-                                    % N
-                                    == idx
-                                ]
+                        # for cat in cat_list: # This is a remnant to remember, that initially we iterated over all combinations.
+                        # Now it is only a one-to-one matching.
+                        # I think this should not have an impact, but in case there is an issue, start with this.
+                        cat_data_mc = f"{cat}_{data_mc}"
+                        if ("post" in cat and data_mc != "BKG") or ("post" not in cat and data_mc == "BKG"):
+                            print(f"Skipping {v} for {cat} in {data_mc}")
+                            continue  # skip 2b MC
+                        try:
+                            col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][v][
+                                np.arange(len(cat_col[cat][v])) % N == idx
+                            ]
+                        except KeyError:
+                            col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][
+                                v.replace("Run2", "")
+                            ][
+                                np.arange(len(cat_col[cat][v.replace("Run2", "")]))
+                                % N
+                                == idx
+                            ]
                 else:
                     if not v in col_dict.keys():
                         col_dict[v] = {}
                     if v != "weight":
                         vars_to_plot.append(v)
-                    for cat in cat_list:
-                        cat_data_mc = f"{cat}_{data_mc}"
-                        if "2b" in cat and data_mc == "MC":
-                            print(f"Skipping {v} for {cat} in {data_mc}")
-                            continue  # skip 2b MC
-                        if not cat_data_mc in col_list_data_mc:
-                            col_list_data_mc.append(cat_data_mc)
-                        # if not cat in col_dict[v].keys():
-                        #     col_dict[v][cat] = {}
-                        try:
-                            col_dict[v][cat_data_mc] = cat_col[cat][v]
-                        except KeyError:
-                            col_dict[v][cat_data_mc] = cat_col[cat][
-                                v.replace("Run2", "")
-                            ]
-                        if v == "weight":
-                            # Note that the total luminosity is hardcoded here for 2022postEE
-                            col_dict[v][cat_data_mc] = col_dict[v][cat_data_mc] * (
-                                float(lumi) / (5.79 + 17.6 + 2.88)
-                                if data_mc == "MC"
-                                else 1
-                            )
+                    # for cat in cat_list:
+                    cat_data_mc = f"{cat}_{data_mc}"
+                    if ("post" in cat and data_mc != "BKG") or ("post" not in cat and data_mc == "BKG"):
+                        print(f"Skipping {v} for {cat} in {data_mc}")
+                        continue  # skip 2b MC
+                    if not cat_data_mc in col_list_data_mc:
+                        col_list_data_mc.append(cat_data_mc)
+                    # if not cat in col_dict[v].keys():
+                    #     col_dict[v][cat] = {}
+                    try:
+                        col_dict[v][cat_data_mc] = cat_col[cat][v]
+                    except KeyError:
+                        col_dict[v][cat_data_mc] = cat_col[cat][
+                            v.replace("Run2", "")
+                        ]
+                    if v == "weight":
+                        # Note that the total luminosity is hardcoded here for 2022postEE
+                        col_dict[v][cat_data_mc] = col_dict[v][cat_data_mc] * (
+                            float(lumi) / (5.79 + 17.6 + 2.88)
+                            if data_mc == "MC"
+                            else 1
+                        )
 
             # compute the DNN score if onnx model is given
             if args.onnx_model:
@@ -625,7 +659,7 @@ def main(cat_cols, lumi, era_string):
 
                 for cat in cat_list:
                     cat_data_mc = f"{cat}_{data_mc}"
-                    if "2b" in cat and data_mc == "MC":
+                    if ("post" in cat and data_mc != "BKG") or ("post" not in cat and data_mc == "BKG"):
                         print(f"Skipping {v} for {cat} in {data_mc}")
                         continue  # skip 2b MC
                     # if not cat in col_dict[v].keys():
@@ -731,7 +765,7 @@ if __name__ == "__main__":
 
     ############# Actual plotting command. Now a list with [datastuff, mcstuff] ######################
     main(
-        [cat_col_data, cat_col_mc],
+        [cat_col_data, cat_col_rew, cat_col_mc],
         lumi,
         era_string,
     )

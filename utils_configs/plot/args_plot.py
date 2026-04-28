@@ -18,6 +18,14 @@ parser.add_argument(
     help="Input coffea files monte carlo",
     default=None,
 )
+parser.add_argument(
+    "-ir",
+    "--input-rew",
+    type=str,
+    nargs="+",
+    help="Input coffea files reweighted",
+    default=None,
+)
 parser.add_argument("-o", "--output", type=str, help="Output directory", default="")
 parser.add_argument(
     "-n",
@@ -87,6 +95,19 @@ parser.add_argument(
     action="store_true",
     help="If true, old save format without saved variations is expected",
     default=False,
+)
+parser.add_argument(
+    "--mixed",
+    action="store_true",
+    help="mixed datasets",
+    default=False,
+)
+parser.add_argument(
+    "-cms",
+    "--cmstext",
+    type=str,
+    help="Text shown on CMS plot",
+    default="Private",
 )
 
 args = parser.parse_args()

@@ -56,10 +56,7 @@ def get_era_lumi(dataset_data):
     print("Found eras in datasets")
     print(era_list)
     assert len(era_list) > 0
-    lumi = sum([era_lumi_dict[era] for era in era_list])
-    #convert lumi to string with 2 digits
-    lumi = "{:.2f}".format(lumi)
-    
+
     # If nothing else will be satisfied:
     era_string = ", ".join(era_list)
     # If only one Era
@@ -103,4 +100,10 @@ def get_era_lumi(dataset_data):
         era_string = "2023"
     elif all([era in era_list for era in era_lumi_dict]):
         era_string = "2022, 2023"
+    if era_string in era_lumi_dict.keys():
+        lumi = era_lumi_dict[era_string]
+    else:
+        lumi = sum([era_lumi_dict[era] for era in era_list])
+    #convert lumi to string with 2 digits
+    lumi = "{:.2f}".format(lumi)
     return lumi, era_string

@@ -1,5 +1,6 @@
 import copy
 import awkward as ak
+import numpy as np
 
 from pocket_coffea.lib.cut_functions import get_JetVetoMap_Mask
 from pocket_coffea.lib.jets import jet_selection
@@ -34,10 +35,14 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
     processor_params_copy.jets_calibration.collection[year] = {
         "AK4PFPuppi": jet_type_default
     }
-
-    mask = get_JetVetoMap_Mask(
-        events_copy, params, year, processor_params_copy, **kwargs
-    )
+    
+    try:
+        mask = get_JetVetoMap_Mask(
+            events_copy, params, year, processor_params_copy, **kwargs
+        )
+    except:
+        print("Could not load JetVetoMap. Build passthrough instead")
+        mask = ak.ones_like(events_copy["event"], dtype=np.bool)
 
     # remove copies
     del processor_params_copy

@@ -17,7 +17,7 @@ logger = logging.getLogger()
 
 
 def get_columns_from_files(
-    inputfiles, sel_var="nominal", filter_lambda=None, debug=False, novars=False, max_num_parquet_files=None
+    inputfiles, sel_var="nominal", filter_lambda=None, debug=False, novars=False, max_num_parquet_files=None, filter_mixed=False,
 ):
     if not debug:
         logger.setLevel(level=logging.INFO)
@@ -48,6 +48,12 @@ def get_columns_from_files(
                 for category in categories:
                     if debug:
                         logger.debug(f"category {category}")
+                    if filter_mixed and "Mixed" in dataset and category not in ["4b_control_region_preW", "4b_control_region_postW", "4b_signal_region_preW", "4b_signal_region_postW"]:
+                        logger.debug(f"skipping category {category} for dataset {dataset} due to MixedData skipping")
+                        continue
+                    if filter_mixed and "Mixed" not in dataset and category in ["4b_control_region_preW", "4b_control_region_postW", "4b_signal_region_preW", "4b_signal_region_postW"]:
+                        logger.debug(f"skipping category {category} for dataset {dataset} due to MixedData skipping")
+                        continue
                     if category not in cat_col:
                         cat_col[category] = {}
                     variations = list(
@@ -221,14 +227,13 @@ def get_columns_from_parquet(
     # ------------------------------------------------------------
     for input_file in input_files:
         rootdir, dset = get_parquet_save_directory(input_file)
-        dirs_datasets[rootdir] = dset
+        dirs_datasets[dset] = rootdir
 
     # ------------------------------------------------------------
     # Main loop
     # ------------------------------------------------------------
-    for rootdir, sel_dataset in dirs_datasets.items():
-        if debug:
-            logger.debug(f"Scanning {rootdir}")
+    for sel_dataset, rootdir in dirs_datasets.items():
+        logger.debug(f"Scanning {rootdir}")
 
         datasets = (
             os.listdir(rootdir) if sel_dataset == "all" else [sel_dataset]

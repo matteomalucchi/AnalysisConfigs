@@ -110,6 +110,17 @@ hh4b_control_region = Cut(
     },
     function=cuts_f.hh4b_Rhh_cuts,
 )
+hh4b_control_region_wide = Cut(
+    name="hh4b_control_region",
+    params={
+        "Run2": False,
+        "radius_min": 30,
+        "radius_max": 80,
+        "higgs_lead_center": 125,
+        "higgs_sublead_center": 120,
+    },
+    function=cuts_f.hh4b_Rhh_cuts,
+)
 
 hh4b_signal_region_run2 = Cut(
     name="hh4b_signal_region_run2",
@@ -129,6 +140,17 @@ hh4b_control_region_run2 = Cut(
         "Run2": True,
         "radius_min": 30,
         "radius_max": 55,
+        "higgs_lead_center": 125,
+        "higgs_sublead_center": 120,
+    },
+    function=cuts_f.hh4b_Rhh_cuts,
+)
+hh4b_control_region_wide_run2 = Cut(
+    name="hh4b_control_region",
+    params={
+        "Run2": True,
+        "radius_min": 30,
+        "radius_max": 80,
         "higgs_lead_center": 125,
         "higgs_sublead_center": 120,
     },
@@ -300,8 +322,10 @@ def skimming_cut_list(configs):
         eventFlags,
         goldenJson,
         get_nPVgood(1),
-        get_HLTsel(primaryDatasets=["JetMET"]),
+        get_HLTsel(primaryDatasets=["JetMET"])
     ]
+    if not configs["mixeddata"]:
+        skimlist = skimlist + []
     if not configs["noL1"]:
         skimlist.append(get_L1sel(primaryDatasets=["JetMET"]))
     return skimlist
