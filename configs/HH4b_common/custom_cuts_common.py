@@ -322,10 +322,9 @@ def skimming_cut_list(configs):
         eventFlags,
         goldenJson,
         get_nPVgood(1),
-        get_HLTsel(primaryDatasets=["JetMET"])
     ]
     if not configs["mixeddata"]:
-        skimlist = skimlist + []
-    if not configs["noL1"]:
+        skimlist = skimlist + [get_HLTsel(primaryDatasets=["JetMET"])]
+    if not configs["noL1"] and not configs["mixeddata"]:
         skimlist.append(get_L1sel(primaryDatasets=["JetMET"]))
     return skimlist

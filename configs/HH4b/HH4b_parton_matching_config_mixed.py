@@ -1,6 +1,6 @@
 import os
 import cloudpickle
-import utils.quantile_transformer as quantile_transformer
+import utils_configs.quantile_transformer as quantile_transformer
 
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
@@ -131,7 +131,7 @@ categories_dict = define_categories(
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
-    mixed=config_options_dict["mixeddata"],
+    expandCR=config_options_dict["expandCR"],
 )
 # AKA if no model is applied
 # print(onnx_model_dict)
@@ -223,7 +223,7 @@ if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
     column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
 if config_options_dict["spanet"] and not any(
     ["DATA" in sample for sample in sample_list]
-) and not config_options_dict["mixeddata"]:
+) and not any(["Mixed" in sample for sample in sample_list]):
     column_list += get_columns_list(
         {
             "events": [
@@ -273,8 +273,8 @@ for sample in sample_list:
                     get_columns_list(
                         {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
                     )
-                    # if "DATA" in sample
-                    if config_options_dict["bkg_morphing_spread_dnn"]
+                    if "DATA" in sample.upper()
+                    and config_options_dict["bkg_morphing_spread_dnn"]
                     and "postW" in category
                     else []
                 )
@@ -295,18 +295,18 @@ for sample in sample_list:
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
-    # if "DATA" in sample:
-    bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
-    for category in categories_dict.keys():
-        if "postW" in category:
-            if "Run2" in category:
-                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                    "bkg_morphing_dnn_weightRun2"
-                ]
-            else:
-                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                    "bkg_morphing_dnn_weight"
-                ]
+    if "DATA" in sample.upper():
+        bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
+        for category in categories_dict.keys():
+            if "postW" in category:
+                if "Run2" in category:
+                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                        "bkg_morphing_dnn_weightRun2"
+                    ]
+                else:
+                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                        "bkg_morphing_dnn_weight"
+                    ]
 
 # print("bysample_bycategory_weight_dict", bysample_bycategory_weight_dict)
 

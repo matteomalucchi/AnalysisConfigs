@@ -30,6 +30,6 @@ config_options_dict |= {
     "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
     "qt_postEE": "",
     "max_num_jets_spanet_class": 5,
-    "mixeddata": True,
+    "expandCR": True,
     "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap_mixeddata_control_30_80_var000068_btag_pd",
 }| onnx_model_dict

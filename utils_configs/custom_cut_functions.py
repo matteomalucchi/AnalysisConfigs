@@ -36,13 +36,9 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
         "AK4PFPuppi": jet_type_default
     }
     
-    try:
-        mask = get_JetVetoMap_Mask(
-            events_copy, params, year, processor_params_copy, **kwargs
-        )
-    except:
-        print("Could not load JetVetoMap. Build passthrough instead")
-        mask = ak.ones_like(events_copy["event"], dtype=np.bool)
+    mask = get_JetVetoMap_Mask(
+        events_copy, params, year, processor_params_copy, **kwargs
+    )
 
     # remove copies
     del processor_params_copy

@@ -30,5 +30,5 @@ config_options_dict |= {
     "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
     "qt_postEE": "",
     "max_num_jets_spanet_class": 5,
-    "mixeddata": True,
+    "noL1": True,
 }| onnx_model_dict

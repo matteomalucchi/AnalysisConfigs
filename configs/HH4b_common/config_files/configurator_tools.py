@@ -1393,7 +1393,7 @@ def define_categories(
     spanet=False,
     run2=False,
     vr1=False,
-    mixed=False,
+    expandCR=False,
     btag_sf_comp=False,
     vbf_analysis=False,
     vbf_discriminator=False,
@@ -1412,18 +1412,18 @@ def define_categories(
     for suffix in suffixes:
         if not vr1:
             categories_dict |= define_single_category(f"4b_region{suffix}")
-            categories_dict |= define_single_category(f"4b_control_region{suffix}", mixed)
-            if not mixed:
-                categories_dict |= define_single_category(f"2b_control_region_preW{suffix}", mixed)
-                categories_dict |= define_single_category(f"2b_signal_region_preW{suffix}", mixed)
+            categories_dict |= define_single_category(f"4b_control_region{suffix}", expandCR)
+            if not expandCR:
+                categories_dict |= define_single_category(f"2b_control_region_preW{suffix}", expandCR)
+                categories_dict |= define_single_category(f"2b_signal_region_preW{suffix}", expandCR)
                 categories_dict |= (
                     define_single_category(f"2b_signal_region_preW_blind{suffix}")
                     if blind
                     else {}
                 )
             else:
-                categories_dict |= define_single_category(f"4b_control_region_preW{suffix}", mixed)
-                categories_dict |= define_single_category(f"4b_signal_region_preW{suffix}", mixed)
+                categories_dict |= define_single_category(f"4b_control_region_preW{suffix}", expandCR)
+                categories_dict |= define_single_category(f"4b_signal_region_preW{suffix}", expandCR)
                 categories_dict |= (
                     define_single_category(f"4b_signal_region_preW_blind{suffix}")
                     if blind
@@ -1437,9 +1437,9 @@ def define_categories(
             categories_dict |= define_single_category(f"4b_signal_region{suffix}")
 
             if bkg_morphing_dnn:
-                if not mixed:
+                if not expandCR:
                     categories_dict |= define_single_category(
-                        f"2b_control_region_postW{suffix}", mixed
+                        f"2b_control_region_postW{suffix}", expandCR
                     )
                     categories_dict |= (
                         define_single_category(f"2b_signal_region_postW_blind{suffix}")
@@ -1451,7 +1451,7 @@ def define_categories(
                     )
                 else:
                     categories_dict |= define_single_category(
-                        f"4b_control_region_postW{suffix}", mixed
+                        f"4b_control_region_postW{suffix}", expandCR
                     )
                     categories_dict |= (
                         define_single_category(f"4b_signal_region_postW_blind{suffix}")
@@ -1531,6 +1531,7 @@ def define_preselection(options):
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
-    preselection.append(cuts.hh4b_JetVetoMap)
+    if not options["mixeddata"]:
+        preselection.append(cuts.hh4b_JetVetoMap)
 
     return preselection

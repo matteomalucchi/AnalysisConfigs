@@ -23,7 +23,7 @@ if not args.output:
         args.output = "plots_2bVS4b"
     else:
         args.output = "test_2bVS4b"
-        
+
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
@@ -218,7 +218,7 @@ else:
         if file.endswith(".coffea") and ("DATA" in file or "Mixed" in file)
     ]
 
-filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else (lambda x: "prov" not in x and "add_jet1pt_mass" not in x and "events_sigma" not in x and "era" not in x)
+filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
 cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed)
 
 cat_col_mc = None
@@ -654,10 +654,13 @@ def main(cat_cols, lumi, era_string):
                 )
                 continue
 
-            vars_tot = list(cat_col_DATA[cat_list[1]].keys())
-            vars_tot = [v for v in vars_tot if "year" not in v]
             if "SPREAD" in cats_name:
+                vars_tot = list(cat_col_DATA[cat_list[0]].keys())
                 vars_tot = [v for v in vars_tot if "weight" in v or "score" in v]
+            else:
+                vars_tot = list(cat_col_DATA[cat_list[1]].keys())
+                vars_tot = [v for v in vars_tot if "year" not in v]
+
 
             if args.test:
                 # vars_tot = vars_tot[:3]

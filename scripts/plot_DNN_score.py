@@ -385,7 +385,7 @@ def plot_single_var_from_columns(
             hist_1d_dict["Sig+Bkg"]["style"]["edgecolor"].append(color_list[i][0])
             hist_1d_dict["Sig+Bkg"]["style"]["facecolor"].append(color_list[i][1])
             hist_1d_dict["Sig+Bkg"]["style"]["alpha"].append(
-                0.5 if "DATA" in cat else 1
+                0.5 if "BKG" in cat_plot_name else 1
             )
             hist_1d_dict["Sig+Bkg"]["style"]["legend_name"].append(cat_plot_name)
             hist_1d_dict["Sig+Bkg"]["style"]["bin_edges_plotting"].append(

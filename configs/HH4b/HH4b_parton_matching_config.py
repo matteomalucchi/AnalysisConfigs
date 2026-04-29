@@ -88,41 +88,46 @@ preselection = define_preselection(config_options_dict)
 # Defining the used samples
 sample_ggF_list = [
       "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-      "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 sample_mixed_list = [
     # "MixedData_2022_preEE",
-    # "MixedData_2022_postEE",
+    "MixedData_2022_postEE",
     # "MixedData_2023_preBPix",
     # "MixedData_2023_postBPix"
         ]
-sample_list = [
-    # "DATA_JetMET_JMENano_C_skimmed",
-    # "DATA_JetMET_JMENano_D_skimmed",
-    "DATA_JetMET_JMENano_E_skimmed",
-    "DATA_JetMET_JMENano_F_skimmed",
-    "DATA_JetMET_JMENano_G_skimmed",
-    # "GluGlutoHHto4B_spanet_skimmed",
-    # "GluGlutoHHto4B_spanet_skimmed_SM",
-    # "GluGlutoHHto4B_spanet_skimmed",
-    # "GluGlutoHHto4B",
-    # "DATA_JetMET_JMENano_2023_Cv1_skimmed",
-    # "DATA_JetMET_JMENano_2023_Cv2_skimmed",
-    # "DATA_ParkingHH_2023_Cv3",
-    # "DATA_ParkingHH_2023_Cv4",
-    # "DATA_ParkingHH_2023_Dv1",
-    # "DATA_ParkingHH_2023_Dv2",
-] + sample_ggF_list + sample_mixed_list
+
+if config_options_dict["mixeddata"]:
+    sample_list = sample_mixed_list
+else:
+    sample_list = [
+        # "DATA_JetMET_JMENano_C_skimmed",
+        # "DATA_JetMET_JMENano_D_skimmed",
+        # "DATA_JetMET_JMENano_E_skimmed",
+        # "DATA_JetMET_JMENano_F_skimmed",
+        "DATA_JetMET_JMENano_G_skimmed",
+        # "GluGlutoHHto4B_spanet_skimmed",
+        # "GluGlutoHHto4B_spanet_skimmed_SM",
+        # "GluGlutoHHto4B_spanet_skimmed",
+        # "GluGlutoHHto4B",
+        # "DATA_JetMET_JMENano_2023_Cv1_skimmed",
+        # "DATA_JetMET_JMENano_2023_Cv2_skimmed",
+        # "DATA_ParkingHH_2023_Cv3",
+        # "DATA_ParkingHH_2023_Cv4",
+        # "DATA_ParkingHH_2023_Dv1",
+        # "DATA_ParkingHH_2023_Dv2",
+    ] + sample_ggF_list
+
 
 # Define the categories to save
 categories_dict = define_categories(
@@ -131,7 +136,7 @@ categories_dict = define_categories(
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
-    mixed=config_options_dict["mixeddata"],
+    expandCR=config_options_dict["expandCR"],
 )
 # AKA if no model is applied
 # print(onnx_model_dict)
@@ -268,7 +273,7 @@ for sample in sample_list:
                     get_columns_list(
                         {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
                     )
-                    if "DATA" in sample
+                    if "DATA" in sample.upper()
                     and config_options_dict["bkg_morphing_spread_dnn"]
                     and "postW" in category
                     else []
@@ -290,7 +295,7 @@ for sample in sample_list:
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
-    if "DATA" in sample:
+    if "DATA" in sample.upper():
         bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
         for category in categories_dict.keys():
             if "postW" in category:
@@ -336,10 +341,8 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     # weights_classes=[bkg_morphing_dnn_weight],# common_weights
-    weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp],
-    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
-    # calibrators=[],# [JetsCalibrator],
-    calibrators=[JetsCalibrator],
+    weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp] ,
+    calibrators=[JetsCalibrator] if not config_options_dict['mixeddata'] else [],
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
