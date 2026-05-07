@@ -23,6 +23,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     define_preselection,
     get_columns_list,
     get_variables_dict,
+    with_fw_momenta_columns,
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
@@ -158,7 +159,14 @@ if not config_options_dict["spanet"] and not config_options_dict["run2"] and not
     if not config_options_dict["vbf_analysis"]:
         column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
     else:
-        column_list += get_columns_list(SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+        column_list += get_columns_list(
+            with_fw_momenta_columns(
+                SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+                config_options_dict["max_order_FW"],
+                config_options_dict["FW_momenta_norms"],
+            ),
+            not config_options_dict["save_chunk"],
+        )
 else:
     # Define the other columns to save
     total_input_columns = {}
