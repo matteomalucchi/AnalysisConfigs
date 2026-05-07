@@ -143,6 +143,7 @@ class HEPPlotter:
         self._ratio_graphs = {}
         self._annotations = []
         self._lines = []
+        self._curves = []
 
         self._plot_mean_std = False
         self._mean_std_style = {}
@@ -359,6 +360,13 @@ class HEPPlotter:
         self._lines.append((orientation, kwargs))
         return self
 
+    def add_curve(self, x, y, **kwargs):
+        """Overlay an arbitrary curve (x, y arrays) on the plot.
+        kwargs: passed directly to ax.plot (e.g. color, linestyle, label, linewidth)
+        """
+        self._curves.append((np.asarray(x), np.asarray(y), kwargs))
+        return self
+
     # ----------------------------
     # INTERNAL HELPERS
     # ----------------------------
@@ -405,6 +413,11 @@ class HEPPlotter:
                 ax.axhline(**kwargs)
             else:
                 ax.axvline(**kwargs)
+
+    def _apply_curves(self, ax):
+        """Overlay all stored (x, y) curves on the axes."""
+        for x, y, kwargs in self._curves:
+            ax.plot(x, y, **kwargs)
 
     def _apply_chi_square(self, ax, hist_1d, ref_hist, index, style):
         """Compute and add chi-square text to the plot."""
@@ -1472,6 +1485,7 @@ class HEPPlotter:
         # ----------------------------
         # ANNOTATIONS / LINES / WATERMARK
         # ----------------------------
+        self._apply_curves(ax)
         self._apply_annotations(ax)
         self._apply_lines(ax)
         self._draw_watermark(ax)
