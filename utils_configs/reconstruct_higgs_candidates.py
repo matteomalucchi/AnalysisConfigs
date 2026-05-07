@@ -122,9 +122,9 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
         1,
     )
 
-    jets_ordered = ak.with_name(
+    jets_ordered = add_fields(
         ak.concatenate([higgs1_jet1, higgs1_jet2, higgs2_jet1, higgs2_jet2], axis=1),
-        name="PtEtaPhiMCandidate",
+        "all",
     )
 
     higgs_lead = add_fields(ak.flatten(higgs_lead))
@@ -139,9 +139,9 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
             jet_collection[range_num_events, idx_collection[:, 2, 1]], 1
         )
 
-        vbf_jets = ak.with_name(
+        vbf_jets = add_fields(
             ak.concatenate([vbf_1, vbf_2], axis=1),
-            name="PtEtaPhiMCandidate",
+            "all",
         )
         # sort jets by energy
         vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]

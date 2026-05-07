@@ -44,6 +44,7 @@ class HEPPlotter:
     - set_extra_kwargs(**kwargs)
     - set_options(**kwargs)
     - add_ratio_hists(ratio_hists)
+    - add_ratio_graphs(ratio_graphs)
     - add_annotation(**kwargs)
     - add_chi_square(**kwargs)
     - add_line(orientation="h", **kwargs)
@@ -137,11 +138,12 @@ class HEPPlotter:
         self._plot_chi_square = False
         self._chi_square_add_prediction_uncertainty = None
         self._chi_square_style = {}
-        
+
         self._ratio_hists = {}
+        self._ratio_graphs = {}
         self._annotations = []
         self._lines = []
-        
+
         self._plot_mean_std = False
         self._mean_std_style = {}
 
@@ -248,17 +250,17 @@ class HEPPlotter:
         """Display the plot interactively (for debugging)."""
         self.show_plot = True
         return self
-    
+
     def get_figure(self):
         """
         Execute the plot and return the matplotlib Figure object directly,
         without saving to disk or closing it.
-        
+
         Returns
         -------
         matplotlib.figure.Figure
             The fully configured figure, ready for display or further manipulation.
-        
+
         Example
         -------
         fig = (HEPPlotter("CMS")
@@ -278,6 +280,15 @@ class HEPPlotter:
         ratio_hists: dict of histograms with the same keys as series_dict
         """
         self._ratio_hists = ratio_hists
+        return self
+
+    def add_ratio_graphs(self, ratio_graphs):
+        """Add precomputed ratio graphs to be plotted on the ratio subplot.
+        ratio_graphs: dict of graph data with the same keys as series_dict
+        Each entry should have 'data' and 'style' keys, where 'data' contains:
+            {'x': x_values, 'y': [y_values, y_errors] or just y_values}
+        """
+        self._ratio_graphs = ratio_graphs
         return self
 
     def add_annotation(self, x, y, s, **kwargs):
@@ -323,7 +334,7 @@ class HEPPlotter:
         self._chi_square_style = kwargs
         return self
 
-    def add_mean_std(self,  **kwargs):
+    def add_mean_std(self, **kwargs):
         """
         Compute and annotate the mean and std dev of each 1D histogram on the plot.
 
@@ -435,14 +446,17 @@ class HEPPlotter:
             transform=ax.transAxes,
             fontsize=self._chi_square_style.get("fontsize", 20),
             color=color_chi2,
-            **{k: v for k, v in self._mean_std_style.items()
-            if k not in ("x", "y", "fontsize", "color")},
+            **{
+                k: v
+                for k, v in self._mean_std_style.items()
+                if k not in ("x", "y", "fontsize", "color")
+            },
         )
 
     def _apply_mean_std(self, ax, hist_1d, name, style, index):
         """Compute mean and std dev from histogram bin centers and plot on ax."""
         centers = hist_1d.axes[0].centers
-        values  = hist_1d.values()
+        values = hist_1d.values()
 
         total = values.sum()
         if total == 0:
@@ -468,10 +482,13 @@ class HEPPlotter:
             color=color,
             ha="right",
             va="top",
-            **{k: v for k, v in self._mean_std_style.items()
-            if k not in ("x", "y", "fontsize")},
+            **{
+                k: v
+                for k, v in self._mean_std_style.items()
+                if k not in ("x", "y", "fontsize")
+            },
         )
-        
+
     def _draw_watermark(self, ax):
         """Draw a small, faint watermark in a guaranteed empty area."""
         if not self.enable_watermark:
@@ -581,29 +598,32 @@ class HEPPlotter:
 
         # Propagate uncertainties: Var -> Var / integral^2
         if variances is not None:
-            hist.view().variance = variances / (integral ** 2)
+            hist.view().variance = variances / (integral**2)
 
         return hist
-    
+
     # ----------------------------
     # IMPLEMENTATIONS
     # ----------------------------
 
     def _plot_1d(self):
         """Plot 1D histograms with optional ratio plot."""
+
         ratio_plot, ref_name = self._validate_inputs(self.series_dict)
+        ratio_plot = ratio_plot or self._ratio_hists
+
         fig, ax, ax_ratio = self._create_figure(ratio_plot)
 
         ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
         if self.normalize_1d_histo:
-            ref_hist=self._normalize(ref_hist)
+            ref_hist = self._normalize(ref_hist)
 
         for index, (name, props) in enumerate(self.series_dict.items()):
 
             hist_1d = props["data"]
             if self.normalize_1d_histo:
-                hist_1d=self._normalize(hist_1d)
-                
+                hist_1d = self._normalize(hist_1d)
+
             style = props.get("style", {})
             hist_1d, style = self._stack_plot_order(hist_1d.copy(), style.copy())
 
@@ -661,10 +681,9 @@ class HEPPlotter:
 
             if self._plot_chi_square and ratio_plot and not is_ref:
                 self._apply_chi_square(ax, hist_1d, ref_hist, index, style)
-            
+
             if self._plot_mean_std:
                 self._apply_mean_std(ax, hist_1d, name, style, index)
-                
 
             # ratio
             if ratio_plot and ax_ratio is not None:
@@ -739,19 +758,71 @@ class HEPPlotter:
         self._finalize(fig, ax)
 
     def _plot_graph(self):
-        """Plot graphs with error bars."""
-        fig, ax, _ = self._create_figure()
+        """Plot graphs with error bars, optionally with ratio plot."""
+        # First, detect if there's a reference series (is_reference=True in style)
+        ratio_plot = False
+        ref_name = None
+        ref_data = None
+
         for name, props in self.series_dict.items():
-            y_values, y_errors = (
-                props["data"]["y"][0],
-                props["data"]["y"][1],
-            )
-            x_values, x_errors = (
-                props["data"]["x"][0],
-                props["data"]["x"][1],
-            )
+            style = props.get("style", {})
+            if style.get("is_reference", False):
+                if ratio_plot:
+                    raise ValueError("Multiple reference graphs found.")
+                ratio_plot = True
+                ref_name = name
+
+                # Extract reference data
+                if isinstance(props["data"]["y"][0], list) or isinstance(
+                    props["data"]["y"][0], np.ndarray
+                ):
+                    ref_y_values = np.asarray(props["data"]["y"][0])
+                    ref_y_errors = np.asarray(props["data"]["y"][1])
+                else:
+                    ref_y_values = np.asarray(props["data"]["y"])
+                    ref_y_errors = None
+
+                if isinstance(props["data"]["x"][0], list) or isinstance(
+                    props["data"]["x"][0], np.ndarray
+                ):
+                    ref_x_values = np.asarray(props["data"]["x"][0])
+                else:
+                    ref_x_values = np.asarray(props["data"]["x"])
+
+                ref_data = {
+                    "x": ref_x_values,
+                    "y": ref_y_values,
+                    "y_err": ref_y_errors,
+                }
+
+        ratio_plot = ratio_plot or self._ratio_graphs
+        # Create figure with or without ratio subplot
+        fig, ax, ax_ratio = self._create_figure(ratio_plot=ratio_plot)
+
+        # Plot all graphs
+        for index, (name, props) in enumerate(self.series_dict.items()):
+            # check if the first element of y is also an array to get the errors
+            if isinstance(props["data"]["y"][0], list) or isinstance(
+                props["data"]["y"][0], np.ndarray
+            ):
+                y_values = props["data"]["y"][0]
+                y_errors = props["data"]["y"][1]
+            else:
+                y_values = props["data"]["y"]
+                y_errors = None
+
+            if isinstance(props["data"]["x"][0], list) or isinstance(
+                props["data"]["x"][0], np.ndarray
+            ):
+                x_values = props["data"]["x"][0]
+                x_errors = props["data"]["x"][1]
+            else:
+                x_values = props["data"]["x"]
+                x_errors = None
 
             style = props.get("style", {})
+            is_ref = style.get("is_reference", False)
+
             # extra_kwargs = self.extra_kwargs.copy()
             # extra_kwargs.update(
             #     {
@@ -770,6 +841,7 @@ class HEPPlotter:
             #     markersize=style.get("markersize"),
             #     **self.extra_kwargs,
             # )
+
             legend_name = (
                 style.get("legend_name", name)
                 if style.get("appear_in_legend", True)
@@ -807,7 +879,93 @@ class HEPPlotter:
                     markersize=style.get("markersize"),
                     **self.extra_kwargs,
                 )
-        self._finalize(fig, ax)
+
+            # Plot ratio if ratio subplot exists and this is not the reference
+            if (
+                ratio_plot
+                and ax_ratio is not None
+                and ref_data is not None
+                and not is_ref
+            ):
+                if self.reference_to_den:
+                    # ratio = test / reference
+                    self._plot_graph_ratio(
+                        ax_ratio,
+                        x_values,
+                        y_values,
+                        y_errors,
+                        ref_data["x"],
+                        ref_data["y"],
+                        ref_data["y_err"],
+                        legend_name,
+                        is_ref,
+                        style,
+                    )
+                else:
+                    # ratio = reference / test
+                    self._plot_graph_ratio(
+                        ax_ratio,
+                        ref_data["x"],
+                        ref_data["y"],
+                        ref_data["y_err"],
+                        x_values,
+                        y_values,
+                        y_errors,
+                        legend_name,
+                        is_ref,
+                        style,
+                    )
+
+        # plot precomputed ratio graphs
+        if self._ratio_graphs and ratio_plot and ax_ratio is not None:
+            for name, props in self._ratio_graphs.items():
+                style = self._ratio_graphs[name].get("style", {})
+                is_ref = self._ratio_graphs[name]["style"].get("is_reference", False)
+                graph_data = props["data"]
+
+                # Extract x and y values from graph data
+                if isinstance(graph_data["x"][0], list) or isinstance(
+                    graph_data["x"][0], np.ndarray
+                ):
+                    x_values = graph_data["x"][0]
+                else:
+                    x_values = graph_data["x"]
+
+                if isinstance(graph_data["y"][0], list) or isinstance(
+                    graph_data["y"][0], np.ndarray
+                ):
+                    y_values = graph_data["y"][0]
+                    y_errors = graph_data["y"][1]
+                else:
+                    y_values = graph_data["y"]
+                    y_errors = None
+
+                legend_name_ratio = (
+                    style.get("legend_name_ratio", name)
+                    if style.get("appear_in_legend_ratio", True)
+                    else None
+                )
+
+                # Use _plot_graph_ratio with precomputed ratio values
+                self._plot_graph_ratio(
+                    ax_ratio,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    legend_name_ratio,
+                    is_ref,
+                    style,
+                    ratio_graph={
+                        "x": x_values,
+                        "y_values": y_values,
+                        "y_errors": y_errors,
+                    },
+                )
+
+        self._finalize(fig, ax, ax_ratio)
 
     def _plot_categorical(self):
         """
@@ -1027,6 +1185,127 @@ class HEPPlotter:
                 linewidth=style.get("linewidth", 2),
             )
 
+    def _plot_graph_ratio(
+        self,
+        ax_ratio,
+        x_values,
+        y_values,
+        y_errors,
+        ref_x_values,
+        ref_y_values,
+        ref_y_errors,
+        name,
+        is_reference,
+        style,
+        ratio_graph=None,
+    ):
+        """Plot the ratio of a graph to the reference graph on the ratio axes.
+
+        If ratio_graph is provided, it should be a dict with 'x', 'y_values', and optionally 'y_errors'.
+        In this case, the precomputed ratio values are used directly without computing from numerator/denominator.
+        """
+
+        # If precomputed ratio is provided, use it directly
+        if ratio_graph is not None:
+            x_values = np.asarray(ratio_graph["x"], dtype=float)
+            y_values = np.asarray(ratio_graph["y_values"], dtype=float)
+            y_errors = (
+                np.asarray(ratio_graph["y_errors"], dtype=float)
+                if ratio_graph.get("y_errors") is not None
+                else None
+            )
+            ratio = y_values
+            ratio_errors = y_errors if y_errors is not None else np.zeros_like(y_values)
+        else:
+            # Convert to numpy arrays for easier manipulation
+            x_values = np.asarray(x_values, dtype=float)
+            y_values = np.asarray(y_values, dtype=float)
+            y_errors = (
+                np.asarray(y_errors, dtype=float) if y_errors is not None else None
+            )
+
+            ref_x_values = np.asarray(ref_x_values, dtype=float)
+            ref_y_values = np.asarray(ref_y_values, dtype=float)
+            ref_y_errors = (
+                np.asarray(ref_y_errors, dtype=float)
+                if ref_y_errors is not None
+                else None
+            )
+
+            # Calculate ratio: y / ref_y
+            with np.errstate(divide="ignore", invalid="ignore"):
+                ratio = y_values / ref_y_values
+
+            # Calculate error propagation for ratio: (y/ref_y) * sqrt((dy/y)^2 + (dref_y/ref_y)^2)
+            ratio_errors = np.zeros_like(ratio)
+            if y_errors is not None and ref_y_errors is not None:
+                # Error propagation for division: dr/r = sqrt((dy/y)^2 + (dref_y/ref_y)^2)
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    rel_y_err = np.abs(y_errors / y_values)
+                    rel_ref_err = np.abs(ref_y_errors / ref_y_values)
+                    ratio_errors = np.abs(ratio) * np.sqrt(
+                        rel_y_err**2 + rel_ref_err**2
+                    )
+
+        # Handle invalid values (division by zero, etc.)
+        valid = np.isfinite(ratio) & np.isfinite(x_values)
+        x_ratio = x_values[valid]
+        ratio_plot = ratio[valid]
+        ratio_err = (
+            ratio_errors[valid] if np.any(ratio_errors) else np.zeros_like(ratio_plot)
+        )
+
+        if len(x_ratio) == 0:
+            return
+
+        color = style.get("color", "black")
+        legend_name = (
+            style.get("legend_name_ratio", name)
+            if style.get("appear_in_legend_ratio", True)
+            else None
+        )
+
+        # Plot ratio with error bars
+        if np.any(ratio_err > 0):
+            ax_ratio.errorbar(
+                x=x_ratio,
+                y=ratio_plot,
+                yerr=ratio_err,
+                xerr=0,
+                fmt=style.get("fmt", "o"),
+                label=legend_name,
+                color=color,
+                linestyle=style.get("linestyle", ""),
+                markersize=style.get("markersize", 6),
+                **self.extra_kwargs,
+            )
+        else:
+            ax_ratio.plot(
+                x_ratio,
+                ratio_plot,
+                style.get("fmt", "o"),
+                label=legend_name,
+                color=color,
+                linestyle=style.get("linestyle", ""),
+                markersize=style.get("markersize", 6),
+                **self.extra_kwargs,
+            )
+
+        if is_reference:
+            # Add horizontal line at y=1 for reference
+            ax_ratio.axhline(y=1, linestyle="--", color=color, zorder=0, alpha=0.5)
+            # add shaded band for reference uncertainty if available
+            if ref_y_errors is not None:
+                ax_ratio.fill_between(
+                    x_ratio,
+                    1 - (ref_y_errors[valid] / ref_y_values[valid]),
+                    1 + (ref_y_errors[valid] / ref_y_values[valid]),
+                    alpha=0.2,
+                    color=color,
+                    label=f"{legend_name} uncertainty" if legend_name else None,
+                    zorder=0,
+                )
+
     def _set_legend(self, ax, pos):
         """Set the legend on the axes."""
         handles, labels = ax.get_legend_handles_labels()
@@ -1097,23 +1376,31 @@ class HEPPlotter:
                 ax_ratio.grid()
             if self.y_log_ratio:
                 ax_ratio.set_yscale("log")
-            
-            ylim_top_ratio=None
-            ylim_bottom_ratio=None
-            
+
+            ylim_top_ratio = None
+            ylim_bottom_ratio = None
+
             if self.set_ylim_ratio:
-                ylim_top_ratio=1 + self.set_ylim_ratio
-                ylim_bottom_ratio=1 - self.set_ylim_ratio
+                ylim_top_ratio = 1 + self.set_ylim_ratio
+                ylim_bottom_ratio = 1 - self.set_ylim_ratio
             if self.ylim_ratio_top_value:
-                ylim_top_ratio=self.ylim_ratio_top_value
+                ylim_top_ratio = self.ylim_ratio_top_value
             if self.ylim_ratio_bottom_value:
-                ylim_bottom_ratio=self.ylim_ratio_bottom_value
-            
+                ylim_bottom_ratio = self.ylim_ratio_bottom_value
+
             ax_ratio.set_ylim(
-                top=ylim_top_ratio if ylim_top_ratio is not None else ax_ratio.get_ylim()[1],
-                bottom=ylim_bottom_ratio if ylim_bottom_ratio is not None else ax_ratio.get_ylim()[0],
+                top=(
+                    ylim_top_ratio
+                    if ylim_top_ratio is not None
+                    else ax_ratio.get_ylim()[1]
+                ),
+                bottom=(
+                    ylim_bottom_ratio
+                    if ylim_bottom_ratio is not None
+                    else ax_ratio.get_ylim()[0]
+                ),
             )
-                    
+
             if self.legend_ratio:
                 self._set_legend(ax_ratio, self.legend_ratio_loc)
         else:

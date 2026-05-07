@@ -16,6 +16,7 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
@@ -93,7 +94,7 @@ sample_ggF_list = [
     "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 
-sample_VBF_list=[
+sample_VBF_list = [
     "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
     "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
     "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
@@ -116,12 +117,12 @@ sample_list = (
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
     + sample_ggF_list
-    + sample_VBF_list
+    # + sample_VBF_list
     + (
         [
-        #     "GluGlutoHHto4B_spanet_skimmed",
-        #     # "GluGlutoHHto4B",
-        # "GluGlutoHHto4B_spanet"
+            #     "GluGlutoHHto4B_spanet_skimmed",
+            #     # "GluGlutoHHto4B",
+            # "GluGlutoHHto4B_spanet"
         ]
     )
 )
@@ -141,15 +142,28 @@ categories_dict = define_categories(
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
-column_list=[]
-column_listRun2=[]
+column_list = []
+column_listRun2 = []
 
 # Add SPANet training inputs
 if not config_options_dict["spanet"] and not config_options_dict["run2"]:
     if not config_options_dict["vbf_analysis"]:
-        column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+        column_list += get_columns_list(
+            SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
+        )
     else:
-        column_list += get_columns_list(SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+        column_list += get_columns_list(
+            SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
+            not config_options_dict["save_chunk"],
+        )
+elif (
+    config_options_dict["vbf_matching_after_higgs_pairing"]
+    and not config_options_dict["run2"]
+):
+    column_list += get_columns_list(
+        SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
+    )
+
 else:
     # Define the other columns to save
     total_input_columns = {}
