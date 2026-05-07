@@ -24,6 +24,7 @@ default_config_options_dict = {
     # FW momenta
     "max_order_FW": 0,
     "FW_momenta_norms" : ["W_T"],
+    "vbf_matching_after_higgs_pairing": False,
     #
     "dnn_variables": True,
     "run2": False,

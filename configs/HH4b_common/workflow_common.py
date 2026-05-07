@@ -21,7 +21,10 @@ from utils_configs.reconstruct_higgs_candidates import (
     run2_matching_algorithm,
     get_lead_mjj_jet_pair,
 )
-from utils_configs.spanet_evaluation_functions import get_best_pairings, clean_assignment_prob
+from utils_configs.spanet_evaluation_functions import (
+    get_best_pairings,
+    clean_assignment_prob,
+)
 
 from .custom_object_preselection_common import (
     lepton_selection,
@@ -144,17 +147,25 @@ class HH4bCommonProcessor(BaseProcessorABC):
         if self.approach == "first":
             self.events["Jet"] = ak.where(
                 ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
-            self.events["JetPNetPlusNeutrino"],
-            self.events.JetDefault,
-        )
+                self.events["JetPNetPlusNeutrino"],
+                self.events.JetDefault,
+            )
         elif self.approach == "second":
             self.events["Jet"] = ak.where(
-                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0) | (self.events["JetPNetPlusNeutrino"].btagPNetB > self.params["btagging"]["working_point"][self._year]["btagging_WP"]["btagPNetB"]["L"]),
-            self.events["JetPNetPlusNeutrino"],
-            self.events.JetDefault,
-        )
+                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
+                | (
+                    self.events["JetPNetPlusNeutrino"].btagPNetB
+                    > self.params["btagging"]["working_point"][self._year][
+                        "btagging_WP"
+                    ]["btagPNetB"]["L"]
+                ),
+                self.events["JetPNetPlusNeutrino"],
+                self.events.JetDefault,
+            )
         else:
-            raise ValueError(f"Approach {self.approach} not known. Choose either 'first' or 'second' according to HIG24-010")
+            raise ValueError(
+                f"Approach {self.approach} not known. Choose either 'first' or 'second' according to HIG24-010"
+            )
 
         # save also the different pt definitions for bookkeeping
         # we anyway miss the different mass definitions and the various variations
@@ -1264,9 +1275,52 @@ class HH4bCommonProcessor(BaseProcessorABC):
         else:
             mask_fully_matched = ak.all(ak.flatten(pairing_true, axis=2) >= 0, axis=1)
 
-        self.events["mask_fully_matched"] = mask_fully_matched
+        self.events["mask_`fully_matched"] = mask_fully_matched
 
         return matched_jet_higgs_idx_not_none
+
+    def eval_spanet(self):
+        model_session_spanet, input_name_spanet, output_name_spanet = get_model_session(
+            self.spanet, "spanet"
+        )
+
+        spanet_output, _ = get_onnx_prediction(
+            model_session_spanet,
+            input_name_spanet,
+            output_name_spanet,
+            self.events,
+            self.spanet_input_name,
+            self.pad_value,
+            self.pad_value_spanet,
+            self.max_num_jets_spanet,
+        )
+        # Not needed anymore
+        del model_session_spanet
+        del input_name_spanet
+        del output_name_spanet
+
+        jet_coll_pairing = [
+            x[0] for x in self.spanet_input_name["sequential"].values()
+        ][0]
+        
+        # if an event has less than 6 jets, than remove the vbf prob matrix
+        cleaned_assignment_prob = clean_assignment_prob(
+            spanet_output["assignment_prob"], self.events[jet_coll_pairing]
+        )
+
+        (
+            pairing_predictions,
+            best_pairing_probability,
+            second_best_pairing_probability,
+        ) = get_best_pairings(cleaned_assignment_prob)
+
+        return (
+            pairing_predictions,
+            jet_coll_pairing,
+            spanet_output,
+            best_pairing_probability,
+            second_best_pairing_probability,
+        )
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         if not self.boosted:
@@ -1288,43 +1342,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_none = self.get_true_pairing_and_compare()
             elif self.spanet:
                 # apply spanet model to get the pairing prediction for the b-jets from Higgs
-                model_session_spanet, input_name_spanet, output_name_spanet = (
-                    get_model_session(self.spanet, "spanet")
-                )
-                # compute the pairing information using the SPANET model
-                spanet_output, _ = get_onnx_prediction(
-                    model_session_spanet,
-                    input_name_spanet,
-                    output_name_spanet,
-                    self.events,
-                    self.spanet_input_name,
-                    self.pad_value,
-                    self.max_num_jets_spanet,
-                )
-                # Not needed anymore
-                del model_session_spanet
-                del input_name_spanet
-                del output_name_spanet
-
-                jet_coll_pairing = [
-                    x[0] for x in self.spanet_input_name["sequential"].values()
-                ][0]
-
-                # if an event has less than 6 jets, than remove the vbf prob matrix
-                cleaned_assignment_prob = clean_assignment_prob(
-                    spanet_output["assignment_prob"], self.events[jet_coll_pairing]
-                )
-
                 (
                     pairing_predictions,
-                    self.events["best_pairing_probability"],
-                    self.events["second_best_pairing_probability"],
-                ) = get_best_pairings(cleaned_assignment_prob)
+                    jet_coll_pairing,
+                    spanet_output,
+                    best_pairing_probability,
+                    second_best_pairing_probability,
+                ) = self.eval_spanet()
 
                 # get the probabilities difference between the best and second best jet assignment
                 self.events["Delta_pairing_probabilities"] = (
-                    self.events.best_pairing_probability
-                    - self.events.second_best_pairing_probability
+                    best_pairing_probability - second_best_pairing_probability
                 )
 
                 # apply logit transformation
@@ -1518,6 +1546,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events.DiJetVBFCandidates,
                 vbf_variables=True
             )
+            self.events["JetGoodVBF"] = ak.concatenate([ak.singletons(self.events.LeadingVBFJet), ak.singletons(self.events.SubLeadingVBFJet)], axis=1)
+            # keep only the first pair of DiJetVBF
+            self.events["DiJetVBF"] = ak.pad_none(self.events.DiJetVBFCandidates, 1, clip=True)[:, 0]
 
         if self.bkg_morphing_dnn and not self._isMC:
             (
@@ -1604,7 +1635,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 output_name_SIG_BKG_DNN,
             ) = get_model_session(self.sig_bkg_dnn, "sig_bkg_dnn")
 
-            if self.spanet:
+            if self.spanet or self.boosted:
                 onnx_output, out_type = get_onnx_prediction(
                     model_session_SIG_BKG_DNN,
                     input_name_SIG_BKG_DNN,
