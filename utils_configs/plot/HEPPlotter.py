@@ -511,7 +511,7 @@ class HEPPlotter:
 
         fig.text(
             0.01,
-            -0.12,  # bottom-left margin of the whole figure
+            1.,  # top-left margin of the whole figure
             "HEPPlotter",
             fontsize=6,  # very small
             color="white",  # invisible on white backgrounds
