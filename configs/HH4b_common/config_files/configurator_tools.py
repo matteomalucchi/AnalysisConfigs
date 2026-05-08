@@ -1298,31 +1298,32 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
         )
     column_dict = {x: list(y) for x, y in column_dict.items()}
     if btag:
-        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
-            "btagPNetB"
-        )
-        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
-            "btagPNetB_5wp"
-        )
-        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
-            "provenance"
-        )
-    if f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}" in column_dict:
-        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
-            "btagPNetB"
-        )
-        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
-            "btagPNetB_5wp"
-        )
-        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
-            "provenance"
-        )
+        if f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}" in column_dict:
+            column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+                "btagPNetB"
+            )
+            column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+                "btagPNetB_5wp"
+            )
+            column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+                "provenance"
+            )
+        if f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}" in column_dict:
+            column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+                "btagPNetB"
+            )
+            column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+                "btagPNetB_5wp"
+            )
+            column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+                "provenance"
+            )
     column_list = get_columns_list(column_dict, flatten)
 
     return column_list
 
 
-def define_single_category(category_name):
+def define_single_category(category_name, wide_cr=False):
     """
     Define a single category for the analysis.
     """
@@ -1337,9 +1338,15 @@ def define_single_category(category_name):
     if "VR1" not in category_name:
         if "control" in category_name:
             if "Run2" not in category_name:
-                cut_list.append(cuts.hh4b_control_region)
+                if not wide_cr:
+                    cut_list.append(cuts.hh4b_control_region)
+                else:
+                    cut_list.append(cuts.hh4b_control_region_wide)
             else:
-                cut_list.append(cuts.hh4b_control_region_run2)
+                if not wide_cr:
+                    cut_list.append(cuts.hh4b_control_region_run2)
+                else:
+                    cut_list.append(cuts.hh4b_control_region_wide_run2)
         if "signal" in category_name:
             if "Run2" not in category_name:
                 cut_list.append(cuts.hh4b_signal_region)
@@ -1411,6 +1418,7 @@ def define_categories(
     spanet=False,
     run2=False,
     vr1=False,
+    expandCR=False,
     btag_sf_comp=False,
     vbf_analysis=False,
     vbf_discriminator=False,
@@ -1429,33 +1437,55 @@ def define_categories(
     for suffix in suffixes:
         if not vr1:
             categories_dict |= define_single_category(f"4b_region{suffix}")
-            categories_dict |= define_single_category(f"4b_control_region{suffix}")
-            categories_dict |= define_single_category(f"2b_control_region_preW{suffix}")
+            categories_dict |= define_single_category(f"4b_control_region{suffix}", expandCR)
+            if not expandCR:
+                categories_dict |= define_single_category(f"2b_control_region_preW{suffix}", expandCR)
+                categories_dict |= define_single_category(f"2b_signal_region_preW{suffix}", expandCR)
+                categories_dict |= (
+                    define_single_category(f"2b_signal_region_preW_blind{suffix}")
+                    if blind
+                    else {}
+                )
+            else:
+                categories_dict |= define_single_category(f"4b_control_region_preW{suffix}", expandCR)
+                categories_dict |= define_single_category(f"4b_signal_region_preW{suffix}", expandCR)
+                categories_dict |= (
+                    define_single_category(f"4b_signal_region_preW_blind{suffix}")
+                    if blind
+                    else {}
+                )
             categories_dict |= (
                 define_single_category(f"4b_signal_region_blind{suffix}")
                 if blind
                 else {}
             )
             categories_dict |= define_single_category(f"4b_signal_region{suffix}")
-            categories_dict |= (
-                define_single_category(f"2b_signal_region_preW_blind{suffix}")
-                if blind
-                else {}
-            )
-            categories_dict |= define_single_category(f"2b_signal_region_preW{suffix}")
 
             if bkg_morphing_dnn:
-                categories_dict |= define_single_category(
-                    f"2b_control_region_postW{suffix}"
-                )
-                categories_dict |= (
-                    define_single_category(f"2b_signal_region_postW_blind{suffix}")
-                    if blind
-                    else {}
-                )
-                categories_dict |= define_single_category(
-                    f"2b_signal_region_postW{suffix}"
-                )
+                if not expandCR:
+                    categories_dict |= define_single_category(
+                        f"2b_control_region_postW{suffix}", expandCR
+                    )
+                    categories_dict |= (
+                        define_single_category(f"2b_signal_region_postW_blind{suffix}")
+                        if blind
+                        else {}
+                    )
+                    categories_dict |= define_single_category(
+                        f"2b_signal_region_postW{suffix}"
+                    )
+                else:
+                    categories_dict |= define_single_category(
+                        f"4b_control_region_postW{suffix}", expandCR
+                    )
+                    categories_dict |= (
+                        define_single_category(f"4b_signal_region_postW_blind{suffix}")
+                        if blind
+                        else {}
+                    )
+                    categories_dict |= define_single_category(
+                        f"4b_signal_region_postW{suffix}"
+                    )
 
             if vbf_analysis:
                 # NOTE: this region requires at least 6 jets
@@ -1526,6 +1556,7 @@ def define_preselection(options):
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
-    preselection.append(cuts.hh4b_JetVetoMap)
+    if not options["mixeddata"]:
+        preselection.append(cuts.hh4b_JetVetoMap)
 
     return preselection

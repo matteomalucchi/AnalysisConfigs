@@ -23,7 +23,7 @@ if not args.output:
         args.output = "plots_2bVS4b"
     else:
         args.output = "test_2bVS4b"
-        
+
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
@@ -71,6 +71,41 @@ if args.run2:
             ]
         ],
     }
+elif args.mixed:
+    cat_dict |= {
+        f"CR{args.region_suffix}": [
+            [
+                f"4b{args.region_suffix}_control_region",
+                f"4b{args.region_suffix}_control_region_postW",
+                f"4b{args.region_suffix}_control_region_preW",
+            ]
+        ],
+        f"SR{args.region_suffix}": [
+            [
+                f"4b{args.region_suffix}_signal_region",
+                f"4b{args.region_suffix}_signal_region_postW",
+                f"4b{args.region_suffix}_signal_region_preW",
+            ]
+        ],
+        # f"SR{args.region_suffix}_blind": [
+        #     f"4b{args.region_suffix}_signal_region_blind",
+        #     f"2b{args.region_suffix}_signal_region_postW_blind",
+        #     f"2b{args.region_suffix}_signal_region_preW_blind",
+        # ],
+        #
+        # Special case for the 2b morphed with the spread of the morphing weights
+        # Keyword: "SPREAD"
+        #
+        # f"SR{args.region_suffix}_SPREAD": [
+        #     [
+        #         f"4b{args.region_suffix}_signal_region_postW",
+        #         f"4b{args.region_suffix}_signal_region_postW_SPREAD",
+        #     ]
+        # ],
+        # f"CR{args.region_suffix}_2b_Run2SPANet": [f"2b{args.region_suffix}_control_region_preWRun2", f"2b{args.region_suffix}_control_region_preW"],
+        # f"CR{args.region_suffix}_4b_Run2SPANet": [f"4b{args.region_suffix}_control_regionRun2", f"4b{args.region_suffix}_control_region"],
+    }
+
 else:
     cat_dict |= {
         f"CR{args.region_suffix}": [
@@ -180,11 +215,11 @@ else:
     inputfiles = [
         os.path.join(input_dir, file)
         for file in os.listdir(input_dir)
-        if file.endswith(".coffea") and "DATA" in file
+        if file.endswith(".coffea") and ("DATA" in file or "Mixed" in file)
     ]
 
-filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else None
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars)
+filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
+cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed)
 
 cat_col_mc = None
 if args.input_mc:
@@ -198,7 +233,7 @@ if args.input_mc:
             if file.endswith(".coffea") and "DATA" not in file
         ]
 
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", filter_lambda, debug=False, novars=args.novars)
+    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed)
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
@@ -241,8 +276,19 @@ def plot_weights(weights_list, suffix, lumi, era_string):
     mean_std_list = []
     for i, weights in enumerate(weights_list):
         var_name = f"Morphing weights" + (f" {i}" if len(weights_list) > 1 else "")
+        # Remove corrupted weights
+        nan_events = np.isnan(weights)
+        if nan_events.any():
+            print(f"Found invalid weights in position: {np.where(nan_events)}")
+            print("These weights are removed for plotting")
+            weights = weights[~nan_events]
+        # Calculating limits of the weights:
+        print(f"minimal weight in the collection is: {np.min(weights)} at index {np.where(weights == np.min(weights))}")
+        print(f"maximal weight in the collection is: {np.max(weights)} at index {np.where(weights == np.max(weights))}")
+        log_min = np.floor(np.log10(np.min(weights[weights > 0])))  # negative weights not possible to show in logspace
+        log_max = np.ceil(np.log10(np.max(weights)))  # negative weights not possible to show in logspace
         hist_w = Hist.new.Var(
-            np.logspace(-3, 2, 100),
+            np.logspace(log_min, log_max, 100),
             name=var_name,
             flow=False,
         ).Double()
@@ -259,7 +305,7 @@ def plot_weights(weights_list, suffix, lumi, era_string):
     p = (
         HEPPlotter()
         .set_plot_config(
-            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
             figsize=[13, 13],
         )
         .set_output(output_base)
@@ -392,6 +438,12 @@ def plot_single_var_from_columns(
             col_den = col_den[col_den != PAD_VALUE]
             col_num = col_num[col_num != PAD_VALUE]
 
+            ### This is a bad workaround for the case where a few weights are Nan or very high.
+            if args.mask_large_weights:
+                bad_weights = np.isnan(weights_den) | (weights_den > 100)
+                weights_den = weights_den[~bad_weights]
+                col_den = col_den[~bad_weights]
+
             # WARNING: the weights are different for the additional jets because
             # the number of events is different since it's computed after the masking of the PAD_VALUE
             if args.normalisation == "num_events":
@@ -518,7 +570,7 @@ def plot_single_var_from_columns(
         p = (
             HEPPlotter(debug=DEBUG)
             .set_plot_config(
-                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
                 figsize=[13, 13],
             )
             .set_output(os.path.join(dir_cat, f"{var}"))
@@ -541,7 +593,7 @@ def plot_single_var_from_columns(
         p = (
             HEPPlotter(debug=DEBUG)
             .set_plot_config(
-                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
                 figsize=[13, 13],
             )
             .set_output(os.path.join(dir_cat, f"{var}"))
@@ -602,10 +654,13 @@ def main(cat_cols, lumi, era_string):
                 )
                 continue
 
-            vars_tot = list(cat_col_DATA[cat_list[0]].keys())
-            vars_tot = [v for v in vars_tot if "year" not in v]
             if "SPREAD" in cats_name:
+                vars_tot = list(cat_col_DATA[cat_list[0]].keys())
                 vars_tot = [v for v in vars_tot if "weight" in v or "score" in v]
+            else:
+                vars_tot = list(cat_col_DATA[cat_list[1]].keys())
+                vars_tot = [v for v in vars_tot if "year" not in v]
+
 
             if args.test:
                 # vars_tot = vars_tot[:3]

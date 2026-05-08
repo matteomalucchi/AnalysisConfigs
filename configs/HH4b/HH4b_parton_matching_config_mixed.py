@@ -87,7 +87,7 @@ preselection = define_preselection(config_options_dict)
 
 # Defining the used samples
 sample_ggF_list = [
-      "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
       # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
       # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
       # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
@@ -106,28 +106,23 @@ sample_mixed_list = [
     # "MixedData_2023_preBPix",
     # "MixedData_2023_postBPix"
         ]
-
-if config_options_dict["mixeddata"]:
-    sample_list = sample_mixed_list
-else:
-    sample_list = [
-        # "DATA_JetMET_JMENano_C_skimmed",
-        # "DATA_JetMET_JMENano_D_skimmed",
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        "DATA_JetMET_JMENano_G_skimmed",
-        # "GluGlutoHHto4B_spanet_skimmed",
-        # "GluGlutoHHto4B_spanet_skimmed_SM",
-        # "GluGlutoHHto4B_spanet_skimmed",
-        # "GluGlutoHHto4B",
-        # "DATA_JetMET_JMENano_2023_Cv1_skimmed",
-        # "DATA_JetMET_JMENano_2023_Cv2_skimmed",
-        # "DATA_ParkingHH_2023_Cv3",
-        # "DATA_ParkingHH_2023_Cv4",
-        # "DATA_ParkingHH_2023_Dv1",
-        # "DATA_ParkingHH_2023_Dv2",
-    ] + sample_ggF_list
-
+sample_list = [
+    # "DATA_JetMET_JMENano_C_skimmed",
+    # "DATA_JetMET_JMENano_D_skimmed",
+    # "DATA_JetMET_JMENano_E_skimmed",
+    # "DATA_JetMET_JMENano_F_skimmed",
+    # "DATA_JetMET_JMENano_G_skimmed",
+    # "GluGlutoHHto4B_spanet_skimmed",
+    # "GluGlutoHHto4B_spanet_skimmed_SM",
+    # "GluGlutoHHto4B_spanet_skimmed",
+    # "GluGlutoHHto4B",
+    # "DATA_JetMET_JMENano_2023_Cv1_skimmed",
+    # "DATA_JetMET_JMENano_2023_Cv2_skimmed",
+    # "DATA_ParkingHH_2023_Cv3",
+    # "DATA_ParkingHH_2023_Cv4",
+    # "DATA_ParkingHH_2023_Dv1",
+    # "DATA_ParkingHH_2023_Dv2",
+] + sample_ggF_list + sample_mixed_list
 
 # Define the categories to save
 categories_dict = define_categories(
@@ -191,6 +186,11 @@ if config_options_dict["dnn_variables"]:
                 "events",
                 "Arctanh_Delta_pairing_probabilities",
             ],
+            # "Delta_pairing_probabilities_best_worst": ["events", "Delta_pairing_probabilities_best_worst"],
+            # "Arctanh_Delta_pairing_probabilities_best_worst": [
+            #     "events",
+            #     "Arctanh_Delta_pairing_probabilities_best_worst",
+            # ],
             "Binned_Arctanh_Delta_pairing_probabilities": [
                 "events",
                 "Binned_Arctanh_Delta_pairing_probabilities",
@@ -340,15 +340,17 @@ cfg = Configurator(
     skim=cuts.skimming_cut_list(config_options_dict),
     preselections=preselection,
     categories=categories_dict,
-    # weights_classes=[bkg_morphing_dnn_weight],# common_weights
-    weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp] ,
-    calibrators=[JetsCalibrator] if not config_options_dict['mixeddata'] else [],
+    weights_classes=[bkg_morphing_dnn_weight],# common_weights
+    # weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp],
+    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
+    calibrators=[],# [JetsCalibrator],
+    # calibrators=[JetsCalibrator],
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
-            "inclusive": ["genWeight", "lumi", "XS", "pileup"],
+            # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
             # "inclusive": ["genWeight", "lumi", "XS"],
-            # "inclusive": [],
+                "inclusive": [],
             "bycategory": {
             },
         },

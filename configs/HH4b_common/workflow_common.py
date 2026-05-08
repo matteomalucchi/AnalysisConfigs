@@ -59,6 +59,10 @@ era_dict = {
     "2022_postEE_MC": -2,
     "2023_preBPix_MC": -3,
     "2023_postBPix_MC": -4,
+    "2022_preEE_MIX": -5,
+    "2022_postEE_MIX": -6,
+    "2023_preBPix_MIX": -7,
+    "2023_postBPix_MIX": -8,
 }
 
 year_dict = {
@@ -779,20 +783,24 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["dR_min"] = ak.min(dR, axis=1)
         self.events["dR_max"] = ak.max(dR, axis=1)
 
-        sigma_over_higgs1_reco_mass = (
-            self.get_sigma_mbb(
-                jets_from_higgs[:, 0],
-                jets_from_higgs[:, 1],
+        if not self.mixeddata:
+            sigma_over_higgs1_reco_mass = (
+                self.get_sigma_mbb(
+                    jets_from_higgs[:, 0],
+                    jets_from_higgs[:, 1],
+                )
+                / higgs1.mass
             )
-            / higgs1.mass
-        )
-        sigma_over_higgs2_reco_mass = (
-            self.get_sigma_mbb(
-                jets_from_higgs[:, 2],
-                jets_from_higgs[:, 3],
+            sigma_over_higgs2_reco_mass = (
+                self.get_sigma_mbb(
+                    jets_from_higgs[:, 2],
+                    jets_from_higgs[:, 3],
+                )
+                / higgs2.mass
             )
-            / higgs2.mass
-        )
+        else:
+            sigma_over_higgs1_reco_mass = ak.zeros_like(higgs1.mass)
+            sigma_over_higgs2_reco_mass = ak.zeros_like(higgs1.mass)
 
         # Leading-pT H candidate pT , η, φ, and mass
         # Subleading-pT H candidate pT , η, φ, and mass
@@ -1033,6 +1041,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
+        # Extract the single weight values for each event:
+        extract_single_weights = False
+        if extract_single_weights:
+            for name, weight in self.weights_manager._weightsObj.items():
+                weight_vals = weight.compute(self.events, self.nEvents_after_presel, "nominal").nominal
+                logger.debug(f"Loading weight {name}")
+                logger.debug(weight_vals)
+                self.events = ak.with_field(
+                    self.events,
+                    weight_vals,
+                    f"weight_single_{name}",
+                )
+                logger.debug(f"Saving weight component: weight_single_{name}")
+
         # Define the Delta WP
         self.events["JetGood"] = self.generate_btag_delta_workingpoints(
             self.events["JetGood"], 5
@@ -1232,11 +1254,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 sb_variables=True,  # if self.SIG_BKG_DNN else False,
             )
             # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-            add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
-            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
+            add_jet1pt_list = ak.pad_none(ak.singletons(self.events.add_jet1pt), 1, clip=True)
+            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.pad_none(ak.concatenate(
                 [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
                 axis=1,
-            )
+            ), 1)
         if self.dnn_variables and self.run2:
             (
                 self.events["HiggsLeadingRun2"],
@@ -1253,11 +1275,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 sb_variables=True,  # if self.sig_bkg_dnn else False,
             )
             # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-            add_jet1pt_list = ak.singletons(self.events.add_jet1ptRun2)
-            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
-                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
+            add_jet1pt_list = ak.pad_none(ak.singletons(self.events.add_jet1ptRun2), 1, clip=True)
+            self.events["JetGoodFromHiggsOrdered5JetsRun2"] = ak.pad_none(ak.concatenate(
+                [self.events.JetGoodFromHiggsOrderedRun2, add_jet1pt_list],
                 axis=1,
-            )
+            ), 1)
         if self.bkg_morphing_dnn and not self._isMC:
             (
                 model_session_bkg_morphing_dnn,

@@ -47,5 +47,6 @@ default_config_options_dict = {
     "qt_preEE": None,
     "only5jetsbSF": False,
     "noL1": False,
-    "approach": "first"
+    "approach": "first",
+    "mixeddata": False
 } | default_onnx_model_dict
