@@ -893,12 +893,11 @@ class HEPPlotter:
                     **self.extra_kwargs,
                 )
 
-            # Plot ratio if ratio subplot exists and this is not the reference
+            # Plot ratio if ratio subplot exists
             if (
                 ratio_plot
                 and ax_ratio is not None
                 and ref_data is not None
-                and not is_ref
             ):
                 if self.reference_to_den:
                     # ratio = test / reference
@@ -1278,32 +1277,6 @@ class HEPPlotter:
             else None
         )
 
-        # Plot ratio with error bars
-        if np.any(ratio_err > 0):
-            ax_ratio.errorbar(
-                x=x_ratio,
-                y=ratio_plot,
-                yerr=ratio_err,
-                xerr=0,
-                fmt=style.get("fmt", "o"),
-                label=legend_name,
-                color=color,
-                linestyle=style.get("linestyle", ""),
-                markersize=style.get("markersize", 6),
-                **self.extra_kwargs,
-            )
-        else:
-            ax_ratio.plot(
-                x_ratio,
-                ratio_plot,
-                style.get("fmt", "o"),
-                label=legend_name,
-                color=color,
-                linestyle=style.get("linestyle", ""),
-                markersize=style.get("markersize", 6),
-                **self.extra_kwargs,
-            )
-
         if is_reference:
             # Add horizontal line at y=1 for reference
             ax_ratio.axhline(y=1, linestyle="--", color=color, zorder=0, alpha=0.5)
@@ -1318,6 +1291,33 @@ class HEPPlotter:
                     label=f"{legend_name} uncertainty" if legend_name else None,
                     zorder=0,
                 )
+        else:
+            # Plot ratio with error bars
+            if np.any(ratio_err > 0):
+                ax_ratio.errorbar(
+                    x=x_ratio,
+                    y=ratio_plot,
+                    yerr=ratio_err,
+                    xerr=0,
+                    fmt=style.get("fmt", "o"),
+                    label=legend_name,
+                    color=color,
+                    linestyle=style.get("linestyle", ""),
+                    markersize=style.get("markersize", 6),
+                    **self.extra_kwargs,
+                )
+            else:
+                ax_ratio.plot(
+                    x_ratio,
+                    ratio_plot,
+                    style.get("fmt", "o"),
+                    label=legend_name,
+                    color=color,
+                    linestyle=style.get("linestyle", ""),
+                    markersize=style.get("markersize", 6),
+                    **self.extra_kwargs,
+                )
+
 
     def _set_legend(self, ax, pos):
         """Set the legend on the axes."""
