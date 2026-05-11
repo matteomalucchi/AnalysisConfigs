@@ -1414,6 +1414,25 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         pairing_predictions=pairing_predictions,
                         pairing_suffix="",
                     )
+                matched_jet_higgs_idx_not_none = (
+                    self.events.JetGoodFromHiggsOrdered.index
+                )
+                self.events["Rhh"] = np.sqrt(
+                    (self.events.HiggsLeading.mass - 125) ** 2
+                    + (self.events.HiggsSubLeading.mass - 120) ** 2
+                )
+                self.events["btag_order_add_jet"] = ak.any(
+                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                    )
+                if (
+                len(spanet_output["class_prob"]) > 0
+                and self.vbf_discriminator == self.spanet
+                    ):
+                    if self.vbf_analysis:
+                        self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+                    else:
+                        raise ValueError("This case was not implemented")
+
 
             # reconstruct the higgs candidates for Run2 method
             if self.run2:
@@ -1473,17 +1492,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
             self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
 
-            if self.vbf_discriminator and self.vbf_discriminator != self.spanet:
-                (
-                    model_session_vbf_discriminator,
-                    input_name_vbf_discriminator,
-                    output_name_vbf_discriminator,
-                ) = get_model_session(self.vbf_discriminator, "vbf_discriminator")
-
-                del model_session_vbf_discriminator
-                del input_name_vbf_discriminator
-                del output_name_vbf_discriminator
-
         if self.dnn_variables and self.spanet and not self.boosted:
             (
                 self.events["HiggsLeading"],
@@ -1537,6 +1545,31 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["JetGoodVBF"] = ak.concatenate([ak.singletons(self.events.LeadingVBFJet), ak.singletons(self.events.SubLeadingVBFJet)], axis=1)
             # keep only the first pair of DiJetVBF
             self.events["DiJetVBF"] = ak.pad_none(self.events.DiJetVBFCandidates, 1, clip=True)[:, 0]
+
+        if self.vbf_discriminator and self.vbf_discriminator != self.spanet:
+            (
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+            ) = get_model_session(self.vbf_discriminator, "vbf_discriminator")
+            spanet_output, _ = get_onnx_prediction(
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+                self.events,
+                self.vbf_discriminator_input_variables,
+                self.pad_value,
+                self.pad_value_spanet,
+                self.max_num_jets_vbf_discriminator,
+            )
+            if self.vbf_analysis:
+                self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+            else:
+                raise ValueError("This case was not implemented")
+
+            del model_session_vbf_discriminator
+            del input_name_vbf_discriminator
+            del output_name_vbf_discriminator
 
         if self.bkg_morphing_dnn and not self._isMC:
             (

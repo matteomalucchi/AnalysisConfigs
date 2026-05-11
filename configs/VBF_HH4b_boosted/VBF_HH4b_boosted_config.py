@@ -185,7 +185,10 @@ else:
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
-            | {"year": ["events", "year"]}
+            | {"year": ["events", "year"],
+               "vbf_jet_prov": ["JetGoodVBF", "provenance"],
+               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"]
+              }
         )
     elif config_options_dict["boosted"]:
         column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])

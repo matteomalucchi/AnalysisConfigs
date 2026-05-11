@@ -1491,6 +1491,10 @@ def define_single_category(category_name):
         cut_list.append(cuts.hh4b_2b_region)
 
     if "boosted" in category_name:
+        if "undiscriminated" not in category_name and "fail" not in category_name:
+            cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
+        elif "fail" in category_name:
+            cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
         if "signal" in category_name:
             cut_list.append(cuts.hh4b_boosted_signal_region)
         if "ttbar" in category_name:
@@ -1602,7 +1606,29 @@ def define_categories(
         suffixes.append("")
 
     for suffix in suffixes:
-        if not vr1:
+        if boosted:
+            if not vbf_discriminator:
+                categories_dict |= define_single_category("boosted_undiscriminated_vbf_region")
+            else:
+                categories_dict |= define_single_category("boosted_signal_region")
+                categories_dict |= define_single_category("boosted_ttbar_region")
+                categories_dict |= define_single_category("boosted_vbf_pass_region")
+                categories_dict |= define_single_category("boosted_vbf_fail_region")
+                if split_qcd:
+                    categories_dict |= define_single_category("boosted_qcd_A_region")
+                    categories_dict |= define_single_category("boosted_qcd_B_region")
+                    categories_dict |= define_single_category("boosted_qcd_C_region")
+                    if bkg_morphing_dnn:
+                        categories_dict |= define_single_category("boosted_qcd_A_region_postW")
+                        categories_dict |= (
+                            define_single_category("boosted_qcd_C_region_postW" + "_blind")
+                            if blind
+                            else {}
+                        )
+                        categories_dict |= define_single_category("boosted_qcd_C_region_postW")
+                else:
+                    categories_dict |= define_single_category("boosted_qcd_region")
+        elif not vr1:
             categories_dict |= define_single_category(f"4b_region{suffix}")
             categories_dict |= define_single_category(f"4b_control_region{suffix}")
             categories_dict |= define_single_category(f"2b_control_region_preW{suffix}")
@@ -1649,24 +1675,6 @@ def define_categories(
                     categories_dict |= define_single_category(
                         f"vbf_fail_discriminator_4b_region{suffix}"
                     )
-            if boosted:
-                categories_dict |= define_single_category("boosted_signal_region")
-                categories_dict |= define_single_category("boosted_ttbar_region")
-                categories_dict |= define_single_category("boosted_vbf_region")
-                if split_qcd:
-                    categories_dict |= define_single_category("boosted_qcd_A_region")
-                    categories_dict |= define_single_category("boosted_qcd_B_region")
-                    categories_dict |= define_single_category("boosted_qcd_C_region")
-                    if bkg_morphing_dnn:
-                        categories_dict |= define_single_category("boosted_qcd_A_region_postW")
-                        categories_dict |= (
-                            define_single_category("boosted_qcd_C_region_postW" + "_blind")
-                            if blind
-                            else {}
-                        )
-                        categories_dict |= define_single_category("boosted_qcd_C_region_postW")
-                else:
-                    categories_dict |= define_single_category("boosted_qcd_region")
         else:
             categories_dict |= define_single_category(f"4b_VR1_control_region{suffix}")
             categories_dict |= define_single_category(

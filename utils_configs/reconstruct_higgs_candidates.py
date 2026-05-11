@@ -122,9 +122,9 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
         1,
     )
 
-    jets_ordered = add_fields(
+    jets_ordered = ak.with_name(
         ak.concatenate([higgs1_jet1, higgs1_jet2, higgs2_jet1, higgs2_jet2], axis=1),
-        "all",
+        name="PtEtaPhiMCandidate",
     )
 
     higgs_lead = add_fields(ak.flatten(higgs_lead))
@@ -139,9 +139,9 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
             jet_collection[range_num_events, idx_collection[:, 2, 1]], 1
         )
 
-        vbf_jets = add_fields(
+        vbf_jets = ak.with_name(
             ak.concatenate([vbf_1, vbf_2], axis=1),
-            "all",
+            name="PtEtaPhiMCandidate",
         )
         # sort jets by energy
         vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
@@ -196,10 +196,7 @@ def possible_higgs_reco(jets, comb_idx):
 
 
 def get_lead_mjj_jet_pair(events, jet_coll):
-    """
-    Choose the two jets with the highest mjj
-    """
-
+    """Choose the two jets with the highest mjj."""
     jet = events[jet_coll]
 
     # Adds none jets to events that have less than 2 jets
@@ -210,8 +207,13 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     # get combinations of jet and choose the one with highest mjj
     jet_combinations = ak.combinations(jet_padded, 2)
     jet_combinations_mass = (jet_combinations["0"] + jet_combinations["1"]).mass
+    jet_combinations_mass_padded = ak.fill_none(ak.where(
+        ~ak.is_none(jet_combinations_mass, axis=1),
+        jet_combinations_mass,
+        -np.inf), -np.inf
+    )
     jet_combinations_mass_max_idx = ak.to_numpy(
-        ak.argsort(jet_combinations_mass, axis=1, ascending=False)[:, 0]
+        ak.argsort(jet_combinations_mass_padded, axis=1, ascending=False)[:, 0]
     )
     jets_max_mass = jet_combinations[
         ak.local_index(jet_combinations, axis=0), jet_combinations_mass_max_idx
@@ -232,11 +234,16 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     )
     lead_mjj_jet_pair = add_fields(lead_mjj_jet_pair, "all")
 
+    energy = ak.fill_none(ak.where(
+        ~ak.is_none(lead_mjj_jet_pair, axis=1),
+        lead_mjj_jet_pair.energy,
+        -np.inf), -np.inf
+    )
     # order the jets according to the energy
     lead_mjj_jet_pair = lead_mjj_jet_pair[
-        ak.argsort(lead_mjj_jet_pair.energy, axis=1, ascending=False)
+        ak.argsort(energy, axis=1, ascending=False)
     ]
-    
+
     return lead_mjj_jet_pair
 
 

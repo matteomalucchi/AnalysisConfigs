@@ -62,61 +62,62 @@ def define_spanet_sequential_inputs(
         events[collection].btagPNetB, max_num_jets_spanet, clip=True
     )
 
-    btag_ratio_sum_1 = btag_padded[:, 0] / (btag_padded[:, 0] + btag_padded[:, 1])
-    btag_ratio_sum_2 = btag_padded[:, 1] / (btag_padded[:, 0] + btag_padded[:, 1])
-    btag_ratio_sum_3 = btag_padded[:, 2] / (btag_padded[:, 2] + btag_padded[:, 3])
-    btag_ratio_sum_4 = btag_padded[:, 3] / (btag_padded[:, 2] + btag_padded[:, 3])
+    if max_num_jets_spanet >= 4:
+        btag_ratio_sum_1 = btag_padded[:, 0] / (btag_padded[:, 0] + btag_padded[:, 1])
+        btag_ratio_sum_2 = btag_padded[:, 1] / (btag_padded[:, 0] + btag_padded[:, 1])
+        btag_ratio_sum_3 = btag_padded[:, 2] / (btag_padded[:, 2] + btag_padded[:, 3])
+        btag_ratio_sum_4 = btag_padded[:, 3] / (btag_padded[:, 2] + btag_padded[:, 3])
 
-    btag12_ratioSubLead_list = [
-        btag_padded[:, 0],
-        btag_padded[:, 1],
-        btag_ratio_sum_3,
-        btag_ratio_sum_4,
-    ]
-    btag_ratioAll_list = [
-        btag_ratio_sum_1,
-        btag_ratio_sum_2,
-        btag_ratio_sum_3,
-        btag_ratio_sum_4,
-    ]
+        btag12_ratioSubLead_list = [
+            btag_padded[:, 0],
+            btag_padded[:, 1],
+            btag_ratio_sum_3,
+            btag_ratio_sum_4,
+        ]
+        btag_ratioAll_list = [
+            btag_ratio_sum_1,
+            btag_ratio_sum_2,
+            btag_ratio_sum_3,
+            btag_ratio_sum_4,
+        ]
 
-    if max_num_jets_spanet > 4:
-        btag_ratio_sum_5 = btag_padded[:, 4] / (btag_padded[:, 2] + btag_padded[:, 3])
+        if max_num_jets_spanet > 4:
+            btag_ratio_sum_5 = btag_padded[:, 4] / (btag_padded[:, 2] + btag_padded[:, 3])
 
-        btag12_ratioSubLead_list.append(btag_ratio_sum_5)
-        btag_ratioAll_list.append(btag_ratio_sum_5)
+            btag12_ratioSubLead_list.append(btag_ratio_sum_5)
+            btag_ratioAll_list.append(btag_ratio_sum_5)
 
-    if "btag12_ratioSubLead" in spanet_input_name_list:
-        btag12_ratioSubLead = np.array(
-            ak.to_numpy(
-                np.stack(
-                    ak.fill_none(
-                        btag12_ratioSubLead_list,
-                        value=pad_value_spanet,
+        if "btag12_ratioSubLead" in spanet_input_name_list:
+            btag12_ratioSubLead = np.array(
+                ak.to_numpy(
+                    np.stack(
+                        ak.fill_none(
+                            btag12_ratioSubLead_list,
+                            value=pad_value_spanet,
+                        ),
+                        axis=-1,
                     ),
-                    axis=-1,
+                    allow_missing=True,
                 ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["btag12_ratioSubLead"] = btag12_ratioSubLead
+                dtype=np.float32,
+            )
+            input_dict["btag12_ratioSubLead"] = btag12_ratioSubLead
 
-    if "btag_ratioAll" in spanet_input_name_list:
-        btag_ratioAll = np.array(
-            ak.to_numpy(
-                np.stack(
-                    ak.fill_none(
-                        btag_ratioAll_list,
-                        value=pad_value_spanet,
+        if "btag_ratioAll" in spanet_input_name_list:
+            btag_ratioAll = np.array(
+                ak.to_numpy(
+                    np.stack(
+                        ak.fill_none(
+                            btag_ratioAll_list,
+                            value=pad_value_spanet,
+                        ),
+                        axis=-1,
                     ),
-                    axis=-1,
+                    allow_missing=True,
                 ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["btag_ratioAll"] = btag_ratioAll
+                dtype=np.float32,
+            )
+            input_dict["btag_ratioAll"] = btag_ratioAll
 
     return input_dict
 
