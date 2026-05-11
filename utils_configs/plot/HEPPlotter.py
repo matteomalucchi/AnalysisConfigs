@@ -143,6 +143,7 @@ class HEPPlotter:
         self._ratio_graphs = {}
         self._annotations = []
         self._lines = []
+        self._curves = []
 
         self._plot_mean_std = False
         self._mean_std_style = {}
@@ -359,6 +360,13 @@ class HEPPlotter:
         self._lines.append((orientation, kwargs))
         return self
 
+    def add_curve(self, x, y, **kwargs):
+        """Overlay an arbitrary curve (x, y arrays) on the plot.
+        kwargs: passed directly to ax.plot (e.g. color, linestyle, label, linewidth)
+        """
+        self._curves.append((np.asarray(x), np.asarray(y), kwargs))
+        return self
+
     # ----------------------------
     # INTERNAL HELPERS
     # ----------------------------
@@ -405,6 +413,11 @@ class HEPPlotter:
                 ax.axhline(**kwargs)
             else:
                 ax.axvline(**kwargs)
+
+    def _apply_curves(self, ax):
+        """Overlay all stored (x, y) curves on the axes."""
+        for x, y, kwargs in self._curves:
+            ax.plot(x, y, **kwargs)
 
     def _apply_chi_square(self, ax, hist_1d, ref_hist, index, style):
         """Compute and add chi-square text to the plot."""
@@ -498,7 +511,7 @@ class HEPPlotter:
 
         fig.text(
             0.01,
-            -0.12,  # bottom-left margin of the whole figure
+            1.,  # top-left margin of the whole figure
             "HEPPlotter",
             fontsize=6,  # very small
             color="white",  # invisible on white backgrounds
@@ -880,12 +893,11 @@ class HEPPlotter:
                     **self.extra_kwargs,
                 )
 
-            # Plot ratio if ratio subplot exists and this is not the reference
+            # Plot ratio if ratio subplot exists
             if (
                 ratio_plot
                 and ax_ratio is not None
                 and ref_data is not None
-                and not is_ref
             ):
                 if self.reference_to_den:
                     # ratio = test / reference
@@ -1265,32 +1277,6 @@ class HEPPlotter:
             else None
         )
 
-        # Plot ratio with error bars
-        if np.any(ratio_err > 0):
-            ax_ratio.errorbar(
-                x=x_ratio,
-                y=ratio_plot,
-                yerr=ratio_err,
-                xerr=0,
-                fmt=style.get("fmt", "o"),
-                label=legend_name,
-                color=color,
-                linestyle=style.get("linestyle", ""),
-                markersize=style.get("markersize", 6),
-                **self.extra_kwargs,
-            )
-        else:
-            ax_ratio.plot(
-                x_ratio,
-                ratio_plot,
-                style.get("fmt", "o"),
-                label=legend_name,
-                color=color,
-                linestyle=style.get("linestyle", ""),
-                markersize=style.get("markersize", 6),
-                **self.extra_kwargs,
-            )
-
         if is_reference:
             # Add horizontal line at y=1 for reference
             ax_ratio.axhline(y=1, linestyle="--", color=color, zorder=0, alpha=0.5)
@@ -1305,6 +1291,33 @@ class HEPPlotter:
                     label=f"{legend_name} uncertainty" if legend_name else None,
                     zorder=0,
                 )
+        else:
+            # Plot ratio with error bars
+            if np.any(ratio_err > 0):
+                ax_ratio.errorbar(
+                    x=x_ratio,
+                    y=ratio_plot,
+                    yerr=ratio_err,
+                    xerr=0,
+                    fmt=style.get("fmt", "o"),
+                    label=legend_name,
+                    color=color,
+                    linestyle=style.get("linestyle", ""),
+                    markersize=style.get("markersize", 6),
+                    **self.extra_kwargs,
+                )
+            else:
+                ax_ratio.plot(
+                    x_ratio,
+                    ratio_plot,
+                    style.get("fmt", "o"),
+                    label=legend_name,
+                    color=color,
+                    linestyle=style.get("linestyle", ""),
+                    markersize=style.get("markersize", 6),
+                    **self.extra_kwargs,
+                )
+
 
     def _set_legend(self, ax, pos):
         """Set the legend on the axes."""
@@ -1472,6 +1485,7 @@ class HEPPlotter:
         # ----------------------------
         # ANNOTATIONS / LINES / WATERMARK
         # ----------------------------
+        self._apply_curves(ax)
         self._apply_annotations(ax)
         self._apply_lines(ax)
         self._draw_watermark(ax)
