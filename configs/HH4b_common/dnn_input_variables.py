@@ -1,5 +1,53 @@
 from collections import OrderedDict
 
+#### VBF discriminator variables ####
+vbf_discriminator_boosted_dnn_input_variables = OrderedDict(
+    {
+        "sequential": {
+            "vbf_jets_pt": ["JetGoodVBF", "pt", "log_norm"],
+            "vbf_jets_eta": ["JetGoodVBF", "eta", "norm"],
+            "vbf_jets_phi": ["JetGoodVBF", "phi", "norm"],
+            "vbf_jets_mass": ["JetGoodVBF", "mass", "norm"],
+            },
+        "global": {
+            "HT": ["events", "HT", "log_norm"],
+            "higgs1_reco_pt": ["HiggsLeading", "pt", "log_norm"],
+            "higgs1_reco_eta": ["HiggsLeading", "eta", "norm"],
+            "higgs1_reco_phi": ["HiggsLeading", "phi", "norm"],
+            "higgs1_reco_mass": ["HiggsLeading", "mass_regr", "log_norm"],
+            "higgs1_DeltaR_Hj": ["HiggsLeading", "dR_Hjet_min", "norm"],
+            "higgs1_btagBB_wp": ["HiggsLeading", "btagBB_3wp", "norm"],
+            "higgs1_centrality": ["HiggsLeading", "centrality", "norm"],
+            "higgs1_mass_Hj": ["HiggsLeading", "m_Hjet_min_dR", "norm"],
+            "higgs2_reco_pt": ["HiggsSubLeading", "pt", "log_norm"],
+            "higgs2_reco_eta": ["HiggsSubLeading", "eta", "norm"],
+            "higgs2_reco_phi": ["HiggsSubLeading", "phi", "norm"],
+            "higgs2_reco_mass": ["HiggsSubLeading", "mass_regr", "log_norm"],
+            "higgs2_DeltaR_Hj": ["HiggsSubLeading", "dR_Hjet_min", "norm"],
+            "higgs2_btagBB_wp": ["HiggsSubLeading", "btagBB_3wp", "norm"],
+            "higgs2_centrality": ["HiggsSubLeading", "centrality", "norm"],
+            "higgs2_mass_Hj": ["HiggsSubLeading", "m_Hjet_min_dR", "norm"],
+            "hh_vec_pt": ["HH", "pt", "log_norm"],
+            "hh_vec_eta": ["HH", "eta", "norm"],
+            # "hh_vec_phi": ["HH", "phi", "norm"],
+            "hh_vec_mass": ["HH", "mass", "log_norm"],
+            "hh_vec_DeltaR": ["HH", "dR", "norm"],
+            "hh_vec_DeltaEta": ["HH", "dEta", "norm"],
+            "hh_vec_DeltaPhi": ["HH", "dPhi", "norm"],
+            "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS", "norm"],
+            "dijet_LeadingJet_pt": ["LeadingVBFJet", "pt", "log_norm"],
+            "dijet_LeadingJet_eta": ["LeadingVBFJet", "eta", "norm"],
+            "dijet_LeadingJet_phi": ["LeadingVBFJet", "phi", "norm"],
+            "dijet_LeadingJet_mass": ["LeadingVBFJet", "mass", "log_norm"],
+            "dijet_SubLeadingJet_pt": ["SubLeadingVBFJet", "pt", "log_norm"],
+            "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta", "norm"],
+            "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi", "norm"],
+            "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass", "log_norm"],
+            "met_et": ["MET", "sumEt", "norm"],
+            },
+    }
+)
+
 #### Background Morphing Variables ####
 
 bkg_morphing_dnn_input_variables = OrderedDict(
@@ -377,23 +425,60 @@ bkg_morphing_dnn_SigBkgVariables_input_variables = OrderedDict(
 
 bkg_morphing_boosted_dnn_input_variables = OrderedDict(
     {
+        "vbf_cand_jets_pt": ["JetGoodVBFCandidates", "pt"],
+        "vbf_cand_jets_eta": ["JetGoodVBFCandidates", "eta"],
+        "vbf_cand_jets_phi": ["JetGoodVBFCandidates", "phi"],
+        "vbf_cand_jets_mass": ["JetGoodVBFCandidates", "mass"],
+        "vbf_jets_pt": ["JetGoodVBF", "pt"],
+        "vbf_jets_eta": ["JetGoodVBF", "eta"],
+        "vbf_jets_phi": ["JetGoodVBF", "phi"],
+        "vbf_jets_mass": ["JetGoodVBF", "mass"],
+        "era": ["events", "era"],
         "higgs1_reco_pt": ["HiggsLeading", "pt"],
         "higgs1_reco_eta": ["HiggsLeading", "eta"],
+        "higgs1_reco_phi": ["HiggsLeading", "phi"],
         "higgs1_reco_mass": ["HiggsLeading", "mass_regr"],
+        "higgs1_centrality": ["HiggsLeading", "centrality"],
+        "higgs1_btagBB": ["HiggsLeading", "btagBB"],
         "higgs1_btagBB_wp": ["HiggsLeading", "btagBB_3wp"],
         "higgs2_reco_pt": ["HiggsSubLeading", "pt"],
         "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
+        "higgs2_reco_phi": ["HiggsSubLeading", "phi"],
+        "higgs2_reco_mass": ["HiggsSubLeading", "mass_regr"],
+        "higgs2_btagBB": ["HiggsSubLeading", "btagBB"],
         "higgs2_btagBB_wp": ["HiggsSubLeading", "btagBB_3wp"],
-        "hh_vec_mass": ["HH", "mass"],
-        "hh_vec_pt": ["HH", "pt"],
-        "hh_vec_eta": ["HH", "eta"],
+        "higgs2_centrality": ["HiggsSubLeading", "centrality"],
+        "HT": ["events", "HT"],
         "higgs1_DeltaR_Hj": ["HiggsLeading", "dR_Hjet_min"],
         "higgs1_mass_Hj": ["HiggsLeading", "m_Hjet_min_dR"],
         "higgs2_DeltaR_Hj": ["HiggsSubLeading", "dR_Hjet_min"],
         "higgs2_mass_Hj": ["HiggsSubLeading", "m_Hjet_min_dR"],
+        "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS"],
+        "hh_vec_mass": ["HH", "mass"],
+        "hh_vec_pt": ["HH", "pt"],
+        "hh_vec_eta": ["HH", "eta"],
+        "hh_vec_phi": ["HH", "phi"],
+        "hh_vec_DeltaR": ["HH", "dR"],
+        "hh_vec_DeltaPhi": ["HH", "dPhi"],
+        "hh_vec_DeltaEta": ["HH", "dEta"],
+        "dijet_mass": ["DiJetVBF", "mass"],
+        "dijet_pt": ["DiJetVBF", "pt"],
+        "dijet_eta": ["DiJetVBF", "eta"],
+        "dijet_phi": ["DiJetVBF", "phi"],
+        "dijet_DeltaR": ["DiJetVBFCandidates:0", "dEta"],
+        "dijet_LeadingJet_pt": ["LeadingVBFJet", "pt"],
+        "dijet_LeadingJet_eta": ["LeadingVBFJet", "eta"],
+        "dijet_LeadingJet_phi": ["LeadingVBFJet", "phi"],
+        "dijet_LeadingJet_mass": ["LeadingVBFJet", "mass"],
+        "dijet_SubLeadingJet_pt": ["SubLeadingVBFJet", "pt"],
+        "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta"],
+        "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi"],
+        "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass"],
         "met_et": ["MET", "sumEt"],
     }
 )
+
+
 
 
 #### Signal VS Background Variables ####
@@ -1082,6 +1167,14 @@ sig_bkg_dnn_BkgReweightingVariables_input_variables = OrderedDict(
 
 sig_bkg_boosted_dnn_input_variables = OrderedDict(
     {
+        "vbf_cand_jets_pt": ["JetGoodVBFCandidates", "pt"],
+        "vbf_cand_jets_eta": ["JetGoodVBFCandidates", "eta"],
+        "vbf_cand_jets_phi": ["JetGoodVBFCandidates", "phi"],
+        "vbf_cand_jets_mass": ["JetGoodVBFCandidates", "mass"],
+        "vbf_jets_pt": ["JetGoodVBF", "pt"],
+        "vbf_jets_eta": ["JetGoodVBF", "eta"],
+        "vbf_jets_phi": ["JetGoodVBF", "phi"],
+        "vbf_jets_mass": ["JetGoodVBF", "mass"],
         "era": ["events", "era"],
         "higgs1_reco_pt": ["HiggsLeading", "pt"],
         "higgs1_reco_eta": ["HiggsLeading", "eta"],
@@ -1105,15 +1198,15 @@ sig_bkg_boosted_dnn_input_variables = OrderedDict(
         "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS"],
         "hh_vec_mass": ["HH", "mass"],
         "hh_vec_pt": ["HH", "pt"],
+        "hh_vec_phi": ["HH", "phi"],
         "hh_vec_eta": ["HH", "eta"],
         "hh_vec_DeltaR": ["HH", "dR"],
         "hh_vec_DeltaPhi": ["HH", "dPhi"],
         "hh_vec_DeltaEta": ["HH", "dEta"],
-        "dijet_mass": ["DiJetVBFCandidates:0", "mass"],
-        "dijet_pt": ["DiJetVBFCandidates:0", "pt"],
-        "dijet_eta": ["DiJetVBFCandidates:0", "eta"],
-        "dijet_phi": ["DiJetVBFCandidates:0", "phi"],
-        "dijet_DeltaR": ["DiJetVBFCandidates:0", "dEta"],
+        "dijet_mass": ["DiJetVBF", "mass"],
+        "dijet_pt": ["DiJetVBF", "pt"],
+        "dijet_eta": ["DiJetVBF", "eta"],
+        "dijet_phi": ["DiJetVBF", "phi"],
         "dijet_LeadingJet_pt": ["LeadingVBFJet", "pt"],
         "dijet_LeadingJet_eta": ["LeadingVBFJet", "eta"],
         "dijet_LeadingJet_phi": ["LeadingVBFJet", "phi"],

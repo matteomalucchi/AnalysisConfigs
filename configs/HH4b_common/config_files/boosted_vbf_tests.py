@@ -7,6 +7,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 onnx_model_dict  |= {
+    "vbf_discriminator": "/work/tharte/datasets/onnx_spanet_models_for_ggf_vs_vbf_boosted/spanet_1_16_3_boosted_vbf_ggf_classification_vbfjets.onnx"
     # "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/average_model_from_onnx.onnx", # --> training on postEE
     # "bkg_morphing_spread_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/all_ratios_model_onnx.onnx", # --> training on postEE
     # "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DHH_method_norm_e5drop75_postEE/state_dict/model_best_epoch_18.onnx",
@@ -17,6 +18,8 @@ config_options_dict |= {
     "dnn_variables": True,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_boosted_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_boosted_dnn_input_variables,
+    "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables,
+    "max_num_jets_vbf_discriminator": 2,
     "run2": False,
     "fifth_jet": "pt",
     "pad_value": -999.0,

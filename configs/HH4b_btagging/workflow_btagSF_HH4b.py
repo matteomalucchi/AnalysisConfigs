@@ -117,7 +117,7 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
                 input_name_spanet,
                 output_name_spanet,
                 self.events,
-                self.max_num_jets_spanet,
+                self.max_num_jets_higgs_pairing,
                 self.spanet_input_name,
                 self.pad_value_spanet,
             )

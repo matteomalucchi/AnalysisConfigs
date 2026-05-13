@@ -27,7 +27,6 @@ from configs.HH4b_common.config_files.configurator_tools import (
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
 )
 from configs.VBF_HH4b_boosted.workflow import VBFHH4bProcessor
 
@@ -151,7 +150,6 @@ if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
 column_list=[]
-column_listRun2=[]
 
 # Add SPANet training inputs
 if not config_options_dict["spanet"] and not config_options_dict["run2"] and not config_options_dict["boosted"]:
@@ -193,7 +191,10 @@ else:
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
-            | {"year": ["events", "year"]}
+            | {"year": ["events", "year"],
+               "vbf_jet_prov": ["JetGoodVBF", "provenance"],
+               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"]
+              }
         )
     elif config_options_dict["boosted"]:
         column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
@@ -203,14 +204,9 @@ else:
     column_list += create_DNN_columns_list(
         False, not config_options_dict["save_chunk"], total_input_columns, btag=False
     )
-    column_listRun2 += create_DNN_columns_list(
-        True, not config_options_dict["save_chunk"], total_input_columns, btag=False
-    )
     # Add special columns
-    if config_options_dict["sig_bkg_dnn"] and config_options_dict["spanet"]:
+    if config_options_dict["sig_bkg_dnn"]:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
-    if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
-        column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
@@ -219,30 +215,16 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-                + (
-                    get_columns_list(
-                        {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
-                    )
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
+        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+            column_list
+            + (
+                get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
+                if "DATA" in sample
+                and config_options_dict["bkg_morphing_spread_dnn"]
+                and "postW" in category
+                else []
             )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-                + (
-                    get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
-            )
+        )
 
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
@@ -251,14 +233,9 @@ for sample in sample_list:
         bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
         for category in categories_dict.keys():
             if "postW" in category:
-                if "Run2" in category:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weightRun2"
-                    ]
-                else:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weight"
-                    ]
+                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                    "bkg_morphing_dnn_weight"
+                ]
 
 cfg = Configurator(
     parameters=parameters,
@@ -291,7 +268,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2],
+    + [bkg_morphing_dnn_weight],
     weights={
         "common": {
             "inclusive": [

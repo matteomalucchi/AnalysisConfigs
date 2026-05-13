@@ -8,22 +8,11 @@ def get_DNN_input_list(run2, dnn_input_variables):
         feature = attributes[1]
         if len(attributes) > 2:
             scale = attributes[2]
-        if run2:
-            if ":" in collection:
-                coll, pos = collection.split(":")
-                column_list.append(f"{coll}Run2_{feature}_{pos}")
-            elif collection != "events":
-                column_list.append(f"{collection}Run2_{feature}")
-            elif "sigma" in feature:
-                column_list.append(f"{collection}_{feature}Run2")
-            else:
-                column_list.append(f"{collection}_{feature}")
+        if ":" in collection:
+            coll, pos = collection.split(":")
+            column_list.append(f"{coll}_{feature}_{pos}")
         else:
-            if ":" in collection:
-                coll, pos = collection.split(":")
-                column_list.append(f"{coll}_{feature}_{pos}")
-            else:
-                column_list.append(f"{collection}_{feature}")
+            column_list.append(f"{collection}_{feature}")
 
     return column_list
 

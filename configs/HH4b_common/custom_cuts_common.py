@@ -107,7 +107,6 @@ hh4b_4b_region = Cut(
 hh4b_signal_region = Cut(
     name="hh4b_signal_region",
     params={
-        "Run2": False,
         "radius_min": 0,
         "radius_max": 30,
         "higgs_lead_center": 125,
@@ -119,31 +118,6 @@ hh4b_signal_region = Cut(
 hh4b_control_region = Cut(
     name="hh4b_control_region",
     params={
-        "Run2": False,
-        "radius_min": 30,
-        "radius_max": 55,
-        "higgs_lead_center": 125,
-        "higgs_sublead_center": 120,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
-hh4b_signal_region_run2 = Cut(
-    name="hh4b_signal_region_run2",
-    params={
-        "Run2": True,
-        "radius_min": 0,
-        "radius_max": 30,
-        "higgs_lead_center": 125,
-        "higgs_sublead_center": 120,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
-hh4b_control_region_run2 = Cut(
-    name="hh4b_control_region_run2",
-    params={
-        "Run2": True,
         "radius_min": 30,
         "radius_max": 55,
         "higgs_lead_center": 125,
@@ -155,7 +129,6 @@ hh4b_control_region_run2 = Cut(
 hh4b_boosted_signal_region = Cut(
     name="hh4b_boosted_signal_region",
     params={
-        "Run2": False,
         "pnet_cut": 0.65,
         "mass_min": 100,
         "mass_max": 150,
@@ -166,7 +139,6 @@ hh4b_boosted_signal_region = Cut(
 hh4b_boosted_ttbar_control_region = Cut(
     name="hh4b_boosted_ttbar_control_region",
     params={
-        "Run2": False,
         "mass_min": 150,
         "mass_max": 200,
     },
@@ -176,7 +148,6 @@ hh4b_boosted_ttbar_control_region = Cut(
 hh4b_boosted_qcd_control_region_tot = Cut(
     name="hh4b_boosted_qcd_control_region_tot",
     params={
-        "Run2": False,
         "pnet_cut": 0.65,
         "mass_min": 100,
         "mass_max": 150,
@@ -188,7 +159,6 @@ hh4b_boosted_qcd_control_region_tot = Cut(
 hh4b_boosted_qcd_control_region_A = Cut(
     name="hh4b_boosted_qcd_control_region_A",
     params={
-        "Run2": False,
         "pnet_cut_min": 0.05,
         "pnet_cut_max": 0.65,
         "mass_min_lead": 50,
@@ -202,7 +172,6 @@ hh4b_boosted_qcd_control_region_A = Cut(
 hh4b_boosted_qcd_control_region_B = Cut(
     name="hh4b_boosted_qcd_control_region_B",
     params={
-        "Run2": False,
         "pnet_cut_min": 0.65,
         "pnet_cut_max": 1.0,
         "mass_min_lead": 50,
@@ -216,7 +185,6 @@ hh4b_boosted_qcd_control_region_B = Cut(
 hh4b_boosted_qcd_control_region_C = Cut(
     name="hh4b_boosted_qcd_control_region_C",
     params={
-        "Run2": False,
         "pnet_cut_min": 0.05,
         "pnet_cut_max": 0.65,
         "mass_min_lead": 100,
@@ -245,7 +213,6 @@ hh4b_boosted_vbf_region = Cut(
 hh4b_VR1_signal_region = Cut(
     name="hh4b_VR1_signal_region",
     params={
-        "Run2": False,
         "radius_min": 0,
         "radius_max": 30,
         "higgs_lead_center": 185,
@@ -257,31 +224,6 @@ hh4b_VR1_signal_region = Cut(
 hh4b_VR1_control_region = Cut(
     name="hh4b_VR1_control_region",
     params={
-        "Run2": False,
-        "radius_min": 30,
-        "radius_max": 55,
-        "higgs_lead_center": 185,
-        "higgs_sublead_center": 180,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
-hh4b_VR1_signal_region_run2 = Cut(
-    name="hh4b_VR1_signal_region_run2",
-    params={
-        "Run2": True,
-        "radius_min": 0,
-        "radius_max": 30,
-        "higgs_lead_center": 185,
-        "higgs_sublead_center": 180,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
-hh4b_VR1_control_region_run2 = Cut(
-    name="hh4b_VR1_control_region_run2",
-    params={
-        "Run2": True,
         "radius_min": 30,
         "radius_max": 55,
         "higgs_lead_center": 185,
@@ -295,15 +237,6 @@ blinded = Cut(
     params={
         "score": 0.9,
         "score_variable": "sig_bkg_dnn_score",
-    },
-    function=cuts_f.blinding_cuts,
-)
-
-blindedRun2 = Cut(
-    name="blindedRun2",
-    params={
-        "score": 0.9,
-        "score_variable": "sig_bkg_dnn_scoreRun2",
     },
     function=cuts_f.blinding_cuts,
 )
@@ -327,32 +260,12 @@ hh4b_vbf_best_candidates_6_jets_region = Cut(
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
 
-hh4b_vbf_best_candidates_6_jets_region_run2 = Cut(
-    name="hh4b_vbf_best_candidates_6_jets_region_run2",
-    params={
-        "min_mjj": 400,
-        "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
-    },
-    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
-)
-
 hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
     name="hh4b_vbf_best_candidates_6_jets_nokincut_region",
     params={
         "min_mjj": 0,
         "min_deta": 0,
         "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
-    },
-    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
-)
-
-hh4b_vbf_best_candidates_6_jets_nokincut_region_run2 = Cut(
-    name="hh4b_vbf_best_candidates_6_jets_nokincut_region_run2",
-    params={
-        "min_mjj": 0,
-        "min_deta": 0,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
@@ -368,17 +281,6 @@ hh4b_vbf_pass_discriminator_region = Cut(
     function=cuts_f.hh4b_vbf_discriminator_cuts,
 )
 
-hh4b_vbf_pass_discriminator_region_run2 = Cut(
-    name="hh4b_vbf_pass_discriminator_region_run2",
-    params={
-        "discriminator": "VBF_ggF_scoreRun2",
-        "pass": True,
-        "threshold": 0.8,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
-    },
-    function=cuts_f.hh4b_vbf_discriminator_cuts,
-)
-
 hh4b_vbf_fail_discriminator_region = Cut(
     name="hh4b_vbf_fail_discriminator_region",
     params={
@@ -389,18 +291,6 @@ hh4b_vbf_fail_discriminator_region = Cut(
     },
     function=cuts_f.hh4b_vbf_discriminator_cuts,
 )
-
-hh4b_vbf_fail_discriminator_region_run2 = Cut(
-    name="hh4b_vbf_fail_discriminator_region_run2",
-    params={
-        "discriminator": "VBF_ggF_scoreRun2",
-        "pass": False,
-        "threshold": 0.8,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
-    },
-    function=cuts_f.hh4b_vbf_discriminator_cuts,
-)
-
 
 def skimming_cut_list(configs):
     skimlist = [

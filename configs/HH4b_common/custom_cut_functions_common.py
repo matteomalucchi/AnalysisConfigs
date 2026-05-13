@@ -210,18 +210,11 @@ def hh4b_4b_cuts(events, params, **kwargs):
 
 def hh4b_Rhh_cuts(events, params, **kwargs):
     Rhh = None
-    if params["Run2"]:
-        if "Rhh_Run2" in events.fields:
-            Rhh = events.Rhh_Run2
-        else:
-            higgs_lead_mass = events.HiggsLeadingRun2.mass
-            higgs_sublead_mass = events.HiggsSubLeadingRun2.mass
+    if "Rhh" in events.fields:
+        Rhh = events.Rhh
     else:
-        if "Rhh" in events.fields:
-            Rhh = events.Rhh
-        else:
-            higgs_lead_mass = events.HiggsLeading.mass
-            higgs_sublead_mass = events.HiggsSubLeading.mass
+        higgs_lead_mass = events.HiggsLeading.mass
+        higgs_sublead_mass = events.HiggsSubLeading.mass
 
     if Rhh is None:
         Rhh = np.sqrt(
