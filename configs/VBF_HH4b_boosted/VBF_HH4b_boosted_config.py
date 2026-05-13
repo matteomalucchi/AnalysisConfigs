@@ -114,9 +114,9 @@ sample_list = (
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         # 2022 postEE
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        # "DATA_JetMET_JMENano_G_skimmed",
+        "DATA_JetMET_JMENano_E_skimmed",
+        "DATA_JetMET_JMENano_F_skimmed",
+        "DATA_JetMET_JMENano_G_skimmed",
         # "TTtoLNu2Q_skimmed",
         # "TTto2L2Nu_skimmed",
         # "TTto4Q_skimmed",
