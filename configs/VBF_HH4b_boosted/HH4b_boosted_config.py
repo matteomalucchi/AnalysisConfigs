@@ -37,7 +37,6 @@ from configs.HH4b_common.config_files.configurator_tools import (
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
 )
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
@@ -200,7 +199,6 @@ if all([model == "" for model in onnx_model_dict.values()]) and not (config_opti
 # Define the columns to save
 total_input_variables = {}
 column_list = []
-column_listRun2 = []
 
 assert not (config_options_dict["random_pt"] and config_options_dict["run2"])
 if config_options_dict["dnn_variables"]:
@@ -238,9 +236,6 @@ if config_options_dict["dnn_variables"]:
     column_list = create_DNN_columns_list(
         False, not config_options_dict["save_chunk"], total_input_variables, btag=False
     )
-    column_listRun2 = create_DNN_columns_list(
-        True, not config_options_dict["save_chunk"], total_input_variables, btag=False
-    )
 elif all([model == "" for model in onnx_model_dict.values()]) and not (config_options_dict["boosted"]):
     if "wp" in config_options_dict["spanet_input_name_list"][-1]:
         print("Taking btag Working Points")
@@ -251,14 +246,11 @@ elif all([model == "" for model in onnx_model_dict.values()]) and not (config_op
         column_list += get_columns_list({"events": ["random_pt_weights"]})
 else:
     column_list = get_columns_list(flatten=not config_options_dict["save_chunk"])
-    column_listRun2 = get_columns_list(flatten=not config_options_dict["save_chunk"])
 
 # Add special columns
-if config_options_dict["sig_bkg_dnn"] and config_options_dict["spanet"]:
+if config_options_dict["sig_bkg_dnn"]:
     column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
-if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
-    column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
-if config_options_dict["spanet"] and not any(
+if not any(
     ["DATA" in sample for sample in sample_list]
 ):
     column_list += get_columns_list(
@@ -266,18 +258,6 @@ if config_options_dict["spanet"] and not any(
             "events": [
                 "correct_prediction",
                 "correct_prediction_fully_matched",
-                "mask_fully_matched",
-            ]
-        }
-    )
-if config_options_dict["run2"] and not any(
-    ["DATA" in sample for sample in sample_list]
-):
-    column_listRun2 += get_columns_list(
-        {
-            "events": [
-                "correct_predictionRun2",
-                "correct_prediction_fully_matchedRun2",
                 "mask_fully_matched",
             ]
         }
@@ -294,30 +274,16 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-                + (
-                    get_columns_list(
-                        {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
-                    )
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
+        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+            column_list
+            + (
+                get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
+                if "DATA" in sample
+                and config_options_dict["bkg_morphing_spread_dnn"]
+                and "postW" in category
+                else []
             )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-                + (
-                    get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
-            )
+        )
 # print("bysample_bycategory_column_dict", bysample_bycategory_column_dict)
 
 # Define the weights to apply
@@ -327,14 +293,9 @@ for sample in sample_list:
         bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
         for category in categories_dict.keys():
             if "postW" in category:
-                if "Run2" in category:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weightRun2"
-                    ]
-                else:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weight"
-                    ]
+                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                    "bkg_morphing_dnn_weight"
+                ]
 
 # print("bysample_bycategory_weight_dict", bysample_bycategory_weight_dict)
 
@@ -377,7 +338,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp],
+    + [bkg_morphing_dnn_weight, SF_btag_fixed_multiple_wp],
     calibrators=[JetsCalibrator, JetsPtRegressionCalibrator],
     weights={
         "common": {

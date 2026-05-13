@@ -1,42 +1,41 @@
+import copy
 import logging
 
 import awkward as ak
 import numpy as np
 import vector
-import copy
 from pocket_coffea.lib.deltaR_matching import object_matching
 from pocket_coffea.workflows.base import BaseProcessorABC
 
 from utils_configs.basic_functions import add_fields
+from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.dnn_evaluation_functions import (
     get_dnn_prediction,
     get_onnx_prediction,
 )
-
 
 # from utils_configs.inference_session_onnx_slurm import get_model_session
 from utils_configs.inference_session_onnx import get_model_session
 from utils_configs.parton_matching_function import get_parton_last_copy
 from utils_configs.reconstruct_higgs_candidates import (
     get_jets_idx_not_from_idx,
-    reconstruct_resonances_from_idx,
-    reconstruct_higgs_from_provenance,
-    run2_matching_algorithm,
     get_lead_mjj_jet_pair,
+    reconstruct_higgs_from_provenance,
+    reconstruct_resonances_from_idx,
+    run2_matching_algorithm,
 )
 from utils_configs.spanet_evaluation_functions import (
-    get_best_pairings,
     clean_assignment_prob,
+    get_best_pairings,
 )
 
-from .custom_object_preselection_common import (
-    lepton_selection,
-    object_cleaning,
-)
-from utils_configs.custom_cut_functions import custom_jet_selection
 from .custom_cuts_common import (
     hh4b_boosted_presel,
     hh4b_boosted_vbf_region,
+)
+from .custom_object_preselection_common import (
+    lepton_selection,
+    object_cleaning,
 )
 
 vector.register_awkward()
@@ -88,7 +87,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 which_bquark=self.which_bquark, jet_collection="Jet"
             )
         else:
-            self.dummy_provenance_higgs()
+            self.dummy_provenance(name="provenance_higgs")
 
         # Add btag WP
         self.events["Jet"] = self.generate_btag_workingpoints(self.events["Jet"], 5)
@@ -123,7 +122,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         f"This happens {(n_events_with_jets_both_not_none / len(self.events)):.2f} % of the times",
                     )
         else:
-            self.dummy_provenance_vbf(jet_collection)
+            self.dummy_provenance(jet_collection, name="provenance_vbf")
             provenance = provenance_higgs
 
         self.events[jet_collection] = ak.with_field(
@@ -295,8 +294,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             # trigger object mask
             good_trigger_jet_mask = (
-                (fat_jets_btag_order.pt > hh4b_boosted_presel.params["pt_jet0"]) 
-                & (fat_jets_btag_order.msoftdrop > hh4b_boosted_presel.params["msd_jet"]) 
+                (fat_jets_btag_order.pt > hh4b_boosted_presel.params["pt_jet0"])
+                & (fat_jets_btag_order.msoftdrop > hh4b_boosted_presel.params["msd_jet"])
                 & (fat_jets_btag_order.btagBB > hh4b_boosted_presel.params["pnet_jet0"])
                 & (fat_jets_btag_order.mass_regr > hh4b_boosted_presel.params["mass_min"])
                 & (fat_jets_btag_order.mass_regr < hh4b_boosted_presel.params["mass_max"])
@@ -313,11 +312,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
             exclude_trigger = ak.fill_none(exclude_trigger, False)
 
             # Build pool of other jets
-            remaining_fat_jet_pool = fat_jets_btag_order[~exclude_trigger] 
+            remaining_fat_jet_pool = fat_jets_btag_order[~exclude_trigger]
 
             # require both jets have pt > 250 GeV, lower limit for the second jet and btag > 0.05
             second_good_jet_mask = (
-                (remaining_fat_jet_pool.pt > hh4b_boosted_presel.params["pt_jet1"]) 
+                (remaining_fat_jet_pool.pt > hh4b_boosted_presel.params["pt_jet1"])
                 & (remaining_fat_jet_pool.btagBB > hh4b_boosted_presel.params["pnet_jet1"])
                 & (remaining_fat_jet_pool.msoftdrop > hh4b_boosted_presel.params["msd_jet"])
                 & (remaining_fat_jet_pool.mass_regr > hh4b_boosted_presel.params["mass_min"])
@@ -358,8 +357,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             # additional cuts for the region 2.5 < |eta| < 3.0
             central_or_forward = (np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["gap_eta_min"]) | (np.abs(vbf_pool.eta) > hh4b_boosted_vbf_region.params["gap_eta_max"])
-            gap_higher_pt      = (np.abs(vbf_pool.eta) >= hh4b_boosted_vbf_region.params["gap_eta_min"]) & (np.abs(vbf_pool.eta) <= hh4b_boosted_vbf_region.params["gap_eta_max"]) & (vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_gap_pt"])
-            within_max_eta     = np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["vbf_eta"]
+            gap_higher_pt = (np.abs(vbf_pool.eta) >= hh4b_boosted_vbf_region.params["gap_eta_min"]) & (np.abs(vbf_pool.eta) <= hh4b_boosted_vbf_region.params["gap_eta_max"]) & (vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_gap_pt"])
+            within_max_eta = np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["vbf_eta"]
 
             mask_eta_vbf = ak.fill_none(
                 (central_or_forward | gap_higher_pt) & within_max_eta,
@@ -368,7 +367,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             good_vbf_jets = vbf_pool[mask_pt_vbf & mask_eta_vbf]
 
             # build dijets for veto
-            dijets = ak.combinations(good_vbf_jets, 2, fields=["j_lead","j_sublead"])
+            dijets = ak.combinations(good_vbf_jets, 2, fields=["j_lead", "j_sublead"])
             dijets = ak.fill_none(dijets, [])
             d4 = dijets.j_lead + dijets.j_sublead
             dijets = ak.with_field(dijets, d4.mass, "mass")
@@ -752,7 +751,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         # self.events[f"{jet_collection}Matched"] = matched_vbf_jets
 
-    def dummy_provenance_higgs(self, jet_collection="Jet"):
+    def dummy_provenance(self, jet_collection="Jet", name="provenance"):
         self.events[jet_collection] = ak.with_field(
             self.events[jet_collection],
             ak.mask(
@@ -762,20 +761,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             # ak.values_astype(
             #     ak.ones_like(self.events[jet_collection].pt) * -1, np.int64
             # ),
-            "provenance_higgs",
-        )
-
-    def dummy_provenance_vbf(self, jet_collection="Jet"):
-        self.events[jet_collection] = ak.with_field(
-            self.events[jet_collection],
-            ak.mask(
-                ak.ones_like(self.events[jet_collection].pt),
-                ak.zeros_like(self.events[jet_collection].pt, dtype=bool),
-            ),
-            # ak.values_astype(
-            #     ak.ones_like(self.events[jet_collection].pt) * -1, np.int64
-            # ),
-            "provenance_vbf",
+            name,
         )
 
     def count_objects(self, variation):
@@ -784,9 +770,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood, axis=1)
         self.events["nJetGood"] = ak.num(self.events.JetGood, axis=1)
         self.events["nJetGoodHiggs"] = ak.num(self.events.JetGoodHiggs, axis=1)
-        self.events["nFatJetGood"] = ak.num(self.events.FatJetGood, axis=1)
-        self.events["nFatJetGoodSelected"] = ak.num(self.events.FatJetGoodSelected, axis=1)
-        self.events["nDiJetVBFCandidates"] = ak.num(self.events.DiJetVBFCandidates, axis=1)
+        if self.boosted:
+            self.events["nFatJetGood"] = ak.num(self.events.FatJetGood, axis=1)
+            self.events["nFatJetGoodSelected"] = ak.num(self.events.FatJetGoodSelected, axis=1)
+            self.events["nDiJetVBFCandidates"] = ak.num(self.events.DiJetVBFCandidates, axis=1)
 
     def HelicityCosTheta(self, higgs, jet):
         higgs = add_fields(higgs, four_vec="Momentum4D")
@@ -1077,7 +1064,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             sigma_over_higgs1_reco_mass,
             sigma_over_higgs2_reco_mass,
         )
-    
+
     def define_boosted_dnn_variables(
         self, higgs1, higgs2, cleaned_jets, vbf_candidate, vbf_variables
     ):
@@ -1090,7 +1077,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["year"] = ak.full_like(self.events.HT, year_dict[f"{self._year}"])
 
         # Angular separation (∆R) between jets and H candidate
-        dR = higgs1[:, None].delta_r(cleaned_jets) # dr: shape [nEvents, nJets] (jagged in nJets)
+        dR = higgs1[:, None].delta_r(cleaned_jets)  # dr: shape [nEvents, nJets] (jagged in nJets)
 
         # index of the closest jet per event (None for events with no jets)
         min_idx = ak.argmin(dR, axis=1)   # shape [nEvents]
@@ -1207,9 +1194,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             higgs2,
             hh,
         )
-    
+
     def get_true_pairing_and_compare(
-        self, suffix="", pairing_predictions=None, pairing_suffix=""
+        self, suffix="", pairing_predictions=None
     ):
         # reconstruct the higgs candidates
         (
@@ -1233,20 +1220,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
             # Masking and calculating efficiency
             # Need to sort the double pairs in innermost dimension for easier evaluation
             pairing_predictions = ak.sort(ak.Array(pairing_predictions), axis=-1)
-            if pairing_suffix == "Run2":
-                # keep up to 4 jets
-                pairing_true = ak.where(
-                    pairing_true < 4,
-                    pairing_true,
-                    -1,
-                )
-            else:
-                # keep up to 5 jets
-                pairing_true = ak.where(
-                    pairing_true < self.max_num_jets_spanet,
-                    pairing_true,
-                    -1,
-                )
+            # keep up to 5 jets
+            pairing_true = ak.where(
+                pairing_true < self.max_num_jets_higgs_pairing,
+                pairing_true,
+                -1,
+            )
 
             mask_fully_matched = ak.all(ak.flatten(pairing_true, axis=2) >= 0, axis=1)
             pairing_true = ak.sort(pairing_true, axis=-1)
@@ -1265,8 +1244,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )  # shape: (N_events, 2)
             correct_prediction = (match_0 | match_1) & (match_2 | match_3)
 
-            self.events[f"correct_prediction{pairing_suffix}"] = correct_prediction
-            self.events[f"correct_prediction_fully_matched{pairing_suffix}"] = ak.mask(
+            self.events["correct_prediction"] = correct_prediction
+            self.events["correct_prediction_fully_matched"] = ak.mask(
                 correct_prediction, mask_fully_matched
             )
         else:
@@ -1289,17 +1268,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.spanet_input_name,
             self.pad_value,
             self.pad_value_spanet,
-            self.max_num_jets_spanet,
+            self.max_num_jets_higgs_pairing,
         )
         # Not needed anymore
-        del model_session_spanet
-        del input_name_spanet
-        del output_name_spanet
+        del model_session_spanet, input_name_spanet, output_name_spanet
 
         jet_coll_pairing = [
             x[0] for x in self.spanet_input_name["sequential"].values()
         ][0]
-        
+
         # if an event has less than 6 jets, than remove the vbf prob matrix
         cleaned_assignment_prob = clean_assignment_prob(
             spanet_output["assignment_prob"], self.events[jet_coll_pairing]
@@ -1342,13 +1319,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["Delta_pairing_probabilities"] = (
                     best_pairing_probability - second_best_pairing_probability
                 )
-
-                # apply logit transformation
-                # self.events["Logit_Delta_pairing_probabilities"] = np.log(
-                #     self.events["Delta_pairing_probabilities"]
-                #     / (1 - self.events["Delta_pairing_probabilities"])
-                # )
-
                 # apply arctanh transformation
                 self.events["Arctanh_Delta_pairing_probabilities"] = np.arctanh(
                     self.events["Delta_pairing_probabilities"]
@@ -1385,114 +1355,68 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 ) = reconstruct_resonances_from_idx(
                     self.events[jet_coll_pairing], pairing_predictions
                 )
-                if self.vbf_analysis:
-                    if jet_vbf is not None:
-                        self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
-                    else:
-                        # get the vbf candidates as the leading in mjj
-                        self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
-                            self.events["JetGoodFromHiggsOrdered"].index
-                        )
-                        self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
-                            self.events,
-                            "JetVBFCandidates",
-                            "JetGoodVBF_boosted",
-                            self.params,
-                            year=self._year,
-                            pt_type="pt_default",
-                            pt_cut_name=self.pt_cut_name,
-                            forward_jet_veto=True,
-                        )
-                        self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
-                            self.events, "JetGoodVBFCandidates"
-                        )
-
-                if self._isMC:
-                    # HERE add also the vbf idx
-                    matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
-                        suffix="True",
-                        pairing_predictions=pairing_predictions,
-                        pairing_suffix="",
-                    )
-                matched_jet_higgs_idx_not_none = (
-                    self.events.JetGoodFromHiggsOrdered.index
-                )
-                self.events["Rhh"] = np.sqrt(
-                    (self.events.HiggsLeading.mass - 125) ** 2
-                    + (self.events.HiggsSubLeading.mass - 120) ** 2
-                )
-                self.events["btag_order_add_jet"] = ak.any(
-                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
-                    )
-                if (
-                len(spanet_output["class_prob"]) > 0
-                and self.vbf_discriminator == self.spanet
-                    ):
-                    if self.vbf_analysis:
-                        self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
-                    else:
-                        raise ValueError("This case was not implemented")
-
-
-            # reconstruct the higgs candidates for Run2 method
             if self.run2:
                 (
                     pairing_predictions,
                     self.events["delta_dhh"],
-                    self.events["HiggsLeadingRun2"],
-                    self.events["HiggsSubLeadingRun2"],
-                    self.events["JetGoodFromHiggsOrderedRun2"],
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["JetGoodFromHiggsOrdered"],
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
-                # get the vbf candidates as the leading in mjj
-                self.events["JetVBFCandidatesRun2"] = self.get_jets_not_from_idx(
-                    self.events["JetGoodFromHiggsOrderedRun2"].index
-                )
-                self.events["JetGoodVBFCandidatesRun2"], _ = custom_jet_selection(
-                    self.events,
-                    "JetVBFCandidatesRun2",
-                    "JetVBF",
-                    self.params,
-                    year=self._year,
-                    pt_type="pt_default",
-                    pt_cut_name=self.pt_cut_name,
-                    forward_jet_veto=True,
-                )
-                self.events["JetGoodVBFEnergyOrderedRun2"] = get_lead_mjj_jet_pair(
-                    self.events, "JetGoodVBFCandidatesRun2"
-                )
-
-                matched_jet_higgs_idx_not_noneRun2 = (
-                    self.events.JetGoodFromHiggsOrderedRun2.index
-                )
-                self.events["Rhh_Run2"] = np.sqrt(
-                    (self.events.HiggsLeadingRun2.mass - 125) ** 2
-                    + (self.events.HiggsSubLeadingRun2.mass - 120) ** 2
-                )
-                if self._isMC:
-                    #HERE add also the vbf idx
-                    matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
-                        suffix="True",
-                        pairing_predictions=pairing_predictions,
-                        pairing_suffix="Run2",
+            if self.vbf_analysis:
+                if jet_vbf is not None:
+                    self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
+                else:
+                    # get the vbf candidates as the leading in mjj
+                    self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
+                        self.events["JetGoodFromHiggsOrdered"].index
+                    )
+                    self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
+                        self.events,
+                        "JetVBFCandidates",
+                        "JetGoodVBF_boosted",
+                        self.params,
+                        year=self._year,
+                        pt_type="pt_default",
+                        pt_cut_name=self.pt_cut_name,
+                        forward_jet_veto=True,
+                    )
+                    self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
+                        self.events, "JetGoodVBFCandidates"
                     )
 
-                # if the 5th jet is matched, then the add jet should be order by btag
-                # because we want to consider the leading in btag which the pairing discarded
-                # (useless for Run2 pairing because it's always 4 jets)
-                self.events["btag_order_add_jet"] = ak.any(
-                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+            if self._isMC:
+                # HERE add also the vbf idx
+                matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
+                    suffix="True",
+                    pairing_predictions=pairing_predictions,
+                )
+            matched_jet_higgs_idx_not_none = (
+                self.events.JetGoodFromHiggsOrdered.index
+            )
+            self.events["Rhh"] = np.sqrt(
+                (self.events.HiggsLeading.mass - 125) ** 2
+                + (self.events.HiggsSubLeading.mass - 120) ** 2
+            )
+            self.events["btag_order_add_jet"] = ak.any(
+                ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                )
+            if self.spanet and len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
+                if self.vbf_analysis:
+                    self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+                else:
+                    raise ValueError("This case was not implemented")
 
-                    )
-                if not (self._isMC and not self.spanet):
-                    self.dummy_provenance()
+            if not (self._isMC and not self.spanet):
+                self.dummy_provenance()
 
             self.events["nJetGoodHiggsMatched"] = ak.num(
                 self.events.JetGoodHiggsMatched, axis=1
             )
             self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
 
-        if self.dnn_variables and self.spanet and not self.boosted:
+        if self.dnn_variables and not self.boosted:
             (
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],
@@ -1507,25 +1431,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 matched_jet_higgs_idx_not_none,
                 sb_variables=True,  # if self.SIG_BKG_DNN else False,
             )
-        elif self.dnn_variables and self.run2 and not self.boosted:
-            (
-                self.events["HiggsLeadingRun2"],
-                self.events["HiggsSubLeadingRun2"],
-                self.events["HHRun2"],
-                self.events["add_jet1ptRun2"],
-                self.events["sigma_over_higgs1_reco_massRun2"],
-                self.events["sigma_over_higgs2_reco_massRun2"],
-            ) = self.define_dnn_variables(
-                self.events.HiggsLeadingRun2,
-                self.events.HiggsSubLeadingRun2,
-                self.events.JetGoodFromHiggsOrderedRun2,
-                matched_jet_higgs_idx_not_noneRun2,
-                sb_variables=True,  # if self.sig_bkg_dnn else False,
-            )
             # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-            add_jet1pt_list = ak.singletons(self.events.add_jet1ptRun2)
-            self.events["JetGoodFromHiggsOrdered5JetsRun2"] = ak.concatenate(
-                [self.events.JetGoodFromHiggsOrderedRun2, add_jet1pt_list],
+            add_jet1pt_list = ak.singletons(self.events.add_jet1pt)
+            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.concatenate(
+                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
                 axis=1,
             )
         elif self.dnn_variables and self.boosted:
@@ -1567,9 +1476,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             else:
                 raise ValueError("This case was not implemented")
 
-            del model_session_vbf_discriminator
-            del input_name_vbf_discriminator
-            del output_name_vbf_discriminator
+            del model_session_vbf_discriminator, input_name_vbf_discriminator, output_name_vbf_discriminator
 
         if self.bkg_morphing_dnn and not self._isMC:
             (
@@ -1578,7 +1485,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 output_name_bkg_morphing_dnn,
             ) = get_model_session(self.bkg_morphing_dnn, "bkg_morphing_dnn")
 
-            if self.spanet or self.boosted:
+            if self.spanet or self.boosted or self.run2:
                 self.events["bkg_morphing_dnn_weight"] = ak.flatten(
                     get_dnn_prediction(
                         model_session_bkg_morphing_dnn,
@@ -1590,23 +1497,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     )[0],
                     axis=None,
                 )
-
-            if self.run2:
-                self.events["bkg_morphing_dnn_weightRun2"] = ak.flatten(
-                    get_dnn_prediction(
-                        model_session_bkg_morphing_dnn,
-                        input_name_bkg_morphing_dnn,
-                        output_name_bkg_morphing_dnn,
-                        self.events,
-                        self.bkg_morphing_dnn_input_variables,
-                        pad_value=self.pad_value,
-                        run2=True,
-                    )[0],
-                    axis=None,
-                )
-            del model_session_bkg_morphing_dnn
-            del input_name_bkg_morphing_dnn
-            del output_name_bkg_morphing_dnn
+            del model_session_bkg_morphing_dnn, input_name_bkg_morphing_dnn, output_name_bkg_morphing_dnn
 
         if self.bkg_morphing_spread_dnn and not self._isMC:
             (
@@ -1617,7 +1508,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.bkg_morphing_spread_dnn, "bkg_morphing_spread_dnn"
             )
 
-            if self.spanet:
+            if not self.boosted:
                 self.events["bkg_morphing_spread_dnn_weights"] = np.transpose(
                     get_dnn_prediction(
                         model_session_bkg_morphing_spread_dnn,
@@ -1628,26 +1519,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         pad_value=self.pad_value,
                     )
                 )
-
-            if self.run2:
-                self.events["bkg_morphing_spread_dnn_weightsRun2"] = np.transpose(
-                    get_dnn_prediction(
-                        model_session_bkg_morphing_spread_dnn,
-                        input_name_bkg_morphing_spread_dnn,
-                        output_name_bkg_morphing_spread_dnn,
-                        self.events,
-                        self.bkg_morphing_dnn_input_variables,
-                        pad_value=self.pad_value,
-                        run2=True,
-                    )
-                )
-
-            if self.boosted:
+            else:
                 print("Warning: bkg_morphing_spread_dnn is not implemented for boosted category")
 
-            del model_session_bkg_morphing_spread_dnn
-            del input_name_bkg_morphing_spread_dnn
-            del output_name_bkg_morphing_spread_dnn
+            del model_session_bkg_morphing_spread_dnn, input_name_bkg_morphing_spread_dnn, output_name_bkg_morphing_spread_dnn
 
         if self.sig_bkg_dnn:
             (
@@ -1656,47 +1531,23 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 output_name_SIG_BKG_DNN,
             ) = get_model_session(self.sig_bkg_dnn, "sig_bkg_dnn")
 
-            if self.spanet or self.boosted:
-                onnx_output, out_type = get_onnx_prediction(
-                    model_session_SIG_BKG_DNN,
-                    input_name_SIG_BKG_DNN,
-                    output_name_SIG_BKG_DNN,
-                    self.events,
-                    self.sig_bkg_dnn_input_variables,
-                    pad_value=self.pad_value,
-                    pad_value_spanet=self.pad_value_spanet,
-                    max_num_jets_spanet=self.max_num_jets_spanet_class,
-                )
-                if out_type == "spanet":
-                    onnx_output = onnx_output["class_prob"][0][:, 1]
-                # if array is 1 dim just take it
-                if onnx_output.ndim == 1:
-                    self.events["sig_bkg_dnn_score"] = onnx_output
-                else:
-                    # if array is 2 dim take the last column
-                    self.events["sig_bkg_dnn_score"] = onnx_output[:, -1]
+            onnx_output, out_type = get_onnx_prediction(
+                model_session_SIG_BKG_DNN,
+                input_name_SIG_BKG_DNN,
+                output_name_SIG_BKG_DNN,
+                self.events,
+                self.sig_bkg_dnn_input_variables,
+                pad_value=self.pad_value,
+                pad_value_spanet=self.pad_value_spanet,
+                max_num_jets_spanet=self.max_num_jets_spanet_class,
+            )
+            if out_type == "spanet":
+                onnx_output = onnx_output["class_prob"][0][:, 1]
+            # if array is 1 dim just take it
+            if onnx_output.ndim == 1:
+                self.events["sig_bkg_dnn_score"] = onnx_output
+            else:
+                # if array is 2 dim take the last column
+                self.events["sig_bkg_dnn_score"] = onnx_output[:, -1]
 
-            if self.run2:
-                onnx_output, out_type = get_onnx_prediction(
-                    model_session_SIG_BKG_DNN,
-                    input_name_SIG_BKG_DNN,
-                    output_name_SIG_BKG_DNN,
-                    self.events,
-                    self.sig_bkg_dnn_input_variables,
-                    pad_value=self.pad_value,
-                    pad_value_spanet=self.pad_value_spanet,
-                    max_num_jets_spanet=self.max_num_jets_spanet_class,
-                    run2=True,
-                )
-                if out_type == "spanet":
-                    onnx_output = onnx_output["class_prob"][0][:, 1]
-                # if array is 1 dim just take it
-                if onnx_output.ndim == 1:
-                    self.events["sig_bkg_dnn_scoreRun2"] = onnx_output
-                else:
-                    # if array is 2 dim take the last column
-                    self.events["sig_bkg_dnn_scoreRun2"] = onnx_output[:, -1]
-
-                del model_session_SIG_BKG_DNN
-                del input_name_SIG_BKG_DNN
-                del output_name_SIG_BKG_DNN
+            del model_session_SIG_BKG_DNN, input_name_SIG_BKG_DNN, output_name_SIG_BKG_DNN

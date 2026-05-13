@@ -35,7 +35,7 @@ default_config_options_dict = {
     "vbf_discriminator_input_variables": None,
     "parton_jet_min_dR": 0.4,
     "max_num_jets_good": 5,
-    "max_num_jets_spanet": 5,
+    "max_num_jets_higgs_pairing": 5,
     "max_num_jets_vbf_discriminator": None,
     "max_num_jets_spanet_class": 4,
     "which_bquark": "last",

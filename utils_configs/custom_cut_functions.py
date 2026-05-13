@@ -15,7 +15,7 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
         processor_params: processor configuration parameters
     """
 
-    jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
+    jet_type_default = "Jet" if "FatJet" not in params["jet_type"] else "FatJet"
 
     # create a copy of events to avoid modifying the original one
     # replace the jet_type_default collection with the jet_type one with the desired pt_type
