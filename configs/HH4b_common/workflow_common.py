@@ -7,7 +7,7 @@ import vector
 from pocket_coffea.lib.deltaR_matching import object_matching
 from pocket_coffea.workflows.base import BaseProcessorABC
 
-from utils_configs.basic_functions import add_fields
+from utils_configs.basic_functions import add_fields, compute_fw_momenta
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.dnn_evaluation_functions import (
     get_dnn_prediction,
@@ -329,6 +329,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["FatJetGoodSelected"] = ak.concatenate([trigger_list, sublead_list], axis=1)
             self.events["nFatJetGoodSelected"] = ak.num(self.events["FatJetGoodSelected"], axis=1)
 
+        if self.boosted or self.vbf_analysis:
             # here I select the jets to be used for VBF in boosted category
             # first we remove the jets overlapping with the FatJets
             self.events["JetGoodVBF_boosted"], _ = custom_jet_selection(
@@ -342,11 +343,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 forward_jet_veto=True,
             )
 
-            self.events["JetGoodVBFCandidates"] = object_cleaning(
-                self.events["JetGoodVBF_boosted"],
-                self.events["FatJetGoodSelected"],
-                dr_min=0.8
-            )
+            if self.boosted:
+                self.events["JetGoodVBFCandidates"] = object_cleaning(
+                    self.events["JetGoodVBF_boosted"],
+                    self.events["FatJetGoodSelected"],
+                    dr_min=0.8
+                )
+            else:
+                self.events["JetGoodVBFCandidates"] = self.events["JetGoodVBF_boosted"]
+
             self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
                 self.events, "JetGoodVBFCandidates"
             )
@@ -1302,6 +1307,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["JetGood"] = self.generate_btag_delta_workingpoints(
                 self.events["JetGood"], 5
             )
+
+            if self.max_order_FW > 0:
+                for norm in self.FW_momenta_norms:
+                    H_out, R_out = compute_fw_momenta(self, jet_collection="JetGood", l_max=self.max_order_FW, scheme=norm)
+
+                    for i in range(self.max_order_FW):
+                        self.events[f"FW_H{i}_{norm}"] = ak.Array(H_out[:, i])
+                        self.events[f"FW_R{i}_{norm}"] = ak.Array(R_out[:, i])
+
 
             if self._isMC and not self.spanet:
                 matched_jet_higgs_idx_not_none = self.get_true_pairing_and_compare()

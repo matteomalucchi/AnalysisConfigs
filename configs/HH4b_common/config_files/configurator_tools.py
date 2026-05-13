@@ -1179,6 +1179,25 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
 }
 
 
+def with_fw_momenta_columns(columns_dict, max_order_FW, fw_momenta_norms):
+    """
+    Return a copy of columns_dict with Fox-Wolfram moment columns appended to 'events'.
+
+    Column names mirror what workflow_common.py writes:
+        FW_H{i}_{norm}  and  FW_R{i}_{norm}  for i in range(max_order_FW).
+    If max_order_FW <= 0 the dict is returned unchanged.
+    """
+    if max_order_FW <= 0:
+        return columns_dict
+
+    fw_cols = [
+        f"FW_{kind}{i}_{norm}"
+        for norm in fw_momenta_norms
+        for i in range(max_order_FW)
+        for kind in ("H", "R")
+    ]
+    return {**columns_dict, "events": list(columns_dict["events"]) + fw_cols}
+
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2 = copy.deepcopy(
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP
 )
