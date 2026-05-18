@@ -28,15 +28,6 @@ hh4b_boosted_presel = Cut(
     name="hh4b_boosted_presel",
     params={
         "nfatjet": 2,
-        "pt_jet0": 300,
-        "pt_jet1": 250,
-        "msd_jet": 50,
-        "pnet_jet0": 0.65,
-        "pnet_jet1": 0.05,
-        "mass_min": 50,
-        "mass_max": 200,
-        "tight_cuts": False,
-        "pt_type": "pt",
     },
     function=cuts_f.hh4b_boosted_presel_cuts,
 )
@@ -195,20 +186,20 @@ hh4b_boosted_qcd_control_region_C = Cut(
     function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
 )
 
-hh4b_boosted_vbf_region = Cut(
-    name="hh4b_boosted_vbf_region",
-    params={
-        "vbf_pt": 25,
-        "vbf_gap_pt": 50,
-        "vbf_eta": 4.7,
-        "gap_eta_min": 2.5,
-        "gap_eta_max": 3.0,
-        "vbf_mjj": 400,
-        "vbf_delta_eta": 3.5,
-        "tight_cuts": False,
-    },
-    function=cuts_f.hh4b_boosted_vbf_cuts,
-)
+# hh4b_boosted_vbf_region = Cut(
+#     name="hh4b_boosted_vbf_region",
+#     params={
+#         "vbf_pt": 25,
+#         "vbf_gap_pt": 50,
+#         "vbf_eta": 4.7,
+#         "gap_eta_min": 2.5,
+#         "gap_eta_max": 3.0,
+#         "vbf_mjj": 400,
+#         "vbf_delta_eta": 3.5,
+#         "tight_cuts": False,
+#     },
+#     function=cuts_f.hh4b_boosted_vbf_cuts,
+# )
 
 hh4b_VR1_signal_region = Cut(
     name="hh4b_VR1_signal_region",
@@ -275,8 +266,7 @@ hh4b_vbf_pass_discriminator_region = Cut(
     params={
         "discriminator": "VBF_ggF_score",
         "pass": True,
-        "threshold": 0.8,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "threshold": 0.95,
     },
     function=cuts_f.hh4b_vbf_discriminator_cuts,
 )
@@ -286,10 +276,17 @@ hh4b_vbf_fail_discriminator_region = Cut(
     params={
         "discriminator": "VBF_ggF_score",
         "pass": False,
-        "threshold": 0.8,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "threshold": 0.95,
     },
     function=cuts_f.hh4b_vbf_discriminator_cuts,
+)
+
+hh4b_vbf_2_jets = Cut(
+    name="hh4b_vbf_2_jets",
+    params={
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+    },
+    function=cuts_f.hh4b_vbf_2_jets,
 )
 
 def skimming_cut_list(configs):

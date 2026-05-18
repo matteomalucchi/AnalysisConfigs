@@ -29,14 +29,7 @@ from utils_configs.spanet_evaluation_functions import (
     get_best_pairings,
 )
 
-from .custom_cuts_common import (
-    hh4b_boosted_presel,
-    hh4b_boosted_vbf_region,
-)
-from .custom_object_preselection_common import (
-    lepton_selection,
-    object_cleaning,
-)
+from .custom_object_preselection_common import lepton_selection
 
 vector.register_awkward()
 
@@ -237,156 +230,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["JetGood"] = ak.concatenate(
                 (self.events["JetGoodHiggs"], jets5plus_pt), axis=1
             )
-
-        if self.boosted:
-            # Select FatJets for the boosted category
-            self.events["FatJetGood"] = self.events.FatJet
-            self.events["FatJetGood"], _ = custom_jet_selection(
-                self.events,
-                jet_type="FatJet",
-                jet_type_obj_presel="FatJet",
-                params=self.params,
-                year=self._year,
-                jet_tagger="PNet",
-                pt_type="pt",
-                pt_cut_name="pt",
-            )
-
-            self.events["FatJetGood"] = ak.with_field(
-                self.events["FatJetGood"],
-                self.events["FatJetGood"].mass * self.events["FatJetGood"].particleNet_massCorr,
-                "mass_regr"
-            )
-
-            self.events["FatJetGood"] = ak.with_field(
-                self.events["FatJetGood"],
-                self.events["FatJetGood"].pt * self.events["FatJetGood"].particleNet_massCorr,
-                "pt_regr"
-            )
-
-            # here we propagate the btagging scores to the FatJetGood collection as is done in the pocket coffea jet_selection
-            # if we're interested in other taggers, we need to add them here or swap to the mass correlated ones ("particleNetWithMass_HbbvsQCD", "particleNetWithMass_HccvsQCD")
-            self.events["FatJetGood"] = ak.with_field(
-                self.events["FatJetGood"],
-                self.events["FatJet"][_]["particleNet_XbbVsQCD"],
-                "btagBB",
-            )
-            self.events["FatJetGood"] = ak.with_field(
-                self.events["FatJetGood"],
-                self.events["FatJet"][_]["particleNet_XccVsQCD"],
-                "btagCC",
-            )
-
-            # Add btag WP
-            self.events["FatJetGood"] = self.generate_btag_workingpoints(
-                self.events["FatJetGood"], 3
-            )
-
-            # Selecting Higgs candidate jets
-            fat_jets = self.events.FatJetGood
-
-            # jet ordered in btagging score
-            fat_jets_btag_order = fat_jets[
-                ak.argsort(fat_jets["btagBB"], axis=1, ascending=False)
-            ]
-            # Build per-jet indices
-            jet_idx = ak.local_index(fat_jets_btag_order, axis=1)
-
-            # trigger object mask
-            good_trigger_jet_mask = (
-                (fat_jets_btag_order.pt > hh4b_boosted_presel.params["pt_jet0"])
-                & (fat_jets_btag_order.msoftdrop > hh4b_boosted_presel.params["msd_jet"])
-                & (fat_jets_btag_order.btagBB > hh4b_boosted_presel.params["pnet_jet0"])
-                & (fat_jets_btag_order.mass_regr > hh4b_boosted_presel.params["mass_min"])
-                & (fat_jets_btag_order.mass_regr < hh4b_boosted_presel.params["mass_max"])
-            )
-            good_trigger_jet_mask = ak.fill_none(good_trigger_jet_mask, False)
-
-            # keep as list, take at most one
-            trigger_list = fat_jets_btag_order[good_trigger_jet_mask][:, :1]
-            idx_tr_list = jet_idx[good_trigger_jet_mask][:, :1]
-            idx_selected = ak.firsts(idx_tr_list)  # scalar index or None (used only for exclusion)
-
-            # Here I build an exclusion mask for the trigger jet checking by index w.r.t. the looser collection
-            exclude_trigger = (jet_idx == idx_selected[:, None])
-            exclude_trigger = ak.fill_none(exclude_trigger, False)
-
-            # Build pool of other jets
-            remaining_fat_jet_pool = fat_jets_btag_order[~exclude_trigger]
-
-            # require both jets have pt > 250 GeV, lower limit for the second jet and btag > 0.05
-            second_good_jet_mask = (
-                (remaining_fat_jet_pool.pt > hh4b_boosted_presel.params["pt_jet1"])
-                & (remaining_fat_jet_pool.btagBB > hh4b_boosted_presel.params["pnet_jet1"])
-                & (remaining_fat_jet_pool.msoftdrop > hh4b_boosted_presel.params["msd_jet"])
-                & (remaining_fat_jet_pool.mass_regr > hh4b_boosted_presel.params["mass_min"])
-                & (remaining_fat_jet_pool.mass_regr < hh4b_boosted_presel.params["mass_max"])
-            )
-            second_good_jet_mask = ak.fill_none(second_good_jet_mask, False)
-
-            sublead_list = remaining_fat_jet_pool[second_good_jet_mask][:, :1]
-
-            self.events["FatJetGoodSelected"] = ak.concatenate([trigger_list, sublead_list], axis=1)
-            self.events["nFatJetGoodSelected"] = ak.num(self.events["FatJetGoodSelected"], axis=1)
-
-        if self.boosted or self.vbf_analysis:
-            # here I select the jets to be used for VBF in boosted category
-            # first we remove the jets overlapping with the FatJets
-            self.events["JetGoodVBF_boosted"], _ = custom_jet_selection(
-                self.events,
-                "Jet",
-                "JetVBF",
-                self.params,
-                year=self._year,
-                pt_type="pt_default",
-                pt_cut_name=self.pt_cut_name,
-                forward_jet_veto=True,
-            )
-
-            if self.boosted:
-                self.events["JetGoodVBFCandidates"] = object_cleaning(
-                    self.events["JetGoodVBF_boosted"],
-                    self.events["FatJetGoodSelected"],
-                    dr_min=0.8
-                )
-            else:
-                self.events["JetGoodVBFCandidates"] = self.events["JetGoodVBF_boosted"]
-
-            self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
-                self.events, "JetGoodVBFCandidates"
-            )
-            vbf_pool = self.events["JetGoodVBFCandidates"]
-
-            # looser VBF cuts
-            mask_pt_vbf = ak.fill_none(vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_pt"], False)
-
-            # additional cuts for the region 2.5 < |eta| < 3.0
-            central_or_forward = (np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["gap_eta_min"]) | (np.abs(vbf_pool.eta) > hh4b_boosted_vbf_region.params["gap_eta_max"])
-            gap_higher_pt = (np.abs(vbf_pool.eta) >= hh4b_boosted_vbf_region.params["gap_eta_min"]) & (np.abs(vbf_pool.eta) <= hh4b_boosted_vbf_region.params["gap_eta_max"]) & (vbf_pool.pt > hh4b_boosted_vbf_region.params["vbf_gap_pt"])
-            within_max_eta = np.abs(vbf_pool.eta) < hh4b_boosted_vbf_region.params["vbf_eta"]
-
-            mask_eta_vbf = ak.fill_none(
-                (central_or_forward | gap_higher_pt) & within_max_eta,
-                False,
-            )
-            good_vbf_jets = vbf_pool[mask_pt_vbf & mask_eta_vbf]
-
-            # build dijets for veto
-            dijets = ak.combinations(good_vbf_jets, 2, fields=["j_lead", "j_sublead"])
-            dijets = ak.fill_none(dijets, [])
-            d4 = dijets.j_lead + dijets.j_sublead
-            dijets = ak.with_field(dijets, d4.mass, "mass")
-            dijets = ak.with_field(dijets, d4.pt, "pt")
-            dijets = ak.with_field(dijets, d4.eta, "eta")
-            dijets = ak.with_field(dijets, d4.phi, "phi")
-            dijets = ak.with_field(dijets, np.abs(dijets.j_lead.eta - dijets.j_sublead.eta), "dEta")
-
-            # Apply VBF veto conditions to select good dijets and create a mask
-            good_pairs_mask = ak.fill_none(
-                (dijets.mass > hh4b_boosted_vbf_region.params["vbf_mjj"]) & (dijets.dEta > hh4b_boosted_vbf_region.params["vbf_delta_eta"]),
-                False,
-            )
-            self.events["DiJetVBFCandidates"] = dijets[good_pairs_mask]
 
         # Define the Matched collections
         self.events["JetGoodMatched"] = ak.mask(
@@ -1389,7 +1232,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
                         self.events,
                         "JetVBFCandidates",
-                        "JetGoodVBF_boosted",
+                        "JetVBF",
                         self.params,
                         year=self._year,
                         pt_type="pt_default",
