@@ -34,42 +34,17 @@ def extract_inputs_global(input_name, output_name, events, variables, pad_value_
             variables_dict[data_name] = []
 
         if collection == "events":
-            try:
-                ak_array = getattr(events, f"{feature}Run2" if run2 else feature)
-            except AttributeError:
-                ak_array = getattr(events, feature)
+            ak_array = getattr(events, feature)
         elif ":" in collection:
-            try:
-                ak_array = getattr(
-                    getattr(
-                        events,
-                        (
-                            f"{collection.split(':')[0]}Run2"
-                            if run2
-                            else collection.split(":")[0]
-                        ),
-                    ),
-                    feature,
-                )
-            except AttributeError:
-                ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
+            ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
             pos = int(collection.split(":")[1])
             ak_array = ak.fill_none(
                 ak.pad_none(ak_array, pos + 1, clip=True), pad_value_spanet
             )
         else:
-            try:
-                ak_array = ak.fill_none(
-                    getattr(
-                        getattr(events, f"{collection}Run2" if run2 else collection),
-                        feature,
-                    ),
-                    pad_value_spanet,
-                )
-            except AttributeError:
-                ak_array = ak.fill_none(
-                    getattr(getattr(events, collection), feature), pad_value_spanet
-                )
+            ak_array = ak.fill_none(
+                getattr(getattr(events, collection), feature), pad_value_spanet
+            )
         if scale and "log" in scale:
             # apply the log to the padded value
             arr = np.array(
@@ -115,42 +90,17 @@ def extract_inputs(input_name, output_name, events, variables, pad_value, run2):
             scale = None
 
         if collection == "events":
-            try:
-                ak_array = getattr(events, f"{feature}Run2" if run2 else feature)
-            except AttributeError:
-                ak_array = getattr(events, feature)
+            ak_array = getattr(events, feature)
         elif ":" in collection:
-            try:
-                ak_array = getattr(
-                    getattr(
-                        events,
-                        (
-                            f"{collection.split(':')[0]}Run2"
-                            if run2
-                            else collection.split(":")[0]
-                        ),
-                    ),
-                    feature,
-                )
-            except AttributeError:
-                ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
+            ak_array = getattr(getattr(events, collection.split(":")[0]), feature)
             pos = int(collection.split(":")[1])
             ak_array = ak.fill_none(
                 ak.pad_none(ak_array, pos + 1, clip=True), pad_value
             )[:, pos]
         else:
-            try:
-                ak_array = ak.fill_none(
-                    getattr(
-                        getattr(events, f"{collection}Run2" if run2 else collection),
-                        feature,
-                    ),
-                    pad_value,
-                )
-            except AttributeError:
-                ak_array = ak.fill_none(
-                    getattr(getattr(events, collection), feature), pad_value
-                )
+            ak_array = ak.fill_none(
+                getattr(getattr(events, collection), feature), pad_value
+            )
         if scale and "log" in scale:
             # apply the log to the padded value
             variables_array.append(

@@ -88,6 +88,12 @@ parser.add_argument(
     help="If true, old save format without saved variations is expected",
     default=False,
 )
+parser.add_argument(
+    "--boosted",
+    action="store_true",
+    help="If true, boosted regions format is expected",
+    default=False,
+)
 
 args = parser.parse_args()
 

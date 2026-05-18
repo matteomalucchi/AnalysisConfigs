@@ -15,7 +15,7 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
         processor_params: processor configuration parameters
     """
 
-    jet_type_default = "Jet"
+    jet_type_default = "Jet" if "FatJet" not in params["jet_type"] else "FatJet"
 
     # create a copy of events to avoid modifying the original one
     # replace the jet_type_default collection with the jet_type one with the desired pt_type
@@ -70,7 +70,7 @@ def custom_jet_selection(
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
     """
-    jet_type_default = "Jet"
+    jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
 
     # create a copy of params to avoid modifying the original one
     # and put in the collection the AK4PFPuppi to compute the jetId

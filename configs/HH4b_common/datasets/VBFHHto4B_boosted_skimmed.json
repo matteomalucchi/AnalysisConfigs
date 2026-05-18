@@ -1,0 +1,112 @@
+{
+    "VBFHHto4B_CV_1_C2V_1_C3_1_2022_postEE": {
+        "metadata": {
+            "das_names": "['/VBFHHto4B_CV_1_C2V_1_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM']",
+            "sample": "VBF_HHto4B",
+            "year": "2022_postEE",
+            "isMC": "True",
+            "xsec": "0.000641",
+            "part": "CV_1_C2V_1_C3_1",
+            "nevents": "111366",
+            "size": "233154123",
+            "skim_efficiency": "0.032179943693911715",
+            "skim_rescale_genweights": "31.075256",
+            "isSkim": "True"
+        },
+        "files": [
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_CV_1_C2V_1_C3_1_2022_postEE/VBFHHto4B_CV_1_C2V_1_C3_1_2022_postEE_1.root"
+        ]
+    },
+    "VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE": {
+        "metadata": {
+            "das_names": "['/VBFHHto4B_CV_1_C2V_0_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v1/NANOAODSIM']",
+            "sample": "VBF_HHto4B_BSM",
+            "year": "2022_postEE",
+            "isMC": "True",
+            "xsec": "0.0304177",
+            "part": "CV_1_C2V_0_C3_1",
+            "nevents": "1006606",
+            "size": "2468791011",
+            "skim_efficiency": "0.31555838390931434",
+            "skim_rescale_genweights": "3.1689856",
+            "isSkim": "True"
+        },
+        "files": [
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE/VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE_1.root",
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE/VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE_2.root",
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE/VBFHHto4B_BSM_CV_1_C2V_0_C3_1_2022_postEE_3.root"
+        ]
+    },
+    "VBFHHto4B_BSM_CV-1p74_C2V-1p37_C3-14p4_2022_postEE": {
+        "metadata": {
+            "das_names": "['/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+            "sample": "VBF_HHto4B_BSM",
+            "year": "2022_postEE",
+            "isMC": "True",
+            "xsec": "0.410515",
+            "part": "CV-1p74_C2V-1p37_C3-14p4",
+            "nevents": "36761",
+            "size": "83862850",
+            "skim_efficiency": "0.048111202433240324",
+            "skim_rescale_genweights": "20.78518",
+            "isSkim": "True"
+        },
+        "files": [
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV-1p74_C2V-1p37_C3-14p4_2022_postEE/VBFHHto4B_BSM_CV-1p74_C2V-1p37_C3-14p4_2022_postEE_1.root"
+        ]
+    },
+    "VBFHHto4B_BSM_CV-m0p012_C2V-0p030_C3-10p2_2022_postEE": {
+        "metadata": {
+            "das_names": "['/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+            "sample": "VBF_HHto4B_BSM",
+            "year": "2022_postEE",
+            "isMC": "True",
+            "xsec": "1.31e-05",
+            "part": "CV-m0p012_C2V-0p030_C3-10p2",
+            "nevents": "317483",
+            "size": "813277960",
+            "skim_efficiency": "0.40843912580341385",
+            "skim_rescale_genweights": "2.4483452",
+            "isSkim": "True"
+        },
+        "files": [
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV-m0p012_C2V-0p030_C3-10p2_2022_postEE/VBFHHto4B_BSM_CV-m0p012_C2V-0p030_C3-10p2_2022_postEE_1.root"
+        ]
+    },
+    "VBFHHto4B_BSM_CV-m0p758_C2V-1p44_C3-m19p3_2022_postEE": {
+        "metadata": {
+            "das_names": "['/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+            "sample": "VBF_HHto4B_BSM",
+            "year": "2022_postEE",
+            "isMC": "True",
+            "xsec": "0.3678762",
+            "part": "CV-m0p758_C2V-1p44_C3-m19p3",
+            "nevents": "60027",
+            "size": "140554426",
+            "skim_efficiency": "0.0773821033823973",
+            "skim_rescale_genweights": "12.922885",
+            "isSkim": "True"
+        },
+        "files": [
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV-m0p758_C2V-1p44_C3-m19p3_2022_postEE/VBFHHto4B_BSM_CV-m0p758_C2V-1p44_C3-m19p3_2022_postEE_1.root"
+        ]
+    },
+    "VBFHHto4B_BSM_CV-m1p21_C2V-1p94_C3-m0p94_2022_postEE": {
+        "metadata": {
+            "das_names": "['/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+            "sample": "VBF_HHto4B_BSM",
+            "year": "2022_postEE",
+            "isMC": "True",
+            "xsec": "0.0038945",
+            "part": "CV-m1p21_C2V-1p94_C3-m0p94",
+            "nevents": "305347",
+            "size": "785312056",
+            "skim_efficiency": "0.3938563735448712",
+            "skim_rescale_genweights": "2.5389967",
+            "isSkim": "True"
+        },
+        "files": [
+            "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed/hadded/VBFHHto4B_BSM_CV-m1p21_C2V-1p94_C3-m0p94_2022_postEE/VBFHHto4B_BSM_CV-m1p21_C2V-1p94_C3-m0p94_2022_postEE_1.root"
+        ]
+    }
+}

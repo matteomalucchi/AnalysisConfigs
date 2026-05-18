@@ -20,5 +20,6 @@ config_options_dict |= {
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
+    "max_num_jets_higgs_pairing": 4,
     "qt_postEE": "/work/mmalucch/out_hh4b/bkg_morphing_studies/out_MC_DATA_DHH_newUpdates_JECRegression_newLeptonVeto_NoL1Cut_UpdateJetVetoMap_BkgMorphing/quantile_transformer/SRRun2_qt/qt_events_sig_bkg_dnn_score_DHH_kl_1.00.pkl",
 }| onnx_model_dict

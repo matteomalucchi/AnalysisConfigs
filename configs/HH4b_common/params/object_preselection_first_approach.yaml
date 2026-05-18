@@ -6,6 +6,22 @@ object_preselection:
     eta: 2.5
     jetId: 6 # 6 with lepveto or 2 w/o lepveto
     #TODO: trigger matching?
+  FatJetLeading:
+    pt: 300
+    eta: 2.4
+    jetId: 2 # 6 with lepveto or 2 w/o lepveto
+    btagPNetBB: -2
+    msd: 50
+    mass_regr_min: 50
+    mass_regr_max: 200
+  FatJetSubLeading:
+    pt: 250
+    eta: 2.4
+    jetId: 2 # 6 with lepveto or 2 w/o lepveto
+    btagPNetBB: -2
+    msd: 50
+    mass_regr_min: 50
+    mass_regr_max: 200
   
   ## Lepton selection
   Electron:
@@ -30,6 +46,16 @@ object_preselection:
   ## VBF jet selection
   JetVBF:
     pt: 25
-    pt_tight: 35
+    gap_pt: 50
+    eta: 4.7
+    gap_eta_min: 2.5
+    gap_eta_max: 3.0
+    jetId: 6 # 6 with lepveto or 2 w/o lepveto
+    btagPNetB: -2 # 0.2605
+    delta_eta: 3.5
+    mjj: 400
+  JetVBF_generalSelection:
+    pt: 10
+    ptSemiTight: 25
     eta: 4.7
     jetId: 6 # 6 with lepveto or 2 w/o lepveto

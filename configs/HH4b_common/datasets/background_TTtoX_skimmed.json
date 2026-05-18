@@ -1,0 +1,105 @@
+{
+  "TTto2L2Nu_2022_postEE": {
+    "metadata": {
+      "das_names": "['/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+      "sample": "TTto2L2Nu_skimmed",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "98.8",
+      "part": "",
+      "nevents": "2065147",
+      "size": "4638543749",
+      "skim_efficiency": "0.024350465152159825",
+      "skim_rescale_genweights": "41.738487",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto2L2Nu_2022_postEE/TTto2L2Nu_2022_postEE_1.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto2L2Nu_2022_postEE/TTto2L2Nu_2022_postEE_2.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto2L2Nu_2022_postEE/TTto2L2Nu_2022_postEE_3.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto2L2Nu_2022_postEE/TTto2L2Nu_2022_postEE_4.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto2L2Nu_2022_postEE/TTto2L2Nu_2022_postEE_5.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto2L2Nu_2022_postEE/TTto2L2Nu_2022_postEE_6.root"
+    ]
+  },
+  "TTtoLNu2Q_2022_postEE": {
+    "metadata": {
+      "das_names": "['/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+      "sample": "TTtoLNu2Q_skimmed",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "405.1",
+      "part": "",
+      "nevents": "9539277",
+      "size": "21796878078",
+      "skim_efficiency": "0.03572656945906324",
+      "skim_rescale_genweights": "28.472075",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_1.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_2.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_3.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_4.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_5.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_6.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_7.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_8.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_9.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_10.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_11.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_12.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_13.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_14.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_15.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_16.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_17.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_18.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_19.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_20.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_21.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_22.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_23.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_24.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTtoLNu2Q_2022_postEE/TTtoLNu2Q_2022_postEE_25.root"
+    ]
+  },
+  "TTto4Q_2022_postEE": {
+    "metadata": {
+      "das_names": "['/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+      "sample": "TTto4Q_skimmed",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "419.7",
+      "part": "",
+      "nevents": "7898792",
+      "size": "17986830524",
+      "skim_efficiency": "0.04411027667454662",
+      "skim_rescale_genweights": "23.041052",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_1.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_2.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_3.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_4.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_5.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_6.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_7.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_8.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_9.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_10.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_11.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_12.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_13.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_14.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_15.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_16.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_17.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_18.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_19.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_20.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed/hadded/TTto4Q_2022_postEE/TTto4Q_2022_postEE_21.root"
+    ]
+  }
+}

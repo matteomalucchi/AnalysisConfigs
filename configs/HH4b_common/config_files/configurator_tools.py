@@ -17,10 +17,6 @@ variables_dict_jets = {
     **jet_hists(coll="JetGoodFromHiggsOrdered", pos=1),
     **jet_hists(coll="JetGoodFromHiggsOrdered", pos=2),
     **jet_hists(coll="JetGoodFromHiggsOrdered", pos=3),
-    **jet_hists(coll="JetGoodFromHiggsOrderedRun2", pos=0),
-    **jet_hists(coll="JetGoodFromHiggsOrderedRun2", pos=1),
-    **jet_hists(coll="JetGoodFromHiggsOrderedRun2", pos=2),
-    **jet_hists(coll="JetGoodFromHiggsOrderedRun2", pos=3),
     # **count_hist(coll="JetGood", bins=10, start=0, stop=10),
     # **count_hist(coll="JetGoodHiggs", bins=10, start=0, stop=10),
     # **count_hist(coll="ElectronGood", bins=3, start=0, stop=3),
@@ -59,6 +55,12 @@ variables_dict_jets = {
 }
 
 
+variables_dict_fatjets = {
+    **jet_hists(coll="FatJetGood", pos=0),
+    **jet_hists(coll="FatJetGood", pos=1),
+}
+
+
 variables_dict_higgs_mass = {
     "RecoHiggs1Mass": HistConf(
         [
@@ -72,18 +74,6 @@ variables_dict_higgs_mass = {
             )
         ],
     ),
-    "RecoHiggs1Mass_Dhh": HistConf(
-        [
-            Axis(
-                coll=f"HiggsLeadingRun2",
-                field="mass",
-                bins=240,
-                start=0,
-                stop=240,
-                label=r"$M_{H_1}$ $D_{HH}$",
-            )
-        ],
-    ),
     "RecoHiggs2Mass": HistConf(
         [
             Axis(
@@ -93,18 +83,6 @@ variables_dict_higgs_mass = {
                 start=0,
                 stop=240,
                 label=r"$M_{H_2}$ SPANet",
-            )
-        ],
-    ),
-    "RecoHiggs2Mass_Dhh": HistConf(
-        [
-            Axis(
-                coll=f"HiggsSubLeadingRun2",
-                field="mass",
-                bins=240,
-                start=0,
-                stop=240,
-                label=r"$M_{H_2}$ $D_{HH}$",
             )
         ],
     ),
@@ -542,6 +520,132 @@ variables_dict_vbf = {
         label="JetGoodFromHiggsOrdered_btagPNetQvG3",
     ),
     **create_HistConf(
+        "FatJetGood",
+        "pt",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=1000,
+        label="FatJetGood_pt0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "eta",
+        bins=60,
+        pos=0,
+        start=-5,
+        stop=5,
+        label="FatJetGood_eta0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "phi",
+        bins=60,
+        pos=0,
+        start=-5,
+        stop=5,
+        label="FatJetGood_phi0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "mass",
+        bins=100,
+        pos=0,
+        start=50,
+        stop=250,
+        label="FatJetGood_mass0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "msoftdrop",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=200,
+        label="FatJetGood_msoftdrop0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagBB",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagBB0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagPNetQvG",
+        bins=100,
+        pos=0,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagCC0",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "pt",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=1000,
+        label="FatJetGood_pt1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "eta",
+        bins=60,
+        pos=1,
+        start=-5,
+        stop=5,
+        label="FatJetGood_eta1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "phi",
+        bins=60,
+        pos=1,
+        start=-5,
+        stop=5,
+        label="FatJetGood_phi1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "mass",
+        bins=100,
+        pos=1,
+        start=50,
+        stop=250,
+        label="FatJetGood_mass1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "msoftdrop",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=200,
+        label="FatJetGood_msoftdrop1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagBB",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagBB1",
+    ),
+    **create_HistConf(
+        "FatJetGood",
+        "btagPNetQvG",
+        bins=100,
+        pos=1,
+        start=0,
+        stop=1,
+        label="FatJetGood_btagCC1",
+    ),
+    **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
         "pt",
         bins=100,
@@ -877,91 +981,6 @@ variable_dict_bkg_morphing = {
             )
         ],
     ),
-    # Run2 pairing
-    "RecoHiggs1PtRun2": HistConf(
-        [
-            Axis(
-                coll=f"HiggsLeadingRun2",
-                field="pt",
-                bins=24,
-                start=0,
-                stop=600,
-                label=r"$pT_{H_1}$",
-            )
-        ],
-    ),
-    "RecoHiggs2PtRun2": HistConf(
-        [
-            Axis(
-                coll=f"HiggsSubLeadingRun2",
-                field="pt",
-                bins=24,
-                start=0,
-                stop=600,
-                label=r"$pT_{H_2}$",
-            )
-        ],
-    ),
-    "RecoDiHiggsMassRun2": HistConf(
-        [
-            Axis(
-                coll=f"HHRun2",
-                field="mass",
-                bins=16,
-                start=200,
-                stop=1000,
-                label=r"$M_{HH}$",
-            )
-        ]
-    ),
-    "RecoHiggs1MassRun2": HistConf(
-        [
-            Axis(
-                coll=f"HiggsLeadingRun2",
-                field="mass",
-                bins=16,
-                start=80,
-                stop=160,
-                label=r"$M_{H_1}$",
-            )
-        ],
-    ),
-    "RecoHiggs2MassRun2": HistConf(
-        [
-            Axis(
-                coll=f"HiggsSubLeadingRun2",
-                field="mass",
-                bins=16,
-                start=80,
-                stop=160,
-                label=r"$M_{H_2}$",
-            )
-        ]
-    ),
-    "dRHiggs1Run2": HistConf(
-        [
-            Axis(
-                coll=f"HiggsLeadingRun2",
-                field="dR",
-                bins=16,
-                start=0,
-                stop=3,
-                label=r"${H_1} \Delta R_{jj}$",
-            )
-        ],
-    ),
-    "dRHiggs2Run2": HistConf(
-        [
-            Axis(
-                coll=f"HiggsSubLeadingRun2",
-                field="dR",
-                bins=16,
-                start=0,
-                stop=4,
-                label=r"${H_2} \Delta R_{jj}$",
-            )
-        ],
-    ),
     # common
     "dR_min": HistConf(
         [
@@ -1005,19 +1024,6 @@ def get_variables_dict_sig_bkg_score(transformed_bins, y=""):
             ],
             storage="weight",
         ),
-        "sig_bkg_dnn_scoreRun2": HistConf(
-            [
-                Axis(
-                    coll="events",
-                    field="sig_bkg_dnn_scoreRun2",
-                    bins=20,
-                    start=0,
-                    stop=1,
-                    label=r"Signal vs Background DNN score D$_{HH}$-Method",
-                )
-            ],
-            storage="weight",
-        ),
     }
     if transformed_bins:
         score_histograms[f"sig_bkg_dnn_score_transformed{y}"] = HistConf(
@@ -1030,21 +1036,6 @@ def get_variables_dict_sig_bkg_score(transformed_bins, y=""):
                     start=0,
                     stop=1,
                     label=f"Signal vs Background DNN score transformed {y}",
-                )
-            ],
-            storage="weight",
-        )
-        score_histograms[f"sig_bkg_dnn_score_transformedRun2{y}"] = HistConf(
-            [
-                Axis(
-                    coll="events",
-                    field="sig_bkg_dnn_scoreRun2",
-                    bins=transformed_bins,
-                    type="variable",
-                    start=0,
-                    stop=1,
-                    label=r"Signal vs Background DNN score D$_{HH}$-Method transformed "
-                    + y,
                 )
             ],
             storage="weight",
@@ -1063,6 +1054,7 @@ def get_variables_dict(
     SCORE=False,
     RUN2=False,
     SPANET=True,
+    BOOSTED=False,
 ):
     """Function to create the variable dictionary for the PocketCoffea Configurator()."""
     variables_dict = {}
@@ -1076,6 +1068,8 @@ def get_variables_dict(
         variables_dict.update(variables_dict_vbf)
     if BKG_MORPHING:
         variables_dict.update(variable_dict_bkg_morphing)
+    if BOOSTED:
+        variables_dict.update(variables_dict_fatjets)
     if SCORE:
         has_qt = False
 
@@ -1110,12 +1104,9 @@ def get_variables_dict(
         if not has_qt:
             variables_dict.update(get_variables_dict_sig_bkg_score(False))
     # Sort of lazy implementation. If neither SPANet nor RUN2 are active, no variables are saved.
-    # If not Run2, kick out all variables with Run2 in name
-    # If not SPANet, kick out all variables without Run2 in name
-    if not RUN2:
-        variables_dict = {k: v for k, v in variables_dict.items() if "Run2" not in k}
-    if not SPANET:
-        variables_dict = {k: v for k, v in variables_dict.items() if "Run2" in k}
+    if (BOOSTED) and (not SPANET) and (not RUN2):
+        print(" - Removing non-FatJetGood variables")
+        variables_dict = {k: v for k, v in variables_dict.items() if "FatJetGood" in k}
     return variables_dict
 
 
@@ -1188,6 +1179,25 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
 }
 
 
+def with_fw_momenta_columns(columns_dict, max_order_FW, fw_momenta_norms):
+    """
+    Return a copy of columns_dict with Fox-Wolfram moment columns appended to 'events'.
+
+    Column names mirror what workflow_common.py writes:
+        FW_H{i}_{norm}  and  FW_R{i}_{norm}  for i in range(max_order_FW).
+    If max_order_FW <= 0 the dict is returned unchanged.
+    """
+    if max_order_FW <= 0:
+        return columns_dict
+
+    fw_cols = [
+        f"FW_{kind}{i}_{norm}"
+        for norm in fw_momenta_norms
+        for i in range(max_order_FW)
+        for kind in ("H", "R")
+    ]
+    return {**columns_dict, "events": list(columns_dict["events"]) + fw_cols}
+
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2 = copy.deepcopy(
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP
 )
@@ -1196,23 +1206,15 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2["events"] = [
     # merged collections with combined provenance
     "mjjJetTotalSPANetPadded",
     "detaJetTotalSPANetPadded",
-    "centralityHiggsLeadingRun2JetTotalSPANetPadded",
-    "centralityHiggsSubLeadingRun2JetTotalSPANetPadded",
     ## pt flatten
     "mjjJetTotalSPANetPtFlattenPadded",
     "detaJetTotalSPANetPtFlattenPadded",
-    "centralityHiggsLeadingRun2JetTotalSPANetPtFlattenPadded",
-    "centralityHiggsSubLeadingRun2JetTotalSPANetPtFlattenPadded",
     # collections with provenance_vbf saved separately
     "mjjJetGoodVBFMergedProvVBFPadded",
     "detaJetGoodVBFMergedProvVBFPadded",
-    "centralityHiggsLeadingRun2JetGoodVBFMergedProvVBFPadded",
-    "centralityHiggsSubLeadingRun2JetGoodVBFMergedProvVBFPadded",
     ## pt flatten
     "mjjJetGoodVBFMergedProvVBFPtFlattenPadded",
     "detaJetGoodVBFMergedProvVBFPtFlattenPadded",
-    "centralityHiggsLeadingRun2JetGoodVBFMergedProvVBFPtFlattenPadded",
-    "centralityHiggsSubLeadingRun2JetGoodVBFMergedProvVBFPtFlattenPadded",
 ]
 
 DEFAULT_JET_COLUMN_PARAMS = [
@@ -1232,6 +1234,24 @@ DEFAULT_JET_COLUMNS_DICT = {
     f"JetGood_{x}": ["JetGood", x] for x in DEFAULT_JET_COLUMN_PARAMS
 }
 
+DEFAULT_FATJET_COLUMN_PARAMS = [
+    "pt",
+    "eta",
+    "phi",
+    "mass",
+    "mass_regr",
+    "msoftdrop",
+    "btagBB",
+    "btagCC",
+]
+DEFAULT_FATJET_COLUMNS = {
+    "FatJetGood": DEFAULT_FATJET_COLUMN_PARAMS,
+    "FatJetGoodSelected": DEFAULT_FATJET_COLUMN_PARAMS,
+}
+
+DEFAULT_FATJET_COLUMNS_DICT = {
+    f"FatJetGood_{x}": ["FatJetGood", x] for x in DEFAULT_FATJET_COLUMN_PARAMS
+}
 
 def get_columns_list(
     columns_dict=DEFAULT_JET_COLUMNS,
@@ -1276,49 +1296,29 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     unpacked_columns = unpack_dict(columns_dict)
 
     for x, y in unpacked_columns:
-        if run2:
-            if x != "events":
-                column_dict[x.split(":")[0] + "Run2"].add(y)
-        else:
-            column_dict[x.split(":")[0]].add(y)
-    if run2:
-        column_dict.update(
-            {
-                "events": set(
-                    (
-                        "era",
-                        "HT",
-                        "dR_min",
-                        "dR_max",
-                        "sigma_over_higgs1_reco_massRun2",
-                        "sigma_over_higgs2_reco_massRun2",
-                    )
-                )
-            }
-        )
+        column_dict[x.split(":")[0]].add(y)
     column_dict = {x: list(y) for x, y in column_dict.items()}
     if btag:
-        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+        column_dict["JetGoodFromHiggsOrdered"].append(
             "btagPNetB"
         )
-        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+        column_dict["JetGoodFromHiggsOrdered"].append(
             "btagPNetB_5wp"
         )
-        column_dict[f"JetGoodFromHiggsOrdered{'Run2' if run2 else ''}"].append(
+        column_dict["JetGoodFromHiggsOrdered"].append(
             "provenance"
         )
-    if f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}" in column_dict:
-        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+    if "JetGoodFromHiggsOrdered5Jets" in column_dict:
+        column_dict["JetGoodFromHiggsOrdered5Jets"].append(
             "btagPNetB"
         )
-        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+        column_dict["JetGoodFromHiggsOrdered5Jets"].append(
             "btagPNetB_5wp"
         )
-        column_dict[f"JetGoodFromHiggsOrdered5Jets{'Run2' if run2 else ''}"].append(
+        column_dict["JetGoodFromHiggsOrdered5Jets"].append(
             "provenance"
         )
     column_list = get_columns_list(column_dict, flatten)
-
     return column_list
 
 
@@ -1333,64 +1333,56 @@ def define_single_category(category_name):
     if "2b" in category_name:
         cut_list.append(cuts.hh4b_2b_region)
 
-    # mass cuts
-    if "VR1" not in category_name:
-        if "control" in category_name:
-            if "Run2" not in category_name:
-                cut_list.append(cuts.hh4b_control_region)
-            else:
-                cut_list.append(cuts.hh4b_control_region_run2)
+    if "boosted" in category_name:
+        if "undiscriminated" not in category_name and "fail" not in category_name:
+            cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
+        elif "fail" in category_name:
+            cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
         if "signal" in category_name:
-            if "Run2" not in category_name:
-                cut_list.append(cuts.hh4b_signal_region)
+            cut_list.append(cuts.hh4b_boosted_signal_region)
+        if "ttbar" in category_name:
+            cut_list.append(cuts.hh4b_boosted_ttbar_control_region)
+        if "qcd" in category_name:
+            if "A" in category_name:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region_A)
+            elif "B" in category_name:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region_B)
+            elif "C" in category_name:
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region_C)
             else:
-                cut_list.append(cuts.hh4b_signal_region_run2)
+                cut_list.append(cuts.hh4b_boosted_qcd_control_region)
+        if "vbf" in category_name:
+            cut_list.append(cuts.hh4b_vbf_2_jets)
+    # mass cuts
+    elif "VR1" not in category_name:
+        if "control" in category_name:
+            cut_list.append(cuts.hh4b_control_region)
+        if "signal" in category_name:
+            cut_list.append(cuts.hh4b_signal_region)
     if "VR1" in category_name:
         if "control" in category_name:
-            if "Run2" not in category_name:
-                cut_list.append(cuts.hh4b_VR1_control_region)
-            else:
-                cut_list.append(cuts.hh4b_VR1_control_region_run2)
+            cut_list.append(cuts.hh4b_VR1_control_region)
         if "signal" in category_name:
-            if "Run2" not in category_name:
-                cut_list.append(cuts.hh4b_VR1_signal_region)
-            else:
-                cut_list.append(cuts.hh4b_VR1_signal_region_run2)
+            cut_list.append(cuts.hh4b_VR1_signal_region)
 
     # blind region
     if "blind" in category_name:
-        if "Run2" not in category_name:
-            cut_list.append(cuts.blinded)
-        else:
-            cut_list.append(cuts.blindedRun2)
+        cut_list.append(cuts.blinded)
 
-    if "vbf" in category_name:
+    if "vbf" in category_name and "boosted" not in category_name:
+        cut_list.append(cuts.hh4b_vbf_2_jets)
         if "best_candidates" in category_name:
             if "nokincut" in category_name:
-                if "Run2" not in category_name:
-                    cut_list.append(
-                        cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region
-                    )
-                else:
-                    cut_list.append(
-                        cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region_run2
-                    )
+                cut_list.append(
+                    cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region
+                )
             else:
-                if "Run2" not in category_name:
-                    cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
-                else:
-                    cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region_run2)
+                cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
         elif "discriminator" in category_name:
             if "pass" in category_name:
-                if "Run2" not in category_name:
-                    cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
-                else:
-                    cut_list.append(cuts.hh4b_vbf_pass_discriminator_region_run2)
+                cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
             elif "fail" in category_name:
-                if "Run2" not in category_name:
-                    cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
-                else:
-                    cut_list.append(cuts.hh4b_vbf_fail_discriminator_region_run2)
+                cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
             else:
                 raise ValueError("Unrecognized region name")
 
@@ -1412,88 +1404,106 @@ def define_categories(
     run2=False,
     vr1=False,
     btag_sf_comp=False,
+    boosted=False,
+    split_qcd=True,
     vbf_analysis=False,
     vbf_discriminator=False,
 ):
-    """
-    Define the categories for the analysis.
-    """
+    """Define the categories for the analysis."""
     categories_dict = {}
 
-    suffixes = []
-    if run2:
-        suffixes.append("Run2")
-    if spanet:
-        suffixes.append("")
-
-    for suffix in suffixes:
-        if not vr1:
-            categories_dict |= define_single_category(f"4b_region{suffix}")
-            categories_dict |= define_single_category(f"4b_control_region{suffix}")
-            categories_dict |= define_single_category(f"2b_control_region_preW{suffix}")
-            categories_dict |= (
-                define_single_category(f"4b_signal_region_blind{suffix}")
-                if blind
-                else {}
-            )
-            categories_dict |= define_single_category(f"4b_signal_region{suffix}")
-            categories_dict |= (
-                define_single_category(f"2b_signal_region_preW_blind{suffix}")
-                if blind
-                else {}
-            )
-            categories_dict |= define_single_category(f"2b_signal_region_preW{suffix}")
-
-            if bkg_morphing_dnn:
-                categories_dict |= define_single_category(
-                    f"2b_control_region_postW{suffix}"
-                )
-                categories_dict |= (
-                    define_single_category(f"2b_signal_region_postW_blind{suffix}")
-                    if blind
-                    else {}
-                )
-                categories_dict |= define_single_category(
-                    f"2b_signal_region_postW{suffix}"
-                )
-
-            if vbf_analysis:
-                # NOTE: this region requires at least 6 jets
-                categories_dict |= define_single_category(
-                    f"vbf_best_candidates_6_jets_4b_region{suffix}"
-                )
-                # NOTE: this region requires at least 6 jets
-                categories_dict |= define_single_category(
-                    f"vbf_best_candidates_6_jets_nokincut_4b_region{suffix}"
-                )
-
-                if vbf_discriminator:
-                    # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above/below the threshold
-                    categories_dict |= define_single_category(
-                        f"vbf_pass_discriminator_4b_region{suffix}"
-                    )
-                    categories_dict |= define_single_category(
-                        f"vbf_fail_discriminator_4b_region{suffix}"
-                    )
-
+    if boosted:
+        if vbf_analysis:
+            is_vbf = "_vbf"
         else:
-            categories_dict |= define_single_category(f"4b_VR1_control_region{suffix}")
-            categories_dict |= define_single_category(
-                f"2b_VR1_control_region_preW{suffix}"
-            )
-            categories_dict |= define_single_category(f"4b_VR1_signal_region{suffix}")
-            categories_dict |= define_single_category(
-                f"2b_VR1_signal_region_preW{suffix}"
-            )
-            if bkg_morphing_dnn:
-                categories_dict |= define_single_category(
-                    f"2b_VR1_control_region_postW{suffix}"
-                )
-                categories_dict |= define_single_category(
-                    f"2b_VR1_signal_region_postW{suffix}"
-                )
+            is_vbf = ""
+        if not vbf_discriminator:
+            categories_dict |= define_single_category(f"boosted_undiscriminated{is_vbf}_region")
+        else:
+            categories_dict |= define_single_category(f"boosted{is_vbf}_signal_region")
+            categories_dict |= define_single_category(f"boosted{is_vbf}_ttbar_region")
+            categories_dict |= define_single_category(f"boosted{is_vbf}_pass_region")
+            categories_dict |= define_single_category(f"boosted{is_vbf}_fail_region")
+            if split_qcd:
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region")
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_B_region")
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region")
+                if bkg_morphing_dnn:
+                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region_postW")
+                    categories_dict |= (
+                        define_single_category(f"boosted{is_vbf}_qcd_C_region_postW" + "_blind")
+                        if blind
+                        else {}
+                    )
+                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region_postW")
+            else:
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_region")
+    elif not vr1:
+        categories_dict |= define_single_category("4b_region")
+        categories_dict |= define_single_category("4b_control_region")
+        categories_dict |= define_single_category("2b_control_region_preW")
+        categories_dict |= (
+            define_single_category("4b_signal_region_blind")
+            if blind
+            else {}
+        )
+        categories_dict |= define_single_category("4b_signal_region")
+        categories_dict |= (
+            define_single_category("2b_signal_region_preW_blind")
+            if blind
+            else {}
+        )
+        categories_dict |= define_single_category("2b_signal_region_preW")
 
-    if not spanet and not run2:
+        if bkg_morphing_dnn:
+            categories_dict |= define_single_category(
+                "2b_control_region_postW"
+            )
+            categories_dict |= (
+                define_single_category("2b_signal_region_postW_blind")
+                if blind
+                else {}
+            )
+            categories_dict |= define_single_category(
+                "2b_signal_region_postW"
+            )
+        if vbf_analysis:
+            # NOTE: this region requires at least 6 jets
+            categories_dict |= define_single_category(
+                "vbf_best_candidates_6_jets_4b_region"
+            )
+            # NOTE: this region requires at least 6 jets
+            categories_dict |= define_single_category(
+                "vbf_best_candidates_6_jets_nokincut_4b_region"
+            )
+
+            if vbf_discriminator:
+                # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above/below the threshold
+                categories_dict |= define_single_category(
+                    "vbf_pass_discriminator_4b_region"
+                )
+                categories_dict |= define_single_category(
+                    "vbf_fail_discriminator_4b_region"
+                )
+    else:
+        categories_dict |= define_single_category(f"4b_VR1_control_region")
+        categories_dict |= define_single_category(
+            "2b_VR1_control_region_preW"
+        )
+        categories_dict |= define_single_category(f"4b_VR1_signal_region")
+        categories_dict |= define_single_category(
+            "2b_VR1_signal_region_preW"
+        )
+        if bkg_morphing_dnn:
+            categories_dict |= define_single_category(
+                "2b_VR1_control_region_postW"
+            )
+            categories_dict |= define_single_category(
+                "2b_VR1_signal_region_postW"
+            )
+
+    if not spanet and not run2 and not boosted:
+        # add the 2b control region post W for the old DNN
         categories_dict |= define_single_category("4b_region")
 
     if btag_sf_comp:
@@ -1517,6 +1527,8 @@ def define_preselection(options):
                 preselection = [vbf_cuts.vbf_hh4b_presel_tight]
             else:
                 preselection = [vbf_cuts.vbf_hh4b_presel]
+        elif options["boosted_presel"]:
+            preselection = [cuts.hh4b_boosted_presel]
         else:
             if options["tight_cuts"]:
                 preselection = [cuts.hh4b_presel_tight]
@@ -1526,6 +1538,6 @@ def define_preselection(options):
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
-    preselection.append(cuts.hh4b_JetVetoMap)
-
+    if not options["boosted_presel"]: # FIXME
+        preselection.append(cuts.hh4b_JetVetoMap)
     return preselection

@@ -16,8 +16,8 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
-    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
+    DEFAULT_FATJET_COLUMNS,
     create_DNN_columns_list,
     define_categories,
     define_preselection,
@@ -28,12 +28,12 @@ from configs.HH4b_common.config_files.configurator_tools import (
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
 )
-from configs.VBF_HH4b.workflow import VBFHH4bProcessor
+from configs.VBF_HH4b_boosted.workflow import VBFHH4bProcessor
 
 BASELINE = False
 
-
 localdir = os.path.dirname(os.path.abspath(__file__))
+
 
 # Loading default parameters
 default_parameters = defaults.get_default_parameters()
@@ -61,6 +61,7 @@ if config_options_dict["save_chunk"]:
         "save_chunk"
     ]
 
+print(config_options_dict)
 # Define the variables to save
 variables_dict = get_variables_dict(
     year,
@@ -71,6 +72,7 @@ variables_dict = get_variables_dict(
     SCORE=bool(config_options_dict["sig_bkg_dnn"]),
     RUN2=config_options_dict["run2"],
     SPANET=bool(config_options_dict["spanet"]),
+    BOOSTED=config_options_dict["boosted"],
 )
 # variables_dict = {}
 
@@ -94,7 +96,7 @@ sample_ggF_list = [
     "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
 ]
 
-sample_VBF_list = [
+sample_VBF_list=[
     "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
     "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
     "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
@@ -112,17 +114,20 @@ sample_list = (
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         # 2022 postEE
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        # "DATA_JetMET_JMENano_G_skimmed",
+        "DATA_JetMET_JMENano_E_skimmed",
+        "DATA_JetMET_JMENano_F_skimmed",
+        "DATA_JetMET_JMENano_G_skimmed",
+        # "TTtoLNu2Q_skimmed",
+        # "TTto2L2Nu_skimmed",
+        # "TTto4Q_skimmed",
     ]
     + sample_ggF_list
-    # + sample_VBF_list
+    + sample_VBF_list
     + (
         [
-            #     "GluGlutoHHto4B_spanet_skimmed",
-            #     # "GluGlutoHHto4B",
-            # "GluGlutoHHto4B_spanet"
+        #     "GluGlutoHHto4B_spanet_skimmed",
+        #     # "GluGlutoHHto4B",
+        # "GluGlutoHHto4B_spanet"
         ]
     )
 )
@@ -135,21 +140,22 @@ categories_dict = define_categories(
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
+    boosted=config_options_dict["boosted"],
     vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_discriminator=config_options_dict["vbf_discriminator"],
+    split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
 )
 
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
-column_list = []
+column_list=[]
 
 # Add SPANet training inputs
-if not config_options_dict["spanet"] and not config_options_dict["run2"]:
+if not config_options_dict["spanet"] and not config_options_dict["run2"] and not config_options_dict["boosted"]:
+    print("somehow we arrived at a wrong point")
     if not config_options_dict["vbf_analysis"]:
-        column_list += get_columns_list(
-            SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
-        )
+        column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
     else:
         column_list += get_columns_list(
             with_fw_momenta_columns(
@@ -159,13 +165,6 @@ if not config_options_dict["spanet"] and not config_options_dict["run2"]:
             ),
             not config_options_dict["save_chunk"],
         )
-elif (
-    config_options_dict["vbf_matching_after_higgs_pairing"]
-    and not config_options_dict["run2"]
-):
-    column_list += get_columns_list(
-        SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
-    )
 else:
     # Define the other columns to save
     total_input_columns = {}
@@ -188,14 +187,18 @@ else:
         }
 
     if config_options_dict["dnn_variables"]:
+        # Be aware, that for boosted, you need a boosted sig/bkg and morphing
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
-            | {"year": ["events", "year"]}
+            | {"year": ["events", "year"],
+               "vbf_jet_prov": ["JetGoodVBF", "provenance"],
+               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"]
+              }
         )
+    elif config_options_dict["boosted"]:
+        column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
     else:
-        total_input_columns |= DEFAULT_JET_COLUMNS_DICT
-    if BASELINE:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
     column_list += create_DNN_columns_list(
@@ -248,6 +251,9 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_test.json",
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_boosted_skimmed_local.json",
+            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_boosted_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/background_TTtoX_skimmed.json",
         ],
         "filter": {
             "samples": sample_list,
@@ -262,7 +268,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + ([bkg_morphing_dnn_weight] if not BASELINE else []),
+    + [bkg_morphing_dnn_weight],
     weights={
         "common": {
             "inclusive": [

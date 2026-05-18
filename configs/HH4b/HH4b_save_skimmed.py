@@ -32,21 +32,26 @@ cfg = Configurator(
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/ntuples/DATA_JetMET_JMENano_skimmed",
 #    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/ntuples/DATA_JetMET_JMENano_F_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/ntuples/DATA_JetMET_ParkingHH_2023_D_skimmed",
-    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/testing/DATA_JetMET_JMENano_C_skimmed",
+    # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/testing/DATA_JetMET_JMENano_C_skimmed",
+    # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed",
+    # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed",
+    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed",
     parameters=parameters,
     datasets={
         "jsons": [
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/background_TTtoX_redirector.json",
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
             f"{localdir}/../HH4b_common/datasets/QCD.json",
             f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
         ],
         "filter": {
             "samples": (
                 [
-                    "DATA_JetMET_JMENano_C",
+                    # "DATA_JetMET_JMENano_C",
                     # "DATA_JetMET_JMENano_D",
                     # "DATA_JetMET_JMENano_E",
                     # "DATA_JetMET_JMENano_F",
@@ -57,7 +62,12 @@ cfg = Configurator(
                     # "DATA_ParkingHH_2023_Cv4",
                     # "DATA_ParkingHH_2023_Dv1",
                     # "DATA_ParkingHH_2023_Dv2",
-                    # "GluGlutoHHto4B_spanet"
+                    # "GluGlutoHHto4B_spanet",
+                    # "TTto4Q",
+                    # "TTtoLNu2Q",
+                    # "TTto2L2Nu",
+                    "VBF_HHto4B",
+                    "VBF_HHto4B_BSM"
                 ]
             ),
             "samples_exclude": [],
@@ -68,6 +78,7 @@ cfg = Configurator(
     workflow=HH4bbQuarkMatchingProcessorDummy,
     workflow_options={
     },
+    # skim=cuts.skimming_cut_list,
     skim=cuts.skimming_cut_list(config_options_dict),
     # skim=[
     #     get_HLTsel(primaryDatasets=["JetMET"]),

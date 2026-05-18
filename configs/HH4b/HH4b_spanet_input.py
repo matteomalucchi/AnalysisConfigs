@@ -36,7 +36,6 @@ from configs.HH4b_common.config_files.configurator_tools import (
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
 )
 from configs.HH4b_common.dnn_input_variables import (
     bkg_morphing_dnn_input_variables,
@@ -115,7 +114,6 @@ if all([model == "" for model in onnx_model_dict.values()]):
 # Define the columns to save
 total_input_variables = {}
 column_list = []
-column_listRun2 = []
 column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
 # column_list += get_columns_list(SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
 if config_options_dict["random_pt"]:
@@ -129,14 +127,9 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-            )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-            )
+        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+            column_list
+        )
 # print("bysample_bycategory_column_dict", bysample_bycategory_column_dict)
 
 # Define the weights to apply
@@ -170,7 +163,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2],
+    + [bkg_morphing_dnn_weight],
     calibrators=[JetsCalibrator, JetsPtRegressionCalibrator],
     weights={
         "common": {

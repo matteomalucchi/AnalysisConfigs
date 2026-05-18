@@ -7,6 +7,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 onnx_model_dict  |= {
+    "vbf_discriminator": "/work/tharte/datasets/onnx_spanet_models_for_ggf_vs_vbf_boosted/spanet_1_16_3_boosted_vbf_ggf_classification_vbfjets.onnx"
     # "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/average_model_from_onnx.onnx", # --> training on postEE
     # "bkg_morphing_spread_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/all_ratios_model_onnx.onnx", # --> training on postEE
     # "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DHH_method_norm_e5drop75_postEE/state_dict/model_best_epoch_18.onnx",
@@ -14,31 +15,20 @@ onnx_model_dict  |= {
 
 
 config_options_dict |= {
-    "vbf_parton_matching": False,
-    "tight_cuts": False,
-    "save_chunk": False,
-    "vbf_presel": False,
     "dnn_variables": True,
-    "run2": True,
-    "vr1": False,
-    "random_pt": False,
-    "rand_type": 0.3,
-    "blind": True if onnx_model_dict["sig_bkg_dnn"] else False,
-    "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,
-    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
-    "parton_jet_min_dR": 0.4,
-    "max_num_jets_good": 5,
-    "max_num_jets_higgs_pairing": 4,
-    "which_bquark": "last",
+    "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_boosted_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_boosted_dnn_input_variables,
+    "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables,
+    "max_num_jets_vbf_discriminator": 2,
+    "run2": False,
     "fifth_jet": "pt",
-    "donotscale_sumgenweights": False,
     "pad_value": -999.0,
-    "arctanh_delta_prob_bin_edge": 2.44,
-    "arctanh_delta_prob_pad_limit": 2.,
     "add_jet_spanet": False,
+    "boosted": True,
+    "boosted_presel": True,
+    "split_qcd": True,
     # VBF
-    "vbf_parton_matching": False,
-    "vbf_presel": False,
+    "vbf_parton_matching": True,
     "vbf_analysis": True,
     "which_vbf_quark":"with_mothers_children",
     "max_num_jets_add_vbf": 2,

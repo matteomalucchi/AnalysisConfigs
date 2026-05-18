@@ -134,7 +134,7 @@ cfg = Configurator(
             cuts.third_btag_cut,
             cuts.fourth_btag_cut,
         ],
-        "signal_region_Run2_selection": [
+        "signal_region_selection": [
             eventFlags,
             cuts.lepton_veto_cut,
             hh4b_JetVetoMap,
@@ -144,20 +144,8 @@ cfg = Configurator(
             cuts.two_b_cut,
             cuts.third_btag_cut,
             cuts.fourth_btag_cut,
-            cuts.signal_region_Run2_cut,
+            cuts.signal_region_cut,
         ],
-        # "signal_region_selection": [
-        #     eventFlags,
-        #     cuts.lepton_veto_cut,
-        #     hh4b_JetVetoMap,
-        #     get_HLTsel(primaryDatasets=["JetMET"]),
-        #     get_L1sel(primaryDatasets=["JetMET"]),
-        #     cuts.jet_pt_cut,
-        #     cuts.two_b_cut,
-        #     cuts.third_btag_cut,
-        #     cuts.fourth_btag_cut,
-        #     cuts.signal_region_cut,
-        # ],
     },
     weights={
         "common": {
@@ -188,7 +176,7 @@ cfg = Configurator(
             "inclusive": [],
             "bycategory": {
                 # "total": column_list,
-                "signal_region_Run2_selection": column_list,
+                "signal_region_selection": column_list,
                 "four_jets_presel": column_list,
             },
         },

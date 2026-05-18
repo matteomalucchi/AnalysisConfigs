@@ -1,6 +1,8 @@
 import awkward as ak
 
 from pocket_coffea.workflows.base import BaseProcessorABC
+from configs.HH4b_common.workflow_common import HH4bCommonProcessor
+
 class HH4bbQuarkMatchingProcessorDummy(HH4bCommonProcessor):
 
     def count_objects(self, variation):

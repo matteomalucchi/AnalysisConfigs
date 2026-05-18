@@ -11,6 +11,12 @@ def mask_num_jets(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def two_fat_jets(events, params, **kwargs):
+    jet_collection = "FatJetGood"
+    mask = events[f"n{jet_collection}"] >= params["nfatjet"]
+    return ak.where(ak.is_none(mask), False, mask)
+
+
 def lepton_veto(events, params, **kwargs):
     no_electron = events.nElectronGood == 0
     no_muon = events.nMuonGood == 0
@@ -61,6 +67,117 @@ def hh4b_presel_cuts(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def hh4b_boosted_presel_cuts(events, params, **kwargs):
+    # selection is already performed in the object preselection, 
+    # here I just need to count the fat jets
+    mask = events["nFatJetGoodSelected"] >= params["nfatjet"]
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_boosted_SR_cuts(events, params, **kwargs):
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
+
+    # also the second jet has to pass the btag cut to end in the SR
+    mask_btag = (
+        sublead_jet["btagBB"] > params["pnet_cut"]
+    )
+    mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
+
+    # this should be done with the regressed mass, GloParT or PNet? at the moment is PNet
+    mask_mass = (
+        (lead_jet.mass_regr > params["mass_min"]) 
+        & (lead_jet.mass_regr < params["mass_max"])
+    )
+    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+    mask = mask_btag & mask_mass
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_boosted_ttbar_CR_cuts(events, params, **kwargs):
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present  
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
+
+    # both jets has to be in the 150 < mass < 200 GeV window to be in the ttbar CR 
+    mask_mass = (
+        (lead_jet.mass_regr > params["mass_min"]) 
+        & (lead_jet.mass_regr < params["mass_max"])
+        & (sublead_jet.mass_regr > params["mass_min"])
+        & (sublead_jet.mass_regr < params["mass_max"])
+    )
+    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask_mass), False, mask_mass)
+
+
+def hh4b_boosted_qcd_CR_cuts(events, params, **kwargs):
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
+
+    # the leading jet has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
+    mask_mass_lead = (
+        (lead_jet.mass_regr > params["mass_min"]) 
+        & (lead_jet.mass_regr < params["mass_max"])
+    )
+    mask_mass_lead = ak.where(ak.is_none(mask_mass_lead), False, mask_mass_lead)
+
+    mask_mass_qcd = (
+        (lead_jet.mass_regr < params["mass_max"])
+        & (sublead_jet.mass_regr < params["mass_max_sublead"])
+    )
+    mask_mass_qcd = ak.where(ak.is_none(mask_mass_qcd), False, mask_mass_qcd)
+
+    mask_btag_sublead = (sublead_jet["btagBB"] > params["pnet_cut"])
+    mask_btag_sublead = ak.where(ak.is_none(mask_btag_sublead), False, mask_btag_sublead)
+
+    mask = (~(mask_mass_lead) | ~(mask_btag_sublead)) & mask_mass_qcd
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_boosted_qcd_CR_cuts_X(events, params, **kwargs):
+    # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
+    lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
+
+    # the leading jet has to be in the range 50 < m < 100 GeV or the subleading jet has to fail the btag cut
+    mask_mass_lead = (
+        (lead_jet.mass_regr > params["mass_min_lead"]) 
+        & (lead_jet.mass_regr < params["mass_max_lead"])
+    )
+    mask_mass_lead = ak.where(ak.is_none(mask_mass_lead), False, mask_mass_lead)
+
+    mask_mass_sublead = (
+        (sublead_jet.mass_regr > params["mass_min_sublead"])
+        & (sublead_jet.mass_regr < params["mass_max_sublead"])
+    )
+    mask_mass_sublead = ak.where(ak.is_none(mask_mass_sublead), False, mask_mass_sublead)
+
+    mask_btag_sublead = (
+        (sublead_jet["btagBB"] >= params["pnet_cut_min"])
+        & (sublead_jet["btagBB"] < params["pnet_cut_max"])
+    )
+    mask_btag_sublead = ak.where(ak.is_none(mask_btag_sublead), False, mask_btag_sublead)
+
+    mask = (mask_mass_lead) & (mask_btag_sublead) & (mask_mass_sublead)
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+def hh4b_boosted_vbf_cuts(events, params, **kwargs):
+    # candidate VBF jets are already selected in the object preselection and stored in the nDiJetVBFCandidates
+    mask_vbf = (events.nDiJetVBFCandidates > 0)
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask_vbf), False, mask_vbf)
+
+
 def hh4b_2b_cuts(events, params, **kwargs):
     at_least_four_jets = mask_num_jets(events, {"njet": 4}, **kwargs)
     # convert false to None
@@ -93,18 +210,11 @@ def hh4b_4b_cuts(events, params, **kwargs):
 
 def hh4b_Rhh_cuts(events, params, **kwargs):
     Rhh = None
-    if params["Run2"]:
-        if "Rhh_Run2" in events.fields:
-            Rhh = events.Rhh_Run2
-        else:
-            higgs_lead_mass = events.HiggsLeadingRun2.mass
-            higgs_sublead_mass = events.HiggsSubLeadingRun2.mass
+    if "Rhh" in events.fields:
+        Rhh = events.Rhh
     else:
-        if "Rhh" in events.fields:
-            Rhh = events.Rhh
-        else:
-            higgs_lead_mass = events.HiggsLeading.mass
-            higgs_sublead_mass = events.HiggsSubLeading.mass
+        higgs_lead_mass = events.HiggsLeading.mass
+        higgs_sublead_mass = events.HiggsSubLeading.mass
 
     if Rhh is None:
         Rhh = np.sqrt(
@@ -149,20 +259,24 @@ def hh4b_vbf_eta_mjj_cuts(events, params, **kwargs):
 
 
 def hh4b_vbf_discriminator_cuts(events, params, **kwargs):
-    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
-    # do not count the None values
-    mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
-    
     if params["pass"]:
         mask_discriminator = events[params["discriminator"]] >= params["threshold"]
     else:
         mask_discriminator = events[params["discriminator"]] < params["threshold"]
-        
-    mask = mask_num_vbf_jets & mask_discriminator
+
+    mask = mask_discriminator
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def hh4b_vbf_2_jets(events, params, **kwargs):
+    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
+    # do not count the None values
+    mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
+    mask = mask_num_vbf_jets
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
 
 def dhh_cuts(events, params, **kwargs):
 

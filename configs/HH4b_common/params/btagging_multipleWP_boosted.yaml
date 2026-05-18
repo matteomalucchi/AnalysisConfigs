@@ -41,101 +41,31 @@ jet_scale_factors:
 btagging:
   working_point:
     '2022_preEE':
-      btagging_algorithm: btagPNetB
+      btagging_algorithm: particleNet_XbbVsQCD
       btagging_WP:
-        btagDeepFlavB:
-          L: 0.0583
-          M: 0.3086
-          T: 0.7183
-          XT: 0.8111
-          XXT: 0.9512
-        btagPNetB:
-          L: 0.047
-          M: 0.245
-          T: 0.6734
-          XT: 0.7862
-          XXT: 0.961
-        btagRobustParTAK4B:
-          L: 0.0849
-          M: 0.4319
-          T: 0.8482
-          XT: 0.9151
-          XXT: 0.9874
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
     '2022_postEE':
-      btagging_algorithm: btagPNetB
+      btagging_algorithm: particleNet_XbbVsQCD
       btagging_WP:
-        btagDeepFlavB:
-          L: 0.0614
-          M: 0.3196
-          T: 0.7300
-          XT: 0.8184
-          XXT: 0.9542
-        btagPNetB:
-          L: 0.0499
-          M: 0.2605
-          T: 0.6915
-          XT: 0.8033
-          XXT: 0.9664
-        btagRobustParTAK4B:
-          L: 0.0897
-          M: 0.451
-          T: 0.8604
-          XT: 0.9234
-          XXT: 0.9893
         btagBB:
           MP: 0.95
           HP: 0.975
           VHP: 0.99
     '2023_preBPix':
-      btagging_algorithm: btagPNetB
+      btagging_algorithm: particleNet_XbbVsQCD
       btagging_WP:
-        L: 0.0681
-        M: 0.3487
-        T: 0.7969
-        XT: 0.8882
-        XXT: 0.9883
-        btagDeepFlavB:
-          L: 0.0479
-          M: 0.2431
-          T: 0.6553
-          XT: 0.7667
-          XXT: 0.9459
-        btagPNetB:
-          L: 0.0358
-          M: 0.1917
-          T: 0.6172
-          XT: 0.7515
-          XXT: 0.9659
-        btagRobustParTAK4B:
-          L: 0.0681
-          M: 0.3487
-          T: 0.7969
-          XT: 0.8882
-          XXT: 0.9883
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
     '2023_postBPix':
-      btagging_algorithm: btagPNetB
+      btagging_algorithm: particleNet_XbbVsQCD
       btagging_WP:
-        L: 0.0683
-        M: 0.3494
-        T: 0.7994
-        XT: 0.8877
-        XXT: 0.9883
-        btagDeepFlavB:
-          L: 0.048
-          M: 0.2435
-          T: 0.6563
-          XT: 0.7671
-          XXT: 0.9483
-        btagPNetB:
-          L: 0.0359
-          M: 0.1919
-          T: 0.6133
-          XT: 0.7544
-          XXT: 0.9688
-        btagRobustParTAK4B:
-          L: 0.0683
-          M: 0.3494
-          T: 0.7994
-          XT: 0.8877
-          XXT: 0.9883
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
 

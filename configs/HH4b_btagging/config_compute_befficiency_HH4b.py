@@ -21,7 +21,6 @@ from configs.HH4b_common.config_files.configurator_tools import (
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
 )
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -102,14 +101,9 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-            )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-            )
+        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+            column_list
+        )
 
 cfg = Configurator(
     parameters=parameters,
@@ -141,7 +135,7 @@ cfg = Configurator(
     calibrators=[JetsCalibrator],  # , JetsPtRegressionCalibrator],
 
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2],
+    + [bkg_morphing_dnn_weight],
     weights={
         "common": {
 			"inclusive": ["genWeight", "lumi", "XS",
