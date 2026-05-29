@@ -866,6 +866,8 @@ class HEPPlotter:
             if y_errors is None:
                 y_errors = [0] * len(y_values)
 
+            _linestyle = style.get("linestyle")
+            _linestyle_kwarg = {} if _linestyle is None else {"linestyle": _linestyle}
             if np.any(np.array(x_errors) > 0) or np.any(np.array(y_errors) > 0):
                 # plot with error bars
                 ax.errorbar(
@@ -876,8 +878,8 @@ class HEPPlotter:
                     fmt=style.get("fmt", "o"),
                     label=legend_name,
                     color=style.get("color"),
-                    linestyle=style.get("linestyle"),
                     markersize=style.get("markersize"),
+                    **_linestyle_kwarg,
                     **self.extra_kwargs,
                 )
             else:
@@ -888,8 +890,8 @@ class HEPPlotter:
                     style.get("fmt", "o"),
                     label=legend_name,
                     color=style.get("color"),
-                    linestyle=style.get("linestyle"),
                     markersize=style.get("markersize"),
+                    **_linestyle_kwarg,
                     **self.extra_kwargs,
                 )
 
@@ -1293,6 +1295,10 @@ class HEPPlotter:
                 )
         else:
             # Plot ratio with error bars
+            _ratio_linestyle = style.get("linestyle")
+            _ratio_linestyle_kwarg = (
+                {} if _ratio_linestyle is None else {"linestyle": _ratio_linestyle}
+            )
             if np.any(ratio_err > 0):
                 ax_ratio.errorbar(
                     x=x_ratio,
@@ -1302,8 +1308,8 @@ class HEPPlotter:
                     fmt=style.get("fmt", "o"),
                     label=legend_name,
                     color=color,
-                    linestyle=style.get("linestyle", ""),
                     markersize=style.get("markersize", 6),
+                    **_ratio_linestyle_kwarg,
                     **self.extra_kwargs,
                 )
             else:
@@ -1313,8 +1319,8 @@ class HEPPlotter:
                     style.get("fmt", "o"),
                     label=legend_name,
                     color=color,
-                    linestyle=style.get("linestyle", ""),
                     markersize=style.get("markersize", 6),
+                    **_ratio_linestyle_kwarg,
                     **self.extra_kwargs,
                 )
 
