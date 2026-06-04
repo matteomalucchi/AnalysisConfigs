@@ -29,7 +29,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 which_vbf_quark=self.which_vbf_quark, jet_collection="Jet"
             )
         else:
-            self.dummy_provenance_vbf()
+            self.dummy_provenance(jet_collection="Jet", name="provenance_vbf")
 
         self.def_provenance_field()
         self.define_jet_collections()

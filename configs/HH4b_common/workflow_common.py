@@ -1319,6 +1319,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             if self._isMC and not self.spanet:
                 matched_jet_higgs_idx_not_none = self.get_true_pairing_and_compare()
+
+                jet_vbf = None
+
             elif self.spanet:
                 # apply spanet model to get the pairing prediction for the b-jets from Higgs
                 (
@@ -1378,7 +1381,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["JetGoodFromHiggsOrdered"],
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
-            if self.vbf_analysis:
+            if self.vbf_analysis and (self.spanet or self.run2):
                 if jet_vbf is not None:
                     self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
                 else:
@@ -1389,7 +1392,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
                         self.events,
                         "JetVBFCandidates",
-                        "JetGoodVBF_boosted",
+                        "JetGoodVBF_boosted" if self.boosted else "JetVBF",
                         self.params,
                         year=self._year,
                         pt_type="pt_default",
