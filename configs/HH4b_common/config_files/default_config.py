@@ -19,6 +19,7 @@ default_config_options_dict = {
     "which_vbf_quark": "with_mothers_children",  # "with_status"
     "max_num_jets_add_vbf": 2,
     "jets_add_vbf_order": "energy",
+    "vbf_matching_after_higgs_pairing": False,
     #
     "dnn_variables": True,
     "run2": False,

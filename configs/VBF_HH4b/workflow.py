@@ -5,7 +5,10 @@ import numpy as np
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils_configs.reconstruct_higgs_candidates import get_lead_mjj_jet_pair
+from utils_configs.reconstruct_higgs_candidates import (
+    get_lead_mjj_jet_pair,
+    reconstruct_resonances_from_idx,
+)
 from utils_configs.reconstruct_higgs_candidates import run2_matching_algorithm
 
 
@@ -31,6 +34,29 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         self.def_provenance_field()
         self.define_jet_collections()
 
+    def define_vbf_jet(self, jet_coll_higgs):
+        jet_good_idx_not_none = jet_coll_higgs.index
+        # find the remaining jets to define the vbf candidates
+        self.events["JetVBF"] = self.get_jets_not_from_idx(jet_good_idx_not_none)
+        self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
+            self.events,
+            "JetVBF",
+            "JetVBF",
+            self.params,
+            year=self._year,
+            pt_type="pt_default",
+            pt_cut_name=self.pt_cut_name,
+            forward_jet_veto=True,
+        )
+
+        # order in pt
+        self.events["JetGoodVBF"] = add_fields(
+            self.events.JetGoodVBF[
+                ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
+            ],
+            "all",
+        )
+
     def apply_object_preselection(self, variation):
         super().apply_object_preselection(variation=variation)
         if self.vbf_analysis:
@@ -39,25 +65,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             self.events["JetGoodClip"] = copy.copy(
                 self.events.JetGood[:, : self.max_num_jets_good]
             )
-            jet_good_idx_not_none = self.events.JetGoodClip.index
 
-            # find the remaining jets to define the vbf candidates
-            self.events["JetVBF"] = self.get_jets_not_from_idx(jet_good_idx_not_none)
-            self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
-                self.events,
-                "JetVBF",
-                "JetVBF",
-                self.params,
-                year=self._year,
-                pt_type="pt_default",
-                pt_cut_name=self.pt_cut_name,
-                forward_jet_veto=True,
-            )
-
-            # order in pt
-            self.events["JetGoodVBF"] = self.events.JetGoodVBF[
-                ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
-            ]
+            self.define_vbf_jet(jet_coll_higgs=self.events["JetGoodClip"])
 
             # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
             jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
@@ -98,6 +107,19 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         if self.vbf_analysis:
+            if self.vbf_matching_after_higgs_pairing and self.spanet:
+                # apply spanet model to get the pairing prediction for the b-jets from Higgs
+                pairing_predictions, jet_coll_pairing, *_ = self.eval_spanet()
+                (
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["JetGoodClip"],
+                    jet_vbf,
+                ) = reconstruct_resonances_from_idx(
+                    self.events[jet_coll_pairing], pairing_predictions
+                )
+
+                self.define_vbf_jet(jet_coll_higgs=self.events["JetGoodClip"])
 
             # choose vbf jets as the two jets with the highest pt that are not from higgs decay
             self.events["JetVBFLeadingPtNotFromHiggs"] = self.events.JetGoodVBF[:, :2]
@@ -279,14 +301,15 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     axis=1,
                 )
 
-            # Compute the Run 2 pairing to compute the centrality
-            (
-                pairing_predictions,
-                self.events["delta_dhh"],
-                self.events["HiggsLeadingRun2"],
-                self.events["HiggsSubLeadingRun2"],
-                self.events["JetGoodFromHiggsOrderedRun2"],
-            ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
+            if not (self.spanet and self.vbf_matching_after_higgs_pairing):
+                # Compute the Run 2 pairing to compute the centrality
+                (
+                    pairing_predictions,
+                    self.events["delta_dhh"],
+                    self.events["HiggsLeadingRun2"],
+                    self.events["HiggsSubLeadingRun2"],
+                    self.events["JetGoodFromHiggsOrderedRun2"],
+                ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
             for jet_coll, jet_idx in zip(
@@ -312,7 +335,11 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events[f"deta{jet_coll}"] = vbf_deta
 
                 # Define centrality
-                for higgs_coll in ["HiggsLeadingRun2", "HiggsSubLeadingRun2"]:
+                for higgs_coll in (
+                    ["HiggsLeadingRun2", "HiggsSubLeadingRun2"]
+                    if not (self.spanet and self.vbf_matching_after_higgs_pairing)
+                    else ["HiggsLeading", "HiggsSubLeading"]
+                ):
                     centrality = np.exp(
                         -4
                         / (
