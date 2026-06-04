@@ -117,7 +117,7 @@ sample_list = (
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
     + sample_ggF_list
-    # + sample_VBF_list
+    + sample_VBF_list
     + (
         [
             #     "GluGlutoHHto4B_spanet_skimmed",
@@ -145,7 +145,7 @@ if BASELINE:
 column_list = []
 
 # Add SPANet training inputs
-if not config_options_dict["spanet"] and not config_options_dict["run2"]:
+if not config_options_dict["spanet"]:
     if not config_options_dict["vbf_analysis"]:
         column_list += get_columns_list(
             SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
