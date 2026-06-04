@@ -116,6 +116,17 @@ hh4b_control_region = Cut(
     },
     function=cuts_f.hh4b_Rhh_cuts,
 )
+hh4b_control_region_wide = Cut(
+    name="hh4b_control_region",
+    params={
+        "Run2": False,
+        "radius_min": 30,
+        "radius_max": 80,
+        "higgs_lead_center": 125,
+        "higgs_sublead_center": 120,
+    },
+    function=cuts_f.hh4b_Rhh_cuts,
+)
 
 hh4b_boosted_signal_region = Cut(
     name="hh4b_boosted_signal_region",
@@ -135,6 +146,17 @@ hh4b_boosted_ttbar_control_region = Cut(
         "mass_max": 200,
     },
     function=cuts_f.hh4b_boosted_ttbar_CR_cuts,
+)
+hh4b_control_region_wide_run2 = Cut(
+    name="hh4b_control_region",
+    params={
+        "Run2": True,
+        "radius_min": 30,
+        "radius_max": 80,
+        "higgs_lead_center": 125,
+        "higgs_sublead_center": 120,
+    },
+    function=cuts_f.hh4b_Rhh_cuts,
 )
 
 hh4b_boosted_qcd_control_region_tot = Cut(
@@ -297,10 +319,11 @@ def skimming_cut_list(configs):
         goldenJson,
         get_nPVgood(1),
     ]
+<<<<<<< HEAD
     if configs["boosted"]:
         skimlist.append(get_HLTsel(primaryDatasets=["Boosted"]))
-    else:
+    elif not configs["mixeddata"]:
         skimlist.append(get_HLTsel(primaryDatasets=["JetMET"]))
-    if not configs["noL1"] and not configs["boosted"]:
+    if not configs["noL1"] and not configs["mixeddata"] and not configs["boosted"]:
         skimlist.append(get_L1sel(primaryDatasets=["JetMET"]))
     return skimlist

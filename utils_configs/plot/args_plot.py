@@ -18,6 +18,14 @@ parser.add_argument(
     help="Input coffea files monte carlo",
     default=None,
 )
+parser.add_argument(
+    "-ir",
+    "--input-rew",
+    type=str,
+    nargs="+",
+    help="Input coffea files reweighted",
+    default=None,
+)
 parser.add_argument("-o", "--output", type=str, help="Output directory", default="")
 parser.add_argument(
     "-n",

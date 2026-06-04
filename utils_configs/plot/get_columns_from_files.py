@@ -227,14 +227,13 @@ def get_columns_from_parquet(
     # ------------------------------------------------------------
     for input_file in input_files:
         rootdir, dset = get_parquet_save_directory(input_file)
-        dirs_datasets[rootdir] = dset
+        dirs_datasets[dset] = rootdir
 
     # ------------------------------------------------------------
     # Main loop
     # ------------------------------------------------------------
-    for rootdir, sel_dataset in dirs_datasets.items():
-        if debug:
-            logger.debug(f"Scanning {rootdir}")
+    for sel_dataset, rootdir in dirs_datasets.items():
+        logger.debug(f"Scanning {rootdir}")
 
         datasets = (
             os.listdir(rootdir) if sel_dataset == "all" else [sel_dataset]
