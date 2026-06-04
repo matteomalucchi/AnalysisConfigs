@@ -769,24 +769,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["dR_min"] = ak.min(dR, axis=1)
         self.events["dR_max"] = ak.max(dR, axis=1)
 
-        if not self.mixeddata:
-            sigma_over_higgs1_reco_mass = (
-                self.get_sigma_mbb(
-                    jets_from_higgs[:, 0],
-                    jets_from_higgs[:, 1],
-                )
-                / higgs1.mass
+        sigma_over_higgs1_reco_mass = (
+            self.get_sigma_mbb(
+                jets_from_higgs[:, 0],
+                jets_from_higgs[:, 1],
             )
-            sigma_over_higgs2_reco_mass = (
-                self.get_sigma_mbb(
-                    jets_from_higgs[:, 2],
-                    jets_from_higgs[:, 3],
-                )
-                / higgs2.mass
+            / higgs1.mass
+        )
+        sigma_over_higgs2_reco_mass = (
+            self.get_sigma_mbb(
+                jets_from_higgs[:, 2],
+                jets_from_higgs[:, 3],
             )
-        else:
-            sigma_over_higgs1_reco_mass = ak.zeros_like(higgs1.mass)
-            sigma_over_higgs2_reco_mass = ak.zeros_like(higgs1.mass)
+            / higgs2.mass
+        )
 
         # Leading-pT H candidate pT , η, φ, and mass
         # Subleading-pT H candidate pT , η, φ, and mass
@@ -1040,12 +1036,18 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 pairing_predictions,
                 self.events["best_pairing_probability"],
                 self.events["second_best_pairing_probability"],
+                self.events["worst_pairing_probability"],
             ) = get_best_pairings(cleaned_assignment_prob)
 
             # get the probabilities difference between the best and second best jet assignment
             self.events["Delta_pairing_probabilities"] = (
                 self.events.best_pairing_probability
                 - self.events.second_best_pairing_probability
+            )
+
+            self.events["Delta_pairing_probabilities_best_worst"] = (
+                self.events.best_pairing_probability
+                - self.events.worst_pairing_probability
             )
 
             # apply logit transformation
@@ -1057,6 +1059,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             # apply arctanh transformation
             self.events["Arctanh_Delta_pairing_probabilities"] = np.arctanh(
                 self.events["Delta_pairing_probabilities"]
+            )
+            self.events["Arctanh_Delta_pairing_probabilities_best_worst"] = np.arctanh(
+                self.events["Delta_pairing_probabilities_best_worst"]
             )
             arctanh_delta_prob_bin_edges = [
                 np.min(self.events.Arctanh_Delta_pairing_probabilities) - 1,
@@ -1229,6 +1234,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
                 axis=1,
             ), 1)
+            self.events["JetGoodFromHiggsOrderedLeading"] = self.events["JetGoodFromHiggsOrdered"][:, :2]
+            self.events["JetGoodFromHiggsOrderedSubLeading"] = self.events["JetGoodFromHiggsOrdered"][:, 2:]
+            self.events["JetGoodFromHiggsOrderedLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedLeading"],ak.ones_like(self.events["JetGoodFromHiggsOrderedLeading"].pt),"reco_provenance")
+            self.events["JetGoodFromHiggsOrderedSubLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedSubLeading"],2*ak.ones_like(self.events["JetGoodFromHiggsOrderedSubLeading"].pt),"reco_provenance")
+            self.events["add_jet1pt"] = ak.with_field(self.events["add_jet1pt"],-1*ak.ones_like(self.events["add_jet1pt"].pt),"reco_provenance")
+
         if self.dnn_variables and self.run2:
             (
                 self.events["HiggsLeadingRun2"],

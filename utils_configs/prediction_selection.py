@@ -169,7 +169,25 @@ def maximal_prediction(predictions):
     return best_jet, best_prediction, best_value
 
 
-@njit(TResult(TPrediction, TInt64[::1], TInt64))
+@njit(numba.types.Tuple((TInt64, TInt64, TFloat32))(TPrediction))
+def minimal_prediction(predictions):
+    best_jet = -1
+    best_prediction = -1
+    best_value = np.float32(np.inf)
+
+    for i in range(len(predictions)):
+        for j in range(len(predictions[i])):
+            min_value = predictions[i][j]
+
+            if 0 < min_value < best_value:
+                best_prediction = i
+                best_value = min_value
+                best_jet = j
+
+    return best_jet, best_prediction, best_value
+
+
+@njit(TResult(TPrediction, TInt64[::1], TInt64, numba.boolean))
 def extract_prediction(predictions, num_partons, max_jets):
     float_negative_inf = -np.float32(np.inf)
     max_partons = num_partons.max()
@@ -208,7 +226,7 @@ def extract_prediction(predictions, num_partons, max_jets):
     return results
 
 
-@njit(TResults(TPredictions, TInt64[::1], TInt64, TInt64), parallel=True)
+@njit(TResults(TPredictions, TInt64[::1], TInt64, TInt64, numba.boolean), parallel=True)
 def _extract_predictions(predictions, num_partons, max_jets, batch_size):
     output = np.zeros((batch_size, len(predictions), num_partons.max()), np.int64)
     predictions = [p.copy() for p in predictions]
