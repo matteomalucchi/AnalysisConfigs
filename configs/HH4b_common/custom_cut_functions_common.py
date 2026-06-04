@@ -259,20 +259,24 @@ def hh4b_vbf_eta_mjj_cuts(events, params, **kwargs):
 
 
 def hh4b_vbf_discriminator_cuts(events, params, **kwargs):
-    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
-    # do not count the None values
-    mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
-    
     if params["pass"]:
         mask_discriminator = events[params["discriminator"]] >= params["threshold"]
     else:
         mask_discriminator = events[params["discriminator"]] < params["threshold"]
-        
-    mask = mask_num_vbf_jets & mask_discriminator
+
+    mask = mask_discriminator
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def hh4b_vbf_2_jets(events, params, **kwargs):
+    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
+    # do not count the None values
+    mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
+    mask = mask_num_vbf_jets
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
 
 def dhh_cuts(events, params, **kwargs):
 

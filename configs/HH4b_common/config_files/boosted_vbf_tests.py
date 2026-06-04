@@ -18,7 +18,7 @@ config_options_dict |= {
     "dnn_variables": True,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_boosted_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_boosted_dnn_input_variables,
-    "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables,
+    "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables_test,
     "max_num_jets_vbf_discriminator": 2,
     "run2": False,
     "fifth_jet": "pt",

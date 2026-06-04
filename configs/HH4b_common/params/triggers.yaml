@@ -13,8 +13,8 @@ HLT_triggers:
        - HLT_AK8PFJet425_SoftDropMass40
   "2023_preBPix":
     Boosted:
-       - HLT_AK8PFJet230_SoftDropMass40_PNetBB0p06
        - HLT_AK8PFJet400_SoftDropMass40
+       - HLT_AK8PFJet230_SoftDropMass40_PNetBB0p06
 
 ## TRIGGERS FOR 2023 PARKING OR PRE PARKING STILL TO BE UNDERSTOOD
 #   "2023_preBPix":
