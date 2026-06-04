@@ -94,6 +94,26 @@ parser.add_argument(
     help="If true, boosted regions format is expected",
     default=False,
 )
+parser.add_argument(
+    "--mixed",
+    action="store_true",
+    help="mixed datasets",
+    default=False,
+)
+parser.add_argument(
+    "-cms",
+    "--cmstext",
+    type=str,
+    help="Text shown on CMS plot",
+    default="Private",
+)
+parser.add_argument(
+    "-mw",
+    "--mask-large-weights",
+    action="store_true",
+    help="Removes events with large weights from the plots (w>100)",
+    default=True,
+)
 
 args = parser.parse_args()
 

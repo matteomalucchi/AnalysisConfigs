@@ -62,7 +62,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             # This does require the additional fields we add to the FatJet collection inside the function to be also added to the final collection
             _, mask_fat_lead = custom_jet_selection(
                 self.events,
-                jet_type="FatJet",
+                jet_type="FatJetGood",
                 jet_type_obj_presel="FatJetLeading",
                 params=self.params,
                 year=self._year,
@@ -72,7 +72,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             )
             _, mask_fat_sublead = custom_jet_selection(
                 self.events,
-                jet_type="FatJet",
+                jet_type="FatJetGood",
                 jet_type_obj_presel="FatJetSubLeading",
                 params=self.params,
                 year=self._year,
@@ -105,6 +105,9 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     (self.events["FatJetGood"]["mass_regr"] <= fatjet_obj_presel_sublead["mass_regr_max"])
                 )
                 mask_fat_sublead = mask_fat_sublead & mask_mass_regr
+            # == Cut on b-tag
+            mask_fat_lead = mask_fat_lead & (self.events["FatJetGood"]["btagBB"] > 0.65)
+            mask_fat_sublead = mask_fat_sublead & (self.events["FatJetGood"]["btagBB"] > 0.00) # used to be 0.05
 
             # ===== Cutting and combining the two fatjets =====
             self.events["FatJetGoodLeading"] = self.events["FatJetGood"][mask_fat_lead][:, :1]
@@ -116,7 +119,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             self.events["FatJetGoodSelected"] = ak.concatenate([self.events["FatJetGoodLeading"], self.events["FatJetGoodSubLeading"]], axis=1)
             self.events["nFatJetGoodSelected"] = ak.num(self.events["FatJetGoodSelected"], axis=1)
-            self.events["FatJetGoodSelected"] = ak.pad_none(self.events["FatJetGoodSelected"], 2)
 
         if self.vbf_analysis:
             if not self.boosted:
@@ -129,7 +131,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 # find the remaining jets to define the vbf candidates
                 self.events["JetVBF"] = self.get_jets_not_from_idx(jet_good_idx_not_none)
             else:
-                self.events["JetVBF"] = copy.copy(self.events.JetGood)
+                self.events["JetVBF"] = copy.copy(self.events.Jet)
             self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
                 self.events,
                 "JetVBF",
@@ -186,9 +188,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 )
 
                 # The equivalent of this for the not-boosted is in the main workflow_common. But there it is after the preselection. So I am not sure, how to merge the two.
-                self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
-                    self.events, "JetGoodVBFCandidates"
-                )
                 vbf_pool = self.events["JetGoodVBFCandidates"]
 
                 # Shortcut to the VBF jet preselection values
@@ -206,21 +205,19 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 )
                 self.events["JetGoodVBFCandidates"] = vbf_pool[mask_pt_vbf & mask_eta_vbf]
 
-                # build dijets for veto
-                dijets = ak.combinations(self.events["JetGoodVBFCandidates"], 2, fields=["j_lead", "j_sublead"])
-                dijets = ak.fill_none(dijets, [])
-                d4 = dijets.j_lead + dijets.j_sublead
-                for param in ["mass", "pt", "eta", "phi"]:
-                    dijets = ak.with_field(dijets, getattr(d4, param), param)
-                dijets = ak.with_field(dijets, np.abs(dijets.j_lead.eta - dijets.j_sublead.eta), "dEta")
-
-                # Apply VBF veto conditions to select good dijets and create a mask
-                good_pairs_mask = ak.fill_none(
-                    (dijets.mass > jetvbf_obj_presel["mjj"]) & (dijets.dEta > jetvbf_obj_presel["delta_eta"]),
-                    False,
+                self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
+                    self.events, "JetGoodVBFCandidates"
                 )
 
-                self.events["DiJetVBFCandidates"] = dijets[good_pairs_mask]
+                # # build dijets for veto
+                # dijets = ak.combinations(self.events["JetGoodVBFCandidates"], 2, fields=["j_lead", "j_sublead"])
+                # dijets = ak.fill_none(dijets, [])
+                # d4 = dijets.j_lead + dijets.j_sublead
+                # for param in ["mass", "pt", "eta", "phi"]:
+                #     dijets = ak.with_field(dijets, getattr(d4, param), param)
+                # dijets = ak.with_field(dijets, np.abs(dijets.j_lead.eta - dijets.j_sublead.eta), "dEta")
+
+                # self.events["DiJetVBF"] = ak.pad_none(dijets,1,clip=True)[:,0]
 
     def count_objects(self, variation):
         super().count_objects(variation=variation)

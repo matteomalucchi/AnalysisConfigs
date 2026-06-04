@@ -116,15 +116,18 @@ def extract_inputs(input_name, output_name, events, variables, pad_value, run2):
                 )
             )
         else:
-            variables_array.append(
-                np.array(
-                    ak.to_numpy(
-                        ak_array,
-                        allow_missing=True,
-                    ),
-                    dtype=np.float32,
+            try:
+                variables_array.append(
+                    np.array(
+                        ak.to_numpy(
+                            ak_array,
+                            allow_missing=True,
+                        ),
+                        dtype=np.float32,
+                    )
                 )
-            )
+            except:
+                raise ValueError(f"Issue with {collection}{feature}, {ak_array}")
 
     return np.stack(variables_array, axis=-1)
 

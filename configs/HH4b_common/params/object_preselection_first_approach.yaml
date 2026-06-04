@@ -11,16 +11,16 @@ object_preselection:
     eta: 2.4
     jetId: 2 # 6 with lepveto or 2 w/o lepveto
     btagPNetBB: -2
-    msd: 50
-    mass_regr_min: 50
+    msd: 40
+    mass_regr_min: 40
     mass_regr_max: 200
   FatJetSubLeading:
     pt: 250
     eta: 2.4
     jetId: 2 # 6 with lepveto or 2 w/o lepveto
     btagPNetBB: -2
-    msd: 50
-    mass_regr_min: 50
+    msd: 40
+    mass_regr_min: 40 # All mass requirements from 50 to 40 for now
     mass_regr_max: 200
   
   ## Lepton selection
@@ -53,7 +53,7 @@ object_preselection:
     jetId: 6 # 6 with lepveto or 2 w/o lepveto
     btagPNetB: -2 # 0.2605
     delta_eta: 3.5
-    mjj: 400
+    mjj: 300 # original: 400
   JetVBF_generalSelection:
     pt: 10
     ptSemiTight: 25

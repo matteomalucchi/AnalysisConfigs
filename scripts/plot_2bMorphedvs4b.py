@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import awkward as ak
 from multiprocessing import Pool
 from hist import Hist
 
@@ -75,16 +76,16 @@ elif args.boosted:
     cat_dict |= {
         f"CR{args.region_suffix}": [
             [
-                f"boosted_qcd_B{args.region_suffix}_region",
-                f"boosted_qcd_A{args.region_suffix}_region_postW",
-                f"boosted_qcd_A{args.region_suffix}_region",
+                "boosted_vbf_incl_qcd_B_region",
+                "boosted_vbf_incl_qcd_A_region_postW",
+                "boosted_vbf_incl_qcd_A_region",
             ]
         ],
         f"SR{args.region_suffix}": [
             [
-                f"boosted_signal{args.region_suffix}_region",
-                f"boosted_qcd_C{args.region_suffix}_region_postW",
-                f"boosted_qcd_C{args.region_suffix}_region",
+                "boosted_vbf_incl_signal_region",
+                "boosted_vbf_incl_qcd_C_region_postW",
+                "boosted_vbf_incl_qcd_C_region",
             ]
         ]
     }   
@@ -259,6 +260,10 @@ def plot_weights(weights_list, suffix, lumi, era_string):
     hist_1d_dict = {}
     mean_std_list = []
     for i, weights in enumerate(weights_list):
+        if any(weights == np.inf):
+            print(f"There are infinite values in the weights at {ak.local_index(weights[weights == np.inf])}")
+            print(f"We remove them")
+        weights = weights[weights < np.inf]
         var_name = f"Morphing weights" + (f" {i}" if len(weights_list) > 1 else "")
         hist_w = Hist.new.Var(
             np.logspace(-3, 2, 100),
@@ -406,10 +411,12 @@ def plot_single_var_from_columns(
             col_num = col_dict[cat_list[0]]
 
             # remove padded values
-            weights_den = weights_den[col_den != PAD_VALUE]
-            weights_num = weights_num[col_num != PAD_VALUE]
-            col_den = col_den[col_den != PAD_VALUE]
-            col_num = col_num[col_num != PAD_VALUE]
+            noninf_den = np.abs(weights_den) < np.inf
+            noninf_num = np.abs(weights_num) < np.inf
+            weights_den = weights_den[col_den != PAD_VALUE & noninf_den]
+            weights_num = weights_num[col_num != PAD_VALUE & noninf_num]
+            col_den = col_den[col_den != PAD_VALUE & noninf_den]
+            col_num = col_num[col_num != PAD_VALUE & noninf_num]
 
             # WARNING: the weights are different for the additional jets because
             # the number of events is different since it's computed after the masking of the PAD_VALUE
@@ -432,6 +439,7 @@ def plot_single_var_from_columns(
             )
 
             # normalize the weights
+            breakpoint()
             weights_den = weights_den * norm_factor_den
             weights_num = weights_num * norm_factor_num
 
@@ -832,6 +840,8 @@ if __name__ == "__main__":
 
     # plot the weights
     for category in cat_col_data.keys():
+        weights = cat_col_data[category]["weight"]
+        weights = weights[weights < np.inf]
         if "postW" in category:
             weights = cat_col_data[category]["weight"]
             plot_weights([weights], category, lumi, era_string)

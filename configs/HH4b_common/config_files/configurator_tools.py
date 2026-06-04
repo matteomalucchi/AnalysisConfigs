@@ -1322,9 +1322,12 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     return column_list
 
 
-def define_single_category(category_name):
+def define_single_category(category_name, ggf_vbf_threshold=False):
     """
     Define a single category for the analysis.
+
+    If `vbf_discriminator` is defined, we MUST have a `ggf_vbf_threshold`. Otherwise the scan will crash.
+    But the workflow should be designed in a way, that we never call this function without a threshold if one is needed.
     """
     cut_list = []
     # number of b jets
@@ -1334,10 +1337,10 @@ def define_single_category(category_name):
         cut_list.append(cuts.hh4b_2b_region)
 
     if "boosted" in category_name:
-        if "undiscriminated" not in category_name and "fail" not in category_name:
-            cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
+        if "incl" not in category_name and "fail" not in category_name:
+            cut_list.append(cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold))
         elif "fail" in category_name:
-            cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
+            cut_list.append(cuts.hh4b_vbf_fail_discriminator_region(ggf_vbf_threshold))
         if "signal" in category_name:
             cut_list.append(cuts.hh4b_boosted_signal_region)
         if "ttbar" in category_name:
@@ -1353,6 +1356,7 @@ def define_single_category(category_name):
                 cut_list.append(cuts.hh4b_boosted_qcd_control_region)
         if "vbf" in category_name:
             cut_list.append(cuts.hh4b_vbf_2_jets)
+            cut_list.append(cuts.hh4b_boosted_vbf_region)
     # mass cuts
     elif "VR1" not in category_name:
         if "control" in category_name:
@@ -1408,6 +1412,7 @@ def define_categories(
     split_qcd=True,
     vbf_analysis=False,
     vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,  # Only needed if using a vbf_discriminator
 ):
     """Define the categories for the analysis."""
     categories_dict = {}
@@ -1418,26 +1423,38 @@ def define_categories(
         else:
             is_vbf = ""
         if not vbf_discriminator:
-            categories_dict |= define_single_category(f"boosted_undiscriminated{is_vbf}_region")
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_region")
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_signal_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_B_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_C_region", ggf_vbf_threshold)
+            if bkg_morphing_dnn:
+                categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region_postW", ggf_vbf_threshold)
+                categories_dict |= (
+                    define_single_category(f"boosted{is_vbf}_incl_qcd_C_region_postW" + "_blind", ggf_vbf_threshold)
+                    if blind
+                    else {}
+                )
+                categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_C_region_postW", ggf_vbf_threshold)
         else:
-            categories_dict |= define_single_category(f"boosted{is_vbf}_signal_region")
-            categories_dict |= define_single_category(f"boosted{is_vbf}_ttbar_region")
-            categories_dict |= define_single_category(f"boosted{is_vbf}_pass_region")
-            categories_dict |= define_single_category(f"boosted{is_vbf}_fail_region")
+            categories_dict |= define_single_category(f"boosted{is_vbf}_signal_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_ttbar_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_pass_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_fail_region", ggf_vbf_threshold)
             if split_qcd:
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region")
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_B_region")
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region")
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region", ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_B_region", ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region", ggf_vbf_threshold)
                 if bkg_morphing_dnn:
-                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region_postW")
+                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region_postW", ggf_vbf_threshold)
                     categories_dict |= (
-                        define_single_category(f"boosted{is_vbf}_qcd_C_region_postW" + "_blind")
+                        define_single_category(f"boosted{is_vbf}_qcd_C_region_postW" + "_blind", ggf_vbf_threshold)
                         if blind
                         else {}
                     )
-                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region_postW")
+                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region_postW", ggf_vbf_threshold)
             else:
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_region")
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_region", ggf_vbf_threshold)
     elif not vr1:
         categories_dict |= define_single_category("4b_region")
         categories_dict |= define_single_category("4b_control_region")

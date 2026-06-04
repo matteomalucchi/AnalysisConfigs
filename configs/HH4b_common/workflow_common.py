@@ -74,7 +74,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             setattr(self, key, value)
 
     def process_extra_after_skim(self):
-        if self._isMC:
+        if self._isMC and "TTto" not in self.events.metadata["dataset"]:
             # do truth matching to get b-jet from Higgs
             self.get_jet_higgs_provenance(
                 which_bquark=self.which_bquark, jet_collection="Jet"
@@ -98,7 +98,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 provenance_higgs,
             )
 
-            if self._isMC:
+            if self._isMC and "TTto" not in self.events.metadata["dataset"]:
                 # check that provenance fields are orthogonal
                 mask_both_not_none = ~ak.is_none(
                     provenance_higgs, axis=1
@@ -301,13 +301,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def generate_btag_workingpoints(self, jets, num_wp):
         if hasattr(jets, "btagBB"):
             btag = "btagBB"
+            wps = {"M": 0.95, "T": 0.975, "XT": 0.99}
         else:
             btag = "btagPNetB"
-        # L, M, T, XT, XXT
-        # Right now hardcoded particleNet postEE
-        wps = self.params["btagging"]["working_point"][self._year]["btagging_WP"][
-            btag
-        ]
+            # L, M, T, XT, XXT
+            # Right now hardcoded particleNet postEE
+            wps = self.params["btagging"]["working_point"][self._year]["btagging_WP"][
+                btag
+            ]
         btag_wp = ak.zeros_like(jets[btag], dtype=np.int32) - (
             1 if self.old_wp_def else 0
         )
@@ -620,8 +621,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["nJetGoodHiggs"] = ak.num(self.events.JetGoodHiggs, axis=1)
         if self.boosted:
             self.events["nFatJetGood"] = ak.num(self.events.FatJetGood, axis=1)
-            self.events["nFatJetGoodSelected"] = ak.num(self.events.FatJetGoodSelected, axis=1)
-            self.events["nDiJetVBFCandidates"] = ak.num(self.events.DiJetVBFCandidates, axis=1)
+            # self.events["nFatJetGoodSelected"] = ak.num(self.events.FatJetGoodSelected, axis=1)
+            # self.events["nDiJetVBFCandidates"] = ak.num(self.events.DiJetVBFCandidates, axis=1)
 
     def HelicityCosTheta(self, higgs, jet):
         higgs = add_fields(higgs, four_vec="Momentum4D")
@@ -914,7 +915,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
 
     def define_boosted_dnn_variables(
-        self, higgs1, higgs2, cleaned_jets, vbf_candidate, vbf_variables
+        self, higgs1, higgs2, cleaned_jets, vbf_variables
     ):
         # HT : scalar sum of all jets with pT > 25 GeV inside | η | < 2.5
         self.events["HT"] = ak.sum(self.events.JetGood.pt, axis=1)
@@ -1005,8 +1006,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         if vbf_variables:
             # the ak.firsts is needed because vbf_candidate.j_lead and j_sublead are jagged arrays with one or zero entries per event
-            LeadingVBFJet = ak.firsts(vbf_candidate.j_lead, axis=1)
-            SubLeadingVBFJet = ak.firsts(vbf_candidate.j_sublead, axis=1)
+            cleaned_jets_padded = ak.pad_none(cleaned_jets, 2, axis=1)
+            LeadingVBFJet = ak.firsts(cleaned_jets[:, 0:1])
+            SubLeadingVBFJet = ak.firsts(cleaned_jets[:, 1:2])
 
             # centrality of the Higgs candidates w.r.t. the VBF jets
             C_1 = np.exp(
@@ -1028,6 +1030,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 C_2,
                 "centrality",
             )
+
+            self.events = ak.with_field(self.events, np.abs(LeadingVBFJet.eta - SubLeadingVBFJet.eta), "dEta")
 
             return (
                 higgs1,
@@ -1160,7 +1164,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         self.events[f"FW_R{i}_{norm}"] = ak.Array(R_out[:, i])
 
 
-            if self._isMC and not self.spanet:
+            if self._isMC and not self.spanet and "TTto" not in self.events.metadata["dataset"]:
                 matched_jet_higgs_idx_not_none = self.get_true_pairing_and_compare()
             elif self.spanet:
                 # apply spanet model to get the pairing prediction for the b-jets from Higgs
@@ -1243,7 +1247,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         self.events, "JetGoodVBFCandidates"
                     )
 
-            if self._isMC:
+            if self._isMC and "TTto" not in self.events.metadata["dataset"]:
                 # HERE add also the vbf idx
                 matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
                     suffix="True",
@@ -1265,7 +1269,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 else:
                     raise ValueError("This case was not implemented")
 
-            if not (self._isMC and not self.spanet):
+            if not ((self._isMC and not "TTto" not in self.events.metadata["dataset"]) and not self.spanet):
                 self.dummy_provenance()
 
             self.events["nJetGoodHiggsMatched"] = ak.num(
@@ -1304,14 +1308,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             ) = self.define_boosted_dnn_variables(
                 self.events["FatJetGoodSelected"][:, 0],
                 self.events["FatJetGoodSelected"][:, 1],
-                self.events.JetGoodVBFCandidates,
-                self.events.DiJetVBFCandidates,
+                self.events.JetGoodVBFEnergyOrdered,
                 vbf_variables=True
             )
-            self.events["JetGoodVBF"] = ak.concatenate([ak.singletons(self.events.LeadingVBFJet), ak.singletons(self.events.SubLeadingVBFJet)], axis=1)
-            # keep only the first pair of DiJetVBF
-            self.events["DiJetVBF"] = ak.pad_none(self.events.DiJetVBFCandidates, 1, clip=True)[:, 0]
-
         if self.vbf_discriminator and self.vbf_discriminator != self.spanet:
             (
                 model_session_vbf_discriminator,
@@ -1335,7 +1334,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             del model_session_vbf_discriminator, input_name_vbf_discriminator, output_name_vbf_discriminator
 
-        if self.bkg_morphing_dnn and not self._isMC:
+        if self.bkg_morphing_dnn and not (self._isMC and "TTto" not in self.events.metadata["dataset"]):
             (
                 model_session_bkg_morphing_dnn,
                 input_name_bkg_morphing_dnn,
@@ -1356,7 +1355,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
             del model_session_bkg_morphing_dnn, input_name_bkg_morphing_dnn, output_name_bkg_morphing_dnn
 
-        if self.bkg_morphing_spread_dnn and not self._isMC:
+        if self.bkg_morphing_spread_dnn and not (self._isMC and "TTto" not in self.events.metadata["dataset"]):
             (
                 model_session_bkg_morphing_spread_dnn,
                 input_name_bkg_morphing_spread_dnn,
@@ -1380,7 +1379,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 print("Warning: bkg_morphing_spread_dnn is not implemented for boosted category")
 
             del model_session_bkg_morphing_spread_dnn, input_name_bkg_morphing_spread_dnn, output_name_bkg_morphing_spread_dnn
-
+        
         if self.sig_bkg_dnn:
             (
                 model_session_SIG_BKG_DNN,

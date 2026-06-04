@@ -1,5 +1,5 @@
 {
-    "TTto4Q_2022_postEE": {
+    "TTto4Q__2022_postEE": {
         "metadata": {
             "das_names": "['/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
             "sample": "TTto4Q",
@@ -307,7 +307,7 @@
             "root://xrootd-cms.infn.it///store/mc/Run3Summer22EENanoAODv12/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/60000/4c1c634b-50fb-4229-ba32-1a34dabfc4d1.root"
         ]
     },
-    "TTtoLNu2Q_2022_postEE": {
+    "TTtoLNu2Q__2022_postEE": {
         "metadata": {
             "das_names": "['/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
             "sample": "TTtoLNu2Q",
@@ -844,7 +844,7 @@
             "root://xrootd-cms.infn.it///store/mc/Run3Summer22EENanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/40000/05b0f85b-3799-4ad5-a308-2768b75a864e.root"
         ]
     },
-    "TTto2L2Nu_2022_postEE": {
+    "TTto2L2Nu__2022_postEE": {
         "metadata": {
             "das_names": "['/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
             "sample": "TTto2L2Nu",
