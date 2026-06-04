@@ -1,0 +1,36 @@
+import configs.HH4b_common.dnn_input_variables as dnn_vars
+
+
+from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
+
+from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
+
+
+onnx_model_dict  |= {
+    # "vbf_discriminator": "/work/tharte/datasets/onnx_spanet_models_for_ggf_vs_vbf_boosted/1_16_4_boosted_vbf_ggf_classification_fixedworkflow.onnx"
+    "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch_matteo/out/bkg_reweighting/boosted_vbf/1e-3_e5drop95_minDelta1em5_unskimmed_boosted_multiclass_oversample_split_looser_cuts_500Bdata/best_models/average_model_from_onnx.onnx",
+    # "bkg_morphing_spread_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DHH_method_20_runs_postEE/best_models/ratio/all_ratios_model_onnx.onnx", # --> training on postEE
+    # "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DHH_method_norm_e5drop75_postEE/state_dict/model_best_epoch_18.onnx",
+}
+
+
+config_options_dict |= {
+    "dnn_variables": True,
+    "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_boosted_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_boosted_dnn_input_variables,
+    "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables,
+    "max_num_jets_vbf_discriminator": 2,
+    "run2": False,
+    "fifth_jet": "pt",
+    "pad_value": -999.0,
+    "add_jet_spanet": False,
+    "boosted": True,
+    "boosted_presel": True,
+    "split_qcd": True,
+    # VBF
+    "vbf_parton_matching": True,
+    "vbf_analysis": True,
+    "ggf_vbf_threshold": 0.95,
+    "which_vbf_quark": "with_mothers_children",
+    "max_num_jets_add_vbf": 2,
+} | onnx_model_dict
