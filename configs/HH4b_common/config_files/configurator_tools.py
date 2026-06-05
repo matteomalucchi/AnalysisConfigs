@@ -1597,6 +1597,6 @@ def define_preselection(options):
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
-    if not options["boosted_presel"] or not options["mixeddata"]:
+    if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
     return preselection
