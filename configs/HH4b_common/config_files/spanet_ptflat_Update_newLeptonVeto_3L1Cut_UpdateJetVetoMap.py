@@ -7,9 +7,9 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 onnx_model_dict |= {
-    "spanet": "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/spanet_1_14_5_h4b_5jets_ptvary_loose_300_btag_wp_newLeptonVeto_3L1Cut_UpdateJetVetoMap.onnx",
-    "bkg_morphing_dnn": "/work/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/best_models/ratio/average_model_from_onnx.onnx",
-    "sig_bkg_dnn": "/work/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/run100/state_dict/model_best_epoch_31.onnx",
+    "spanet": "/pnfs/psi.ch/cms/trivcat/store/user/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/spanet_1_14_5_h4b_5jets_ptvary_loose_300_btag_wp_newLeptonVeto_3L1Cut_UpdateJetVetoMap.onnx",
+    "bkg_morphing_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/tharte/datasets/ML_pytorch/out/bkg_reweighting/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/best_models/ratio/average_model_from_onnx.onnx",
+    "sig_bkg_dnn": "/pnfs/psi.ch/cms/trivcat/store/user/tharte/datasets/ML_pytorch/out/sig_bkg_classifier/DNN_AN_1e-3_e20drop75_minDelta1em5_SPANet_newUpdates_newLeptonVeto_3L1Cut_UpdateJetVetoMap_postEE/run100/state_dict/model_best_epoch_31.onnx",
 }
 
 
@@ -27,5 +27,5 @@ config_options_dict |= {
     # "mixeddata": True,
     # "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap",
     # "qt_postEE": "/work/tharte/datasets/quantile_transformer/1_19_1_3L1_trigger_cuts/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
-    "qt_postEE": "/work/tharte/datasets/sig_bkg_classifier/1_19_4_spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap_forPhDseminar_with_systs_qt_transform_fixed/quantile_transformer_directfromscore/SRSpanet_qt/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
+    "qt_postEE": "/pnfs/psi.ch/cms/trivcat/store/user/tharte/datasets/sig_bkg_classifier/1_19_4_spanet_ptflat_Update_newLeptonVeto_3L1Cut_UpdateJetVetoMap_forPhDseminar_with_systs_qt_transform_fixed/quantile_transformer_directfromscore/SRSpanet_qt/qt_events_sig_bkg_dnn_score_kl_1.00.pkl",
 }| onnx_model_dict

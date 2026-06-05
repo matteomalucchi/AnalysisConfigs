@@ -57,5 +57,6 @@ default_config_options_dict = {
     "only5jetsbSF": False,
     "noL1": False,
     "approach": "first",
+    "expandCR": False,
     "mixeddata": False
 } | default_onnx_model_dict

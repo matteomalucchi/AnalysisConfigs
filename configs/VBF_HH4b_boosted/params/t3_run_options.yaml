@@ -5,5 +5,5 @@ disk-per-worker: "1GB"
 queue: "standard"
 walltime: "12:00:00"
 chunksize: 50000
-retries: 0
+retries: 5
   #tree-reduction: 5

@@ -496,7 +496,7 @@ bkg_morphing_boosted_dnn_input_variables = OrderedDict(
         "vbf_cand_jets_eta_jet3": ["JetGoodVBF:3", "eta"],
         "vbf_cand_jets_phi_jet3": ["JetGoodVBF:3", "phi"],
         "vbf_cand_jets_mass_jet3": ["JetGoodVBF:3", "mass"],
-        "era": ["events", "era"],
+        # "era": ["events", "era"],
         "HT": ["events", "HT"],
         "dijet_dEta": ["events", "dEta"],
         "higgs1_reco_pt": ["HiggsLeading", "pt"],

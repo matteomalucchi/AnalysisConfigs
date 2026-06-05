@@ -169,7 +169,7 @@ def maximal_prediction(predictions):
     return best_jet, best_prediction, best_value
 
 
-@njit(TResult(TPrediction, TInt64[::1], TInt64, numba.boolean))
+@njit(TResult(TPrediction, TInt64[::1], TInt64))
 def extract_prediction(predictions, num_partons, max_jets):
     float_negative_inf = -np.float32(np.inf)
     max_partons = num_partons.max()
@@ -208,7 +208,7 @@ def extract_prediction(predictions, num_partons, max_jets):
     return results
 
 
-@njit(TResults(TPredictions, TInt64[::1], TInt64, TInt64, numba.boolean), parallel=True)
+@njit(TResults(TPredictions, TInt64[::1], TInt64, TInt64), parallel=True)
 def _extract_predictions(predictions, num_partons, max_jets, batch_size):
     output = np.zeros((batch_size, len(predictions), num_partons.max()), np.int64)
     predictions = [p.copy() for p in predictions]

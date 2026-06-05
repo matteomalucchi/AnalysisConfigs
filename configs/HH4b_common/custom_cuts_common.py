@@ -319,7 +319,6 @@ def skimming_cut_list(configs):
         goldenJson,
         get_nPVgood(1),
     ]
-<<<<<<< HEAD
     if configs["boosted"]:
         skimlist.append(get_HLTsel(primaryDatasets=["Boosted"]))
     elif not configs["mixeddata"]:

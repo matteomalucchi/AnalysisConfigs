@@ -1339,12 +1339,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events.JetGoodVBFEnergyOrdered,
                 vbf_variables=True
             )
-            # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-            add_jet1pt_list = ak.pad_none(ak.singletons(self.events.add_jet1ptRun2), 1, clip=True)
-            self.events["JetGoodFromHiggsOrdered5JetsRun2"] = ak.pad_none(ak.concatenate(
-                [self.events.JetGoodFromHiggsOrderedRun2, add_jet1pt_list],
-                axis=1,
-            ), 1)
         if self.vbf_discriminator and self.vbf_discriminator != self.spanet:
             (
                 model_session_vbf_discriminator,

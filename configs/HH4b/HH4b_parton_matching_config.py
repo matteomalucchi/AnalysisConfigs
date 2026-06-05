@@ -281,7 +281,6 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-<<<<<<< HEAD
         bysample_bycategory_column_dict[sample]["bycategory"][category] = (
             column_list
             + (
@@ -290,31 +289,6 @@ for sample in sample_list:
                 and config_options_dict["bkg_morphing_spread_dnn"]
                 and "postW" in category
                 else []
-=======
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-                + (
-                    get_columns_list(
-                        {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
-                    )
-                    if "DATA" in sample.upper()
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
-            )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-                + (
-                    get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
-                    # if "DATA" in sample
-                    if config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
->>>>>>> main
             )
         )
 # print("bysample_bycategory_column_dict", bysample_bycategory_column_dict)
@@ -367,23 +341,12 @@ cfg = Configurator(
     skim=cuts.skimming_cut_list(config_options_dict),
     preselections=preselection,
     categories=categories_dict,
-<<<<<<< HEAD
     weights_classes=common_weights + [bkg_morphing_dnn_weight, SF_btag_fixed_multiple_wp],
-    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
-    calibrators=[JetsCalibrator],
-    weights={
-        "common": {
-            # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
-            # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
-=======
-    # weights_classes=[bkg_morphing_dnn_weight],# common_weights
-    weights_classes=common_weights + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2, SF_btag_fixed_multiple_wp] ,
     calibrators=[JetsCalibrator] if not config_options_dict['mixeddata'] else [],
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
-            "inclusive": ["genWeight", "lumi", "XS", "pileup"],
->>>>>>> main
+            # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
             # "inclusive": ["genWeight", "lumi", "XS"],
             "inclusive": [],
             "bycategory": {
