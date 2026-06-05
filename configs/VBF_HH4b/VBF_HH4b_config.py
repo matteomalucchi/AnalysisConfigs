@@ -20,6 +20,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
+    define_single_category,
     define_preselection,
     get_columns_list,
     get_variables_dict,
@@ -31,6 +32,7 @@ from configs.HH4b_common.custom_weights import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
+SPANET_TRAINING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -117,7 +119,7 @@ sample_list = (
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
     + sample_ggF_list
-    # + sample_VBF_list
+    + sample_VBF_list
     + (
         [
             #     "GluGlutoHHto4B_spanet_skimmed",
@@ -129,18 +131,21 @@ sample_list = (
 
 
 # Define the categories to save
-categories_dict = define_categories(
-    bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
-    blind=config_options_dict["blind"],
-    spanet=config_options_dict["spanet"],
-    run2=config_options_dict["run2"],
-    vr1=config_options_dict["vr1"],
-    vbf_analysis=config_options_dict["vbf_analysis"],
-    vbf_discriminator=config_options_dict["vbf_discriminator"],
-)
-
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
+if SPANET_TRAINING:
+    categories_dict = define_single_category(f"4b_region")
+else:
+    categories_dict = define_categories(
+        bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
+        blind=config_options_dict["blind"],
+        spanet=config_options_dict["spanet"],
+        run2=config_options_dict["run2"],
+        vr1=config_options_dict["vr1"],
+        vbf_analysis=config_options_dict["vbf_analysis"],
+        vbf_discriminator=config_options_dict["vbf_discriminator"],
+    )
+
 
 column_list = []
 column_listRun2 = []
@@ -164,6 +169,19 @@ elif (
         SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
     )
 
+    # Define the other columns to save
+    total_input_columns = {}
+    if config_options_dict["dnn_variables"]:
+        total_input_columns |= (
+            config_options_dict["sig_bkg_dnn_input_variables"]
+            | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | {"year": ["events", "year"]}
+        )
+
+    column_list += create_DNN_columns_list(
+        False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+    )
+
 else:
     # Define the other columns to save
     total_input_columns = {}
@@ -184,7 +202,6 @@ else:
                 "Padded_Arctanh_Delta_pairing_probabilities",
             ],
         }
-
     if config_options_dict["dnn_variables"]:
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]

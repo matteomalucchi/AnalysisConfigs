@@ -53,12 +53,12 @@ default_jets_calibration:
         level: L1L2L3Res
       
       2022_postEE:
-        json_path: ${cvmfs:Run3-22EFGSep23-Summer22EE-NanoAODv12,JME,jet_jerc.json.gz}
+        json_path: ${cvmfs:Run3-22EFGSep23-Summer22EE-NanoAODv12,JME,jet_jerc.json.gz,2026-04-13}
         jec_mc: Summer22EE_22Sep2023_V3_MC
         jec_data:
-          E: Summer22EE_22Sep2023_RunE_V3_DATA
-          F: Summer22EE_22Sep2023_RunF_V3_DATA
-          G: Summer22EE_22Sep2023_RunG_V3_DATA
+          E: Summer22EE_22Sep2023_V3_DATA
+          F: Summer22EE_22Sep2023_V3_DATA
+          G: Summer22EE_22Sep2022_V3_DATA
         jer: Summer22EE_22Sep2023_JRV1_MC
         level: L1L2L3Res
 
@@ -96,9 +96,9 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/CopyJERToPNet/Run3Summer22EE_22Sep2023/jet_jerc.json.gz"
         jec_mc: Summer22EE_22Sep2023_V4_MC
         jec_data:
-          E: Summer22EE_22Sep2023_RunE_V4_DATA
-          F: Summer22EE_22Sep2023_RunF_V4_DATA
-          G: Summer22EE_22Sep2023_RunG_V4_DATA
+          E: Summer22EE_22Sep2023_V4_DATA
+          F: Summer22EE_22Sep2023_V4_DATA
+          G: Summer22EE_22Sep2023_V4_DATA
         jer: Summer22EE_22Sep2023_JRV1_MC
         level: L1L2L3Res
 
@@ -136,9 +136,9 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/CopyJERToPNet/Run3Summer22EE_22Sep2023/jet_jerc.json.gz"
         jec_mc: Summer22EE_22Sep2023_V4_MC
         jec_data:
-          E: Summer22EE_22Sep2023_RunE_V4_DATA
-          F: Summer22EE_22Sep2023_RunF_V4_DATA
-          G: Summer22EE_22Sep2023_RunG_V4_DATA
+          E: Summer22EE_22Sep2023_V4_DATA
+          F: Summer22EE_22Sep2023_V4_DATA
+          G: Summer22EE_22Sep2023_V4_DATA
         jer: Summer22EE_22Sep2023_JRV1_MC
         level: L1L2L3Res
 
@@ -201,7 +201,7 @@ default_jets_calibration:
         level: L1L2L3Res
 
       2022_postEE:
-        json_path: ${cvmfs:Run3-22EFGSep23-Summer22EE-NanoAODv12,JME,fatJet_jerc.json.gz}
+        json_path: ${cvmfs:Run3-22EFGSep23-Summer22EE-NanoAODv12,JME,fatJet_jerc.json.gz,2026-04-13}
         jec_mc: "${default_jets_calibration.factory_config_clib.AK4PFPuppi.2022_postEE.jec_mc}"
         jec_data: "${default_jets_calibration.factory_config_clib.AK4PFPuppi.2022_postEE.jec_data}"
         jer: "${default_jets_calibration.factory_config_clib.AK4PFPuppi.2022_postEE.jer}"
