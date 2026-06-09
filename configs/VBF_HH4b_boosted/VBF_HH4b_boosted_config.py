@@ -132,7 +132,7 @@ sample_list = (
     )
 )
 
-
+vbf_selection = False
 # Define the categories to save
 categories_dict = define_categories(
     bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
@@ -142,7 +142,8 @@ categories_dict = define_categories(
     vr1=config_options_dict["vr1"],
     boosted=config_options_dict["boosted"],
     split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
-    vbf_analysis=config_options_dict["vbf_analysis"],
+    # vbf_analysis=config_options_dict["vbf_analysis"],
+    vbf_analysis=vbf_selection,
     vbf_discriminator=config_options_dict["vbf_discriminator"],
     ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
 )

@@ -88,7 +88,7 @@ preselection = define_preselection(config_options_dict)
 
 # Defining the used samples
 sample_ggF_list = [
-      "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+      # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
       # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
       # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
       # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
@@ -103,9 +103,9 @@ sample_ggF_list = [
 ]
 sample_mixed_list = [
     # "MixedData_2022_preEE",
-    "MixedData_2022_postEE_EraE",
+    # "MixedData_2022_postEE_EraE",
     "MixedData_2022_postEE_EraF",
-    "MixedData_2022_postEE_EraG",
+    # "MixedData_2022_postEE_EraG",
     # "MixedData_2023_preBPix",
     # "MixedData_2023_postBPix"
         ]
