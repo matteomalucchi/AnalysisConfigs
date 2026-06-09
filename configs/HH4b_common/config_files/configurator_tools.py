@@ -1333,9 +1333,15 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     cut_list = []
     # number of b jets
     if "4b" in category_name:
-        cut_list.append(cuts.hh4b_4b_region)
+        if not wide_cr:
+            cut_list.append(cuts.hh4b_4b_region)
+        else:
+            cut_list.append(cuts.hh4b_4b_region_wide)
     if "2b" in category_name:
-        cut_list.append(cuts.hh4b_2b_region)
+        if not wide_cr:
+            cut_list.append(cuts.hh4b_2b_region)
+        else:
+            cut_list.append(cuts.hh4b_4b_region_wide)
 
     if "boosted" in category_name:
         if "incl" not in category_name and "fail" not in category_name:

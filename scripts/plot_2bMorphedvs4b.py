@@ -894,9 +894,10 @@ if __name__ == "__main__":
     # plot the weights
     for category in cat_col_data.keys():
         weights = cat_col_data[category]["weight"]
+        if np.any(weights >= np.inf):
+            logger.warn("Found infinite values in weights")
         weights = weights[weights < np.inf]
         if "postW" in category:
-            weights = cat_col_data[category]["weight"]
             plot_weights([weights], category, lumi, era_string)
 
     main([cat_col_data, cat_col_mc], lumi, era_string)
