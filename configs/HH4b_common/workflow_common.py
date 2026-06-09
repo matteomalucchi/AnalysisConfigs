@@ -1300,15 +1300,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
                 )
 
-            # Get classification probability if present
-            if self.spanet and len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
-                if self.vbf_analysis:
-                    self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
-                else:
-                    raise ValueError("This case was not implemented")
-
-            if not ((self._isMC and not "TTto" not in self.events.metadata["dataset"]) and not self.spanet):
-                self.dummy_provenance()
 
             self.events["nJetGoodHiggsMatched"] = ak.num(
                 self.events.JetGoodHiggsMatched, axis=1
