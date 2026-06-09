@@ -207,11 +207,7 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     # get combinations of jet and choose the one with highest mjj
     jet_combinations = ak.combinations(jet_padded, 2)
     jet_combinations_mass = (jet_combinations["0"] + jet_combinations["1"]).mass
-    jet_combinations_mass_padded = ak.fill_none(ak.where(
-        ~ak.is_none(jet_combinations_mass, axis=1),
-        jet_combinations_mass,
-        -np.inf), -np.inf
-    )
+    jet_combinations_mass_padded = ak.fill_none(jet_combinations_mass, -np.inf)
     jet_combinations_mass_max_idx = ak.to_numpy(
         ak.argsort(jet_combinations_mass_padded, axis=1, ascending=False)[:, 0]
     )
@@ -234,11 +230,7 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     )
     lead_mjj_jet_pair = add_fields(lead_mjj_jet_pair, "all")
 
-    energy = ak.fill_none(ak.where(
-        ~ak.is_none(lead_mjj_jet_pair, axis=1),
-        lead_mjj_jet_pair.energy,
-        -np.inf), -np.inf
-    )
+    energy = ak.fill_none(lead_mjj_jet_pair.energy, -np.inf)
     # order the jets according to the energy
     lead_mjj_jet_pair = lead_mjj_jet_pair[
         ak.argsort(energy, axis=1, ascending=False)

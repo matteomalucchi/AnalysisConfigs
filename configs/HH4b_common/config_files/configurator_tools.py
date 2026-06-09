@@ -1409,6 +1409,7 @@ def define_categories(
     run2=False,
     vr1=False,
     expandCR=False,
+    mixeddata=False,
     btag_sf_comp=False,
     boosted=False,
     split_qcd=True,
@@ -1460,7 +1461,7 @@ def define_categories(
     elif not vr1:
         categories_dict |= define_single_category("4b_region")
         categories_dict |= define_single_category("4b_control_region")
-        if not expandCR:
+        if not mixeddata:
             categories_dict |= define_single_category(f"2b_control_region_preW", expandCR)
             categories_dict |= define_single_category(f"2b_signal_region_preW", expandCR)
             categories_dict |= (
@@ -1491,7 +1492,7 @@ def define_categories(
         categories_dict |= define_single_category("2b_signal_region_preW")
 
         if bkg_morphing_dnn:
-            if not expandCR:
+            if not mixeddata:
                 categories_dict |= define_single_category(
                     f"2b_control_region_postW", expandCR
                 )

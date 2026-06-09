@@ -1187,6 +1187,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
                 jet_vbf = None
 
+            # ===== RUNNING SPANET PAIRING ======
             elif self.spanet:
                 # apply spanet model to get the pairing prediction for the b-jets from Higgs
                 (
@@ -1246,7 +1247,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 ) = reconstruct_resonances_from_idx(
                     self.events[jet_coll_pairing], pairing_predictions
                 )
+            # ====== Calculating Run2 Algorithm ============
+            if self.run2:
+                 (
+                    pairing_predictions,
+                    self.events["delta_dhh"],
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["JetGoodFromHiggsOrdered"],
+                ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
+            # ======= VBF PARAMETERS ============
             if self.vbf_analysis and (self.spanet or self.run2):
                 if jet_vbf is not None:
                     self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
@@ -1285,47 +1296,39 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["btag_order_add_jet"] = ak.any(
                 ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
                 )
-            if self.spanet and len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
-                if self.vbf_analysis:
-                    self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
-                else:
-                    raise ValueError("This case was not implemented")
-
-            if not ((self._isMC and not "TTto" not in self.events.metadata["dataset"]) and not self.spanet):
-                self.dummy_provenance()
-
             self.events["nJetGoodHiggsMatched"] = ak.num(
                 self.events.JetGoodHiggsMatched, axis=1
             )
             self.events["nJetGoodMatched"] = ak.num(self.events.JetGoodMatched, axis=1)
 
-        if self.dnn_variables and not self.boosted:
-            (
-                self.events["HiggsLeading"],
-                self.events["HiggsSubLeading"],
-                self.events["HH"],
-                self.events["add_jet1pt"],
-                self.events["sigma_over_higgs1_reco_mass"],
-                self.events["sigma_over_higgs2_reco_mass"],
-            ) = self.define_dnn_variables(
-                self.events.HiggsLeading,
-                self.events.HiggsSubLeading,
-                self.events.JetGoodFromHiggsOrdered,
-                matched_jet_higgs_idx_not_none,
-                sb_variables=True,  # if self.SIG_BKG_DNN else False,
-            )
-            # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
-            add_jet1pt_list = ak.pad_none(ak.singletons(self.events.add_jet1pt), 1, clip=True)
-            self.events["JetGoodFromHiggsOrdered5Jets"] = ak.pad_none(ak.concatenate(
-                [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
-                axis=1,
-            ), 1)
-            self.events["JetGoodFromHiggsOrderedLeading"] = self.events["JetGoodFromHiggsOrdered"][:, :2]
-            self.events["JetGoodFromHiggsOrderedSubLeading"] = self.events["JetGoodFromHiggsOrdered"][:, 2:]
-            self.events["JetGoodFromHiggsOrderedLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedLeading"],ak.ones_like(self.events["JetGoodFromHiggsOrderedLeading"].pt),"reco_provenance")
-            self.events["JetGoodFromHiggsOrderedSubLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedSubLeading"],2*ak.ones_like(self.events["JetGoodFromHiggsOrderedSubLeading"].pt),"reco_provenance")
-            self.events["add_jet1pt"] = ak.with_field(self.events["add_jet1pt"],-1*ak.ones_like(self.events["add_jet1pt"].pt),"reco_provenance")
-
+            if self.dnn_variables:
+                (
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["HH"],
+                    self.events["add_jet1pt"],
+                    self.events["sigma_over_higgs1_reco_mass"],
+                    self.events["sigma_over_higgs2_reco_mass"],
+                ) = self.define_dnn_variables(
+                    self.events.HiggsLeading,
+                    self.events.HiggsSubLeading,
+                    self.events.JetGoodFromHiggsOrdered,
+                    matched_jet_higgs_idx_not_none,
+                    sb_variables=True,  # if self.SIG_BKG_DNN else False,
+                )
+                # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
+                add_jet1pt_list = ak.pad_none(ak.singletons(self.events.add_jet1pt), 1, clip=True)
+                self.events["JetGoodFromHiggsOrdered5Jets"] = ak.pad_none(ak.concatenate(
+                    [self.events.JetGoodFromHiggsOrdered, add_jet1pt_list],
+                    axis=1,
+                ), 1)
+                self.events["JetGoodFromHiggsOrderedLeading"] = self.events["JetGoodFromHiggsOrdered"][:, :2]
+                self.events["JetGoodFromHiggsOrderedSubLeading"] = self.events["JetGoodFromHiggsOrdered"][:, 2:]
+                self.events["JetGoodFromHiggsOrderedLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedLeading"],ak.ones_like(self.events["JetGoodFromHiggsOrderedLeading"].pt),"reco_provenance")
+                self.events["JetGoodFromHiggsOrderedSubLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedSubLeading"],2*ak.ones_like(self.events["JetGoodFromHiggsOrderedSubLeading"].pt),"reco_provenance")
+                self.events["add_jet1pt"] = ak.with_field(self.events["add_jet1pt"],-1*ak.ones_like(self.events["add_jet1pt"].pt),"reco_provenance")
+ 
+        # =========== BOOSTED ==============
         elif self.dnn_variables and self.boosted:
             (
                 self.events["HiggsLeading"],
@@ -1339,7 +1342,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events.JetGoodVBFEnergyOrdered,
                 vbf_variables=True
             )
-        if self.vbf_discriminator and self.vbf_discriminator != self.spanet:
+        # ======= VBF GGF DISCRIMINATOR ===========
+        if self.spanet and len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
+            if self.vbf_analysis:
+                self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+            else:
+                raise ValueError("This case was not implemented")
+
+        elif self.vbf_discriminator and self.vbf_discriminator != self.spanet:
             (
                 model_session_vbf_discriminator,
                 input_name_vbf_discriminator,
@@ -1362,6 +1372,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             del model_session_vbf_discriminator, input_name_vbf_discriminator, output_name_vbf_discriminator
 
+        # ============== BKG MORPHING =============
         if self.bkg_morphing_dnn and not (self._isMC and "TTto" not in self.events.metadata["dataset"]):
             (
                 model_session_bkg_morphing_dnn,

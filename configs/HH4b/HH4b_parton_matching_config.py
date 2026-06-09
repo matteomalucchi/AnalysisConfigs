@@ -141,6 +141,7 @@ categories_dict = define_categories(
     vr1=config_options_dict["vr1"],
     boosted=config_options_dict["boosted"],
     expandCR=config_options_dict["expandCR"],
+    mixeddata=config_options_dict["mixeddata"],
 )
 # AKA if no model is applied
 # print(onnx_model_dict)
