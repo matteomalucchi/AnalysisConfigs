@@ -176,7 +176,7 @@ def get_onnx_prediction(
         for collection, features in collection_feature_dict.items():
             sequential_inputs = define_spanet_pairing_inputs(
                 events, max_num_jets_spanet, collection, features, pad_value_spanet
-            )  # Currently hardcode jets to 4
+            )  
             mask = np.array(
                 ak.to_numpy(
                     ak.fill_none(

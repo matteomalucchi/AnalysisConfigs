@@ -490,7 +490,6 @@ def plot_single_var_from_columns(
             )
 
             # normalize the weights
-            breakpoint()
             weights_den = weights_den * norm_factor_den
             weights_num = weights_num * norm_factor_num
 

@@ -1289,13 +1289,27 @@ class HH4bCommonProcessor(BaseProcessorABC):
             matched_jet_higgs_idx_not_none = (
                 self.events.JetGoodFromHiggsOrdered.index
             )
+            # Define distance parameter for selection:
             self.events["Rhh"] = np.sqrt(
                 (self.events.HiggsLeading.mass - 125) ** 2
                 + (self.events.HiggsSubLeading.mass - 120) ** 2
             )
+            # if the 5th jet is matched, then the add jet should be order by btag
+            # because we want to consider the leading in btag which the pairing discarded
             self.events["btag_order_add_jet"] = ak.any(
                 ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
                 )
+
+            # Get classification probability if present
+            if self.spanet and len(spanet_output["class_prob"]) > 0 and self.vbf_discriminator == self.spanet:
+                if self.vbf_analysis:
+                    self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+                else:
+                    raise ValueError("This case was not implemented")
+
+            if not ((self._isMC and not "TTto" not in self.events.metadata["dataset"]) and not self.spanet):
+                self.dummy_provenance()
+
             self.events["nJetGoodHiggsMatched"] = ak.num(
                 self.events.JetGoodHiggsMatched, axis=1
             )
