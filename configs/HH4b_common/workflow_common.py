@@ -1107,7 +1107,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         else:
             mask_fully_matched = ak.all(ak.flatten(pairing_true, axis=2) >= 0, axis=1)
 
-        self.events["mask_`fully_matched"] = mask_fully_matched
+        self.events["mask_fully_matched"] = mask_fully_matched
 
         return matched_jet_higgs_idx_not_none
 
