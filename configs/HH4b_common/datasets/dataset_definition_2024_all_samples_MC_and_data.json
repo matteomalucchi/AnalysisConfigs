@@ -1,7 +1,7 @@
 {
   "GluGluHHto4B_Par-c2-0p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-0p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -17,7 +17,7 @@
   },
   "GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -33,7 +33,7 @@
   },
   "GluGluHHto4B_Par-c2-0p00-kl-2p45-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-0p00-kl-2p45-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -49,7 +49,7 @@
   },
   "GluGluHHto4B_Par-c2-0p00-kl-5p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-0p00-kl-5p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -65,7 +65,7 @@
   },
   "GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -81,7 +81,7 @@
   },
   "GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -97,7 +97,7 @@
   },
   "GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -113,7 +113,7 @@
   },
   "GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -129,7 +129,7 @@
   },
   "GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -145,7 +145,7 @@
   },
   "GluGluHHto4B_Par-c2-m2p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8": {
     "sample": "GluGluHHto4B_Par-c2-m2p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-    "json_output": "datasets/GluGluHHto4B_Par",
+    "json_output": "datasets/GluGluHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -161,7 +161,7 @@
   },
   "VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -177,7 +177,7 @@
   },
   "VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -193,7 +193,7 @@
   },
   "VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -209,7 +209,7 @@
   },
   "VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -225,7 +225,7 @@
   },
   "VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -241,7 +241,7 @@
   },
   "VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -257,7 +257,7 @@
   },
   "VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -273,7 +273,7 @@
   },
   "VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -289,7 +289,7 @@
   },
   "VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -305,7 +305,7 @@
   },
   "VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8": {
     "sample": "VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8",
-    "json_output": "datasets/VBFHHto4B_Par",
+    "json_output": "datasets/VBFHHto4B_Par_2024",
     "files": [
       {
         "das_names": [
@@ -369,7 +369,7 @@
   },
   "QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -385,7 +385,7 @@
   },
   "QCD-4Jets_Bin-HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -401,7 +401,7 @@
   },
   "QCD-4Jets_Bin-HT-1200to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-1200to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -417,7 +417,7 @@
   },
   "QCD-4Jets_Bin-HT-1500to2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-1500to2000_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -433,7 +433,7 @@
   },
   "QCD-4Jets_Bin-HT-2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-2000_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -449,7 +449,7 @@
   },
   "QCD-4Jets_Bin-HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -465,7 +465,7 @@
   },
   "QCD-4Jets_Bin-HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -481,7 +481,7 @@
   },
   "QCD-4Jets_Bin-HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -497,7 +497,7 @@
   },
   "QCD-4Jets_Bin-HT-600to800_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-600to800_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -513,7 +513,7 @@
   },
   "QCD-4Jets_Bin-HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
@@ -529,7 +529,7 @@
   },
   "QCD-4Jets_Bin-HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": {
     "sample": "QCD-4Jets_Bin-HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8",
-    "json_output": "datasets/QCD-4Jets",
+    "json_output": "datasets/QCD-4Jets_2024",
     "files": [
       {
         "das_names": [
