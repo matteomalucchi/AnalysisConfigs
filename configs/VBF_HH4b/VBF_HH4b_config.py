@@ -20,6 +20,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
+    define_single_category,
     define_preselection,
     get_columns_list,
     get_variables_dict,
@@ -31,6 +32,7 @@ from configs.HH4b_common.custom_weights import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
+SPANET_TRAINING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -142,6 +144,11 @@ categories_dict = define_categories(
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
+if SPANET_TRAINING:
+    categories_dict = define_single_category("hh4b_vbf_best_candidates_6_jets_nokincut_region")
+    categories_dict |= define_single_category("hh4b_vbf_best_candidates_6_jets_region")
+    categories_dict |= define_single_category("4b_region")
+
 column_list = []
 
 # Add SPANet training inputs
@@ -166,6 +173,16 @@ elif (
     column_list += get_columns_list(
         SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
     )
+    if config_options_dict["dnn_variables"]:
+        total_input_columns = (
+            config_options_dict["sig_bkg_dnn_input_variables"]
+            | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | {"year": ["events", "year"]}
+        )
+        column_list += create_DNN_columns_list(
+            False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+        )
+
 else:
     # Define the other columns to save
     total_input_columns = {}
