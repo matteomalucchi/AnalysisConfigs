@@ -1,0 +1,152 @@
+{
+    "DATA_ParkingHH": {
+        "sample": "DATA_ParkingHH",
+        "json_output": "datasets/DATA_ParkingHH.json",
+        "files": [
+            {
+                "das_names": [
+                    "/ParkingHH/Run2023C-22Sep2023_v3-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "Cv3"
+                },
+                "das_parents_names": [
+                    "/ParkingHH/Run2023C-PromptReco-v3/AOD"
+                ]
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2023C-22Sep2023_v4-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "Cv4"
+                },
+                "das_parents_names": [
+                    "/ParkingHH/Run2023C-PromptReco-v4/AOD"
+                ]
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2023D-22Sep2023_v1-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "Dv1"
+                },
+                "das_parents_names": [
+                    "/ParkingHH/Run2023D-PromptReco-v1/AOD"
+                ]
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2023D-22Sep2023_v2-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "Dv2"
+                },
+                "das_parents_names": [
+                    "/ParkingHH/Run2023D-PromptReco-v2/AOD"
+                ]
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024C-MINIv6NANOv15-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "C"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024D-MINIv6NANOv15-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "D"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024E-MINIv6NANOv15-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "E"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024F-MINIv6NANOv15-v4/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "F"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024G-MINIv6NANOv15-v3/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "G"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024H-MINIv6NANOv15-v3/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "H"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024I-MINIv6NANOv15-v3/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "I"
+                }
+            },
+            {
+                "das_names": [
+                    "/ParkingHH/Run2024I-MINIv6NANOv15_v2-v2/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": false,
+                    "primaryDataset": "ParkingHH",
+                    "era": "I"
+                }
+            }
+        ]
+    }
+}
