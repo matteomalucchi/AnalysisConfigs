@@ -1,5 +1,5 @@
 {
-    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -11,8 +11,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-1p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v1/"
@@ -20,7 +19,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -32,8 +31,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-0p00_kt-0p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-0p00_kt-0p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -42,7 +40,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -54,8 +52,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-2p45_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-2p45_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -64,7 +61,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -76,8 +73,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-5p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-5p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -86,7 +82,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -98,8 +94,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-m2p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-m2p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -108,7 +103,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -120,8 +115,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-m1p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-m1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -130,7 +124,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -142,8 +136,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-0p50_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-0p50_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -152,7 +145,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -164,8 +157,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-1p50_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-1p50_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -174,7 +166,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -186,8 +178,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-2p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-2p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -196,7 +187,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -208,8 +199,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-3p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-3p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -218,7 +208,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -230,8 +220,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-4p00_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-4p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
@@ -240,7 +229,7 @@
             }
         ]
     },
-    "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_2022_postEE": {
+    "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00": {
         "sample": "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00",
         "json_output": "datasets/signal_ggF_HH4b_spanet.json",
         "description": "Sample for 2022postEE to train SPANet",
@@ -252,8 +241,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.01167,
-                    "part": "kl-3p50_kt-1p00_c2-0p00"
+                    "xsec": 0.01167
                 },
                 "das_parents_names": [
                     "/ggHHto4B_kl-3p50_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EEMiniAODv4_124X_mcRun3_2022_realistic_postEE_MINIAODSIM-8d987a117c9c64189fa569ace8eb11af/USER"
