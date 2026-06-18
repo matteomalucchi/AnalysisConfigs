@@ -10,26 +10,15 @@ HLT_triggers:
          - AK8PFJet250_SoftDropMass40_PFAK8ParticleNetBB0p35
          - AK8PFJet425_SoftDropMass40
    "2023_preBPix":
-      JetMET0:
-         - AK8PFJet230_SoftDropMass40_PNetBB0p06
-         - AK8PFJet400_SoftDropMass40
-      JetMET1:
+      JetMET:
          - AK8PFJet230_SoftDropMass40_PNetBB0p06
          - AK8PFJet400_SoftDropMass40
    "2023_postBPix":
-      JetMET0:
-         - AK8PFJet230_SoftDropMass40_PNetBB0p06
-         - AK8PFJet400_SoftDropMass40
-      JetMET1:
+      JetMET:
          - AK8PFJet230_SoftDropMass40_PNetBB0p06
          - AK8PFJet400_SoftDropMass40
    "2024":
-      JetMET0:
-         - AK8PFJet230_SoftDropMass40_PNetBB0p06
-         - AK8PFJet500
-         - AK8PFJet400_SoftDropMass30
-         - AK8PFJet425_SoftDropMass30
-      JetMET1:
+      JetMET:
          - AK8PFJet230_SoftDropMass40_PNetBB0p06
          - AK8PFJet500
          - AK8PFJet400_SoftDropMass30

@@ -8,17 +8,13 @@ HLT_triggers:
       JetMET:
          - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
    "2023_preBPix":
-      JetMET0:
-         - HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65
-      JetMET1:
-         - HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65
+      JetMET:
+         - QuadPFJet70_50_40_35_PNet2BTagMean0p65
       ParkingHH:
          - PFHT280_QuadPFJet30_PNet2BTagMean0p55
    "2023_postBPix":
-      # JetMET0:
-      #    - HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65
-      # JetMET1:
-      #    - HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65
+      # JetMET:
+      #    - QuadPFJet70_50_40_35_PNet2BTagMean0p65
       ParkingHH:
          - PFHT280_QuadPFJet30_PNet2BTagMean0p55
    "2024":
@@ -37,11 +33,7 @@ L1_triggers:
          - Mu6_HTT240er
          - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
    "2023_preBPix":
-      JetMET0:
-         - HTT360er
-         - Mu6_HTT240er
-         - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
-      JetMET1:
+      JetMET:
          - HTT360er
          - Mu6_HTT240er
          - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
@@ -50,11 +42,7 @@ L1_triggers:
          - Mu6_HTT240er
          - HTT320er_QuadJet_70_55_40_35_er2p5
    "2023_postBPix":
-      # JetMET0:
-      #    - HTT360er
-      #    - Mu6_HTT240er
-      #    - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
-      # JetMET1:
+      # JetMET:
       #    - HTT360er
       #    - Mu6_HTT240er
       #    - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
