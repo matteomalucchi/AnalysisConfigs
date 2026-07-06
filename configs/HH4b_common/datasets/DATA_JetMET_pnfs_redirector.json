@@ -5456,7 +5456,7 @@
     "DATA_JetMET1_HH4bResolved_2023_preBPix_EraCv1": {
         "metadata": {
             "das_names": "['/JetMET1/Run2023C-22Sep2023_v1-v1/NANOAOD']",
-            "sample": "DATA_JetMET1_HH4bBoosted",
+            "sample": "DATA_JetMET1_HH4bResolved",
             "year": "2023_preBPix",
             "isMC": "False",
             "primaryDataset": "JetMET",
@@ -5543,7 +5543,7 @@
     "DATA_JetMET1_HH4bResolved_2023_preBPix_EraCv2": {
         "metadata": {
             "das_names": "['/JetMET1/Run2023C-22Sep2023_v2-v1/NANOAOD']",
-            "sample": "DATA_JetMET1_HH4bBoosted",
+            "sample": "DATA_JetMET1_HH4bResolved",
             "year": "2023_preBPix",
             "isMC": "False",
             "primaryDataset": "JetMET",
