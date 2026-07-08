@@ -255,16 +255,8 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local_rucio.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_rucio_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_test.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,

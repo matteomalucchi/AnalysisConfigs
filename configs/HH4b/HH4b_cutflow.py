@@ -52,14 +52,13 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
         ],
         "filter": {
             "samples": (
                 [
-                    "GluGlutoHHto4B",
+                    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
                     ## 2022 postEE
                     # "DATA_JetMET_JMENano_E_skimmed",
                     # "DATA_JetMET_JMENano_F_skimmed",
