@@ -106,14 +106,9 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_SM.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,

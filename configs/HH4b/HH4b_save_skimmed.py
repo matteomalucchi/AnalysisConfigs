@@ -20,7 +20,8 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir + "/params")
 
 # adding object preselection
-year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix"]
+year = ["2023_preBPix", "2023_postBPix", "2024"]
+# year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/triggers_skim.yaml",
@@ -35,23 +36,25 @@ cfg = Configurator(
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed",
-    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/DATA_JetMET_resolved_skimmed",
+    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/DATA_ParkingHH_resolved_skimmed",
     parameters=parameters,
     datasets={
         "jsons": [
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/background_TTtoX_redirector.json",
+            #e f"{localdir}/../HH4b_common/datasets/background_TTtoX_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
         ],
         "filter": {
             "samples": (
                 [
-                    "DATA_JetMET",
-                    "DATA_JetMET0_HH4bResolved",
-                    "DATA_JetMET1_HH4bResolved",
+                    # "DATA_JetMET",
+                    # "DATA_JetMET0_HH4bResolved",
+                    # "DATA_JetMET1_HH4bResolved",
+                    "DATA_ParkingHH",
                 ]
             ),
             "samples_exclude": [],
