@@ -124,7 +124,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     # calibrators=default_calibrators_sequence,
-    calibrators=[JetsCalibrator],  # , JetsPtRegressionCalibrator],
+    # calibrators=[JetsCalibrator],  
 
     weights_classes=common_weights
     + [bkg_morphing_dnn_weight],

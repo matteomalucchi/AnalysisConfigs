@@ -4,7 +4,6 @@ import cloudpickle
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
 )
-from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.weights.common.common import common_weights
 from pocket_coffea.parameters import defaults
 from pocket_coffea.parameters.cuts import passthrough
@@ -283,7 +282,6 @@ cfg = Configurator(
         },
         "bysample": bysample_bycategory_weight_dict,
     },
-    calibrators=[JetsCalibrator],
     variations={
         "weights": {
             "common": {

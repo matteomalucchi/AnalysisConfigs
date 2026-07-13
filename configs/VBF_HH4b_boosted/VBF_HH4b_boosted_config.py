@@ -303,7 +303,7 @@ cfg = Configurator(
         },
         "bysample": bysample_bycategory_weight_dict,
     },
-    calibrators=[JetsCalibrator],
+    # calibrators=[JetsCalibrator],
     variations={
         "weights": {
             "common": {
