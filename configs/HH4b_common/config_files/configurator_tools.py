@@ -1337,7 +1337,9 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     if "2b" in category_name:
         cut_list.append(cuts.hh4b_2b_region)
 
-    if "boosted" in category_name:
+    if "boosted_group" in category_name:
+        cut_list.append(cuts.hh4b_boosted_signal_region_other_group)
+    elif "boosted" in category_name: # Elif mainly because I only want one region for the moment for testing.
         if "incl" not in category_name and "fail" not in category_name:
             cut_list.append(cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold))
         elif "fail" in category_name:
@@ -1417,6 +1419,7 @@ def define_categories(
     mixeddata=False,
     btag_sf_comp=False,
     boosted=False,
+    other_group=False,
     split_qcd=True,
     vbf_analysis=False,
     vbf_discriminator=False,
@@ -1431,7 +1434,9 @@ def define_categories(
             is_vbf = "_vbf"
         else:
             is_vbf = ""
-        if not vbf_discriminator:
+        if other_group:
+            categories_dict |= define_single_category(f"boosted{is_vbf}_boosted_group_signal_region")
+        elif not vbf_discriminator:
             categories_dict |= define_single_category(f"boosted{is_vbf}_incl_region")
             categories_dict |= define_single_category(f"boosted{is_vbf}_incl_signal_region", ggf_vbf_threshold)
             categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region", ggf_vbf_threshold)

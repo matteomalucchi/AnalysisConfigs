@@ -48,7 +48,7 @@ vbf_discriminator_boosted_dnn_input_variables = OrderedDict(
             "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta", "norm"],
             "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi", "norm"],
             "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass", "log_norm"],
-            "met_et": ["MET", "sumEt", "norm"],
+            "met_et": ["PuppiMET", "sumEt", "norm"],
             },
     }
 )
@@ -94,7 +94,7 @@ vbf_discriminator_boosted_dnn_input_variables_test = OrderedDict(
             "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta", "norm"],
             "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi", "norm"],
             "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass", "log_norm"],
-            "met_et": ["MET", "sumEt", "norm"],
+            "met_et": ["PuppiMET", "sumEt", "norm"],
             },
     }
 )
@@ -533,7 +533,7 @@ bkg_morphing_boosted_dnn_input_variables = OrderedDict(
         "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta"],
         "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi"],
         "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass"],
-        "met_et": ["MET", "sumEt"],
+        "met_et": ["PuppiMET", "sumEt"],
     }
 )
 
@@ -1586,7 +1586,7 @@ sig_bkg_boosted_dnn_input_variables = OrderedDict(
         "dijet_SubLeadingJet_eta": ["SubLeadingVBFJet", "eta"],
         "dijet_SubLeadingJet_phi": ["SubLeadingVBFJet", "phi"],
         "dijet_SubLeadingJet_mass": ["SubLeadingVBFJet", "mass"],
-        "met_et": ["MET", "sumEt"],
+        "met_et": ["PuppiMET", "sumEt"],
     }
 )
 
