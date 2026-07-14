@@ -55,6 +55,15 @@ era_dict = {
     "2023_preBPix_Cv4": 8,
     "2023_postBPix_Dv1": 9,
     "2023_postBPix_Dv2": 10,
+    "2024_A": 11,
+    "2024_B": 12,
+    "2024_C": 13,
+    "2024_D": 14,
+    "2024_E": 15,
+    "2024_F": 16,
+    "2024_G": 17,
+    "2024_H": 18,
+    "2024_I": 19,
     "2022_preEE_MC": -1,
     "2022_postEE_MC": -2,
     "2023_preBPix_MC": -3,
@@ -63,6 +72,8 @@ era_dict = {
     "2022_postEE_MIX": -6,
     "2023_preBPix_MIX": -7,
     "2023_postBPix_MIX": -8,
+    "2024_MC": -9,
+    "2024_MIX": -10
 }
 
 year_dict = {
@@ -70,6 +81,7 @@ year_dict = {
     "2022_postEE": 1,
     "2023_preBPix": 2,
     "2023_postBPix": 3,
+    "2024": 4,
 }
 
 
@@ -90,8 +102,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.dummy_provenance(name="provenance_higgs")
 
         # Add btag WP
-        self.events["Jet"] = self.generate_btag_workingpoints(self.events["Jet"], 5)
-        self.events["Jet"] = self.generate_btag_workingpoints(self.events["Jet"], 3)
+        if self.approach != "boosted":
+            self.events["Jet"] = self.generate_btag_workingpoints(self.events["Jet"], 5)
+            self.events["Jet"] = self.generate_btag_workingpoints(self.events["Jet"], 3)
 
     def def_provenance_field(self, jet_collection="Jet"):
         provenance_higgs = self.events[jet_collection].provenance_higgs
@@ -164,6 +177,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["JetPNetPlusNeutrino"],
                 self.events.JetDefault,
             )
+        elif self.approach == "boosted":
+            # self.events["Jet"] = ak.where(
+            #     (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
+            #     | (
+            #         self.events["JetPNetPlusNeutrino"].btagPNetB
+            #         > self.params["btagging"]["working_point"][self._year][
+            #             "btagging_WP"
+            #         ]["btagPNetB"]["L"]
+            #     ),
+            #     self.events["JetPNetPlusNeutrino"],
+            #     self.events.JetDefault,
+            # )
+            print("Skipping selection on jet objects for now - no btagging info available")
+
         else:
             raise ValueError(
                 f"Approach {self.approach} not known. Choose either 'first' or 'second' according to HIG24-010"
@@ -960,12 +987,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         higgs1 = ak.with_field(
             higgs1,
-            dR_min,
+            ak.fill_none(dR_min, -999.0),
             "dR_Hjet_min",
         )
         higgs1 = ak.with_field(
             higgs1,
-            m_hj,
+            ak.fill_none(m_hj, -999.0),
             "m_Hjet_min_dR",
         )
 
@@ -984,12 +1011,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         higgs2 = ak.with_field(
             higgs2,
-            dR_min,
+            ak.fill_none(dR_min, -999.0),
             "dR_Hjet_min",
         )
         higgs2 = ak.with_field(
             higgs2,
-            m_hj,
+            ak.fill_none(m_hj, -999.0),
             "m_Hjet_min_dR",
         )
 
@@ -1024,8 +1051,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         if vbf_variables:
             # the ak.firsts is needed because vbf_candidate.j_lead and j_sublead are jagged arrays with one or zero entries per event
             cleaned_jets_padded = ak.pad_none(cleaned_jets, 2, axis=1)
-            LeadingVBFJet = ak.firsts(cleaned_jets[:, 0:1])
-            SubLeadingVBFJet = ak.firsts(cleaned_jets[:, 1:2])
+            LeadingVBFJet = ak.firsts(cleaned_jets_padded[:, 0:1])
+            SubLeadingVBFJet = ak.firsts(cleaned_jets_padded[:, 1:2])
 
             # centrality of the Higgs candidates w.r.t. the VBF jets
             C_1 = np.exp(
@@ -1041,12 +1068,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             higgs1 = ak.with_field(
                 higgs1,
-                C_1,
+                ak.fill_none(C_1, -999),
                 "centrality",
             )
             higgs2 = ak.with_field(
                 higgs2,
-                C_2,
+                ak.fill_none(C_2, -999),
                 "centrality",
             )
 
@@ -1389,6 +1416,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         # =========== BOOSTED ==============
         elif self.dnn_variables and self.boosted:
+            self.events["FatJetGoodSelected"] = ak.pad_none(self.events["FatJetGoodSelected"], target=2, axis=1)
             (
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],

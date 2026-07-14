@@ -40,11 +40,12 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # adding object preselection
-year = ["2022_postEE"]
+# year = ["2022_postEE"]
+year = ["2024"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
-    f"{localdir}/../HH4b_common/params/triggers.yaml",
+    f"{localdir}/../HH4b_common/params/triggers_boosted.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
@@ -134,13 +135,14 @@ sample_list = (
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         # 2022 postEE
-        "DATA_JetMET_JMENano_E",
-        "DATA_JetMET_JMENano_F",
-        "DATA_JetMET_JMENano_G",
+        # "DATA_JetMET_JMENano_E",
+        # "DATA_JetMET_JMENano_F",
+        # "DATA_JetMET_JMENano_G",
         # "TTtoLNu2Q",
         # "TTto2L2Nu",
         # "TTto4Q",
         # "DATA_ParkingHH",
+        "DATA_JetMET0_HH4bBoosted"
     ]
     + sample_ggF_list
     + sample_VBF_list
@@ -161,6 +163,7 @@ categories_dict = define_categories(
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
     boosted=config_options_dict["boosted"],
+    other_group=True if config_options_dict["approach"] == "boosted" else False,
     split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
     # vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_analysis=config_options_dict["vbf_selection"] if "vbf_selection" in config_options_dict.keys() else config_options_dict["vbf_analysis"],
@@ -267,15 +270,16 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
-            f"{localdir}/../HH4b_common/datasets/background_TTtoX.json",
-            f"{localdir}/../HH4b_common/datasets/signal_VBFHHto4B_Par_2024.json",
-            f"{localdir}/../HH4b_common/datasets/signal_GluGluHHto4B_Par_2024.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
+            # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/DATA_JetMET.json",
+            # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
+            # f"{localdir}/../HH4b_common/datasets/background_TTtoX.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBFHHto4B_Par_2024.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_GluGluHHto4B_Par_2024.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_boosted_test_24EraD.json",
         ],
         "filter": {
             "samples": sample_list,

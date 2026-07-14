@@ -24,7 +24,7 @@ default_config_options_dict = {
     "jets_add_vbf_order": "energy",
     # FW momenta
     "max_order_FW": 0,
-    "FW_momenta_norms" : ["W_T"],
+    "FW_momenta_norms": ["W_T"],
     "vbf_matching_after_higgs_pairing": False,
     #
     "dnn_variables": True,
@@ -58,5 +58,7 @@ default_config_options_dict = {
     "noL1": False,
     "approach": "first",
     "expandCR": False,
-    "mixeddata": False
+    "mixeddata": False,
+    "TXbb_order": False,
+    "bdt_model": "",
 } | default_onnx_model_dict
