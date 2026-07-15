@@ -27,6 +27,90 @@ To build the datasets needed for the Analysis, run the following command on `tie
 "build-datasets --cfg datasets/datasets_definitions.json -o -rs 'T[123]_(FR|IT|BE|CH|DE|US)_\w+'"
 ```
 
+### Skimming
+
+> [!TIP]
+> @Tier-3/AnalysisConfigs &rarr; [PocketCoffea skimming docs](https://pocketcoffea.readthedocs.io/en/stable/recipes.html#skimming-events)
+
+Skimming reduces large NanoAOD files to smaller ones containing only events passing trigger/skim cuts, which significantly speeds up the main analysis. The general workflow is:
+
+1. **Set the output path** in the skim config by editing `save_skimmed_files` in the `Configurator`. For the resolved analysis this is in [`configs/HH4b/HH4b_save_skimmed.py`](../HH4b/HH4b_save_skimmed.py); for the boosted analysis it is in [`configs/HH4b/HH4b_boosted_save_skimmed.py`](../HH4b/HH4b_boosted_save_skimmed.py).
+
+   ```python
+   cfg = Configurator(
+       save_skimmed_files="root://<xrootd-endpoint>//<output_path>/<skim_dir_name>",
+       ...
+   )
+   ```
+
+2. **Run the skim** on Tier-3:
+
+   ```bash
+   cd configs/HH4b
+   run_pocket_coffea skim <skim_config.py> <run_options.yaml> <output_dir>
+   ```
+
+   > Example (resolved analysis):
+   > ```bash
+   > run_pocket_coffea skim HH4b_save_skimmed.py params/t3_run_options_skim_resolved.yaml /work/mmalucch/out_hh4b/JetMET_skim/
+   > ```
+   > Example (boosted analysis):
+   > ```bash
+   > run_pocket_coffea skim HH4b_boosted_save_skimmed.py params/t3_run_options_skim_resolved.yaml /work/mmalucch/out_hh4b/boosted_skim/
+   > ```
+
+3. **Merge coffea outputs** — mandatory to collect the cutflow and `sum_genweights` from all jobs (including chunks that skimmed 0 events), needed for correct cross-section normalization:
+
+   ```bash
+   cd <output_dir>
+   pocket-coffea merge-outputs -o output_all.coffea *.coffea -f
+   ```
+
+   > Example:
+   > ```bash
+   > cd /work/mmalucch/out_hh4b/JetMET_skim
+   > pocket-coffea merge-outputs -o output_all.coffea *.coffea -f
+   > ```
+
+4. **Hadd skimmed ROOT files** — groups small per-chunk ROOT files into larger ones. The `--dry` flag previews the job splitting; remove it to write the hadd scripts. The `-e` option sets the target events per output file and `-s` the number of parallel hadd processes per job:
+
+   ```bash
+   pocket-coffea hadd-skimmed-files \
+     -fl output_all.coffea \
+     -o root://<xrootd-endpoint>//<output_path>/<hadd_skim_dir_name> \
+     -e <events_per_file> --dry -s <n_parallel>
+   ```
+
+   > Example:
+   > ```bash
+   > pocket-coffea hadd-skimmed-files \
+   >   -fl output_all.coffea \
+   >   -o root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/DATA_JetMET_resolved_skimmed/JetMET_hadd_skim \
+   >   -e 100000 --dry -s 6
+   > ```
+
+   To re-run only files that failed the hadd, add `--check` (skips already-produced output files):
+
+   ```bash
+   pocket-coffea hadd-skimmed-files \
+     -fl output_all.coffea \
+     -o root://<xrootd-endpoint>//<output_path>/<hadd_skim_dir_name> \
+     -e <events_per_file> --dry -s <n_parallel> --check
+   ```
+
+5. **Submit hadd jobs** via Slurm (requires a ROOT-enabled environment):
+
+   ```bash
+   micromamba activate root-env
+   sbatch -p standard --account=t3 --mem=<mem_mb> --wrap "python do_hadd.py" -c <n_cores> --output do_hadd_pipe.txt
+   ```
+
+   > Example:
+   > ```bash
+   > micromamba activate root-env
+   > sbatch -p standard --account=t3 --mem=15000 --wrap "python do_hadd.py" -c 6 --output do_hadd_pipe.txt
+   > ```
+
 ### Produce SPANet input files
 
 On `tier-3`, run the following commands to produce the input files for SPANet training.

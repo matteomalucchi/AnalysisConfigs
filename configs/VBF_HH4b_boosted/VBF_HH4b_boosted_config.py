@@ -82,31 +82,51 @@ preselection = define_preselection(config_options_dict)
 
 # Define the samples to process
 sample_ggF_list = [
-    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGluHHto4B_Par-c2-0p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia9",
+    # "GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-0p00-kl-2p45-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-0p00-kl-5p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+    # "GluGluHHto4B_Par-c2-m2p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
 ]
 
 sample_VBF_list=[
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
-    "VBFHHto4B_CV_1_C2V_0_C3_1",
-    "VBFHHto4B_CV_1_C2V_1_C3_1",
+    # "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+    # "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+    # "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+    # "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+    # "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+    # "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+    # "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+    # "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+    # "VBFHHto4B_CV_1_C2V_0_C3_1",
+    # "VBFHHto4B_CV_1_C2V_1_C3_1",
+    # "VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8",
+    # "VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8",
 ]
 sample_list = (
     [
@@ -114,12 +134,13 @@ sample_list = (
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         # 2022 postEE
-        "DATA_JetMET_JMENano_E_skimmed",
-        "DATA_JetMET_JMENano_F_skimmed",
-        "DATA_JetMET_JMENano_G_skimmed",
-        # "TTtoLNu2Q_skimmed",
-        # "TTto2L2Nu_skimmed",
-        # "TTto4Q_skimmed",
+        "DATA_JetMET_JMENano_E",
+        "DATA_JetMET_JMENano_F",
+        "DATA_JetMET_JMENano_G",
+        # "TTtoLNu2Q",
+        # "TTto2L2Nu",
+        # "TTto4Q",
+        # "DATA_ParkingHH",
     ]
     + sample_ggF_list
     + sample_VBF_list
@@ -132,7 +153,7 @@ sample_list = (
     )
 )
 
-
+vbf_selection = False
 # Define the categories to save
 categories_dict = define_categories(
     bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
@@ -141,9 +162,11 @@ categories_dict = define_categories(
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
     boosted=config_options_dict["boosted"],
-    vbf_analysis=config_options_dict["vbf_analysis"],
-    vbf_discriminator=config_options_dict["vbf_discriminator"],
     split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
+    # vbf_analysis=config_options_dict["vbf_analysis"],
+    vbf_analysis=vbf_selection,
+    vbf_discriminator=config_options_dict["vbf_discriminator"],
+    ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
 )
 
 if BASELINE:
@@ -193,11 +216,15 @@ else:
             | config_options_dict["bkg_morphing_dnn_input_variables"]
             | {"year": ["events", "year"],
                "vbf_jet_prov": ["JetGoodVBF", "provenance"],
-               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"]
+               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"],
+               "Higgs_leading_btag": ["HiggsLeading", "btagBB"],
+               "Higgs_subleading_btag": ["HiggsSubLeading", "btagBB"],
               }
         )
+        column_list += get_columns_list({})
     elif config_options_dict["boosted"]:
         column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
+
     else:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
@@ -241,24 +268,20 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local_rucio.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_rucio_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_test.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_boosted_skimmed_local.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_boosted_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/background_TTtoX_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
+            f"{localdir}/../HH4b_common/datasets/background_TTtoX.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBFHHto4B_Par_2024.json",
+            f"{localdir}/../HH4b_common/datasets/signal_GluGluHHto4B_Par_2024.json",
         ],
         "filter": {
             "samples": sample_list,
             "samples_exclude": [],
-            # "year": year,
+            "year": year,
         },
         "subsamples": {},
     },

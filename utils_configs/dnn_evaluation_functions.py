@@ -116,15 +116,18 @@ def extract_inputs(input_name, output_name, events, variables, pad_value, run2):
                 )
             )
         else:
-            variables_array.append(
-                np.array(
-                    ak.to_numpy(
-                        ak_array,
-                        allow_missing=True,
-                    ),
-                    dtype=np.float32,
+            try:
+                variables_array.append(
+                    np.array(
+                        ak.to_numpy(
+                            ak_array,
+                            allow_missing=True,
+                        ),
+                        dtype=np.float32,
+                    )
                 )
-            )
+            except:
+                raise ValueError(f"Issue with {collection}{feature}, {ak_array}")
 
     return np.stack(variables_array, axis=-1)
 
@@ -173,7 +176,7 @@ def get_onnx_prediction(
         for collection, features in collection_feature_dict.items():
             sequential_inputs = define_spanet_pairing_inputs(
                 events, max_num_jets_spanet, collection, features, pad_value_spanet
-            )  # Currently hardcode jets to 4
+            )  
             mask = np.array(
                 ak.to_numpy(
                     ak.fill_none(

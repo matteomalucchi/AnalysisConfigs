@@ -337,8 +337,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 # Define centrality
                 for higgs_coll in (
                     ["HiggsLeading", "HiggsSubLeading"]
-                    if not (self.spanet and self.vbf_matching_after_higgs_pairing)
-                    else ["HiggsLeading", "HiggsSubLeading"]
                 ):
                     centrality = np.exp(
                         -4

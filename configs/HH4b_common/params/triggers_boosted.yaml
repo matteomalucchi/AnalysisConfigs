@@ -1,0 +1,25 @@
+# Commented triggers means it's not yet clear if they will be used in the final analysis
+
+HLT_triggers:
+   "2022_preEE":
+      JetMET:
+         - AK8PFJet250_SoftDropMass40_PFAK8ParticleNetBB0p35
+         - AK8PFJet425_SoftDropMass40
+   "2022_postEE":
+      JetMET:
+         - AK8PFJet250_SoftDropMass40_PFAK8ParticleNetBB0p35
+         - AK8PFJet425_SoftDropMass40
+   "2023_preBPix":
+      JetMET:
+         - AK8PFJet230_SoftDropMass40_PNetBB0p06
+         - AK8PFJet400_SoftDropMass40
+   "2023_postBPix":
+      JetMET:
+         - AK8PFJet230_SoftDropMass40_PNetBB0p06
+         - AK8PFJet400_SoftDropMass40
+   "2024":
+      JetMET:
+         - AK8PFJet230_SoftDropMass40_PNetBB0p06
+         - AK8PFJet500
+         - AK8PFJet400_SoftDropMass30
+         - AK8PFJet425_SoftDropMass30

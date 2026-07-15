@@ -1,0 +1,190 @@
+{
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00": {
+        "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
+        "json_output": "datasets/signal_ggF_HH4b_official.json",
+        "description": "Official ggF HH->4b samples, kl=1",
+        "files": [
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_LHEweights_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 0.01127
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v1/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.01127
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": true,
+                    "xsec": 0.01127
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.01127
+                }
+            }
+        ]
+    },
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00": {
+        "sample": "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
+        "json_output": "datasets/signal_ggF_HH4b_official.json",
+        "description": "Official ggF HH->4b samples, kl=0",
+        "files": [
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv13-ggHH_powheg_bugfix_133X_mcRun3_2022_realistic_ForNanov13_v1-v3/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 0.02505
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv13-133X_mcRun3_2022_realistic_postEE_ForNanov13_v1-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.02505
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv13-ggHH_powheg_bugfix_133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": true,
+                    "xsec": 0.02505
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv13-ggHH_powheg_bugfix_133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.02505
+                }
+            }
+        ]
+    },
+    "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00": {
+        "sample": "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
+        "json_output": "datasets/signal_ggF_HH4b_official.json",
+        "description": "Official ggF HH->4b samples, kl=2.45",
+        "files": [
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00_LHEweights_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 0.00493
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00_LHEweights_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.00493
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00_LHEweights_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": true,
+                    "xsec": 0.00493
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00_LHEweights_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.00493
+                }
+            }
+        ]
+    },
+    "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00": {
+        "sample": "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
+        "json_output": "datasets/signal_ggF_HH4b_official.json",
+        "description": "Official ggF HH->4b samples, kl=5",
+        "files": [
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv13-ggHH_powheg_bugfix_133X_mcRun3_2022_realistic_ForNanov13_v1-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 0.03294
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv13-133X_mcRun3_2022_realistic_postEE_ForNanov13_v1-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.03294
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv13-ggHH_powheg_bugfix_133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": true,
+                    "xsec": 0.03294
+                }
+            },
+            {
+                "das_names": [
+                    "/GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv13-ggHH_powheg_bugfix_133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.03294
+                }
+            }
+        ]
+    }
+}
