@@ -1,0 +1,17 @@
+{
+    "DATA_JetMET0_HH4bBoosted_2024_EraD": {
+        "metadata": {
+            "das_names": "['/JetMET0/Run2024D-MINIv6NANOv15-v1/NANOAOD']",
+            "sample": "DATA_JetMET0_HH4bBoosted",
+            "year": "2024",
+            "isMC": "False",
+            "primaryDataset": "JetMET0",
+            "era": "D",
+            "nevents": "75958774",
+            "size": "165668272761"
+        },
+        "files": [
+            "root://ccxrdcms.in2p3.fr:1094//store/data/Run2024D/JetMET0/NANOAOD/MINIv6NANOv15-v1/2520000/f16d31fb-0e56-4100-8d9e-2d9f054052b5.root"
+        ]
+    }
+}
