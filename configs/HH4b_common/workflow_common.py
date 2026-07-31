@@ -5,7 +5,10 @@ import awkward as ak
 import numpy as np
 import vector
 from pocket_coffea.lib.deltaR_matching import object_matching
-from pocket_coffea.lib.jets import merge_regressed_jets_by_btag
+from pocket_coffea.lib.jets import (
+    merge_regressed_and_standard_jets,
+    merge_regressed_jets_by_btag,
+)
 from pocket_coffea.workflows.base import BaseProcessorABC
 
 from utils_configs.basic_functions import add_fields, compute_fw_momenta
@@ -183,22 +186,22 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 btag_cut=self.neutrino_regression_btag_cut,
             )
         elif self.approach == "first":
-            self.events["Jet"] = ak.where(
-                ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
-                self.events["JetPNetPlusNeutrino"],
-                self.events.JetDefault,
+            # Use the regressed (+neutrino) jets where the regression is valid,
+            # otherwise fall back to the standard JEC jets.
+            self.events["Jet"] = merge_regressed_and_standard_jets(
+                jets_standard=self.events["JetDefault"],
+                jets_regressed=self.events["JetPNetPlusNeutrino"],
             )
         elif self.approach == "second":
-            self.events["Jet"] = ak.where(
-                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
-                | (
-                    self.events["JetPNetPlusNeutrino"].btagPNetB
-                    > self.params["btagging"]["working_point"][self._year][
-                        "btagging_WP"
-                    ]["btagPNetB"]["L"]
-                ),
-                self.events["JetPNetPlusNeutrino"],
-                self.events.JetDefault,
+            # As "first", but high-b-tag jets always use the regression, even
+            # where the regression pt is not valid (loose WP of the tagger,
+            # read from the b-tagging parameters).
+            self.events["Jet"] = merge_regressed_and_standard_jets(
+                jets_standard=self.events["JetDefault"],
+                jets_regressed=self.events["JetPNetPlusNeutrino"],
+                params=self.params,
+                year=self._year,
+                btag_cut=True,
             )
         elif self.approach == "boosted":
             # self.events["Jet"] = ak.where(
