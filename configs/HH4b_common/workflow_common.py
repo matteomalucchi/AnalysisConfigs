@@ -5,6 +5,7 @@ import awkward as ak
 import numpy as np
 import vector
 from pocket_coffea.lib.deltaR_matching import object_matching
+from pocket_coffea.lib.jets import merge_regressed_jets_by_btag
 from pocket_coffea.workflows.base import BaseProcessorABC
 
 from utils_configs.basic_functions import add_fields, compute_fw_momenta
@@ -141,79 +142,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetPNet"] = copy.copy(self.events["Jet"])
         self.events["JetPNetPlusNeutrino"] = copy.copy(self.events["Jet"])
 
-    def get_neutrino_regression_btag_cut(self):
-        """Resolve the b-tag discriminant and threshold used to decide whether a
-        jet gets the pT regression *with* neutrinos.
-
-        The tagger is read from the b-tagging parameters
-        (``btagging.working_point.<year>.btagging_algorithm``) so that the
-        correct discriminant is used for each year/tagger definition. The
-        threshold is controlled by the ``neutrino_regression_btag_cut`` workflow
-        option:
-
-        * ``True``       -> loose (``"L"``) working point of the tagger (default)
-        * a WP string    -> that working point (e.g. ``"M"``, ``"T"``) of the tagger
-        * a ``float``    -> used directly as the raw b-tag discriminant threshold
-
-        Returns:
-            (tagger_branch, threshold): name of the jet b-tag field and the
-            numeric threshold to apply on it.
-        """
-        wp_params = self.params["btagging"]["working_point"][self._year]
-        tagger = wp_params["btagging_algorithm"]
-        cut = self.neutrino_regression_btag_cut
-        if cut is True:
-            # default: loose working point of the tagger used
-            threshold = wp_params["btagging_WP"][tagger]["L"]
-        elif isinstance(cut, str):
-            # a working point name (e.g. "L", "M", "T")
-            threshold = wp_params["btagging_WP"][tagger][cut]
-        else:
-            # a raw discriminant value
-            threshold = cut
-        return tagger, threshold
-
-    def merge_regression_by_btag(self):
-        """Build the ``Jet`` collection splitting the regression by b-tag score.
-
-        Jets with a b-tag discriminant above the threshold get the regression
-        *with* neutrinos (``JetPNetPlusNeutrino``); the remaining jets get the
-        regression *without* neutrinos (``JetPNet``). Jets for which the
-        requested regression is not valid fall back to the standard, JEC-only
-        collection (``JetDefault``).
-        """
-        for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
-            if coll not in self.events.fields:
-                raise ValueError(
-                    f"Collection '{coll}' is required by neutrino_regression_btag_cut "
-                    "but was not found. Make sure define_jet_collections() is called "
-                    "and the corresponding jet calibration (AK4PFPuppiPNetRegression and "
-                    "AK4PFPuppiPNetRegressionPlusNeutrino) is configured."
-                )
-
-        tagger, threshold = self.get_neutrino_regression_btag_cut()
-
-        # b-tag score is not modified by the regression (only pt/mass/rawFactor
-        # change), so it can be read from any of the regressed collections.
-        high_btag = self.events["JetPNet"][tagger] >= threshold
-        neutrino_valid = (
-            ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0
-        )
-        plain_valid = ak.nan_to_num(self.events["JetPNet"].pt, nan=-1) > 0
-
-        # jets below the b-tag cut (or without a valid +neutrino regression) get
-        # the regression without neutrinos where available, otherwise the default
-        jet_regressed = ak.where(
-            plain_valid,
-            self.events["JetPNet"],
-            self.events["JetDefault"],
-        )
-        return ak.where(
-            high_btag & neutrino_valid,
-            self.events["JetPNetPlusNeutrino"],
-            jet_regressed,
-        )
-
     def apply_object_preselection(self, variation):
         # Use the regressed pt from PNet+Neutrino collection if available,
         # otherwise use the JEC corrected pt collection
@@ -222,9 +150,25 @@ class HH4bCommonProcessor(BaseProcessorABC):
         if self.neutrino_regression_btag_cut is not None:
             # Apply the regression *with* neutrinos only to jets with a high
             # b-tag score and the regression *without* neutrinos to the rest.
-            # The tagger and the threshold (loose WP by default) are read from
-            # the b-tagging parameters (see get_neutrino_regression_btag_cut).
-            self.events["Jet"] = self.merge_regression_by_btag()
+            # The split is delegated to the PocketCoffea framework helper, which
+            # reads the tagger and the threshold (loose WP by default) from the
+            # b-tagging parameters.
+            for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
+                if coll not in self.events.fields:
+                    raise ValueError(
+                        f"Collection '{coll}' is required by neutrino_regression_btag_cut "
+                        "but was not found. Make sure define_jet_collections() is called "
+                        "and the corresponding jet calibration (AK4PFPuppiPNetRegression and "
+                        "AK4PFPuppiPNetRegressionPlusNeutrino) is configured."
+                    )
+            self.events["Jet"] = merge_regressed_jets_by_btag(
+                jets_regressed=self.events["JetPNet"],
+                jets_regressed_neutrino=self.events["JetPNetPlusNeutrino"],
+                params=self.params,
+                year=self._year,
+                jets_fallback=self.events["JetDefault"],
+                btag_cut=self.neutrino_regression_btag_cut,
+            )
         elif self.approach == "first":
             self.events["Jet"] = ak.where(
                 ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
