@@ -156,18 +156,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetPNetPlusNeutrino"] = copy.copy(self.events["Jet"])
 
     def apply_object_preselection(self, variation):
-        # Use the regressed pt from PNet+Neutrino collection if available,
-        # otherwise use the JEC corrected pt collection
-        # This way we consider correctly all fields which change depending on
-        # the pt definition, namely the pt, mass and the associated systematic variations
+        # Build "Jet" from the regressed/standard collections. Taking a whole
+        # collection (not just pt) keeps every pt-dependent field consistent.
         if self.neutrino_regression_btag_cut is not None:
-            # Apply the regression *with* neutrinos only to jets with a high
-            # b-tag score and the regression *without* neutrinos to the rest.
-            # The merge is delegated to the PocketCoffea framework helper, which
-            # reads the tagger and the threshold (loose WP by default) from the
-            # b-tagging parameters. The neutrino_regression_btag_cut option
-            # selects the threshold: True -> loose WP, a WP name (e.g. "M") or a
-            # raw b-tag discriminant value.
+            # +neutrino regression for high b-tag jets, plain regression for the
+            # rest. The option sets the threshold: True -> loose WP, a WP name,
+            # or a raw b-tag score.
             for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
                 if coll not in self.events.fields:
                     raise ValueError(
@@ -180,15 +174,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
             btag_wp = cut if isinstance(cut, str) else ("L" if cut is True else None)
             btag_score = None if isinstance(cut, (bool, str)) else cut
             self.events["Jet"] = merge_regressed_jets(
-                # high b-tag jets: regression + neutrinos (falling back to the
-                # regression without neutrinos, then to the JEC-only jets)
                 jets_high_btag=[
                     self.events["JetPNetPlusNeutrino"],
                     self.events["JetPNet"],
                     self.events["JetDefault"],
                 ],
-                # low b-tag jets: regression without neutrinos (falling back to
-                # the JEC-only jets)
                 jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
                 params=self.params,
                 year=self._year,
@@ -196,15 +186,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 btag_score=btag_score,
             )
         elif self.approach == "first":
-            # Use the regressed (+neutrino) jets where the regression is valid,
-            # otherwise fall back to the standard JEC jets.
+            # regressed (+neutrino) jets where valid, else the standard JEC jets
             self.events["Jet"] = merge_regressed_jets(
                 [self.events["JetPNetPlusNeutrino"], self.events["JetDefault"]],
             )
         elif self.approach == "second":
-            # As "first", but high-b-tag jets always use the regression, even
-            # where the regression pt is not valid (loose WP of the tagger,
-            # read from the b-tagging parameters).
+            # as "first", but high b-tag jets (loose WP) always use the regression
             self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=self.events["JetPNetPlusNeutrino"],
                 jets_low_btag=[

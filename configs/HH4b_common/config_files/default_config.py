@@ -57,13 +57,9 @@ default_config_options_dict = {
     "only5jetsbSF": False,
     "noL1": False,
     "approach": "first",
-    # Apply the pT regression *with* neutrinos only to jets with a high b-tag
-    # score and the regression *without* neutrinos to the remaining jets.
-    #   None  -> feature disabled (default first/second approach behaviour)
-    #   True  -> enabled, threshold = loose ("L") WP of the tagger used
-    #   "M"/"T"/... -> enabled, threshold = that WP of the tagger used
-    #   float -> enabled, threshold = that raw b-tag discriminant value
-    # The tagger and its working points are read from the b-tagging parameters.
+    # +neutrino regression for high-b-tag jets, plain regression for the rest.
+    # None -> disabled; True -> loose WP; a WP name ("M"/"T"/...) or a raw b-tag
+    # score -> that threshold. Tagger/WPs read from the b-tagging parameters.
     "neutrino_regression_btag_cut": None,
     "expandCR": False,
     "mixeddata": False,
