@@ -5,10 +5,7 @@ import awkward as ak
 import numpy as np
 import vector
 from pocket_coffea.lib.deltaR_matching import object_matching
-from pocket_coffea.lib.jets import (
-    merge_regressed_and_standard_jets,
-    merge_regressed_jets_by_btag,
-)
+from pocket_coffea.lib.jets import merge_regressed_jets
 from pocket_coffea.workflows.base import BaseProcessorABC
 
 from utils_configs.basic_functions import add_fields, compute_fw_momenta
@@ -153,9 +150,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         if self.neutrino_regression_btag_cut is not None:
             # Apply the regression *with* neutrinos only to jets with a high
             # b-tag score and the regression *without* neutrinos to the rest.
-            # The split is delegated to the PocketCoffea framework helper, which
+            # The merge is delegated to the PocketCoffea framework helper, which
             # reads the tagger and the threshold (loose WP by default) from the
-            # b-tagging parameters.
+            # b-tagging parameters. The neutrino_regression_btag_cut option
+            # selects the threshold: True -> loose WP, a WP name (e.g. "M") or a
+            # raw b-tag discriminant value.
             for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
                 if coll not in self.events.fields:
                     raise ValueError(
@@ -164,31 +163,43 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         "and the corresponding jet calibration (AK4PFPuppiPNetRegression and "
                         "AK4PFPuppiPNetRegressionPlusNeutrino) is configured."
                     )
-            self.events["Jet"] = merge_regressed_jets_by_btag(
-                jets_regressed=self.events["JetPNet"],
-                jets_regressed_neutrino=self.events["JetPNetPlusNeutrino"],
+            cut = self.neutrino_regression_btag_cut
+            btag_wp = cut if isinstance(cut, str) else ("L" if cut is True else None)
+            btag_score = None if isinstance(cut, (bool, str)) else cut
+            self.events["Jet"] = merge_regressed_jets(
+                # high b-tag jets: regression + neutrinos (falling back to the
+                # regression without neutrinos, then to the JEC-only jets)
+                jets_high_btag=[
+                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetPNet"],
+                    self.events["JetDefault"],
+                ],
+                # low b-tag jets: regression without neutrinos (falling back to
+                # the JEC-only jets)
+                jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
                 params=self.params,
                 year=self._year,
-                jets_fallback=self.events["JetDefault"],
-                btag_cut=self.neutrino_regression_btag_cut,
+                btag_wp=btag_wp,
+                btag_score=btag_score,
             )
         elif self.approach == "first":
             # Use the regressed (+neutrino) jets where the regression is valid,
             # otherwise fall back to the standard JEC jets.
-            self.events["Jet"] = merge_regressed_and_standard_jets(
-                jets_standard=self.events["JetDefault"],
-                jets_regressed=self.events["JetPNetPlusNeutrino"],
+            self.events["Jet"] = merge_regressed_jets(
+                [self.events["JetPNetPlusNeutrino"], self.events["JetDefault"]],
             )
         elif self.approach == "second":
             # As "first", but high-b-tag jets always use the regression, even
             # where the regression pt is not valid (loose WP of the tagger,
             # read from the b-tagging parameters).
-            self.events["Jet"] = merge_regressed_and_standard_jets(
-                jets_standard=self.events["JetDefault"],
-                jets_regressed=self.events["JetPNetPlusNeutrino"],
+            self.events["Jet"] = merge_regressed_jets(
+                jets_high_btag=self.events["JetPNetPlusNeutrino"],
+                jets_low_btag=[
+                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetDefault"],
+                ],
                 params=self.params,
                 year=self._year,
-                btag_cut=True,
             )
         else:
             raise ValueError(
