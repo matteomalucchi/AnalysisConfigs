@@ -69,7 +69,6 @@ fourth_btag_cut = Cut(
 signal_region_cut = Cut(
     name="signal_region_cut",
     params={
-        "Run2": False,
         "radius_min": 0,
         "radius_max": 30,
         "higgs_lead_center": 125,
@@ -77,19 +76,6 @@ signal_region_cut = Cut(
     },
     function=cuts_f.hh4b_Rhh_cuts,
 )
-
-signal_region_Run2_cut = Cut(
-    name="signal_region_Run2_cut",
-    params={
-        "Run2": True,
-        "radius_min": 0,
-        "radius_max": 30,
-        "higgs_lead_center": 125,
-        "higgs_sublead_center": 120,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
 
 # Dhh cut above 30 GeV
 dhh_above_30 = Cut(

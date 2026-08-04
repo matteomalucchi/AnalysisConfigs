@@ -52,14 +52,13 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
         ],
         "filter": {
             "samples": (
                 [
-                    "GluGlutoHHto4B",
+                    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
                     ## 2022 postEE
                     # "DATA_JetMET_JMENano_E_skimmed",
                     # "DATA_JetMET_JMENano_F_skimmed",
@@ -134,7 +133,7 @@ cfg = Configurator(
             cuts.third_btag_cut,
             cuts.fourth_btag_cut,
         ],
-        "signal_region_Run2_selection": [
+        "signal_region_selection": [
             eventFlags,
             cuts.lepton_veto_cut,
             hh4b_JetVetoMap,
@@ -144,20 +143,8 @@ cfg = Configurator(
             cuts.two_b_cut,
             cuts.third_btag_cut,
             cuts.fourth_btag_cut,
-            cuts.signal_region_Run2_cut,
+            cuts.signal_region_cut,
         ],
-        # "signal_region_selection": [
-        #     eventFlags,
-        #     cuts.lepton_veto_cut,
-        #     hh4b_JetVetoMap,
-        #     get_HLTsel(primaryDatasets=["JetMET"]),
-        #     get_L1sel(primaryDatasets=["JetMET"]),
-        #     cuts.jet_pt_cut,
-        #     cuts.two_b_cut,
-        #     cuts.third_btag_cut,
-        #     cuts.fourth_btag_cut,
-        #     cuts.signal_region_cut,
-        # ],
     },
     weights={
         "common": {
@@ -170,7 +157,7 @@ cfg = Configurator(
         },
         "bysample": {},
     },
-    calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
+    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
     variations={
         "weights": {
             "common": {
@@ -188,7 +175,7 @@ cfg = Configurator(
             "inclusive": [],
             "bycategory": {
                 # "total": column_list,
-                "signal_region_Run2_selection": column_list,
+                "signal_region_selection": column_list,
                 "four_jets_presel": column_list,
             },
         },

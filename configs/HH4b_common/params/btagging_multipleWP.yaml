@@ -82,6 +82,10 @@ btagging:
           T: 0.8604
           XT: 0.9234
           XXT: 0.9893
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
     '2023_preBPix':
       btagging_algorithm: btagPNetB
       btagging_WP:

@@ -1,45 +1,57 @@
-HLT_triggers:
-  "2022_preEE":
-    JetMET:
-       - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
-  "2022_postEE":
-    JetMET:
-       - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+# Commented triggers means it's not yet clear if they will be used in the final analysis
 
-## TRIGGERS FOR 2023 PARKING OR PRE PARKING STILL TO BE UNDERSTOOD
-#   "2023_preBPix":
-#     JetMET:
-#        - HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65
-#     ParkingHH:
-#        - PFHT280_QuadPFJet30_PNet2BTagMean0p55
-#   "2023_postBPix":
-#     JetMET:
-#        - HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65
-#     ParkingHH:
-#        - PFHT280_QuadPFJet30_PNet2BTagMean0p55
+HLT_triggers:
+   "2022_preEE":
+      JetMET:
+         - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+   "2022_postEE":
+      JetMET:
+         - QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+   "2023_preBPix":
+      JetMET:
+         - QuadPFJet70_50_40_35_PNet2BTagMean0p65
+      ParkingHH:
+         - PFHT280_QuadPFJet30_PNet2BTagMean0p55
+   "2023_postBPix":
+      # JetMET:
+      #    - QuadPFJet70_50_40_35_PNet2BTagMean0p65
+      ParkingHH:
+         - PFHT280_QuadPFJet30_PNet2BTagMean0p55
+   "2024":
+      ParkingHH:
+         - PFHT250_QuadPFJet25_PNet2BTagMean0p55
 
 L1_triggers:
-  "2022_preEE":
-    JetMET:
-       - HTT360er
-       - Mu6_HTT240er
-       - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
-  "2022_postEE":
-    JetMET:
-       - HTT360er
-       - Mu6_HTT240er
-       - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
-
-## TRIGGERS FOR 2023 PARKING OR PRE PARKING STILL TO BE UNDERSTOOD
-#   "2023_preBPix":
-#     JetMET:
-#        - HTT360er
-#     ParkingHH:
-#        - HTT280er
-#   "2023_postBPix":
-#     JetMET:
-#        - HTT360er
-#     ParkingHH:
-#        - HTT280er
-
-
+   "2022_preEE":
+      JetMET:
+         - HTT360er
+         - Mu6_HTT240er
+         - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
+   "2022_postEE":
+      JetMET:
+         - HTT360er
+         - Mu6_HTT240er
+         - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
+   "2023_preBPix":
+      JetMET:
+         - HTT360er
+         - Mu6_HTT240er
+         - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
+      ParkingHH:
+         - HTT280er
+         - Mu6_HTT240er
+         - HTT320er_QuadJet_70_55_40_35_er2p5
+   "2023_postBPix":
+      # JetMET:
+      #    - HTT360er
+      #    - Mu6_HTT240er
+      #    - HTT320er_QuadJet_80_60_er2p1_45_40_er2p3
+      ParkingHH:
+         - HTT280er
+         - Mu6_HTT240er
+         - HTT320er_QuadJet_70_55_40_35_er2p5
+   "2024":
+      ParkingHH:
+         - HTT280er
+         - Mu6_HTT240er
+         # - HTT320er_QuadJet_70_55_40_35_er2p5

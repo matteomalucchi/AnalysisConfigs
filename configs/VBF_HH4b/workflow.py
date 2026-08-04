@@ -29,7 +29,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 which_vbf_quark=self.which_vbf_quark, jet_collection="Jet"
             )
         else:
-            self.dummy_provenance_vbf()
+            self.dummy_provenance(jet_collection="Jet", name="provenance_vbf")
 
         self.def_provenance_field()
         self.define_jet_collections()
@@ -306,9 +306,9 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 (
                     pairing_predictions,
                     self.events["delta_dhh"],
-                    self.events["HiggsLeadingRun2"],
-                    self.events["HiggsSubLeadingRun2"],
-                    self.events["JetGoodFromHiggsOrderedRun2"],
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["JetGoodFromHiggsOrdered"],
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
@@ -336,9 +336,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
                 # Define centrality
                 for higgs_coll in (
-                    ["HiggsLeadingRun2", "HiggsSubLeadingRun2"]
-                    if not (self.spanet and self.vbf_matching_after_higgs_pairing)
-                    else ["HiggsLeading", "HiggsSubLeading"]
+                    ["HiggsLeading", "HiggsSubLeading"]
                 ):
                     centrality = np.exp(
                         -4

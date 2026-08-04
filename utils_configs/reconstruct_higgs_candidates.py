@@ -196,10 +196,7 @@ def possible_higgs_reco(jets, comb_idx):
 
 
 def get_lead_mjj_jet_pair(events, jet_coll):
-    """
-    Choose the two jets with the highest mjj
-    """
-
+    """Choose the two jets with the highest mjj."""
     jet = events[jet_coll]
 
     # Adds none jets to events that have less than 2 jets
@@ -210,8 +207,9 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     # get combinations of jet and choose the one with highest mjj
     jet_combinations = ak.combinations(jet_padded, 2)
     jet_combinations_mass = (jet_combinations["0"] + jet_combinations["1"]).mass
+    jet_combinations_mass_padded = ak.fill_none(jet_combinations_mass, -np.inf)
     jet_combinations_mass_max_idx = ak.to_numpy(
-        ak.argsort(jet_combinations_mass, axis=1, ascending=False)[:, 0]
+        ak.argsort(jet_combinations_mass_padded, axis=1, ascending=False)[:, 0]
     )
     jets_max_mass = jet_combinations[
         ak.local_index(jet_combinations, axis=0), jet_combinations_mass_max_idx
@@ -232,11 +230,12 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     )
     lead_mjj_jet_pair = add_fields(lead_mjj_jet_pair, "all")
 
+    energy = ak.fill_none(lead_mjj_jet_pair.energy, -np.inf)
     # order the jets according to the energy
     lead_mjj_jet_pair = lead_mjj_jet_pair[
-        ak.argsort(lead_mjj_jet_pair.energy, axis=1, ascending=False)
+        ak.argsort(energy, axis=1, ascending=False)
     ]
-    
+
     return lead_mjj_jet_pair
 
 

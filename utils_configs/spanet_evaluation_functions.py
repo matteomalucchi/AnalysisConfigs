@@ -62,61 +62,62 @@ def define_spanet_sequential_inputs(
         events[collection].btagPNetB, max_num_jets_spanet, clip=True
     )
 
-    btag_ratio_sum_1 = btag_padded[:, 0] / (btag_padded[:, 0] + btag_padded[:, 1])
-    btag_ratio_sum_2 = btag_padded[:, 1] / (btag_padded[:, 0] + btag_padded[:, 1])
-    btag_ratio_sum_3 = btag_padded[:, 2] / (btag_padded[:, 2] + btag_padded[:, 3])
-    btag_ratio_sum_4 = btag_padded[:, 3] / (btag_padded[:, 2] + btag_padded[:, 3])
+    if max_num_jets_spanet >= 4:
+        btag_ratio_sum_1 = btag_padded[:, 0] / (btag_padded[:, 0] + btag_padded[:, 1])
+        btag_ratio_sum_2 = btag_padded[:, 1] / (btag_padded[:, 0] + btag_padded[:, 1])
+        btag_ratio_sum_3 = btag_padded[:, 2] / (btag_padded[:, 2] + btag_padded[:, 3])
+        btag_ratio_sum_4 = btag_padded[:, 3] / (btag_padded[:, 2] + btag_padded[:, 3])
 
-    btag12_ratioSubLead_list = [
-        btag_padded[:, 0],
-        btag_padded[:, 1],
-        btag_ratio_sum_3,
-        btag_ratio_sum_4,
-    ]
-    btag_ratioAll_list = [
-        btag_ratio_sum_1,
-        btag_ratio_sum_2,
-        btag_ratio_sum_3,
-        btag_ratio_sum_4,
-    ]
+        btag12_ratioSubLead_list = [
+            btag_padded[:, 0],
+            btag_padded[:, 1],
+            btag_ratio_sum_3,
+            btag_ratio_sum_4,
+        ]
+        btag_ratioAll_list = [
+            btag_ratio_sum_1,
+            btag_ratio_sum_2,
+            btag_ratio_sum_3,
+            btag_ratio_sum_4,
+        ]
 
-    if max_num_jets_spanet > 4:
-        btag_ratio_sum_5 = btag_padded[:, 4] / (btag_padded[:, 2] + btag_padded[:, 3])
+        if max_num_jets_spanet > 4:
+            btag_ratio_sum_5 = btag_padded[:, 4] / (btag_padded[:, 2] + btag_padded[:, 3])
 
-        btag12_ratioSubLead_list.append(btag_ratio_sum_5)
-        btag_ratioAll_list.append(btag_ratio_sum_5)
+            btag12_ratioSubLead_list.append(btag_ratio_sum_5)
+            btag_ratioAll_list.append(btag_ratio_sum_5)
 
-    if "btag12_ratioSubLead" in spanet_input_name_list:
-        btag12_ratioSubLead = np.array(
-            ak.to_numpy(
-                np.stack(
-                    ak.fill_none(
-                        btag12_ratioSubLead_list,
-                        value=pad_value_spanet,
+        if "btag12_ratioSubLead" in spanet_input_name_list:
+            btag12_ratioSubLead = np.array(
+                ak.to_numpy(
+                    np.stack(
+                        ak.fill_none(
+                            btag12_ratioSubLead_list,
+                            value=pad_value_spanet,
+                        ),
+                        axis=-1,
                     ),
-                    axis=-1,
+                    allow_missing=True,
                 ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["btag12_ratioSubLead"] = btag12_ratioSubLead
+                dtype=np.float32,
+            )
+            input_dict["btag12_ratioSubLead"] = btag12_ratioSubLead
 
-    if "btag_ratioAll" in spanet_input_name_list:
-        btag_ratioAll = np.array(
-            ak.to_numpy(
-                np.stack(
-                    ak.fill_none(
-                        btag_ratioAll_list,
-                        value=pad_value_spanet,
+        if "btag_ratioAll" in spanet_input_name_list:
+            btag_ratioAll = np.array(
+                ak.to_numpy(
+                    np.stack(
+                        ak.fill_none(
+                            btag_ratioAll_list,
+                            value=pad_value_spanet,
+                        ),
+                        axis=-1,
                     ),
-                    axis=-1,
+                    allow_missing=True,
                 ),
-                allow_missing=True,
-            ),
-            dtype=np.float32,
-        )
-        input_dict["btag_ratioAll"] = btag_ratioAll
+                dtype=np.float32,
+            )
+            input_dict["btag_ratioAll"] = btag_ratioAll
 
     return input_dict
 
@@ -203,12 +204,6 @@ def get_best_pairings(assignment_prob):
     # NOTE: here the way this was implemented was changed
     assignment_probability = np.stack(tuple(assignment_prob), axis=0)
 
-    # swap axis
-    predictions_best = np.swapaxes(extract_predictions(assignment_probability), 0, 1)
-    # assignment_probability=np.array(assignment_probability)
-
-    if len(assignment_prob) > 2:
-        return predictions_best, 0, 0
 
     # get the probabilities of the best jet assignment
 
@@ -216,56 +211,52 @@ def get_best_pairings(assignment_prob):
     num_events = assignment_probability.shape[1]
 
     range_num_events = np.arange(num_events)
-    best_pairing_probabilities = np.ndarray((2, num_events))
-    for i in range(2):
-        best_pairing_probabilities[i] = assignment_probability[
-            i,
-            range_num_events,
-            predictions_best[:, i, 0],
-            predictions_best[:, i, 1],
-        ]
-    best_pairing_probabilities_sum = np.sum(best_pairing_probabilities, axis=0)
+    prediction_list = []
+    pairing_probabilities_list = []
+    pairing_probabilities_sum_list = []
+    while np.sum(assignment_probability) > 0:
+        # swap axis
+        predictions = np.swapaxes(extract_predictions(assignment_probability), 0, 1)
+        prediction_list.append(predictions)
+        # assignment_probability=np.array(assignment_probability)
 
-    # set to zero the probabilities of the best jet assignment, the symmetrization and the same jet assignment on the other target
-    for j in range(2):
-        for k in range(2):
-            assignment_probability[
-                j,
+        if len(assignment_prob) > 2:
+            return predictions, 0, 0
+        pairing_probabilities = np.ndarray((2, num_events))
+        for i in range(2):
+            pairing_probabilities[i] = assignment_probability[
+                i,
                 range_num_events,
-                predictions_best[:, j, k],
-                predictions_best[:, j, 1 - k],
-            ] = 0
-            assignment_probability[
-                1 - j,
-                range_num_events,
-                predictions_best[:, j, k],
-                predictions_best[:, j, 1 - k],
-            ] = 0
+                predictions[:, i, 0],
+                predictions[:, i, 1],
+            ]
+        pairing_probabilities_list.append(pairing_probabilities)
+        pairing_probabilities_sum_list.append(np.sum(pairing_probabilities, axis=0))
+
+        # set to zero the probabilities of the best jet assignment, the symmetrization and the same jet assignment on the other target
+        for j in range(2):
+            for k in range(2):
+                assignment_probability[
+                    j,
+                    range_num_events,
+                    predictions[:, j, k],
+                    predictions[:, j, 1 - k],
+                ] = 0
+                assignment_probability[
+                    1 - j,
+                    range_num_events,
+                    predictions[:, j, k],
+                    predictions[:, j, 1 - k],
+                ] = 0
 
     # extract the second best jet assignment from
     # the predicted probabilities
-    # swap axis
-    predictions_second_best = np.swapaxes(
-        extract_predictions(assignment_probability), 0, 1
-    )
-
-    # get the probabilities of the second best jet assignment
-    second_best_pairing_probabilities = np.ndarray((2, num_events))
-    for i in range(2):
-        second_best_pairing_probabilities[i] = assignment_probability[
-            i,
-            range_num_events,
-            predictions_second_best[:, i, 0],
-            predictions_second_best[:, i, 1],
-        ]
-    second_best_pairing_probabilities_sum = np.sum(
-        second_best_pairing_probabilities, axis=0
-    )
 
     return (
-        predictions_best,
-        best_pairing_probabilities_sum,
-        second_best_pairing_probabilities_sum,
+        prediction_list[0],
+        pairing_probabilities_sum_list[0],
+        pairing_probabilities_sum_list[1],
+        pairing_probabilities_sum_list[-1],
     )
 
 

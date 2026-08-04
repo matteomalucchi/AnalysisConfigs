@@ -12,4 +12,5 @@ config_options_dict |= {
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
+    "max_num_jets_higgs_pairing": 4,
 }| onnx_model_dict

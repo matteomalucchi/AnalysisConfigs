@@ -1,5 +1,6 @@
 import copy
 import awkward as ak
+import numpy as np
 
 from pocket_coffea.lib.cut_functions import get_JetVetoMap_Mask
 from pocket_coffea.lib.jets import jet_selection
@@ -15,7 +16,7 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
         processor_params: processor configuration parameters
     """
 
-    jet_type_default = "Jet"
+    jet_type_default = "Jet" if "FatJet" not in params["jet_type"] else "FatJet"
 
     # create a copy of events to avoid modifying the original one
     # replace the jet_type_default collection with the jet_type one with the desired pt_type
@@ -34,7 +35,7 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
     processor_params_copy.jets_calibration.collection[year] = {
         "AK4PFPuppi": jet_type_default
     }
-
+    
     mask = get_JetVetoMap_Mask(
         events_copy, params, year, processor_params_copy, **kwargs
     )
@@ -45,6 +46,15 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
 
     return mask
 
+def object_cleaning_mask(obj, cleaning_collection, dr_min=0.4):
+    # here I create a deltaR matrix between jets and cleaning collection the output shape is (njets, ncleaning)
+    dR = obj[:, :, None].delta_r(cleaning_collection[:, None, :])
+
+    # then I check if the jets are within dR min of ANY cleaning object
+    dR_mask = dR < dr_min
+    dR_mask_jets = ~ak.any(dR_mask, axis=2)
+
+    return dR_mask_jets
 
 def custom_jet_selection(
     events,
@@ -70,7 +80,7 @@ def custom_jet_selection(
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
     """
-    jet_type_default = "Jet"
+    jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
 
     # create a copy of params to avoid modifying the original one
     # and put in the collection the AK4PFPuppi to compute the jetId
@@ -110,6 +120,20 @@ def custom_jet_selection(
         mask = selection_mask & forward_mask
     else:
         mask = selection_mask
+
+    obj_param = params_copy.object_preselection[jet_type_obj_presel]
+    if "dr_jet" in obj_param.keys():
+        clean_jet_coll = obj_param["clean_jet_coll"] if "clean_jet_coll" in obj_param.keys() else "FatJetGood"
+        mask = mask & object_cleaning_mask(events_copy[jet_type_default], events_copy[clean_jet_coll], obj_param["dr_jet"])
+    if "dr_lep" in obj_param.keys():
+        eles = events_copy[obj_param["clean_ele_coll"] if "clean_ele_coll" in obj_param.keys() else "Electron"]
+        muons = events_copy[obj_param["clean_mu_coll"] if "clean_mu_coll" in obj_param.keys() else "Muon"]
+        if "clean_ele_pt" in obj_param.keys():
+            eles = eles[eles["pt"] > obj_param["clean_ele_pt"]]
+        if "clean_mu_pt" in obj_param.keys():
+            muons = muons[muons["pt"] > obj_param["clean_mu_pt"]]
+        mask = mask & object_cleaning_mask(events_copy[jet_type_default], eles, obj_param["dr_lep"])
+        mask = mask & object_cleaning_mask(events_copy[jet_type_default], muons, obj_param["dr_lep"])
 
     # remove copies
     del params_copy

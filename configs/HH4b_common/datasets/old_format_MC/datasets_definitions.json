@@ -99,6 +99,91 @@
             }
         ]
     },
+    "DATA_JetMET_22C": {
+        "sample": "DATA_JetMET_22C",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET/Run2022C-22Sep2023-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "C"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_22D": {
+        "sample": "DATA_JetMET_22D",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET/Run2022D-22Sep2023-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "D"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_22E": {
+        "sample": "DATA_JetMET_22E",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET/Run2022E-22Sep2023-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "E"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_22F": {
+        "sample": "DATA_JetMET_22F",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET/Run2022F-22Sep2023-v2/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "F"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_22G": {
+        "sample": "DATA_JetMET_22G",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET/Run2022G-22Sep2023-v2/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "G"
+                }
+            }
+        ]
+    },
     "DATA_JetMET_JMENano_2023_Cv1": {
         "sample": "DATA_JetMET_JMENano_2023_Cv1",
         "json_output": "datasets/DATA_JetMET.json",
@@ -140,6 +225,114 @@
                     "/JetMET0/Run2023C-22Sep2023_v2-v1/MINIAOD",
                     "/JetMET1/Run2023C-22Sep2023_v2-v1/MINIAOD"
                 ]
+            }
+        ]
+    },
+    "DATA_JetMET_23Cv1": {
+        "sample": "DATA_JetMET_23Cv1",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET0/Run2023C-22Sep2023_v1-v2/NANOAOD",
+                    "/JetMET1/Run2023C-22Sep2023_v1-v2/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "Cv1"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_23Cv2": {
+        "sample": "DATA_JetMET_23Cv2",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET0/Run2023C-22Sep2023_v2-v1/NANOAOD",
+                    "/JetMET1/Run2023C-22Sep2023_v2-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "Cv2"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_23Cv3": {
+        "sample": "DATA_JetMET_23Cv3",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET0/Run2023C-22Sep2023_v3-v1/NANOAOD",
+                    "/JetMET1/Run2023C-22Sep2023_v3-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "Cv3"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_23Cv4": {
+        "sample": "DATA_JetMET_23Cv4",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET0/Run2023C-22Sep2023_v4-v1/NANOAOD",
+                    "/JetMET1/Run2023C-22Sep2023_v4-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "Cv4"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_23Dv1": {
+        "sample": "DATA_JetMET_23Dv1",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET0/Run2023D-22Sep2023_v1-v1/NANOAOD",
+                    "/JetMET1/Run2023D-22Sep2023_v1-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "Dv1"
+                }
+            }
+        ]
+    },
+    "DATA_JetMET_23Dv2": {
+        "sample": "DATA_JetMET_23Dv2",
+        "json_output": "datasets/DATA_JetMET.json",
+        "files": [
+            {
+                "das_names": [
+                    "/JetMET0/Run2023D-22Sep2023_v2-v1/NANOAOD",
+                    "/JetMET1/Run2023D-22Sep2023_v2-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2023_preBPix",
+                    "isMC": false,
+                    "primaryDataset": "JetMET",
+                    "era": "Dv2"
+                }
             }
         ]
     },
@@ -706,7 +899,7 @@
     "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4": {
         "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -715,7 +908,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.4105150,
                     "part": ""
                 },
                 "das_parents_names": [
@@ -727,7 +920,7 @@
     "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2": {
         "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -736,11 +929,11 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.0000131,
                     "part": ""
                 },
                 "das_parents_names": [
-                    ""
+                    "/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
                 ]
             }
         ]
@@ -748,7 +941,7 @@
     "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3": {
         "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -757,11 +950,11 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.3678762,
                     "part": ""
                 },
                 "das_parents_names": [
-                    ""
+                    "/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
                 ]
             }
         ]
@@ -769,7 +962,7 @@
     "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43": {
         "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -778,7 +971,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.0011557,
                     "part": ""
                 },
                 "das_parents_names": [
@@ -790,7 +983,7 @@
     "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94": {
         "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -799,11 +992,11 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.0038945,
                     "part": ""
                 },
                 "das_parents_names": [
-                    ""
+                    "/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2/MINIAODSIM"
                 ]
             }
         ]
@@ -811,7 +1004,7 @@
     "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36": {
         "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -820,7 +1013,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.0119824,
                     "part": ""
                 },
                 "das_parents_names": [
@@ -832,7 +1025,7 @@
     "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39": {
         "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -853,7 +1046,7 @@
     "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96": {
         "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -874,7 +1067,7 @@
     "VBFHHto4B_CV_1_C2V_0_C3_1": {
         "sample": "VBFHHto4B_CV_1_C2V_0_C3_1",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -883,11 +1076,11 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.0304177,
                     "part": ""
                 },
                 "das_parents_names": [
-                    ""
+                    "/VBFHHto4B_CV_1_C2V_0_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v1/MINIAODSIM"
                 ]
             }
         ]
@@ -895,7 +1088,7 @@
     "VBFHHto4B_CV_1_C2V_1_C3_1": {
         "sample": "VBFHHto4B_CV_1_C2V_1_C3_1",
         "json_output": "datasets/signal_VBF_HH4b.json",
-        "description": "0.3952 Wrong cross section",
+        "description": "cross sections from https://gitlab.cern.ch/cms-analysis/hig/HIG-24-010/datacards/-/blob/master/AN-23-184/Model/hh_model_13p6TeV.py?ref_type=heads",
         "files": [
             {
                 "das_names": [
@@ -904,7 +1097,7 @@
                 "metadata": {
                     "year": "2022_postEE",
                     "isMC": true,
-                    "xsec": 0.0006410,
+                    "xsec": 0.0019742,
                     "part": ""
                 },
                 "das_parents_names": [

@@ -4,7 +4,6 @@ import cloudpickle
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
 )
-from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.weights.common.common import common_weights
 from pocket_coffea.parameters import defaults
 from pocket_coffea.parameters.cuts import passthrough
@@ -20,17 +19,19 @@ from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
+    define_single_category,
     define_preselection,
     get_columns_list,
     get_variables_dict,
+    with_fw_momenta_columns,
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
 )
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
+SPANET_TRAINING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -117,7 +118,7 @@ sample_list = (
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
     + sample_ggF_list
-    # + sample_VBF_list
+    + sample_VBF_list
     + (
         [
             #     "GluGlutoHHto4B_spanet_skimmed",
@@ -142,18 +143,26 @@ categories_dict = define_categories(
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
+if SPANET_TRAINING:
+    # categories_dict = define_single_category("hh4b_vbf_best_candidates_6_jets_nokincut_region")
+    # categories_dict |= define_single_category("hh4b_vbf_best_candidates_6_jets_region")
+    categories_dict |= define_single_category("4b_region")
+
 column_list = []
-column_listRun2 = []
 
 # Add SPANet training inputs
-if not config_options_dict["spanet"] and not config_options_dict["run2"]:
+if not config_options_dict["spanet"]:
     if not config_options_dict["vbf_analysis"]:
         column_list += get_columns_list(
             SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
         )
     else:
         column_list += get_columns_list(
-            SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
+            with_fw_momenta_columns(
+                SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+                config_options_dict["max_order_FW"],
+                config_options_dict["FW_momenta_norms"],
+            ),
             not config_options_dict["save_chunk"],
         )
 elif (
@@ -163,6 +172,15 @@ elif (
     column_list += get_columns_list(
         SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
     )
+    if config_options_dict["dnn_variables"]:
+        total_input_columns = (
+            config_options_dict["sig_bkg_dnn_input_variables"]
+            | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | {"year": ["events", "year"]}
+        )
+        column_list += create_DNN_columns_list(
+            False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+        )
 
 else:
     # Define the other columns to save
@@ -199,14 +217,9 @@ else:
     column_list += create_DNN_columns_list(
         False, not config_options_dict["save_chunk"], total_input_columns, btag=False
     )
-    column_listRun2 += create_DNN_columns_list(
-        True, not config_options_dict["save_chunk"], total_input_columns, btag=False
-    )
     # Add special columns
-    if config_options_dict["sig_bkg_dnn"] and config_options_dict["spanet"]:
+    if config_options_dict["sig_bkg_dnn"]:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
-    if config_options_dict["sig_bkg_dnn"] and config_options_dict["run2"]:
-        column_listRun2 += get_columns_list({"events": ["sig_bkg_dnn_scoreRun2"]})
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
@@ -215,30 +228,16 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-                + (
-                    get_columns_list(
-                        {"events": ["bkg_morphing_spread_dnn_weightsRun2"]}
-                    )
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
+        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+            column_list
+            + (
+                get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
+                if "DATA" in sample
+                and config_options_dict["bkg_morphing_spread_dnn"]
+                and "postW" in category
+                else []
             )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-                + (
-                    get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
-                    if "DATA" in sample
-                    and config_options_dict["bkg_morphing_spread_dnn"]
-                    and "postW" in category
-                    else []
-                )
-            )
+        )
 
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
@@ -247,29 +246,16 @@ for sample in sample_list:
         bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
         for category in categories_dict.keys():
             if "postW" in category:
-                if "Run2" in category:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weightRun2"
-                    ]
-                else:
-                    bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                        "bkg_morphing_dnn_weight"
-                    ]
+                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+                    "bkg_morphing_dnn_weight"
+                ]
 
 cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_local_rucio.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_SM_local_rucio_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_test.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,
@@ -284,7 +270,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + ([bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2] if not BASELINE else []),
+    + ([bkg_morphing_dnn_weight] if not BASELINE else []),
     weights={
         "common": {
             "inclusive": [
@@ -296,7 +282,7 @@ cfg = Configurator(
         },
         "bysample": bysample_bycategory_weight_dict,
     },
-    calibrators=[JetsCalibrator],
+    # calibrators=[JetsCalibrator],
     variations={
         "weights": {
             "common": {

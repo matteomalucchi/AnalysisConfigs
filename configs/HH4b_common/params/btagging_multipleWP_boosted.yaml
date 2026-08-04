@@ -1,0 +1,71 @@
+# B-tagging algorithms and working points
+jet_scale_factors:
+  btagSF:
+    '2022_preEE':
+      btagEfficiencyFile: 
+        btagDeepFlavB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagDeepFlavB_2022_preEE.json"
+        btagPNetB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagPNetB_2022_preEE.json"
+        btagRobustParTAK4B: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagRobustParTAK4B_2022_preEE.json"
+      fixed_wp_name_map:
+        btagDeepFlavB: "deepJet"
+        btagPNetB: "particleNet"
+        btagRobustParTAK4B: "robustParticleTransformer"
+    '2022_postEE':
+      btagEfficiencyFile: 
+        btagDeepFlavB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagDeepFlavB_2022_postEE.json"
+        btagPNetB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagPNetB_2022_postEE.json"
+        btagRobustParTAK4B: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagRobustParTAK4B_2022_postEE.json"
+      fixed_wp_name_map:
+        btagDeepFlavB: "deepJet"
+        btagPNetB: "particleNet"
+        btagRobustParTAK4B: "robustParticleTransformer"
+    '2023_preBPix':
+      btagEfficiencyFile: 
+        btagDeepFlavB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagDeepFlavB_2023_preBPix.json"
+        btagPNetB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagPNetB_2023_preBPix.json"
+        btagRobustParTAK4B: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagRobustParTAK4B_2023_preBPix.json"
+      fixed_wp_name_map:
+        btagDeepFlavB: "deepJet"
+        btagPNetB: "particleNet"
+        btagRobustParTAK4B: "robustParticleTransformer"
+    '2023_postBPix':
+      btagEfficiencyFile: 
+        btagDeepFlavB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagDeepFlavB_2023_postBPix.json"
+        btagPNetB: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagPNetB_2023_postBPix.json"
+        btagRobustParTAK4B: "${config_dir:}/../HH4b_common/params/btag_efficiencies_multipleWP/btag_efficiencies_btagRobustParTAK4B_2023_postBPix.json"
+      fixed_wp_name_map:
+        btagDeepFlavB: "deepJet"
+        btagPNetB: "particleNet"
+        btagRobustParTAK4B: "robustParticleTransformer"
+
+btagging:
+  working_point:
+    '2022_preEE':
+      btagging_algorithm: particleNet_XbbVsQCD
+      btagging_WP:
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
+    '2022_postEE':
+      btagging_algorithm: particleNet_XbbVsQCD
+      btagging_WP:
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
+    '2023_preBPix':
+      btagging_algorithm: particleNet_XbbVsQCD
+      btagging_WP:
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
+    '2023_postBPix':
+      btagging_algorithm: particleNet_XbbVsQCD
+      btagging_WP:
+        btagBB:
+          MP: 0.95
+          HP: 0.975
+          VHP: 0.99
+

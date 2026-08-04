@@ -18,12 +18,24 @@ def lepton_selection(events, lepton_flavour, params):
         passes_dxy = leptons.dxy < threshold_dxy
         passes_dz = leptons.dz < threshold_dz
     else:
-        passes_dxy = leptons.dxy < cuts["dxy"]
-        passes_dz = leptons.dz < cuts["dz"]
+        if "dxy" in cuts.keys():
+            passes_dxy = leptons.dxy < cuts["dxy"]
+        else:
+            passes_dxy = ak.ones_like(leptons.dxy, dtype=bool)
+        if "dz" in cuts.keys():
+            passes_dz = leptons.dz < cuts["dz"]
+        else:
+            passes_dz = ak.ones_like(leptons.dz, dtype=bool)
 
     if lepton_flavour == "Electron":
         # Requirements on isolation and id
-        passes_iso = leptons.pfRelIso03_all < cuts["iso"]
+        if "iso" in cuts.keys():
+            if isinstance(cuts["iso"], float):
+                passes_iso = leptons.pfRelIso03_all < cuts["iso"]
+            else:
+                passes_iso = leptons[cuts["iso"]["type"]] < cuts["iso"]["max_value"]
+        else:
+            passes_iso = ak.ones_like(leptons.pfRelIso03_all, dtype=bool)
         passes_id = leptons[cuts["id"]["type"]] >= cuts["id"]["working_point"]
         good_leptons = (
             passes_eta & passes_pt & passes_iso & passes_dxy & passes_dz & passes_id
@@ -48,7 +60,7 @@ def lepton_selection(events, lepton_flavour, params):
 
 
 def jet_selection_nopu(
-    events, jet_type, params, tight_cuts=False,
+    events, jet_type, params, tight_cuts=False, semi_tight_vbf=False,
 ):
     jets = events[jet_type]
     cuts = params.object_preselection[jet_type]
@@ -78,3 +90,38 @@ def jet_selection_nopu(
     return jets[mask_jets]
 
 
+def object_cleaning(object, cleaning_collection, dr_min=0.4):
+    # here I create a deltaR matrix between jets and cleaning collection the output shape is (njets, ncleaning)
+    dR = object[:, :, None].delta_r(cleaning_collection[:, None, :])
+
+    # then I check if the jets are within dR min of ANY cleaning object
+    dR_mask = dR < dr_min
+    dR_mask_jets = ak.any(dR_mask, axis=2)
+
+    # I then add to the mask the cleaning requirement
+    cleaned_object = object[~dR_mask_jets]
+
+    return cleaned_object
+
+
+def clean_ak4_boosted(obj, ak8jets, muons, electrons, dr_jets, dr_lep):
+    """Clean the AK4 collection to not be inside an AK8 or lepton cone."""
+    # Clean From AK8
+    cleaned_obj = object_cleaning(
+        obj,
+        ak8jets,
+        dr_min=dr_jets
+    )
+    # Clean From Electrons
+    cleaned_obj = object_cleaning(
+        cleaned_obj,
+        electrons,
+        dr_min=dr_lep
+    )
+    # Clean From Muons
+    cleaned_obj = object_cleaning(
+        cleaned_obj,
+        electrons,
+        dr_min=dr_lep
+    )
+    return cleaned_obj

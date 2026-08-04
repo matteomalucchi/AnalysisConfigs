@@ -24,6 +24,29 @@ hh4b_presel = Cut(
     function=cuts_f.hh4b_presel_cuts,
 )
 
+hh4b_boosted_presel = Cut(
+    name="hh4b_boosted_presel",
+    params={
+        "nfatjet": 2,
+    },
+    function=cuts_f.hh4b_boosted_presel_cuts,
+)
+
+hh4b_boosted_2fatjets = Cut(
+    name="hh4b_boosted_2fatjets",
+    params={
+        "nfatjet": 2,
+    },
+    function=cuts_f.hh4b_boosted_2fatjets,
+)
+
+hh4b_boosted_lepton_veto = Cut(
+    name="hh4b_boosted_lepton_veto",
+    params={
+    },
+    function=cuts_f.hh4b_boosted_lepton_veto,
+)
+
 hh4b_presel_tight = Cut(
     name="hh4b_presel_tight",
     params={
@@ -90,7 +113,6 @@ hh4b_4b_region = Cut(
 hh4b_signal_region = Cut(
     name="hh4b_signal_region",
     params={
-        "Run2": False,
         "radius_min": 0,
         "radius_max": 30,
         "higgs_lead_center": 125,
@@ -102,43 +124,124 @@ hh4b_signal_region = Cut(
 hh4b_control_region = Cut(
     name="hh4b_control_region",
     params={
+        "radius_min": 30,
+        "radius_max": 55,
+        "higgs_lead_center": 125,
+        "higgs_sublead_center": 120,
+    },
+    function=cuts_f.hh4b_Rhh_cuts,
+)
+hh4b_control_region_wide = Cut(
+    name="hh4b_control_region",
+    params={
         "Run2": False,
         "radius_min": 30,
-        "radius_max": 55,
+        "radius_max": 80,
         "higgs_lead_center": 125,
         "higgs_sublead_center": 120,
     },
     function=cuts_f.hh4b_Rhh_cuts,
 )
 
-hh4b_signal_region_run2 = Cut(
-    name="hh4b_signal_region_run2",
+hh4b_boosted_signal_region_other_group = Cut(
+    name="hh4b_boosted_signal_region",
     params={
-        "Run2": True,
-        "radius_min": 0,
-        "radius_max": 30,
-        "higgs_lead_center": 125,
-        "higgs_sublead_center": 120,
+        # "pnet_cut": 0.65,
+        "bbtagTXbb": 0.30,
+        # "mass_min": 100,
+        # "mass_max": 150,
     },
-    function=cuts_f.hh4b_Rhh_cuts,
+    function=cuts_f.hh4b_boosted_SR_cuts,
 )
 
-hh4b_control_region_run2 = Cut(
-    name="hh4b_control_region_run2",
+hh4b_boosted_signal_region = Cut(
+    name="hh4b_boosted_signal_region",
+    params={
+        # "pnet_cut": 0.65,
+        "pnet_cut": 0.60,
+        "mass_min": 100,
+        "mass_max": 150,
+    },
+    function=cuts_f.hh4b_boosted_SR_cuts,
+)
+
+hh4b_boosted_ttbar_control_region = Cut(
+    name="hh4b_boosted_ttbar_control_region",
+    params={
+        "mass_min": 150,
+        "mass_max": 200,
+    },
+    function=cuts_f.hh4b_boosted_ttbar_CR_cuts,
+)
+hh4b_control_region_wide_run2 = Cut(
+    name="hh4b_control_region",
     params={
         "Run2": True,
         "radius_min": 30,
-        "radius_max": 55,
+        "radius_max": 80,
         "higgs_lead_center": 125,
         "higgs_sublead_center": 120,
     },
     function=cuts_f.hh4b_Rhh_cuts,
 )
+
+hh4b_boosted_qcd_control_region_tot = Cut(
+    name="hh4b_boosted_qcd_control_region_tot",
+    params={
+        "pnet_cut": 0.0,
+        "mass_min": 100,
+        "mass_max": 150,
+        "mass_max_sublead": 200,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts,
+)
+
+hh4b_boosted_qcd_control_region_A = Cut(
+    name="hh4b_boosted_qcd_control_region_A",
+    params={
+        "pnet_cut_min": 0.00,
+        # "pnet_cut_max": 0.65,
+        "pnet_cut_max": 0.60,
+        "mass_min_lead": 40,
+        "mass_max_lead": 100,
+        "mass_min_sublead": 40,
+        "mass_max_sublead": 200,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
+)
+
+hh4b_boosted_qcd_control_region_B = Cut(
+    name="hh4b_boosted_qcd_control_region_B",
+    params={
+        # "pnet_cut_min": 0.65,
+        "pnet_cut_min": 0.60,
+        "pnet_cut_max": 1.0,
+        "mass_min_lead": 40,
+        "mass_max_lead": 100,
+        "mass_min_sublead": 40,
+        "mass_max_sublead": 200,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
+)
+
+hh4b_boosted_qcd_control_region_C = Cut(
+    name="hh4b_boosted_qcd_control_region_C",
+    params={
+        "pnet_cut_min": 0.00,
+        # "pnet_cut_max": 0.65,
+        "pnet_cut_max": 0.60,
+        "mass_min_lead": 100,
+        "mass_max_lead": 150,
+        "mass_min_sublead": 40,
+        "mass_max_sublead": 200,
+    },
+    function=cuts_f.hh4b_boosted_qcd_CR_cuts_X,
+)
+
 
 hh4b_VR1_signal_region = Cut(
     name="hh4b_VR1_signal_region",
     params={
-        "Run2": False,
         "radius_min": 0,
         "radius_max": 30,
         "higgs_lead_center": 185,
@@ -150,31 +253,6 @@ hh4b_VR1_signal_region = Cut(
 hh4b_VR1_control_region = Cut(
     name="hh4b_VR1_control_region",
     params={
-        "Run2": False,
-        "radius_min": 30,
-        "radius_max": 55,
-        "higgs_lead_center": 185,
-        "higgs_sublead_center": 180,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
-hh4b_VR1_signal_region_run2 = Cut(
-    name="hh4b_VR1_signal_region_run2",
-    params={
-        "Run2": True,
-        "radius_min": 0,
-        "radius_max": 30,
-        "higgs_lead_center": 185,
-        "higgs_sublead_center": 180,
-    },
-    function=cuts_f.hh4b_Rhh_cuts,
-)
-
-hh4b_VR1_control_region_run2 = Cut(
-    name="hh4b_VR1_control_region_run2",
-    params={
-        "Run2": True,
         "radius_min": 30,
         "radius_max": 55,
         "higgs_lead_center": 185,
@@ -188,15 +266,6 @@ blinded = Cut(
     params={
         "score": 0.9,
         "score_variable": "sig_bkg_dnn_score",
-    },
-    function=cuts_f.blinding_cuts,
-)
-
-blindedRun2 = Cut(
-    name="blindedRun2",
-    params={
-        "score": 0.9,
-        "score_variable": "sig_bkg_dnn_scoreRun2",
     },
     function=cuts_f.blinding_cuts,
 )
@@ -220,16 +289,6 @@ hh4b_vbf_best_candidates_6_jets_region = Cut(
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
 
-hh4b_vbf_best_candidates_6_jets_region_run2 = Cut(
-    name="hh4b_vbf_best_candidates_6_jets_region_run2",
-    params={
-        "min_mjj": 400,
-        "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
-    },
-    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
-)
-
 hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
     name="hh4b_vbf_best_candidates_6_jets_nokincut_region",
     params={
@@ -239,69 +298,65 @@ hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
-
-hh4b_vbf_best_candidates_6_jets_nokincut_region_run2 = Cut(
-    name="hh4b_vbf_best_candidates_6_jets_nokincut_region_run2",
+def hh4b_sig_bkg_score_cut(thresh):
+    return Cut(
+    name="hh4b_sig_bkg_score_cut",
     params={
-        "min_mjj": 0,
-        "min_deta": 0,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
+        "discriminator": "sig_bkg_dnn_score",
+        "pass": True,
+        "threshold": thresh,
     },
-    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
+    function=cuts_f.sig_bkg_score_cut,
 )
 
-hh4b_vbf_pass_discriminator_region = Cut(
+def hh4b_vbf_pass_discriminator_region(thresh):
+    return Cut(
     name="hh4b_vbf_pass_discriminator_region",
     params={
         "discriminator": "VBF_ggF_score",
         "pass": True,
-        "threshold": 0.8,
+        "threshold": thresh,
+    },
+    function=cuts_f.hh4b_vbf_discriminator_cuts,
+)
+
+def hh4b_vbf_fail_discriminator_region(thresh):
+    return Cut(
+        name="hh4b_vbf_fail_discriminator_region",
+        params={
+            "discriminator": "VBF_ggF_score",
+            "pass": False,
+            "threshold": thresh,
+        },
+        function=cuts_f.hh4b_vbf_discriminator_cuts,
+    )
+
+hh4b_vbf_2_jets = Cut(
+    name="hh4b_vbf_2_jets",
+    params={
         "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
-    function=cuts_f.hh4b_vbf_discriminator_cuts,
+    function=cuts_f.hh4b_vbf_2_jets,
 )
 
-hh4b_vbf_pass_discriminator_region_run2 = Cut(
-    name="hh4b_vbf_pass_discriminator_region_run2",
+hh4b_boosted_vbf_region = Cut(
+    name="hh4b_boosted_vbf_region",
     params={
-        "discriminator": "VBF_ggF_scoreRun2",
-        "pass": True,
-        "threshold": 0.8,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
-    },
-    function=cuts_f.hh4b_vbf_discriminator_cuts,
-)
-
-hh4b_vbf_fail_discriminator_region = Cut(
-    name="hh4b_vbf_fail_discriminator_region",
-    params={
-        "discriminator": "VBF_ggF_score",
-        "pass": False,
-        "threshold": 0.8,
+        "min_mjj": 300,
+        "min_deta": 3.5,
         "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
-    function=cuts_f.hh4b_vbf_discriminator_cuts,
+    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
-
-hh4b_vbf_fail_discriminator_region_run2 = Cut(
-    name="hh4b_vbf_fail_discriminator_region_run2",
-    params={
-        "discriminator": "VBF_ggF_scoreRun2",
-        "pass": False,
-        "threshold": 0.8,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrderedRun2",
-    },
-    function=cuts_f.hh4b_vbf_discriminator_cuts,
-)
-
 
 def skimming_cut_list(configs):
     skimlist = [
         eventFlags,
         goldenJson,
         get_nPVgood(1),
-        get_HLTsel(primaryDatasets=["JetMET"]),
     ]
-    if not configs["noL1"]:
-        skimlist.append(get_L1sel(primaryDatasets=["JetMET"]))
+    if not configs["mixeddata"] and not configs["approach"] == "boosted":
+        skimlist.append(get_HLTsel())
+    if not configs["noL1"] and not configs["mixeddata"] and not configs["boosted"]:
+        skimlist.append(get_L1sel())
     return skimlist

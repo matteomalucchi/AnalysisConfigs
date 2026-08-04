@@ -1,6 +1,6 @@
 import os
 
-from configs.HH4b_common.config_files.bWPeff_studies_no_model_alljets import (
+from configs.HH4b_common.config_files.bWPeff_studies_spanet_alljets import (
     config_options_dict,
     onnx_model_dict,
 )
@@ -17,11 +17,11 @@ import configs.HH4b_common.custom_cuts_common as cuts
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS,
     define_single_category,
+    define_preselection,
     get_columns_list,
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
-    bkg_morphing_dnn_weightRun2,
 )
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -39,10 +39,10 @@ year = ["2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_first_approach.yaml",
-    # f"{localdir}/../HH4b_common/params/object_preselection.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
+    f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
     # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
     # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
@@ -50,13 +50,8 @@ parameters = defaults.merge_parameters_from_files(
 )
 parameters["run_period"] = "Run3"
 config_options_dict["num_bins"] = 20
-preselection = [
-    (
-        cuts.hh4b_presel_nobtag
-        if config_options_dict["tight_cuts"] is False
-        else cuts.hh4b_presel_tight
-    )
-]
+preselection = define_preselection({"no_btag": True})
+
 # Defining the used samples
 sample_ggF_list = [
     "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
@@ -93,6 +88,7 @@ sample_list = [
 categories_dict = define_single_category("inclusive")
 
 column_list = get_columns_list(DEFAULT_JET_COLUMNS, not config_options_dict["save_chunk"])
+column_listRun2 = get_columns_list(DEFAULT_JET_COLUMNS, not config_options_dict["save_chunk"])
 
 
 bysample_bycategory_column_dict = {}
@@ -102,27 +98,17 @@ for sample in sample_list:
         "bycategory": {},
     }
     for category in categories_dict.keys():
-        if "Run2" in category:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_listRun2
-            )
-        else:
-            bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-                column_list
-            )
+        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+            column_list
+        )
 
 cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_SM.json",
-            f"{localdir}/../HH4b_common/datasets/GluGlutoHHto4B_spanet_skimmed_separateSamples.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_skimmed.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,
@@ -138,14 +124,13 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     # calibrators=default_calibrators_sequence,
-    calibrators=[JetsCalibrator],  # , JetsPtRegressionCalibrator],
+    # calibrators=[JetsCalibrator],  
 
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weightRun2],
+    + [bkg_morphing_dnn_weight],
     weights={
         "common": {
-			"inclusive": ["genWeight", "lumi", "XS",
-                          # "pileup"
+			"inclusive": ["genWeight", "lumi", "XS", # "pileup"
                           ],
             "bycategory": {}
         },

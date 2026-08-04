@@ -18,7 +18,7 @@ config_options_dict |= {
     "dnn_variables": True,
     "run2": False,
     "max_num_jets_good": 5,
-    "max_num_jets_spanet": 9,
+    "max_num_jets_higgs_pairing": 9,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables_spanet,
     "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
     "fifth_jet": "pt",

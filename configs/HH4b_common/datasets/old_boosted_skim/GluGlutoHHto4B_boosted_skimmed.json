@@ -1,0 +1,230 @@
+{
+  "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-0p00_kt-0p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-0p00_kt-0p00_c2-0p00",
+      "nevents": "69639",
+      "size": "151804928",
+      "skim_efficiency": "0.04661198180741157",
+      "skim_rescale_genweights": "23.93147",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-0p50_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-0p50_kt-1p00_c2-0p00",
+      "nevents": "81777",
+      "size": "186317729",
+      "skim_efficiency": "0.05519908308651009",
+      "skim_rescale_genweights": "20.190311",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v1/NANOAODSIM']",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-1p00_kt-1p00_c2-0p00",
+      "nevents": "509748",
+      "size": "1131114268",
+      "skim_efficiency": "0.06896517201178724",
+      "skim_rescale_genweights": "16.11943",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE_1.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE_2.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-1p50_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-1p50_kt-1p00_c2-0p00",
+      "nevents": "132041",
+      "size": "311259093",
+      "skim_efficiency": "0.0882228940818815",
+      "skim_rescale_genweights": "12.343117",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-2p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-2p00_kt-1p00_c2-0p00",
+      "nevents": "154164",
+      "size": "366796466",
+      "skim_efficiency": "0.10611742549395362",
+      "skim_rescale_genweights": "10.096061",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-2p45_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-2p45_kt-1p00_c2-0p00",
+      "nevents": "156275",
+      "size": "354820654",
+      "skim_efficiency": "0.1049529180974358",
+      "skim_rescale_genweights": "10.32804",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-3p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-3p00_kt-1p00_c2-0p00",
+      "nevents": "109356",
+      "size": "242894067",
+      "skim_efficiency": "0.07601599341578433",
+      "skim_rescale_genweights": "14.80742",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-3p50_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-3p50_kt-1p00_c2-0p00",
+      "nevents": "73995",
+      "size": "158681092",
+      "skim_efficiency": "0.05159239532485534",
+      "skim_rescale_genweights": "21.529749",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-4p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-4p00_kt-1p00_c2-0p00",
+      "nevents": "54066",
+      "size": "113564508",
+      "skim_efficiency": "0.0370474169386442",
+      "skim_rescale_genweights": "28.785715",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-5p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-5p00_kt-1p00_c2-0p00",
+      "nevents": "37674",
+      "size": "75995892",
+      "skim_efficiency": "0.025182953077916487",
+      "skim_rescale_genweights": "40.249836",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-m1p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-m1p00_kt-1p00_c2-0p00",
+      "nevents": "53867",
+      "size": "118403064",
+      "skim_efficiency": "0.03610371801204686",
+      "skim_rescale_genweights": "30.24331",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  },
+  "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggHHto4B_kl-m2p00_kt-1p00_c2-0p00_TuneCP5_13p6TeV_powheg-pythia8/rgerosa-Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2-00000000000000000000000000000000/USER']",
+      "dbs_instance": "prod/phys03",
+      "sample": "GluGlutoHHto4B_spanet",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.01167",
+      "part": "kl-m2p00_kt-1p00_c2-0p00",
+      "nevents": "46081",
+      "size": "100658709",
+      "skim_efficiency": "0.031096163202727335",
+      "skim_rescale_genweights": "34.616978",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ggHH_boosted_skimmed/hadded/GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_2022_postEE/GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_2022_postEE_1.root"
+    ]
+  }
+}

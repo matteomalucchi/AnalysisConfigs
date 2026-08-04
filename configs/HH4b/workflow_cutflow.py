@@ -130,7 +130,6 @@ class HH4bCutflowProcessor(HH4bCommonProcessor):
         template_event = jet_collection[template_evt_idx]
         # create a template with the template event repeated
         template_jets=ak.broadcast_arrays(template_event, jet_collection)[0]
-        breakpoint()
         # replace bad events with the template event
         jet_collection_safe = ak.where(valid_evt,jet_collection,template_jets,        )
 
@@ -247,30 +246,3 @@ class HH4bCutflowProcessor(HH4bCommonProcessor):
 
     def process_extra_after_presel(self, variation):  # -> ak.Array
         super().process_extra_after_presel(variation=variation)
-        # pass
-        
-        
-        
-        
-        # reconstruct the higgs candidates for Run2 method
-        # if self.run2:
-        #     (
-        #         pairing_predictions,
-        #         self.events["delta_dhh"],
-        #         self.events["HiggsLeadingRun2"],
-        #         self.events["HiggsSubLeadingRun2"],
-        #         self.events["JetGoodFromHiggsOrderedRun2"],
-        #     ) = self.modified_run2_matching_algorithm(self.events["JetGoodHiggs"])
-
-        #     self.events["Rhh_Run2"] = np.sqrt(
-        #         (self.events.HiggsLeadingRun2.mass - 125) ** 2
-        #         + (self.events.HiggsSubLeadingRun2.mass - 120) ** 2
-        #     )
-
-        #     # if the 5th jet is matched, then the add jet should be order by btag
-        #     # because we want to consider the leading in btag which the pairing discarded
-        #     # (useless for Run2 pairing because it's always 4 jets)
-        #     self.events["btag_order_add_jet"] = ak.any(
-        #         ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
-        #     )
-        
