@@ -158,7 +158,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def apply_object_preselection(self, variation):
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
-        if self.neutrino_regression_btag_cut is not None:
+        if self.approach == "first" and self.neutrino_regression_btag_cut is not None and self.neutrino_regression_btag_cut is not False:
             # +neutrino regression for high b-tag jets, plain regression for the
             # rest. The option sets the threshold: True -> loose WP, a WP name,
             # or a raw b-tag score.
@@ -171,6 +171,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         "AK4PFPuppiPNetRegressionPlusNeutrino) is configured."
                     )
             cut = self.neutrino_regression_btag_cut
+            btag_algorithm = "btagPNetB"
             btag_wp = cut if isinstance(cut, str) else ("L" if cut is True else None)
             btag_score = None if isinstance(cut, (bool, str)) else cut
             self.events["Jet"] = merge_regressed_jets(
@@ -182,9 +183,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
                 params=self.params,
                 year=self._year,
+                btag_algorithm=btag_algorithm,
                 btag_wp=btag_wp,
                 btag_score=btag_score,
             )
+            breakpoint()
         elif self.approach == "first":
             # regressed (+neutrino) jets where valid, else the standard JEC jets
             self.events["Jet"] = merge_regressed_jets(
