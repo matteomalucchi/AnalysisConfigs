@@ -272,6 +272,16 @@ hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
+def hh4b_sig_bkg_score_cut(thresh):
+    return Cut(
+    name="hh4b_sig_bkg_score_cut",
+    params={
+        "discriminator": "sig_bkg_dnn_score",
+        "pass": True,
+        "threshold": thresh,
+    },
+    function=cuts_f.sig_bkg_score_cut,
+)
 
 def hh4b_vbf_pass_discriminator_region(thresh):
     return Cut(

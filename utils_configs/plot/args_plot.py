@@ -19,6 +19,12 @@ parser.add_argument(
     default=None,
 )
 parser.add_argument(
+    "--input-ttbar",
+    action="store_true",
+    help="Input ttbar files for reweighting plots",
+    default=None,
+)
+parser.add_argument(
     "-ir",
     "--input-rew",
     type=str,
