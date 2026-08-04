@@ -1333,15 +1333,9 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     cut_list = []
     # number of b jets
     if "4b" in category_name:
-        if not wide_cr:
-            cut_list.append(cuts.hh4b_4b_region)
-        else:
-            cut_list.append(cuts.hh4b_4b_region_wide)
+        cut_list.append(cuts.hh4b_4b_region)
     if "2b" in category_name:
-        if not wide_cr:
-            cut_list.append(cuts.hh4b_2b_region)
-        else:
-            cut_list.append(cuts.hh4b_4b_region_wide)
+        cut_list.append(cuts.hh4b_2b_region)
 
     if "boosted" in category_name:
         if "incl" not in category_name and "fail" not in category_name:
@@ -1367,7 +1361,10 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     # mass cuts
     elif "VR1" not in category_name:
         if "control" in category_name:
-            cut_list.append(cuts.hh4b_control_region)
+            if not wide_cr:
+                cut_list.append(cuts.hh4b_control_region)
+            else:
+                cut_list.append(cuts.hh4b_control_region_wide)
         if "signal" in category_name:
             cut_list.append(cuts.hh4b_signal_region)
     if "VR1" in category_name:
@@ -1399,6 +1396,8 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
 
         else:
             raise ValueError("Unrecognized region name")
+    if "high_score" in category_name:
+        cut_list.append(cuts.hh4b_sig_bkg_score_cut(0.5))
 
     if len(cut_list) < 1:  # aka if no cut applied
         cut_list.append(passthrough)
@@ -1422,6 +1421,7 @@ def define_categories(
     vbf_analysis=False,
     vbf_discriminator=False,
     ggf_vbf_threshold=0.95,  # Only needed if using a vbf_discriminator
+    high_score_reg=False
 ):
     """Define the categories for the analysis."""
     categories_dict = {}
@@ -1467,6 +1467,19 @@ def define_categories(
     elif not vr1:
         categories_dict |= define_single_category("4b_region")
         categories_dict |= define_single_category("4b_control_region")
+        categories_dict |= define_single_category("4b_signal_region")
+        categories_dict |= (
+            define_single_category("4b_signal_region_blind")
+            if blind
+            else {}
+        )
+        if high_score_reg:
+            categories_dict |= (
+                define_single_category("4b_signal_region_high_score_blind")
+                if blind
+                else {}
+            )
+            categories_dict |= define_single_category("4b_signal_region_high_score")
         if not mixeddata:
             categories_dict |= define_single_category(f"2b_control_region_preW", expandCR)
             categories_dict |= define_single_category(f"2b_signal_region_preW", expandCR)
@@ -1475,6 +1488,13 @@ def define_categories(
                 if blind
                 else {}
             )
+            if high_score_reg:
+                categories_dict |= define_single_category(f"2b_signal_region_preW_high_score", expandCR)
+                categories_dict |= (
+                    define_single_category("2b_signal_region_preW_high_score_blind", expandCR)
+                    if blind
+                    else {}
+                )
         else:
             categories_dict |= define_single_category(f"4b_control_region_preW", expandCR)
             categories_dict |= define_single_category(f"4b_signal_region_preW", expandCR)
@@ -1483,19 +1503,18 @@ def define_categories(
                 if blind
                 else {}
             )
-        categories_dict |= define_single_category("2b_control_region_preW")
-        categories_dict |= (
-            define_single_category("4b_signal_region_blind")
-            if blind
-            else {}
-        )
-        categories_dict |= define_single_category("4b_signal_region")
-        categories_dict |= (
-            define_single_category("2b_signal_region_preW_blind")
-            if blind
-            else {}
-        )
-        categories_dict |= define_single_category("2b_signal_region_preW")
+            if high_score_reg:
+                categories_dict |= define_single_category(f"4b_signal_region_preW_high_score", expandCR)
+                categories_dict |= (
+                    define_single_category(f"4b_signal_region_preW_blind_high_score")
+                    if blind
+                    else {}
+                )
+                categories_dict |= (
+                    define_single_category("4b_signal_region_preW_high_score_blind", expandCR)
+                    if blind
+                    else {}
+                )
 
         if bkg_morphing_dnn:
             if not mixeddata:
@@ -1510,6 +1529,15 @@ def define_categories(
                 categories_dict |= define_single_category(
                     f"2b_signal_region_postW"
                 )
+                if high_score_reg:
+                    categories_dict |= (
+                        define_single_category("2b_signal_region_postW_high_score_blind")
+                        if blind
+                        else {}
+                    )
+                    categories_dict |= define_single_category(
+                        "2b_signal_region_postW_high_score"
+                    )
             else:
                 categories_dict |= define_single_category(
                     f"4b_control_region_postW", expandCR
@@ -1522,17 +1550,15 @@ def define_categories(
                 categories_dict |= define_single_category(
                     f"4b_signal_region_postW"
                 )
-            categories_dict |= define_single_category(
-                "2b_control_region_postW"
-            )
-            categories_dict |= (
-                define_single_category("2b_signal_region_postW_blind")
-                if blind
-                else {}
-            )
-            categories_dict |= define_single_category(
-                "2b_signal_region_postW"
-            )
+                if high_score_reg:
+                    categories_dict |= (
+                        define_single_category(f"4b_signal_region_postW_high_score_blind")
+                        if blind
+                        else {}
+                    )
+                    categories_dict |= define_single_category(
+                        f"4b_signal_region_postW_high_score"
+                    )
         if vbf_analysis:
             # NOTE: this region requires at least 6 jets
             categories_dict |= define_single_category(

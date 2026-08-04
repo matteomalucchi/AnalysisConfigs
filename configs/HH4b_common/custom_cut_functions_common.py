@@ -257,6 +257,10 @@ def hh4b_vbf_eta_mjj_cuts(events, params, **kwargs):
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def sig_bkg_score_cut(events, params, **kwargs):
+    mask = events[params["discriminator"]] >= params["threshold"]
+
+    return ak.where(ak.is_none(mask), False, mask)
 
 def hh4b_vbf_discriminator_cuts(events, params, **kwargs):
     if params["pass"]:
