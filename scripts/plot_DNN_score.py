@@ -572,7 +572,7 @@ def main(cat_cols, lumi, era_string):
         for data_mc, cat_col, cat in zip(["DATA", "BKG", "MC"], cat_cols, cat_list):
             print(data_mc)
             print(cat_col.keys())
-            vars_tot = list(cat_col[cat_list[0]].keys()) # We only consider observables present in data
+            vars_tot = list(cat_col[cat].keys()) # We only consider observables present in data
             # print("vars_tot", vars_tot)
             vars_to_plot = []
             # vars_tot = [v for v in vars_tot if "add" in v or "weight"  in v]
@@ -581,9 +581,9 @@ def main(cat_cols, lumi, era_string):
                     continue
                 v_pref = v.split("_")[0]
                 if v_pref + "_N" in vars_tot:
-                    N = cat_col[cat_list[0]][v_pref + "_N"][0]
+                    N = cat_col[cat][v_pref + "_N"][0]
                     try:
-                        assert (cat_col[cat_list[0]][v_pref + "_N"] == N).all()
+                        assert (cat_col[cat][v_pref + "_N"] == N).all()
                     except AssertionError:
                         print(
                             f"WARNING: Variables {v_pref} have different N values: {cat_col[cat_list[0]][v_pref + '_N']}. Skipping..."

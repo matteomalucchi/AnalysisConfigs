@@ -458,10 +458,12 @@ def plot_single_var_from_columns(
             # remove padded values
             noninf_den = np.abs(weights_den) < np.inf
             noninf_num = np.abs(weights_num) < np.inf
-            weights_den = weights_den[col_den != PAD_VALUE & noninf_den]
-            weights_num = weights_num[col_num != PAD_VALUE & noninf_num]
-            col_den = col_den[col_den != PAD_VALUE & noninf_den]
-            col_num = col_num[col_num != PAD_VALUE & noninf_num]
+            mask_den = (col_den != PAD_VALUE) & noninf_den
+            mask_num = (col_num != PAD_VALUE) & noninf_num
+            weights_den = weights_den[mask_den]
+            weights_num = weights_num[mask_num]
+            col_den = col_den[mask_den]
+            col_num = col_num[mask_num]
 
             ### This is a bad workaround for the case where a few weights are Nan or very high.
             if args.mask_large_weights:
@@ -895,7 +897,7 @@ if __name__ == "__main__":
     for category in cat_col_data.keys():
         weights = cat_col_data[category]["weight"]
         if np.any(weights >= np.inf):
-            logger.warn("Found infinite values in weights")
+            print("Found infinite values in weights")
         weights = weights[weights < np.inf]
         if "postW" in category:
             plot_weights([weights], category, lumi, era_string)

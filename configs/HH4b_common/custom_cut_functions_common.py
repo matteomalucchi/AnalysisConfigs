@@ -70,30 +70,58 @@ def hh4b_presel_cuts(events, params, **kwargs):
 def hh4b_boosted_presel_cuts(events, params, **kwargs):
     # selection is already performed in the object preselection, 
     # here I just need to count the fat jets
-    mask = events["nFatJetGoodSelected"] >= params["nfatjet"]
+    mask_fatjet = events["nFatJetGoodSelected"] >= params["nfatjet"]
+    # Following the cuts of the other group:
+    # lepton_veto_mask = lepton_veto(events, params, **kwargs)
+
+    mask = mask_fatjet # & lepton_veto_mask
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def hh4b_boosted_2fatjets(events, params, **kwargs):
+    # selection is already performed in the object preselection, 
+    # here I just need to count the fat jets
+    # mask_fatjet = ak.num(events["FatJetGood"]) >= params["nfatjet"]
+    mask_fatjet = events["nFatJetGoodSelected"] >= params["nfatjet"]
+    # Following the cuts of the other group:
+    # lepton_veto_mask = lepton_veto(events, params, **kwargs)
+
+    mask = mask_fatjet # & lepton_veto_mask
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+def hh4b_boosted_lepton_veto(events, params, **kwargs):
+    mask = lepton_veto(events, params, **kwargs)
+    return ak.where(ak.is_none(mask), False, mask)
 
 def hh4b_boosted_SR_cuts(events, params, **kwargs):
     # further splits after passing the boosted preselection, here I assume that the two candidate jets are present
     lead_jet, sublead_jet = events["FatJetGoodSelected"][:, 0], events["FatJetGoodSelected"][:, 1]
 
     # also the second jet has to pass the btag cut to end in the SR
-    mask_btag = (
-        sublead_jet["btagBB"] > params["pnet_cut"]
-    )
+    if "pnet_cut" in params:
+        mask_btag = (
+            sublead_jet["btagBB"] > params["pnet_cut"]
+        )
+    elif "bbtagTXbb" in params:
+        mask_btag = (
+            (lead_jet["btagBBTXbb"] >= params["bbtagTXbb"]) # | (lead_jet["btagBBPNetLegacy"] >= params["bbtagTXbb"])
+        )
     mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
 
     # this should be done with the regressed mass, GloParT or PNet? at the moment is PNet
-    mask_mass = (
-        (lead_jet.mass_regr > params["mass_min"]) 
-        & (lead_jet.mass_regr < params["mass_max"])
-    )
-    mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+    if "mass_min" in params and "mass_max" in params:
+        mask_mass = (
+            (lead_jet.mass_regr > params["mass_min"]) 
+            & (lead_jet.mass_regr < params["mass_max"])
+        )
+        mask_mass = ak.where(ak.is_none(mask_mass), False, mask_mass)
+    else:
+        mask_mass = ak.full_like(mask_btag, True)
 
-    mask = mask_btag & mask_mass
+    mask = mask_btag  # & mask_mass
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
@@ -257,6 +285,10 @@ def hh4b_vbf_eta_mjj_cuts(events, params, **kwargs):
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def sig_bkg_score_cut(events, params, **kwargs):
+    mask = events[params["discriminator"]] >= params["threshold"]
+
+    return ak.where(ak.is_none(mask), False, mask)
 
 def hh4b_vbf_discriminator_cuts(events, params, **kwargs):
     if params["pass"]:

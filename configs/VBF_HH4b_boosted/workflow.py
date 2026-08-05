@@ -1,14 +1,17 @@
 import awkward as ak
+import pandas as pd
 import copy
 import numpy as np
+import xgboost as xgb
 
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 from utils_configs.reconstruct_higgs_candidates import get_lead_mjj_jet_pair
 from utils_configs.reconstruct_higgs_candidates import run2_matching_algorithm
+from utils_configs.bdt_evaluation_functions import get_default_bdt_inputs, evaluate_bdt, disc_TXbb
 
-from configs.HH4b_common.custom_object_preselection_common import object_cleaning
+from configs.HH4b_common.custom_object_preselection_common import object_cleaning, clean_ak4_boosted
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):
@@ -40,11 +43,29 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             # ===== BB-tagging =====
             # here we propagate the btagging scores to the FatJetGood collection as is done in the pocket coffea jet_selection
             # if we're interested in other taggers, we need to add them here or swap to the mass correlated ones ("particleNetWithMass_HbbvsQCD", "particleNetWithMass_HccvsQCD")
-            self.events["FatJetGood"] = ak.with_field(
-                self.events["FatJetGood"],
-                self.events["FatJetGood"]["particleNet_XbbVsQCD"],
-                "btagBB",
-            )
+
+            if self._year == "2024":
+                self.events["FatJetGood"] = ak.with_field(
+                    self.events["FatJetGood"],
+                    (self.events["FatJetGood"]["globalParT3_Xbb"] / (self.events["FatJetGood"]["globalParT3_Xbb"] + self.events["FatJetGood"]["globalParT3_QCD"])),
+                    "btagBBTXbb",
+                )
+                self.events["FatJetGood"] = ak.with_field(
+                    self.events["FatJetGood"],
+                    (self.events["FatJetGood"]["particleNetLegacy_Xbb"] / (self.events["FatJetGood"]["particleNetLegacy_Xbb"] + self.events["FatJetGood"]["particleNetLegacy_QCD"])),
+                    "btagBBPNetLegacy",
+                )
+                self.events["FatJetGood"] = ak.with_field(
+                    self.events["FatJetGood"],
+                    self.events["FatJetGood"]["globalParT3_Xbb"],
+                    "btagBB",
+                )
+            else:
+                self.events["FatJetGood"] = ak.with_field(
+                    self.events["FatJetGood"],
+                    self.events["FatJetGood"]["particleNet_XbbVsQCD"],
+                    "btagBB",
+                )
             self.events["FatJetGood"] = ak.with_field(
                 self.events["FatJetGood"],
                 self.events["FatJetGood"]["particleNet_XccVsQCD"],
@@ -55,9 +76,14 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events["FatJetGood"], 3
             )
             # jet ordered in btagging score
-            self.events["FatJetGood"] = self.events["FatJetGood"][
-                ak.argsort(self.events["FatJetGood"]["btagBB"], axis=1, ascending=False)
-            ]
+            if not self.TXbb_order:
+                self.events["FatJetGood"] = self.events["FatJetGood"][
+                    ak.argsort(self.events["FatJetGood"]["btagBB"], axis=1, ascending=False)
+                ]
+            else:
+                self.events["FatJetGood"] = self.events["FatJetGood"][
+                    ak.argsort(self.events["FatJetGood"]["btagBBTXbb"], axis=1, ascending=False)
+                ]
             # We do only take the masks from the leading and subleading jets. Then we apply the masks to FatJetGood
             # This does require the additional fields we add to the FatJet collection inside the function to be also added to the final collection
             _, mask_fat_lead = custom_jet_selection(
@@ -106,8 +132,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 )
                 mask_fat_sublead = mask_fat_sublead & mask_mass_regr
             # == Cut on b-tag
-            mask_fat_lead = mask_fat_lead & (self.events["FatJetGood"]["btagBB"] > 0.65)
-            mask_fat_sublead = mask_fat_sublead & (self.events["FatJetGood"]["btagBB"] > 0.00) # used to be 0.05
+            # mask_fat_lead = mask_fat_lead & (self.events["FatJetGood"]["btagBB"] > 0.65)
+            # mask_fat_sublead = mask_fat_sublead & (self.events["FatJetGood"]["btagBB"] > 0.00) # used to be 0.05
 
             # ===== Cutting and combining the two fatjets =====
             self.events["FatJetGoodLeading"] = self.events["FatJetGood"][mask_fat_lead][:, :1]
@@ -120,6 +146,34 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             self.events["FatJetGoodSelected"] = ak.concatenate([self.events["FatJetGoodLeading"], self.events["FatJetGoodSubLeading"]], axis=1)
             self.events["nFatJetGoodSelected"] = ak.num(self.events["FatJetGoodSelected"], axis=1)
 
+            # mask_pt = self.events["FatJetGood"]["pt"] > 250
+            # mask_eta = abs(self.events["FatJetGood"]["eta"]) < 2.5
+            # mask_msd = self.events["FatJetGood"]["msoftdrop"] > 50
+
+            # jetidtight = (
+            #     (
+            #         (np.abs(self.events["FatJetGood"].eta) <= 2.6)
+            #         & (self.events["FatJetGood"].neHEF < 0.99)
+            #         & (self.events["FatJetGood"].neEmEF < 0.9)
+            #         & ((self.events["FatJetGood"].chMultiplicity + self.events["FatJetGood"].neMultiplicity) > 1)
+            #         & (self.events["FatJetGood"].chHEF > 0.01)
+            #         & (self.events["FatJetGood"].chMultiplicity > 0)
+            #     )
+            # | (
+            # ((np.abs(self.events["FatJetGood"].eta) > 2.6) & (np.abs(self.events["FatJetGood"].eta) <= 2.7))
+            # & (self.events["FatJetGood"].neHEF < 0.90)
+            # & (self.events["FatJetGood"].neEmEF < 0.99)
+            # )
+            # | (((np.abs(self.events["FatJetGood"].eta) > 2.7) & (np.abs(self.events["FatJetGood"].eta) <= 3.0)) & (self.events["FatJetGood"].neHEF < 0.99))
+            # | ((np.abs(self.events["FatJetGood"].eta) > 3.0) & (self.events["FatJetGood"].neMultiplicity >= 2) & (self.events["FatJetGood"].neEmEF < 0.4))
+            # )
+            # jetidtightlepveto = (
+            # (np.abs(self.events["FatJetGood"].eta) <= 2.7) & jetidtight & (self.events["FatJetGood"].muEF < 0.8) & (self.events["FatJetGood"].chEmEF < 0.8)
+            # ) | ((np.abs(self.events["FatJetGood"].eta) > 2.7) & jetidtight)
+
+            # self.events["FatJetGoodTest"] = self.events["FatJetGood"][jetidtight & jetidtightlepveto & mask_pt & mask_eta & mask_msd]
+
+
         if self.vbf_analysis:
             if not self.boosted:
                 # get idx of good jets after preselection
@@ -130,23 +184,19 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
                 # find the remaining jets to define the vbf candidates
                 self.events["JetVBF"] = self.get_jets_not_from_idx(jet_good_idx_not_none)
-            else:
-                self.events["JetVBF"] = copy.copy(self.events.Jet)
-            self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
-                self.events,
-                "JetVBF",
-                "JetVBF",
-                self.params,
-                year=self._year,
-                pt_type="pt_default",
-                pt_cut_name=self.pt_cut_name,
-                forward_jet_veto=True,
-            )
-            # order in pt
-            self.events["JetGoodVBF"] = self.events.JetGoodVBF[
-                ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
-            ]
-            if not self.boosted:
+                self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
+                    self.events,
+                    "JetVBF",
+                    "JetVBF",
+                    self.params,
+                    year=self._year,
+                    pt_type="pt_default",
+                    pt_cut_name=self.pt_cut_name,
+                    forward_jet_veto=True,
+                )
+                self.events["JetGoodVBF"] = self.events.JetGoodVBF[
+                    ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
+                ]
                 # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
                 jet_goodhiggs_idx_not_none = self.events.JetGoodHiggs.index
 
@@ -178,36 +228,96 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                         self.events[jet_coll].provenance_vbf,
                         "provenance",
                     )
-                self.events["JetGoodVBFCandidates"] = self.events["JetGoodVBF"]
+                # self.events["JetGoodVBFCandidates"] = self.events["JetGoodVBF"]
 
             if self.boosted:
-                self.events["JetGoodVBFCandidates"] = object_cleaning(
-                    self.events["JetGoodVBF"],
-                    self.events["FatJetGoodSelected"],
-                    dr_min=0.8
+                self.events["JetGood"], mask_jet_vbf = custom_jet_selection(
+                    self.events,
+                    "Jet",
+                    "JetBoosted",
+                    self.params,
+                    year=self._year,
+                    pt_type="pt_default",
+                    pt_cut_name=self.pt_cut_name,
+                    forward_jet_veto=False,
                 )
+                self.events["JetGoodVBF"], mask_jet_vbf = custom_jet_selection(
+                    self.events,
+                    "Jet",
+                    "JetVBF",
+                    self.params,
+                    year=self._year,
+                    pt_type="pt_default",
+                    pt_cut_name=self.pt_cut_name,
+                    forward_jet_veto=False,
+                )
+                self.events["JetGoodVBF"] = self.events.JetGoodVBF[
+                    ak.argsort(self.events.JetGoodVBF.pt, axis=1, ascending=False)
+                ]
+                self.events["JetVBF"] = copy.copy(self.events.Jet)
+                self.events["HT_jetJetGoodVBF"] = ak.sum(self.events.JetGoodVBF.pt, axis=1)
+
+                self.events["JetGoodCloseToFatJet"], mask_jet_close_to_fatjet = custom_jet_selection(
+                    self.events,
+                    "Jet",
+                    "JetNearFatJet",
+                    self.params,
+                    year=self._year,
+                    pt_type="pt_default",
+                    pt_cut_name=self.pt_cut_name,
+                    forward_jet_veto=False,
+                )
+                # order in pt
+                # Clean From AK8
+                # self.events["JetGoodVBFCandidates"] = clean_ak4_boosted(
+                #         self.events["JetGoodBoosted"],
+                #         self.events["FatJetGoodSelected"],
+                #         self.events["Muon"][self.events["Muon"]["pt"] > 7],
+                #         self.events["Electron"][self.events["Electron"]["pt"] > 5],
+                #         dr_jets=1.2, dr_lep=0.4
+                #         )
+                # self.events["JetGoodCloseToFatJet"] = clean_ak4_boosted(
+                #         self.events["JetGoodBoosted"][np.abs(self.events["JetGoodBoosted"]["eta"]) < 2.5],
+                #         self.events["FatJetGoodSelected"],
+                #         self.events["Muon"][self.events["Muon"]["pt"] > 7],
+                #         self.events["Electron"][self.events["Electron"]["pt"] > 5],
+                #         dr_jets=0.9, dr_lep=0.4
+                #         )
 
                 # The equivalent of this for the not-boosted is in the main workflow_common. But there it is after the preselection. So I am not sure, how to merge the two.
-                vbf_pool = self.events["JetGoodVBFCandidates"]
+                # vbf_pool = self.events["JetGoodVBF"]
 
-                # Shortcut to the VBF jet preselection values
-                jetvbf_obj_presel = self.params.object_preselection["JetVBF"]
-                # looser VBF cuts
-                mask_pt_vbf = ak.fill_none(vbf_pool.pt > jetvbf_obj_presel["pt"], False)
-                # additional cuts for the region 2.5 < |eta| < 3.0
-                central_or_forward = (np.abs(vbf_pool.eta) < jetvbf_obj_presel["gap_eta_min"]) | (np.abs(vbf_pool.eta) > jetvbf_obj_presel["gap_eta_max"])
-                gap_higher_pt = (np.abs(vbf_pool.eta) >= jetvbf_obj_presel["gap_eta_min"]) & (np.abs(vbf_pool.eta) <= jetvbf_obj_presel["gap_eta_max"]) & (vbf_pool.pt > jetvbf_obj_presel["gap_pt"])
-                within_max_eta = np.abs(vbf_pool.eta) < jetvbf_obj_presel["eta"]
+                # # Shortcut to the VBF jet preselection values
+                # jetvbf_obj_presel = self.params.object_preselection["JetVBF"]
+                # # looser VBF cuts
+                # mask_pt_vbf = ak.fill_none(vbf_pool.pt > jetvbf_obj_presel["pt"], False)
+                # # additional cuts for the region 2.5 < |eta| < 3.0
+                # central_or_forward = (np.abs(vbf_pool.eta) < jetvbf_obj_presel["gap_eta_min"]) | (np.abs(vbf_pool.eta) > jetvbf_obj_presel["gap_eta_max"])
+                # gap_higher_pt = (np.abs(vbf_pool.eta) >= jetvbf_obj_presel["gap_eta_min"]) & (np.abs(vbf_pool.eta) <= jetvbf_obj_presel["gap_eta_max"]) & (vbf_pool.pt > jetvbf_obj_presel["gap_pt"])
+                # within_max_eta = np.abs(vbf_pool.eta) < jetvbf_obj_presel["eta"]
 
-                mask_eta_vbf = ak.fill_none(
-                    (central_or_forward | gap_higher_pt) & within_max_eta,
-                    False,
-                )
-                self.events["JetGoodVBFCandidates"] = vbf_pool[mask_pt_vbf & mask_eta_vbf]
+                # mask_eta_vbf = ak.fill_none(
+                #     (central_or_forward | gap_higher_pt) & within_max_eta,
+                #     False,
+                # )
+                # self.events["JetGoodVBF"] = ak.pad_none(vbf_pool[mask_pt_vbf & mask_eta_vbf], 2, clip=True)
 
                 self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
-                    self.events, "JetGoodVBFCandidates"
+                    self.events, "JetGoodVBF"
                 )
+                for jet_coll in ["JetGood", "JetGoodVBF", "JetGoodVBFEnergyOrdered"]:
+                    padded = ak.pad_none(self.events[jet_coll], 2, axis=1)
+                    vbf_mjj = (
+                        padded[:, 0]
+                        + padded[:, 1]
+                    ).mass
+                    vbf_deta = abs(
+                        padded[:, 0].eta
+                        - padded[:, 1].eta
+                    )
+
+                    self.events[f"mjj{jet_coll}"] = ak.fill_none(vbf_mjj, -999.0)
+                    self.events[f"deta{jet_coll}"] = ak.fill_none(vbf_deta, -999.0)
 
                 # # build dijets for veto
                 # dijets = ak.combinations(self.events["JetGoodVBFCandidates"], 2, fields=["j_lead", "j_sublead"])
@@ -223,6 +333,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         super().count_objects(variation=variation)
         if self.vbf_analysis:
             self.events["nJetGoodVBF"] = ak.num(self.events.JetGoodVBF, axis=1)
+            self.events["nJetGoodCloseToFatJet"] = ak.num(self.events.JetGoodCloseToFatJet, axis=1)
+            self.events["nJetGoodVBFEnergyOrdered"] = ak.num(self.events.JetGoodVBFEnergyOrdered, axis=1)
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         if self.vbf_analysis and not self.boosted:
@@ -325,3 +437,56 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events[f"deta{jet_coll}"] = vbf_deta
 
         super().process_extra_after_presel(variation=variation)
+        self.events["HiggsLeading"] = ak.with_field(
+            self.events["HiggsLeading"],
+            ak.fill_none(self.events.HiggsLeading.tau3 / self.events.HiggsLeading.tau2, -999),
+            "Tau3OverTau2"
+        )
+        self.events["HiggsSubLeading"] = ak.with_field(
+            self.events["HiggsSubLeading"],
+            ak.fill_none(self.events.HiggsSubLeading.tau3 / self.events.HiggsSubLeading.tau2, -999),
+            "Tau3OverTau2"
+        )
+        self.events["HiggsLeading"] = ak.with_field(
+            self.events["HiggsLeading"],
+            ak.fill_none(self.events.HiggsLeading.pt / self.events.HH.mass, -999),
+            "divHHmass"
+        )
+        self.events["HiggsSubLeading"] = ak.with_field(
+            self.events["HiggsSubLeading"],
+            ak.fill_none(self.events.HiggsSubLeading.pt / self.events.HH.mass, -999),
+            "divHHmass"
+        )
+        self.events["JetGoodVBFNearHiggsLeading"] = ak.firsts(self.events["JetGoodCloseToFatJet"][ak.argsort(self.events["JetGoodCloseToFatJet"].delta_r(self.events["HiggsLeading"]), ascending=True)])
+        self.events["JetGoodVBFNearHiggsSubLeading"] = ak.firsts(self.events["JetGoodCloseToFatJet"][ak.argsort(self.events["JetGoodCloseToFatJet"].delta_r(self.events["HiggsSubLeading"]), ascending=True)])
+        self.events["HiggsLeadingByHiggsSubLeadingPt"] = self.events.HiggsLeading.pt / self.events.HiggsSubLeading.pt
+        self.events["HiggsLeading"] = ak.with_field(
+            self.events["HiggsLeading"],
+            ak.fill_none(self.events.HiggsLeading.delta_r(self.events.JetGoodVBFNearHiggsLeading), -999),
+            "dRclosestVBF"
+        )
+        self.events["HiggsSubLeading"] = ak.with_field(
+            self.events["HiggsSubLeading"],
+            ak.fill_none(self.events.HiggsSubLeading.delta_r(self.events.JetGoodVBFNearHiggsSubLeading), -999),
+            "dRclosestVBF"
+        )
+        self.events["HiggsLeading"] = ak.with_field(
+            self.events["HiggsLeading"],
+            ak.fill_none((self.events.HiggsLeading + self.events.JetGoodVBFNearHiggsLeading).mass, -999),
+            "massclosestVBF",
+        )
+        self.events["HiggsSubLeading"] = ak.with_field(
+            self.events["HiggsSubLeading"],
+            ak.fill_none((self.events.HiggsSubLeading + self.events.JetGoodVBFNearHiggsSubLeading).mass, -999),
+            "massclosestVBF",
+        )
+
+        if self.bdt_model:
+
+            self.events["HiggsLeading"] = ak.with_field(
+                self.events["HiggsLeading"],
+                ak.fill_none(disc_TXbb(self.events.HiggsLeading.btagBBTXbb), -999),
+                "btagBBTXbb_dig",
+                )
+            bdt_events = get_default_bdt_inputs(self.events)
+            self.events["boosted_bdt_score"], self.events["boosted_bdt_vbf_score"] = evaluate_bdt(self.bdt_model, bdt_events)

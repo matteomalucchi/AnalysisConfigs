@@ -194,7 +194,7 @@ cfg = Configurator(
     categories=categories_dict,
     weights_classes=common_weights
     + [bkg_morphing_dnn_weight],
-    calibrators=[JetsCalibrator, JetsPtRegressionCalibrator],
+    # calibrators=[JetsCalibrator, JetsPtRegressionCalibrator],
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "sf_btag_fixed_multiple_wp"],

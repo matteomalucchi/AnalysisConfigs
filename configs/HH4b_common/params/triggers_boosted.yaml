@@ -18,7 +18,12 @@ HLT_triggers:
          - AK8PFJet230_SoftDropMass40_PNetBB0p06
          - AK8PFJet400_SoftDropMass40
    "2024":
-      JetMET:
+      JetMET0:
+          - AK8PFJet230_SoftDropMass40_PNetBB0p06
+          - AK8PFJet500
+          - AK8PFJet400_SoftDropMass30
+          - AK8PFJet425_SoftDropMass30
+      JetMET1:
          - AK8PFJet230_SoftDropMass40_PNetBB0p06
          - AK8PFJet500
          - AK8PFJet400_SoftDropMass30

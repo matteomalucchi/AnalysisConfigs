@@ -20,7 +20,7 @@ config_options_dict |= {
     "qt_postEE": None,
     "random_pt": True,
     "rand_type": 0.3,
-    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_SM_ptFlattenMatchedHiggs_AllKlambda_DetaMjj_SeparateHiggsVBF_AddVBFJetPtOrder_Fix/parquet_files/",
+    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_SM_ptFlattenMatchedHiggs_AllKlambda_DetaMjj_SeparateHiggsVBF_AddVBFJetPtOrder_FW_momenta/parquet_files/",
     # VBF
     "vbf_parton_matching": True,
     "vbf_presel": False,
@@ -28,4 +28,7 @@ config_options_dict |= {
     "which_vbf_quark":"with_mothers_children",
     "max_num_jets_add_vbf": 3,
     "jets_add_vbf_order": "pt",
+    # FW momenta 
+    "max_order_FW": 12,
+    "FW_momenta_norms" : ["W_s", "W_T", "W_z"],
 }| onnx_model_dict

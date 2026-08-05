@@ -100,16 +100,16 @@ sample_ggF_list = [
       "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
       "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
       "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
-      "GluGluHHto4B_Par-c2-0p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia9",
-      "GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-0p00-kl-2p45-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-0p00-kl-5p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
-      "GluGluHHto4B_Par-c2-m2p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-0p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia9",
+      # "GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-0p00-kl-2p45-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-0p00-kl-5p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
+      # "GluGluHHto4B_Par-c2-m2p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8",
 ]
 sample_vbf_list = [
       "VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
@@ -124,10 +124,10 @@ sample_vbf_list = [
       "VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8",
 ]
 sample_mixed_list = [
-    # "MixedData_2022_preEE",
-    # "MixedData_2022_postEE_EraE",
+    #  "MixedData_2022_preEE",
+    "MixedData_2022_postEE_EraE",
     "MixedData_2022_postEE_EraF",
-    # "MixedData_2022_postEE_EraG",
+    "MixedData_2022_postEE_EraG",
     # "MixedData_2023_preBPix",
     # "MixedData_2023_postBPix"
         ]
@@ -138,9 +138,9 @@ else:
     sample_list = [
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        # "DATA_JetMET_JMENano_G_skimmed",
+        "DATA_JetMET_JMENano_E_skimmed",
+        "DATA_JetMET_JMENano_F_skimmed",
+        "DATA_JetMET_JMENano_G_skimmed",
         # "GluGlutoHHto4B_spanet_skimmed",
         # "GluGlutoHHto4B_spanet_skimmed_SM",
         # "GluGlutoHHto4B_spanet_skimmed",
@@ -151,11 +151,12 @@ else:
         # "DATA_ParkingHH_2023_Cv4",
         # "DATA_ParkingHH_2023_Dv1",
         # "DATA_ParkingHH_2023_Dv2",
-        "DATA_ParkingHH",
+        # "DATA_ParkingHH",
     ] + sample_ggF_list
 
 
 # Define the categories to save
+high_score_region = config_options_dict["sig_bkg_dnn"]
 categories_dict = define_categories(
     bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
     blind=config_options_dict["blind"],
@@ -165,6 +166,7 @@ categories_dict = define_categories(
     boosted=config_options_dict["boosted"],
     expandCR=config_options_dict["expandCR"],
     mixeddata=config_options_dict["mixeddata"],
+    high_score_reg=high_score_region
 )
 # AKA if no model is applied
 # print(onnx_model_dict)
@@ -365,9 +367,9 @@ cfg = Configurator(
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
-            # "inclusive": ["genWeight", "lumi", "XS", "pileup"],
+            "inclusive": ["genWeight", "lumi", "XS", "pileup"],
             # "inclusive": ["genWeight", "lumi", "XS"],
-            "inclusive": [],
+            # "inclusive": [],
             "bycategory": {
             },
         },
@@ -389,7 +391,7 @@ cfg = Configurator(
                 },
             }
     },
-    variables=variables_dict,
+    variables={},# variables_dict,
     columns={
         "common": {
             "inclusive": [],

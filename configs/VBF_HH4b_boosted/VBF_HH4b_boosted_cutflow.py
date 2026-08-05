@@ -4,6 +4,13 @@ import cloudpickle
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
 )
+from pocket_coffea.lib.cut_functions import (
+    get_HLTsel,
+    get_L1sel,
+    goldenJson,
+    eventFlags,
+    get_nPVgood,
+)
 from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.weights.common.common import common_weights
 from pocket_coffea.parameters import defaults
@@ -155,116 +162,133 @@ sample_list = (
     )
 )
 
-# Define the categories to save
-categories_dict = define_categories(
-    bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
-    blind=config_options_dict["blind"],
-    spanet=config_options_dict["spanet"],
-    run2=config_options_dict["run2"],
-    vr1=config_options_dict["vr1"],
-    boosted=config_options_dict["boosted"],
-    other_group=True if config_options_dict["approach"] == "boosted" else False,
-    split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
-    # vbf_analysis=config_options_dict["vbf_analysis"],
-    vbf_analysis=config_options_dict["vbf_selection"] if "vbf_selection" in config_options_dict.keys() else config_options_dict["vbf_analysis"],
-    vbf_discriminator=config_options_dict["vbf_discriminator"],
-    ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
-)
-
-if BASELINE:
-    categories_dict = {"baseline": [passthrough]}
-
-column_list=[]
-
-# Add SPANet training inputs
-if not config_options_dict["spanet"] and not config_options_dict["run2"] and not config_options_dict["boosted"]:
-    print("somehow we arrived at a wrong point")
-    if not config_options_dict["vbf_analysis"]:
-        column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
-    else:
-        column_list += get_columns_list(
-            with_fw_momenta_columns(
-                SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
-                config_options_dict["max_order_FW"],
-                config_options_dict["FW_momenta_norms"],
-            ),
-            not config_options_dict["save_chunk"],
-        )
-else:
-    # Define the other columns to save
-    total_input_columns = {}
-
-    if config_options_dict["spanet"]:
-        total_input_columns |= {
-            "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
-            "Arctanh_Delta_pairing_probabilities": [
-                "events",
-                "Arctanh_Delta_pairing_probabilities",
-            ],
-            "Binned_Arctanh_Delta_pairing_probabilities": [
-                "events",
-                "Binned_Arctanh_Delta_pairing_probabilities",
-            ],
-            "Padded_Arctanh_Delta_pairing_probabilities": [
-                "events",
-                "Padded_Arctanh_Delta_pairing_probabilities",
-            ],
-        }
-
-    if config_options_dict["dnn_variables"]:
-        # Be aware, that for boosted, you need a boosted sig/bkg and morphing
-        total_input_columns |= (
-            config_options_dict["sig_bkg_dnn_input_variables"]
-            | config_options_dict["bkg_morphing_dnn_input_variables"]
-            | {"year": ["events", "year"],
-               "vbf_jet_prov": ["JetGoodVBF", "provenance"],
-               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"],
-               "Higgs_leading_btag": ["HiggsLeading", "btagBB"],
-               "Higgs_subleading_btag": ["HiggsSubLeading", "btagBB"],
-              }
-        )
-        column_list += get_columns_list({})
-    elif config_options_dict["boosted"]:
-        column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
-
-    else:
-        total_input_columns |= DEFAULT_JET_COLUMNS_DICT
-
-    column_list += create_DNN_columns_list(
-        False, not config_options_dict["save_chunk"], total_input_columns, btag=False
-    )
-    # Add special columns
-    if config_options_dict["sig_bkg_dnn"]:
-        column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
-
-bysample_bycategory_column_dict = {}
-for sample in sample_list:
-    bysample_bycategory_column_dict[sample] = {
-        "inclusive": [],
-        "bycategory": {},
+# # Define the categories to save
+# categories_dict = define_categories(
+#     bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
+#     blind=config_options_dict["blind"],
+#     spanet=config_options_dict["spanet"],
+#     run2=config_options_dict["run2"],
+#     vr1=config_options_dict["vr1"],
+#     boosted=config_options_dict["boosted"],
+#     other_group=True if config_options_dict["approach"] == "boosted" else False,
+#     split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
+#     # vbf_analysis=config_options_dict["vbf_analysis"],
+#     vbf_analysis=config_options_dict["vbf_selection"] if "vbf_selection" in config_options_dict.keys() else config_options_dict["vbf_analysis"],
+#     vbf_discriminator=config_options_dict["vbf_discriminator"],
+#     ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
+# )
+# 
+# if BASELINE:
+#     categories_dict = {"baseline": [passthrough]}
+# 
+# column_list=[]
+# 
+# # Add SPANet training inputs
+# if not config_options_dict["spanet"] and not config_options_dict["run2"] and not config_options_dict["boosted"]:
+#     print("somehow we arrived at a wrong point")
+#     if not config_options_dict["vbf_analysis"]:
+#         column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+#     else:
+#         column_list += get_columns_list(
+#             with_fw_momenta_columns(
+#                 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+#                 config_options_dict["max_order_FW"],
+#                 config_options_dict["FW_momenta_norms"],
+#             ),
+#             not config_options_dict["save_chunk"],
+#         )
+# else:
+#     # Define the other columns to save
+#     total_input_columns = {}
+# 
+#     if config_options_dict["spanet"]:
+#         total_input_columns |= {
+#             "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
+#             "Arctanh_Delta_pairing_probabilities": [
+#                 "events",
+#                 "Arctanh_Delta_pairing_probabilities",
+#             ],
+#             "Binned_Arctanh_Delta_pairing_probabilities": [
+#                 "events",
+#                 "Binned_Arctanh_Delta_pairing_probabilities",
+#             ],
+#             "Padded_Arctanh_Delta_pairing_probabilities": [
+#                 "events",
+#                 "Padded_Arctanh_Delta_pairing_probabilities",
+#             ],
+#         }
+# 
+#     if config_options_dict["dnn_variables"]:
+#         # Be aware, that for boosted, you need a boosted sig/bkg and morphing
+#         total_input_columns |= (
+#             config_options_dict["sig_bkg_dnn_input_variables"]
+#             | config_options_dict["bkg_morphing_dnn_input_variables"]
+#             | {"year": ["events", "year"],
+#                "vbf_jet_prov": ["JetGoodVBF", "provenance"],
+#                "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"],
+#                "Higgs_leading_btag": ["HiggsLeading", "btagBB"],
+#                "Higgs_subleading_btag": ["HiggsSubLeading", "btagBB"],
+#               }
+#         )
+#         column_list += get_columns_list({})
+#     elif config_options_dict["boosted"]:
+#         column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
+# 
+#     else:
+#         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
+# 
+#     column_list += create_DNN_columns_list(
+#         False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+#     )
+#     # Add special columns
+#     if config_options_dict["sig_bkg_dnn"]:
+#         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
+# 
+# bysample_bycategory_column_dict = {}
+# for sample in sample_list:
+#     bysample_bycategory_column_dict[sample] = {
+#         "inclusive": [],
+#         "bycategory": {},
+#     }
+#     for category in categories_dict.keys():
+#         bysample_bycategory_column_dict[sample]["bycategory"][category] = (
+#             column_list
+#             + (
+#                 get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
+#                 if "DATA" in sample
+#                 and config_options_dict["bkg_morphing_spread_dnn"]
+#                 and "postW" in category
+#                 else []
+#             )
+#         )
+# 
+# # Define the weights to apply
+# bysample_bycategory_weight_dict = {}
+# for sample in sample_list:
+#     if "DATA" in sample:
+#         bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
+#         for category in categories_dict.keys():
+#             if "postW" in category:
+#                 bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
+#                     "bkg_morphing_dnn_weight"
+#                 ]
+column_list = get_columns_list(
+    {
+        "JetGood": ["pt_regressed", "pt_default", "pt", "eta", "phi", "mass"],
+        "JetGoodVBF": ["pt", "eta", "phi", "mass"],
+        "Jet": ["pt_regressed", "pt_default", "eta"],
+        "JetGoodVBFEnergyOrdered": ["pt", "eta", "phi", "mass"],
+        "events": ["HT_jetJetGoodVBF", "HT_jetJetGoodVBF", "nJetGood", "nFatJetGoodSelected", "event", "boosted_bdt_score", "boosted_bdt_vbf_score", "mjjJetGoodVBF", "mjjJetGood", "detaJetGoodVBF", "HiggsLeadingByHiggsSubLeadingPt"],
+        "JetGoodVBFNearHiggsLeading": ["pt", "eta", "phi", "mass"],
+        "JetGoodVBFNearHiggsSubLeading": ["pt", "eta", "phi", "mass"],
+        "FatJetGoodSelected": ["pt", "eta", "phi", "msoftdrop", "mass_regr", "mass", "btagBBTXbb"],
+        "HiggsLeading": ["pt", "eta", "phi", "msoftdrop", "mass_regr", "mass", "btagBBTXbb", "btagBBTXbb_dig", "Tau3OverTau2", "dRclosestVBF", "massclosestVBF", "divHHmass"],
+        "HiggsSubLeading": ["pt", "eta", "phi", "msoftdrop", "mass_regr", "mass", "btagBBTXbb", "Tau3OverTau2", "dRclosestVBF", "massclosestVBF", "divHHmass"],
+        "HH": ["pt", "eta", "mass"],
+        "PuppiMET": ["pt"],
+        "PFMET": ["pt"],
     }
-    for category in categories_dict.keys():
-        bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-            column_list
-            + (
-                get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
-                if "DATA" in sample
-                and config_options_dict["bkg_morphing_spread_dnn"]
-                and "postW" in category
-                else []
-            )
-        )
-
-# Define the weights to apply
-bysample_bycategory_weight_dict = {}
-for sample in sample_list:
-    if "DATA" in sample:
-        bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
-        for category in categories_dict.keys():
-            if "postW" in category:
-                bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                    "bkg_morphing_dnn_weight"
-                ]
+)
 
 cfg = Configurator(
     parameters=parameters,
@@ -290,9 +314,16 @@ cfg = Configurator(
     },
     workflow=VBFHH4bProcessor,
     workflow_options=config_options_dict,
-    skim=cuts.skimming_cut_list(config_options_dict),
-    preselections=preselection,
-    categories=categories_dict,
+    skim=[],  # cuts.skimming_cut_list(config_options_dict),
+    preselections=[],  # preselection,
+    categories={
+        "MET_filter": [eventFlags],
+        "Jet_Veto_map": [eventFlags, cuts.hh4b_JetVetoMap],
+        "2AK8Jetsonly": [cuts.hh4b_boosted_2fatjets],
+        "2AK8Jets": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets],
+        "0lep": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets, cuts.hh4b_boosted_lepton_veto],
+        "ak8bbcut": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets, cuts.hh4b_boosted_lepton_veto, cuts.hh4b_boosted_signal_region_other_group],
+        },
     weights_classes=common_weights
     + [bkg_morphing_dnn_weight],
     weights={
@@ -304,7 +335,7 @@ cfg = Configurator(
             ],
             "bycategory": {},
         },
-        "bysample": bysample_bycategory_weight_dict,
+        "bysample": {},
     },
     # calibrators=[JetsCalibrator],
     variations={
@@ -322,13 +353,15 @@ cfg = Configurator(
         #         },
         #     }
     },
-    variables=variables_dict,
+    variables={},
     columns={
         "common": {
             "inclusive": [],
-            "bycategory": {},
+            "bycategory": {
+                "ak8bbcut": column_list,
+                },
         },
-        "bysample": bysample_bycategory_column_dict,
+        "bysample": {},
     },
 )
 cloudpickle.register_pickle_by_value(quantile_transformer)

@@ -157,7 +157,7 @@ cfg = Configurator(
         },
         "bysample": {},
     },
-    calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
+    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
     variations={
         "weights": {
             "common": {
