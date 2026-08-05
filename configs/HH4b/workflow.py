@@ -1,6 +1,7 @@
 import awkward as ak
 import sys
 import numpy as np
+import copy
 
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 
@@ -30,7 +31,10 @@ class HH4bbQuarkMatchingProcessor(HH4bCommonProcessor):
             self.flatten_pt(self.rand_type, "JetGood")
             self.flatten_pt(self.rand_type, "JetGoodHiggs")
 
-        super().process_extra_after_presel(variation)
+        super().process_extra_after_presel(variation=variation)
+        if not self.vbf_analysis:
+            self.events["JetGoodPtFlatten"] = copy.copy(self.events.JetGood)
+            self.flatten_pt(self.rand_type, "JetGoodPtFlatten")
         
             
         

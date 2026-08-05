@@ -1606,4 +1606,8 @@ def define_preselection(options):
     # corrected pT after the Calibrators have run
     if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
+
+    # harmless for non ZZ samples
+    preselection.append(cuts.ZZ4b_presel)
+
     return preselection

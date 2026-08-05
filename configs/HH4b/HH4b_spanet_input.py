@@ -52,7 +52,9 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # adding object preselection
-year = ["2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
+year = ["2023_postBPix"] # "2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
+config_options_dict["year"] = year
+
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
@@ -75,7 +77,6 @@ variables_dict = {}
 ## Define the preselection to apply
 preselection = define_preselection(config_options_dict)
 
-
 # Defining the used samples
 sample_ggF_list = [
     # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
@@ -90,17 +91,45 @@ sample_ggF_list = [
     #  "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
     #  "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
     #  "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
 ]
-sample_list = [
-    # "GluGlutoHHto4B_spanet_skimmed",
-    # "GluGlutoHHto4B_spanet_skimmed_SM",
-    # "GluGlutoHHto4B_spanet_skimmed",
-    # "DATA_JetMET_JMENano_E_skimmed",
-    "DATA_JetMET_JMENano_F_skimmed",
-    "DATA_JetMET_JMENano_G_skimmed",
-    # "GluGlutoHHto4B",
-    # "GluGlutoHHto4B_spanet"
-] + sample_ggF_list
+
+sample_VBF_list = [
+    # "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+    # "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+    # "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+    # "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+    # "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+    # "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+    # "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+    # "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+    # "VBFHHto4B_CV_1_C2V_0_C3_1",
+    # "VBFHHto4B_CV_1_C2V_1_C3_1",
+]
+
+sample_ZZ_ZH_list = [
+    "ZZTo4B01j",
+    "ggZH_HToBB_ZToBB",
+    "ZH_ZToBB_HToBB"
+]
+
+sample_list = (
+    [
+        # 2022 preEE
+        # "DATA_JetMET_JMENano_C_skimmed",
+        # "DAGTA_JetMET_JMENano_D_skimmed",
+        # 2022 postEE
+        # "DATA_JetMET_JMENano_E_skimmed",
+        # "DATA_JetMET_JMENano_F_skimmed",
+        # "DATA_JetMET_JMENano_G_skimmed",
+    ]
+    + sample_ggF_list
+    + sample_VBF_list
+    + sample_ZZ_ZH_list
+)
 
 # AKA if no model is applied
 # print(onnx_model_dict)
@@ -108,6 +137,10 @@ if all([model == "" for model in onnx_model_dict.values()]):
     print("Didn't find any onnx model. Will choose region for SPANet training")
     # categories_dict = define_single_category("4b_region")
     categories_dict = define_single_category("inclusive")
+
+SPANET_TRAINING = True
+if SPANET_TRAINING:
+    categories_dict|= define_single_category("4b_region")
 
 # print("categories_dict", categories_dict)
 
@@ -118,6 +151,8 @@ column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_
 # column_list += get_columns_list(SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
 if config_options_dict["random_pt"]:
     column_list += get_columns_list({"events": ["random_pt_weights"]})
+
+column_list += get_columns_list({"events": ["genWeight"]})
         
 
 bysample_bycategory_column_dict = {}
@@ -139,8 +174,11 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_2023_postBPix_skimmed_hadd.json",
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_hadd.json",
         ],
         "filter": {
             "samples": sample_list,

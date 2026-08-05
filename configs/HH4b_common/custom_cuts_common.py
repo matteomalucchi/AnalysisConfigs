@@ -9,6 +9,12 @@ from pocket_coffea.lib.cut_functions import (
 )
 from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
 
+ZZ4b_presel = Cut(
+    name="zz4b_presel",
+    params={},
+    function=cuts_f.zz4b_cuts,
+)
+
 hh4b_presel = Cut(
     name="hh4b_presel",
     params={
@@ -322,7 +328,13 @@ def skimming_cut_list(configs):
     if configs["boosted"]:
         skimlist.append(get_HLTsel(primaryDatasets=["Boosted"]))
     elif not configs["mixeddata"]:
-        skimlist.append(get_HLTsel(primaryDatasets=["JetMET"]))
+        if "2023_postBPix" in configs.get("year", []) or  "2023_preBPix" in configs.get("year", []):
+            skimlist.append(get_HLTsel(primaryDatasets=["ParkingHH"]))
+        else:
+            skimlist.append(get_HLTsel(primaryDatasets=["JetMET"]))
     if not configs["noL1"] and not configs["mixeddata"] and not configs["boosted"]:
-        skimlist.append(get_L1sel(primaryDatasets=["JetMET"]))
+        if "2023_postBPix" in configs.get("year", []) or  "2023_preBPix" in configs.get("year", []):
+            skimlist.append(get_HLTsel(primaryDatasets=["ParkingHH"]))
+        else:
+            skimlist.append(get_HLTsel(primaryDatasets=["JetMET"]))
     return skimlist

@@ -145,15 +145,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # the pt definition, namely the pt, mass and the associated systematic variations
         if self.approach == "first":
             self.events["Jet"] = ak.where(
-                ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
+                ak.fill_none(ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1), -1) > 0,
                 self.events["JetPNetPlusNeutrino"],
                 self.events.JetDefault,
             )
         elif self.approach == "second":
             self.events["Jet"] = ak.where(
-                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
+                (ak.fill_none(ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1), -1) > 0)
                 | (
-                    self.events["JetPNetPlusNeutrino"].btagPNetB
+                    ak.fill_none(self.events["JetPNetPlusNeutrino"].btagPNetB, -1)
                     > self.params["btagging"]["working_point"][self._year][
                         "btagging_WP"
                     ]["btagPNetB"]["L"]
@@ -207,6 +207,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             year=self._year,
             pt_type="pt_default",
             pt_cut_name=self.pt_cut_name,
+            jet_tagger="PNet",
         )
 
         self.events["Electron"] = ak.with_field(
@@ -230,7 +231,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # Trying to reshuffle jets 4 and above by pt instead of b-tag score
         if self.fifth_jet == "pt":
             jets5plus = self.events["JetGood"][:, 4:]
-            jets5plus_pt = jets5plus[ak.argsort(jets5plus.pt, axis=1, ascending=False)]
+            jets5plus_pt = jets5plus[ak.argsort(ak.fill_none(jets5plus.pt, -1), axis=1, ascending=False)]
             self.events["JetGood"] = ak.concatenate(
                 (self.events["JetGoodHiggs"], jets5plus_pt), axis=1
             )
@@ -365,7 +366,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         genpart = self.events.GenPart
 
-        isHiggs = genpart.pdgId == 25
+        if "Z" not in self.events.metadata["dataset"]:
+            print("INFO: HH sample detected, using Higgs as mother of b-quarks")
+            isHiggs = genpart.pdgId == 25
+        else:
+            print("INFO: ZH or ZZ sample detected, using also Z boson as mother of b-quarks")
+            isHiggs = (genpart.pdgId == 25) | (genpart.pdgId == 23)
         isB = abs(genpart.pdgId) == 5
         isLast = genpart.hasFlags(["isLastCopy"])
         isFirst = genpart.hasFlags(["isFirstCopy"])
@@ -379,7 +385,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
             if which_bquark == "last_numba":
                 bquarks_first = genpart[isB & isHard & isFirst]
                 mother_bquarks = genpart[bquarks_first.genPartIdxMother]
-                bquarks_from_higgs = bquarks_first[mother_bquarks.pdgId == 25]
+                if "Z" not in self.events.metadata["dataset"]:
+                    bquarks_from_higgs = bquarks_first[mother_bquarks.pdgId == 25]
+                else:
+                    bquarks_from_higgs = bquarks_first[
+                        (mother_bquarks.pdgId == 25) | (mother_bquarks.pdgId == 23)
+                    ]
             else:
                 outgoing_part = genpart[genpart.status == 23]
                 bquarks_from_higgs = outgoing_part[abs(outgoing_part.pdgId) == 5]
@@ -435,11 +446,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
             bquarks_first = bquarks
             while True:
                 b_mother = genpart[bquarks_first.genPartIdxMother]
-                mask_mother = (abs(b_mother.pdgId) == 5) | ((b_mother.pdgId) == 25)
+                if "Z" not in self.events.metadata["dataset"]:
+                    mask_mother = (abs(b_mother.pdgId) == 5) | ((b_mother.pdgId) == 25)
+                else:
+                    mask_mother = (abs(b_mother.pdgId) == 5) | (
+                        (b_mother.pdgId == 25) | (b_mother.pdgId == 23)
+                    )
                 bquarks = bquarks[mask_mother]
                 bquarks_first = bquarks_first[mask_mother]
                 b_mother = b_mother[mask_mother]
-                if ak.all((b_mother.pdgId) == 25):
+                if "Z" not in self.events.metadata["dataset"]:
+                    stop = ak.all(b_mother.pdgId == 25)
+                else:
+                    stop = ak.all((b_mother.pdgId == 25) | (b_mother.pdgId == 23))
+                if stop:
                     break
                 bquarks_first = ak.where(
                     abs(b_mother.pdgId) == 5, b_mother, bquarks_first
@@ -1249,7 +1269,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
             # ====== Calculating Run2 Algorithm ============
             if self.run2:
-                 (
+                (
                     pairing_predictions,
                     self.events["delta_dhh"],
                     self.events["HiggsLeading"],
@@ -1280,7 +1300,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         self.events, "JetGoodVBFCandidates"
                     )
 
-            if self._isMC and "TTto" not in self.events.metadata["dataset"]:
+            if self._isMC and "TTto" not in self.events.metadata["dataset"] and (self.spanet or self.run2):
                 # HERE add also the vbf idx
                 matched_jet_higgs_idx_not_noneTrue = self.get_true_pairing_and_compare(
                     suffix="True",
@@ -1296,9 +1316,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
             # if the 5th jet is matched, then the add jet should be order by btag
             # because we want to consider the leading in btag which the pairing discarded
-            self.events["btag_order_add_jet"] = ak.any(
-                ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
-                )
+            if self._isMC and "TTto" not in self.events.metadata["dataset"] and (self.spanet or self.run2):
+                self.events["btag_order_add_jet"] = ak.any(
+                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                    )
 
 
             self.events["nJetGoodHiggsMatched"] = ak.num(
@@ -1332,7 +1353,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["JetGoodFromHiggsOrderedLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedLeading"],ak.ones_like(self.events["JetGoodFromHiggsOrderedLeading"].pt),"reco_provenance")
                 self.events["JetGoodFromHiggsOrderedSubLeading"] = ak.with_field(self.events["JetGoodFromHiggsOrderedSubLeading"],2*ak.ones_like(self.events["JetGoodFromHiggsOrderedSubLeading"].pt),"reco_provenance")
                 self.events["add_jet1pt"] = ak.with_field(self.events["add_jet1pt"],-1*ak.ones_like(self.events["add_jet1pt"].pt),"reco_provenance")
- 
+
         # =========== BOOSTED ==============
         elif self.dnn_variables and self.boosted:
             (
