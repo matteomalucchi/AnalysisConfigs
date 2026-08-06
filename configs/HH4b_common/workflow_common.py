@@ -161,15 +161,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # the pt definition, namely the pt, mass and the associated systematic variations
         if self.approach == "first":
             self.events["Jet"] = ak.where(
-                ak.fill_none(ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1), -1) > 0,
+                ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
                 self.events["JetPNetPlusNeutrino"],
                 self.events.JetDefault,
             )
         elif self.approach == "second":
             self.events["Jet"] = ak.where(
-                (ak.fill_none(ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1), -1) > 0)
+                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
                 | (
-                    ak.fill_none(self.events["JetPNetPlusNeutrino"].btagPNetB, -1)
+                    self.events["JetPNetPlusNeutrino"].btagPNetB
                     > self.params["btagging"]["working_point"][self._year][
                         "btagging_WP"
                     ]["btagPNetB"]["L"]
@@ -261,7 +261,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # Trying to reshuffle jets 4 and above by pt instead of b-tag score
         if self.fifth_jet == "pt":
             jets5plus = self.events["JetGood"][:, 4:]
-            jets5plus_pt = jets5plus[ak.argsort(ak.fill_none(jets5plus.pt, -1), axis=1, ascending=False)]
+            jets5plus_pt = jets5plus[ak.argsort(jets5plus.pt, axis=1, ascending=False)]
             self.events["JetGood"] = ak.concatenate(
                 (self.events["JetGoodHiggs"], jets5plus_pt), axis=1
             )
@@ -395,12 +395,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         genpart = self.events.GenPart
 
-        if "Z" not in self.events.metadata["dataset"]:
+        if "ZZ" not in self.events.metadata["dataset"] and "ZH" not in self.events.metadata["dataset"]:
             print("INFO: HH sample detected, using Higgs as mother of b-quarks")
             isHiggs = genpart.pdgId == 25
         else:
             print("INFO: ZH or ZZ sample detected, using also Z boson as mother of b-quarks")
             isHiggs = (genpart.pdgId == 25) | (genpart.pdgId == 23)
+        
         isB = abs(genpart.pdgId) == 5
         isLast = genpart.hasFlags(["isLastCopy"])
         isFirst = genpart.hasFlags(["isFirstCopy"])
@@ -414,7 +415,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             if which_bquark == "last_numba":
                 bquarks_first = genpart[isB & isHard & isFirst]
                 mother_bquarks = genpart[bquarks_first.genPartIdxMother]
-                if "Z" not in self.events.metadata["dataset"]:
+                if "ZZ" not in self.events.metadata["dataset"] and "ZH" not in self.events.metadata["dataset"]:
                     bquarks_from_higgs = bquarks_first[mother_bquarks.pdgId == 25]
                 else:
                     bquarks_from_higgs = bquarks_first[
@@ -475,7 +476,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             bquarks_first = bquarks
             while True:
                 b_mother = genpart[bquarks_first.genPartIdxMother]
-                if "Z" not in self.events.metadata["dataset"]:
+                if "ZZ" not in self.events.metadata["dataset"] and "ZH" not in self.events.metadata["dataset"]:
                     mask_mother = (abs(b_mother.pdgId) == 5) | ((b_mother.pdgId) == 25)
                 else:
                     mask_mother = (abs(b_mother.pdgId) == 5) | (
@@ -484,7 +485,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 bquarks = bquarks[mask_mother]
                 bquarks_first = bquarks_first[mask_mother]
                 b_mother = b_mother[mask_mother]
-                if "Z" not in self.events.metadata["dataset"]:
+                if "ZZ" not in self.events.metadata["dataset"] and "ZH" not in self.events.metadata["dataset"]:
                     stop = ak.all(b_mother.pdgId == 25)
                 else:
                     stop = ak.all((b_mother.pdgId == 25) | (b_mother.pdgId == 23))

@@ -9,12 +9,6 @@ from pocket_coffea.lib.cut_functions import (
 )
 from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
 
-ZZ4b_presel = Cut(
-    name="zz4b_presel",
-    params={},
-    function=cuts_f.zz4b_cuts,
-)
-
 hh4b_presel = Cut(
     name="hh4b_presel",
     params={
@@ -354,6 +348,14 @@ hh4b_boosted_vbf_region = Cut(
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
+
+
+ZZ4b_presel = Cut(
+    name="zz4b_presel",
+    params={},
+    function=cuts_f.zz4b_cuts,
+)
+
 
 def skimming_cut_list(configs):
     skimlist = [
