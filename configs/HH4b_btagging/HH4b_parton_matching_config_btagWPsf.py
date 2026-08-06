@@ -6,10 +6,6 @@ from configs.HH4b_common.config_files.__config_file__ import (
     onnx_model_dict,
 )
 from pocket_coffea.lib.calibrators.common import default_calibrators_sequence
-from pocket_coffea.lib.calibrators.legacy.legacy_calibrators import (
-    JetsCalibrator,
-    JetsPtRegressionCalibrator,
-)
 from pocket_coffea.lib.weights.common.common import common_weights
 
 # from pocket_coffea.parameters.cuts import passthrough
@@ -55,9 +51,7 @@ parameters = defaults.merge_parameters_from_files(
     # f"{localdir}/../HH4b_common/params/btagging_multipleWP_single_eta_bin.yaml",
     # f"{localdir}/../HH4b_common/params/btagging_multipleWP_5jets.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
     update=True,
 )
 parameters["only5jetsbSF"] = config_options_dict["only5jetsbSF"]
