@@ -74,7 +74,7 @@ era_dict = {
     "2023_preBPix_MIX": -7,
     "2023_postBPix_MIX": -8,
     "2024_MC": -9,
-    "2024_MIX": -10
+    "2024_MIX": -10,
 }
 
 year_dict = {
@@ -158,7 +158,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def apply_object_preselection(self, variation):
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
-        if self.approach == "first" and self.neutrino_regression_btag_cut is not None and self.neutrino_regression_btag_cut is not False:
+        if (
+            self.approach == "first"
+            and self.neutrino_regression_btag_cut is not None
+            and self.neutrino_regression_btag_cut is not False
+        ) or self.approach == "boosted":
             # +neutrino regression for high b-tag jets, plain regression for the
             # rest. The option sets the threshold: True -> loose WP, a WP name,
             # or a raw b-tag score.
@@ -187,7 +191,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 btag_wp=btag_wp,
                 btag_score=btag_score,
             )
-            breakpoint()
         elif self.approach == "first":
             # regressed (+neutrino) jets where valid, else the standard JEC jets
             self.events["Jet"] = merge_regressed_jets(
@@ -204,19 +207,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 params=self.params,
                 year=self._year,
             )
-        elif self.approach == "boosted":
-            # self.events["Jet"] = ak.where(
-            #     (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
-            #     | (
-            #         self.events["JetPNetPlusNeutrino"].btagPNetB
-            #         > self.params["btagging"]["working_point"][self._year][
-            #             "btagging_WP"
-            #         ]["btagPNetB"]["L"]
-            #     ),
-            #     self.events["JetPNetPlusNeutrino"],
-            #     self.events.JetDefault,
-            # )
-            print("Skipping selection on jet objects for now - no btagging info available")
 
         else:
             raise ValueError(
@@ -1443,7 +1433,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         # =========== BOOSTED ==============
         elif self.dnn_variables and self.boosted:
-            self.events["FatJetGoodSelected"] = ak.pad_none(self.events["FatJetGoodSelected"], target=2, axis=1)
+            self.events["FatJetGoodSelected"] = ak.pad_none(
+                self.events["FatJetGoodSelected"], target=2, axis=1
+            )
             (
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],
