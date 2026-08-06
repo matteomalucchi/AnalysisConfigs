@@ -57,10 +57,6 @@ default_config_options_dict = {
     "only5jetsbSF": False,
     "noL1": False,
     "approach": "first",
-    # +neutrino regression for high-b-tag jets, plain regression for the rest.
-    # None -> disabled; True -> loose WP; a WP name ("M"/"T"/...) or a raw b-tag
-    # score -> that threshold. Tagger/WPs read from the b-tagging parameters.
-    "neutrino_regression_btag_cut": None,
     "expandCR": False,
     "mixeddata": False,
     "TXbb_order": False,

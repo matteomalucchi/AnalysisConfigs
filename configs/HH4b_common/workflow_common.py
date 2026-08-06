@@ -158,26 +158,18 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def apply_object_preselection(self, variation):
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
-        if (
-            self.approach == "first"
-            and self.neutrino_regression_btag_cut is not None
-            and self.neutrino_regression_btag_cut is not False
-        ) or self.approach == "boosted":
-            # +neutrino regression for high b-tag jets, plain regression for the
-            # rest. The option sets the threshold: True -> loose WP, a WP name,
-            # or a raw b-tag score.
+        if self.approach in ("first", "boosted"):
+            # Always split the pt regression by b-tag: +neutrino regression for
+            # high-b-tag jets (above the loose WP), plain regression for the rest.
             for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
                 if coll not in self.events.fields:
                     raise ValueError(
-                        f"Collection '{coll}' is required by neutrino_regression_btag_cut "
-                        "but was not found. Make sure define_jet_collections() is called "
-                        "and the corresponding jet calibration (AK4PFPuppiPNetRegression and "
-                        "AK4PFPuppiPNetRegressionPlusNeutrino) is configured."
+                        f"Collection '{coll}' is required to split the pt regression "
+                        "by b-tag but was not found. Make sure define_jet_collections() "
+                        "is called and the corresponding jet calibration "
+                        "(AK4PFPuppiPNetRegression and AK4PFPuppiPNetRegressionPlusNeutrino) "
+                        "is configured."
                     )
-            cut = self.neutrino_regression_btag_cut
-            btag_algorithm = "btagPNetB"
-            btag_wp = cut if isinstance(cut, str) else ("L" if cut is True else None)
-            btag_score = None if isinstance(cut, (bool, str)) else cut
             self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=[
                     self.events["JetPNetPlusNeutrino"],
@@ -187,14 +179,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
                 params=self.params,
                 year=self._year,
-                btag_algorithm=btag_algorithm,
-                btag_wp=btag_wp,
-                btag_score=btag_score,
-            )
-        elif self.approach == "first":
-            # regressed (+neutrino) jets where valid, else the standard JEC jets
-            self.events["Jet"] = merge_regressed_jets(
-                [self.events["JetPNetPlusNeutrino"], self.events["JetDefault"]],
+                btag_algorithm="btagPNetB",
+                btag_wp="L",
             )
         elif self.approach == "second":
             # as "first", but high b-tag jets (loose WP) always use the regression
