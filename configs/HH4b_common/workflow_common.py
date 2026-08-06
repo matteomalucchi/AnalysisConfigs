@@ -173,19 +173,19 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=[
                     self.events["JetPNetPlusNeutrino"],
-                    self.events["JetPNet"],
                     self.events["JetDefault"],
                 ],
                 jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
                 params=self.params,
                 year=self._year,
-                btag_algorithm="btagPNetB",
-                btag_wp="L",
             )
         elif self.approach == "second":
             # as "first", but high b-tag jets (loose WP) always use the regression
             self.events["Jet"] = merge_regressed_jets(
-                jets_high_btag=self.events["JetPNetPlusNeutrino"],
+                jets_high_btag=[
+                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetDefault"],
+                ],
                 jets_low_btag=[
                     self.events["JetPNetPlusNeutrino"],
                     self.events["JetDefault"],
@@ -193,7 +193,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 params=self.params,
                 year=self._year,
             )
-
         else:
             raise ValueError(
                 f"Approach {self.approach} not known. Choose either 'first' or 'second' according to HIG24-010"
