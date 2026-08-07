@@ -22,7 +22,7 @@ class HH4bbQuarkMatchingProcessor(HH4bCommonProcessor):
         for jet_coll in ["JetGood", "JetGoodHiggs", "JetGoodMatched", "JetGoodHiggsMatched"]:
             self.events[jet_coll] = ak.with_field(
                 self.events[jet_coll],
-                self.events[jet_coll].provenance_higgs,
+                self.events[jet_coll].provenance_X,
                 "provenance",
             )
             

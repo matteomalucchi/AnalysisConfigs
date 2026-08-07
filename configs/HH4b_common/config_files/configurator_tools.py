@@ -1128,6 +1128,8 @@ SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
 SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "provenance",
     "provenance_higgs",
+    "provenance_z",
+    "provenance_X",
     "provenance_vbf",
     "pt",
     "eta",
@@ -1638,7 +1640,7 @@ def define_preselection(options):
     if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
 
-    # harmless for non ZZ samples
-    preselection.append(cuts.ZZ4b_presel)
+    # harmless for non ZZ/ZH/HH samples
+    preselection.append(cuts.XX4b_presel)
 
     return preselection

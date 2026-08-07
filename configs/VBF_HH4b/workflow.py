@@ -90,7 +90,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             for jet_coll in ["JetGoodHiggs"]:
                 self.events[jet_coll] = ak.with_field(
                     self.events[jet_coll],
-                    self.events[jet_coll].provenance_higgs,
+                    self.events[jet_coll].provenance_X,
                     "provenance",
                 )
             for jet_coll in ["JetGoodVBFAN"]:
@@ -225,7 +225,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             self.events["JetGoodProvHiggsPadded"] = ak.zip(
                 {field: padded[field] for field in padded.fields}
-                | {"provenance": padded.provenance_higgs},
+                | {"provenance": padded.provenance_X},
                 with_name="PtEtaPhiMLorentzVector",
             )
 
@@ -270,7 +270,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 # flatten pt only for jets matched to the Higgs for the training of spanet
                 self.events["JetTotalSPANetPtFlattenHiggsMatchedPadded"] = ak.where(
                     ak.is_none(
-                        self.events["JetTotalSPANetPtFlattenPadded"].provenance_higgs,
+                        self.events["JetTotalSPANetPtFlattenPadded"].provenance_X,
                         axis=1,
                     ),
                     self.events["JetTotalSPANetPadded"],

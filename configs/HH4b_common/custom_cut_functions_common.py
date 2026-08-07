@@ -333,3 +333,20 @@ def zz4b_cuts(events, params, **kwargs):
 
         # Pad None values with False
         return ak.where(ak.is_none(has_4_bs), False, has_4_bs)
+
+def xx4b_cuts(events, params, **kwargs):
+    '''
+    Check wether the event from the inclusive XX sample has two X boson decaying to 2 b quarks. This is done by checking the GenPart collection for a X bosons (pdgId == 23 or 25) and then checking if there are 4 b quarks (pdgId == 5) as daughters.
+    '''
+    # check that the sample is a XX sample,
+    if ("ZZ" not in events.metadata["dataset"]) and ("ZH" not in events.metadata["dataset"]) and ("HH" not in events.metadata["dataset"]):
+        return ak.ones_like(events.event, dtype=bool)
+    else:
+        genpart = copy.copy(events["GenPart"])
+        mother_pdg = genpart.pdgId[genpart.genPartIdxMother]
+
+        is_b_from_X = (abs(genpart.pdgId) == 5) & ((mother_pdg == 23) | (mother_pdg == 25))
+        has_4_bs = ak.sum(is_b_from_X, axis=1) >= 4
+
+        # Pad None values with False
+        return ak.where(ak.is_none(has_4_bs), False, has_4_bs)
