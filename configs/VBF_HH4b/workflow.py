@@ -312,24 +312,39 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
-            for jet_coll, jet_idx in zip(
-                [
-                    "JetTotalSPANetPadded",
-                    "JetTotalSPANetPtFlattenPadded",
-                    "JetGoodVBFMergedProvVBFPadded",
-                    "JetGoodVBFMergedProvVBFPtFlattenPadded",
-                ],
-                [self.max_num_jets_good, self.max_num_jets_good, 0, 0],
-            ):
-                # the 2 leading jets in mjj are the ones right after the JetGood
-                vbf_mjj = (
-                    self.events[jet_coll][:, jet_idx]
-                    + self.events[jet_coll][:, jet_idx + 1]
-                ).mass
-                vbf_deta = abs(
-                    self.events[jet_coll][:, jet_idx].eta
-                    - self.events[jet_coll][:, jet_idx + 1].eta
-                )
+            if self._isMC and self.random_pt:
+                for jet_coll, jet_idx in zip(
+                    [
+                        "JetTotalSPANetPadded",
+                        "JetTotalSPANetPtFlattenPadded",
+                        "JetGoodVBFMergedProvVBFPadded",
+                        "JetGoodVBFMergedProvVBFPtFlattenPadded",
+                    ],
+                    [self.max_num_jets_good, self.max_num_jets_good, 0, 0],
+                ):
+                    # the 2 leading jets in mjj are the ones right after the JetGood
+                    vbf_mjj = (
+                        self.events[jet_coll][:, jet_idx]
+                        + self.events[jet_coll][:, jet_idx + 1]
+                    ).mass
+                    vbf_deta = abs(
+                        self.events[jet_coll][:, jet_idx].eta
+                        - self.events[jet_coll][:, jet_idx + 1].eta
+                    )
+            else:
+                for jet_coll, jet_idx in zip(
+                    ["JetTotalSPANetPadded", "JetGoodVBFMergedProvVBFPadded"],
+                    [self.max_num_jets_good, 0],
+                ):
+                    # the 2 leading jets in mjj are the ones right after the JetGood
+                    vbf_mjj = (
+                        self.events[jet_coll][:, jet_idx]
+                        + self.events[jet_coll][:, jet_idx + 1]
+                    ).mass
+                    vbf_deta = abs(
+                        self.events[jet_coll][:, jet_idx].eta
+                        - self.events[jet_coll][:, jet_idx + 1].eta
+                    )
 
                 self.events[f"mjj{jet_coll}"] = vbf_mjj
                 self.events[f"deta{jet_coll}"] = vbf_deta
