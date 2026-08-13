@@ -431,7 +431,7 @@ def get_parquet_save_directory(input_parquet):
     return col_dir, dataset
 
 
-def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None):
+def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None, filter_mixed=False):
     cat_col = {}
     total_datasets_list = []
     # get the columns
