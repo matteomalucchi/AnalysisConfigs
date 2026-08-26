@@ -144,7 +144,9 @@ if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
 if SPANET_TRAINING:
-    categories_dict = define_single_category("hh4b_vbf_best_candidates_6_jets_nokincut_region")
+    categories_dict = define_single_category(
+        "hh4b_vbf_best_candidates_6_jets_nokincut_region"
+    )
     categories_dict |= define_single_category("hh4b_vbf_best_candidates_6_jets_region")
     categories_dict |= define_single_category("4b_region")
 
@@ -170,7 +172,12 @@ elif (
     and not config_options_dict["run2"]
 ):
     column_list += get_columns_list(
-        SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
+        with_fw_momenta_columns(
+            SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+            config_options_dict["max_order_FW"],
+            config_options_dict["FW_momenta_norms"],
+        ),
+        not config_options_dict["save_chunk"],
     )
     if config_options_dict["dnn_variables"]:
         total_input_columns = (
@@ -179,7 +186,10 @@ elif (
             | {"year": ["events", "year"]}
         )
         column_list += create_DNN_columns_list(
-            False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+            False,
+            not config_options_dict["save_chunk"],
+            total_input_columns,
+            btag=False,
         )
 
 else:
