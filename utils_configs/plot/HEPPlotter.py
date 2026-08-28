@@ -628,7 +628,7 @@ class HEPPlotter:
         fig, ax, ax_ratio = self._create_figure(ratio_plot)
 
         ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
-        if self.normalize_1d_histo:
+        if self.normalize_1d_histo and ref_hist is not None:
             ref_hist = self._normalize(ref_hist)
 
         for index, (name, props) in enumerate(self.series_dict.items()):
