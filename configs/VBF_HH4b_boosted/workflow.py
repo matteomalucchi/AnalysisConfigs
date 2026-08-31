@@ -219,7 +219,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 for jet_coll in ["JetGoodHiggs"]:
                     self.events[jet_coll] = ak.with_field(
                         self.events[jet_coll],
-                        self.events[jet_coll].provenance_higgs,
+                        self.events[jet_coll].provenance_X,
                         "provenance",
                     )
                 for jet_coll in ["JetGoodVBFAN"]:

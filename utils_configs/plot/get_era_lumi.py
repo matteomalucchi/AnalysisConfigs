@@ -12,7 +12,9 @@ def get_era_lumi(dataset_data):
         "23 Era Dv1": 7.83,
         "23 Era Dv2": 1.67,
         "22 preEE": 4.95+2.92,
-        "22 postEE": 5.79+17.6+2.88
+        "22 postEE": 5.79+17.6+2.88,
+        "23 preEE": 4.43+1.28+1.57+10.68,
+        "23 postBPix": 7.83+1.67,
     }
     # GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE
     era_list = []

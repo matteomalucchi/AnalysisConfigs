@@ -10,7 +10,6 @@ from pocket_coffea.lib.cut_functions import (
     get_nPVgood,
 )
 from pocket_coffea.parameters.cuts import passthrough
-import pocket_coffea.lib.calibrators.legacy.legacy_calibrators as legacy_cal 
 
 from workflow_cutflow import HH4bCutflowProcessor
 import configs.HH4b.custom_cuts_cutflow as cuts
@@ -37,8 +36,7 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
-    f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_onlyJEC.yaml",
+    f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
     update=True,
 )
 column_list = get_columns_list(
@@ -157,7 +155,6 @@ cfg = Configurator(
         },
         "bysample": {},
     },
-    # calibrators=[legacy_cal.JetsCalibrator, legacy_cal.JetsPtRegressionCalibrator],
     variations={
         "weights": {
             "common": {

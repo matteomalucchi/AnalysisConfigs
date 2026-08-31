@@ -24,7 +24,7 @@ def get_columns_from_files(
     if not debug:
         logger.setLevel(level=logging.INFO)
     if novars:
-        return get_columns_from_files_novars(inputfiles, filter_lambda, debug, max_num_parquet_files)
+        return get_columns_from_files_novars(inputfiles, filter_lambda, debug, max_num_parquet_files, filter_mixed)
     logger.info(f"Loading variations: {sel_var}")
     cat_col = {}
     total_datasets_list = []
@@ -34,7 +34,7 @@ def get_columns_from_files(
         samples = list(accumulator["columns"].keys())
         if accumulator["columns"] == {}:
             logger.info("Empty columns, trying to read from parquet files")
-            return get_columns_from_parquet(inputfiles, sel_var, filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=True)
+            return get_columns_from_parquet(inputfiles, sel_var, filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed)
         if debug:
             logger.debug(f"inputfile {inputfile}")
         for sample in samples:
@@ -431,7 +431,7 @@ def get_parquet_save_directory(input_parquet):
     return col_dir, dataset
 
 
-def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None):
+def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None, filter_mixed=False):
     cat_col = {}
     total_datasets_list = []
     # get the columns

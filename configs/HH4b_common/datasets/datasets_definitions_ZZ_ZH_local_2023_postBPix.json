@@ -1,0 +1,53 @@
+{
+    "ZH_ZToBB_HToBB": {
+        "sample": "ZH_ZToBB_HToBB",
+        "json_output": "datasets/background_ZZ_ZH_private.json",
+        "description": "ZH to BBBB sample.  Xsec from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHWG136TeVxsec_extrap#ppZH_NNLO_QCD_NLO_EW. 0.9361*0.576*0.1512",
+        "files": [
+            {
+                "local_files": [
+                    "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/samples/mc/ZH_ZToBB_HToBB_M-125_2023-postBPIX"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.081526
+                }
+            }
+        ]
+    },
+    "ggZH_HToBB_ZToBB": {
+        "sample": "ggZH_HToBB_ZToBB",
+        "json_output": "datasets/background_ZZ_ZH_private.json",
+        "description": "GluGluZH to BBBB sample. Xsec from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHWG136TeVxsec_extrap#ppZH_NNLO_QCD_NLO_EW. 0.1347*0.576*0.1512 ",
+        "files": [
+            {
+                "local_files": [
+                    "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/samples/mc/ggZH_HToBB_ZToBB_M-125_2023-postBPIX"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.01173
+                }
+            }
+        ]
+    },
+    "ZZTo4B01j": {
+        "sample": "ZZTo4B01j",
+        "json_output": "datasets/background_ZZ_ZH_private.json",
+        "description": "Inclusive ZZ ptroduction sample. Xsec from Evan K. Total ZZ cross section (MATRIX+EW ZZjj): 16.7 pb +- 0.5 pb (https://arxiv.org/pdf/2311.09715), BRZToBB = 0.1512",
+        "files": [
+            {
+                "local_files": [
+                    "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/samples/mc/ZZTo4B01j_5f_NLO_FXFX_2023-postBPIX"
+                ],
+                "metadata": {
+                    "year": "2023_postBPix",
+                    "isMC": true,
+                    "xsec": 0.381786
+                }
+            }
+        ]
+    }
+}

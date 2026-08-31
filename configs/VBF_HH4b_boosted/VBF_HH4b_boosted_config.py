@@ -49,9 +49,6 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_onlyJEC.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
     # f"{localdir}/../HH4b_common/params/jets_calibration_regression_json_onlyJEC.yaml",
     update=True,
@@ -317,7 +314,6 @@ cfg = Configurator(
         },
         # "shape": {
         #     "common": {
-        #         # "inclusive": ["jet_calibration_with_pt_regression_legacy"],
         #         # "inclusive": ["jet_calibration"]
         #         },
         #     }

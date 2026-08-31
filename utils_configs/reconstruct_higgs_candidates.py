@@ -9,8 +9,8 @@ from utils_configs.basic_functions import add_fields
 
 def reconstruct_higgs_from_provenance(matched_jets_higgs):
 
-    mask_h1 = matched_jets_higgs.provenance_higgs == 1
-    mask_h2 = matched_jets_higgs.provenance_higgs == 2
+    mask_h1 = matched_jets_higgs.provenance_X == 1
+    mask_h2 = matched_jets_higgs.provenance_X == 2
 
     jet_higgs1 = matched_jets_higgs[mask_h1]
     jet_higgs2 = matched_jets_higgs[mask_h2]
