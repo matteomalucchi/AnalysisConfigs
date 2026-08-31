@@ -3480,10 +3480,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-0p00-kl-5p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/90000/497e67d4-612f-4b19-9e99-63b8297b083c.root"
         ]
     },
-    "GluGluHHto4B-c2-0p10-kl-1p00-kt-1p00_2024": {
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10_2024": {
         "metadata": {
             "das_names": "['/GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "GluGluHHto4B-c2-0p10-kl-1p00-kt-1p00",
+            "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -3638,10 +3638,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-0p10-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/90000/78c21ef4-efa7-41c7-b00f-7a7e7c669b5c.root"
         ]
     },
-    "GluGluHHto4B-c2-0p35-kl-1p00-kt-1p00_2024": {
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35_2024": {
         "metadata": {
             "das_names": "['/GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "GluGluHHto4B-c2-0p35-kl-1p00-kt-1p00",
+            "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -3782,10 +3782,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-0p35-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/2810000/10519094-7fcb-4d00-88ec-e2bfd131affa.root"
         ]
     },
-    "GluGluHHto4B-c2-1p00-kl-0p00-kt-1p00_2024": {
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00_2024": {
         "metadata": {
             "das_names": "['/GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "GluGluHHto4B-c2-1p00-kl-0p00-kt-1p00",
+            "sample": "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -3835,10 +3835,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-1p00-kl-0p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/140000/526db937-455c-4d6e-b73d-742d857f0ef5.root"
         ]
     },
-    "GluGluHHto4B-c2-2p24-kl-m20p00-kt-1p00_2024": {
+    "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24_2024": {
         "metadata": {
             "das_names": "['/GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "GluGluHHto4B-c2-2p24-kl-m20p00-kt-1p00",
+            "sample": "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -3939,10 +3939,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-2p24-kl-m20p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/2520000/4278dc0c-0f75-4a23-b699-f8f892db6110.root"
         ]
     },
-    "GluGluHHto4B-c2-3p00-kl-1p00-kt-1p00_2024": {
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00_2024": {
         "metadata": {
             "das_names": "['/GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "GluGluHHto4B-c2-3p00-kl-1p00-kt-1p00",
+            "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -4041,10 +4041,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-3p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/100000/26eeaa86-d8e7-45a3-a0b9-f79ff3c46614.root"
         ]
     },
-    "GluGluHHto4B-c2-m2p00-kl-1p00-kt-1p00_2024": {
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00_2024": {
         "metadata": {
             "das_names": "['/GluGluHHto4B_Par-c2-m2p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "GluGluHHto4B-c2-m2p00-kl-1p00-kt-1p00",
+            "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",

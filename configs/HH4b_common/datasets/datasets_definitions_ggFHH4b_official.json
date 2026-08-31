@@ -227,8 +227,8 @@
             }
         ]
     },
-    "GluGluHHto4B-c2-0p10-kl-1p00-kt-1p00": {
-        "sample": "GluGluHHto4B-c2-0p10-kl-1p00-kt-1p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10": {
+        "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
         "json_output": "datasets/signal_ggF_HH4b_official.json",
         "files": [
             {
@@ -243,8 +243,8 @@
             }
         ]
     },
-    "GluGluHHto4B-c2-0p35-kl-1p00-kt-1p00": {
-        "sample": "GluGluHHto4B-c2-0p35-kl-1p00-kt-1p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35": {
+        "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
         "json_output": "datasets/signal_ggF_HH4b_official.json",
         "files": [
             {
@@ -259,8 +259,8 @@
             }
         ]
     },
-    "GluGluHHto4B-c2-1p00-kl-0p00-kt-1p00": {
-        "sample": "GluGluHHto4B-c2-1p00-kl-0p00-kt-1p00",
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00": {
+        "sample": "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
         "json_output": "datasets/signal_ggF_HH4b_official.json",
         "files": [
             {
@@ -275,8 +275,8 @@
             }
         ]
     },
-    "GluGluHHto4B-c2-2p24-kl-m20p00-kt-1p00": {
-        "sample": "GluGluHHto4B-c2-2p24-kl-m20p00-kt-1p00",
+    "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24": {
+        "sample": "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
         "json_output": "datasets/signal_ggF_HH4b_official.json",
         "files": [
             {
@@ -291,8 +291,8 @@
             }
         ]
     },
-    "GluGluHHto4B-c2-3p00-kl-1p00-kt-1p00": {
-        "sample": "GluGluHHto4B-c2-3p00-kl-1p00-kt-1p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00": {
+        "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
         "json_output": "datasets/signal_ggF_HH4b_official.json",
         "files": [
             {
@@ -307,8 +307,8 @@
             }
         ]
     },
-    "GluGluHHto4B-c2-m2p00-kl-1p00-kt-1p00": {
-        "sample": "GluGluHHto4B-c2-m2p00-kl-1p00-kt-1p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00": {
+        "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
         "json_output": "datasets/signal_ggF_HH4b_official.json",
         "files": [
             {

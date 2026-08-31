@@ -445,6 +445,22 @@
             }
         ]
     },
+    "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96": {
+        "sample": "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
+            }
+        ]
+    },
     "VBFHHto4B_CV_1_C2V_0_C3_1": {
         "sample": "VBFHHto4B_CV_1_C2V_0_C3_1",
         "json_output": "datasets/signal_VBF_HH4b.json",
@@ -550,22 +566,6 @@
             {
                 "das_names": [
                     "/VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
-                ],
-                "metadata": {
-                    "year": "2024",
-                    "isMC": true,
-                    "xsec": 1.0
-                }
-            }
-        ]
-    },
-    "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96": {
-        "sample": "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96",
-        "json_output": "datasets/signal_VBF_HH4b.json",
-        "files": [
-            {
-                "das_names": [
-                    "/VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
                 ],
                 "metadata": {
                     "year": "2024",
