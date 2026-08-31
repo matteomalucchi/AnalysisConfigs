@@ -43,6 +43,16 @@
                     "isMC": true,
                     "xsec": 0.132782
                 }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
             }
         ]
     },
@@ -89,6 +99,16 @@
                     "year": "2023_postBPix",
                     "isMC": true,
                     "xsec": 4.2e-06
+                }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
                 }
             }
         ]
@@ -137,6 +157,16 @@
                     "isMC": true,
                     "xsec": 0.1192
                 }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
             }
         ]
     },
@@ -183,6 +213,16 @@
                     "year": "2023_postBPix",
                     "isMC": true,
                     "xsec": 0.000374
+                }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
                 }
             }
         ]
@@ -231,6 +271,16 @@
                     "isMC": true,
                     "xsec": 0.00126
                 }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
             }
         ]
     },
@@ -278,6 +328,16 @@
                     "isMC": true,
                     "xsec": 0.003882
                 }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
             }
         ]
     },
@@ -324,6 +384,16 @@
                     "year": "2023_postBPix",
                     "isMC": true,
                     "xsec": 0.00559
+                }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
                 }
             }
         ]
@@ -419,6 +489,16 @@
                     "isMC": true,
                     "xsec": 0.009846
                 }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
             }
         ]
     },
@@ -465,6 +545,32 @@
                     "year": "2023_postBPix",
                     "isMC": true,
                     "xsec": 0.00064
+                }
+            },
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
+                }
+            }
+        ]
+    },
+    "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96": {
+        "sample": "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96",
+        "json_output": "datasets/signal_VBF_HH4b.json",
+        "files": [
+            {
+                "das_names": [
+                    "/VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2024",
+                    "isMC": true,
+                    "xsec": 1.0
                 }
             }
         ]

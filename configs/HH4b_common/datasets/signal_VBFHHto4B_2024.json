@@ -1,8 +1,8 @@
 {
-    "VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-1-C2V-0-C3-1_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-1-C2V-0-C3-1",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -102,10 +102,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-1-C2V-0-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2810000/28ed5386-79cd-4190-9de0-6ffde0b32dea.root"
         ]
     },
-    "VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-1-C2V-1-C3-1_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-1-C2V-1-C3-1",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -226,10 +226,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-1-C2V-1-C3-1_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2560000/3886bc71-ca87-4abc-a711-c2168874a33b.root"
         ]
     },
-    "VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-1p74-C2V-1p37-C3-14p4_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-1p74-C2V-1p37-C3-14p4",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -260,10 +260,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/6ed56439-d6d0-4adb-ad04-2a93dcfa3666.root"
         ]
     },
-    "VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -294,10 +294,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/15fad6d3-ce55-4aa1-abfa-39cd912df518.root"
         ]
     },
-    "VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-m0p012-C2V-0p030-C3-10p2_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-m0p012-C2V-0p030-C3-10p2",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -340,10 +340,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2810000/f807b49c-fb61-443b-867e-b1ccd60f6efb.root"
         ]
     },
-    "VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-m0p758-C2V-1p44-C3-m19p3_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-m0p758-C2V-1p44-C3-m19p3",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -378,10 +378,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2810000/185bfc7c-f517-4fb5-8a1a-d04cd191a798.root"
         ]
     },
-    "VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-m0p962-C2V-0p959-C3-m1p43_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-m0p962-C2V-0p959-C3-m1p43",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -416,10 +416,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2810000/41950e43-96c3-4ca0-883e-066e0ebda9cc.root"
         ]
     },
-    "VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-m1p21-C2V-1p94-C3-m0p94_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-m1p21-C2V-1p94-C3-m0p94",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -449,10 +449,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/d84d1651-791a-4c92-91df-3fe259d12606.root"
         ]
     },
-    "VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-m1p60-C2V-2p72-C3-m1p36_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-m1p60-C2V-2p72-C3-m1p36",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -486,10 +486,10 @@
             "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/2de245cb-843e-43c2-899b-d4355cdd0937.root"
         ]
     },
-    "VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8_2024": {
+    "VBFHHto4B-CV-m1p83-C2V-3p57-C3-m3p39_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8",
+            "sample": "VBFHHto4B-CV-m1p83-C2V-3p57-C3-m3p39",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
