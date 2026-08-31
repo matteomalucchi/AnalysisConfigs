@@ -6,7 +6,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 onnx_model_dict |= {
-    "spanet":"/work/mmalucch/spanet_vbf_models/vbf_ggf_all_Klambda_HiggsPairing.onnx"
+    "spanet":"/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/vbf_ggf_all_Klambda_HiggsPairing.onnx"
 }
 
 config_options_dict |= {
