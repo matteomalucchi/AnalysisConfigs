@@ -27,8 +27,7 @@ parameters = defaults.merge_parameters_from_files(
     update=True,
 )
 
-vbf_hh4b_2024 = [
-    # samples for 2024
+vbf_hh4b = [
     "VBFHHto4B-CV-1-C2V-0-C3-1",
     "VBFHHto4B-CV-1-C2V-1-C3-1",
     "VBFHHto4B-CV-1p74-C2V-1p37-C3-14p4",
@@ -43,8 +42,7 @@ vbf_hh4b_2024 = [
 ]
 
 
-ggf_hh4b_2024 = [
-    # samples for 2024
+ggf_hh4b = [
     "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
     "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
@@ -67,7 +65,8 @@ cfg = Configurator(
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/DATA_ParkingHH_resolved_skimmed",
-    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/ggF_VBF_HH4b_skimmed",
+    # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/signal_ggF_HH4b_skimmed",
+    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/signal_VBF_HH4b_skimmed",
     parameters=parameters,
     datasets={
         "jsons": [
@@ -78,8 +77,8 @@ cfg = Configurator(
             # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
         ],
         "filter": {
             "samples": (
@@ -89,8 +88,8 @@ cfg = Configurator(
                     # "DATA_JetMET1_HH4bResolved",
                     # "DATA_ParkingHH",
                 ]
-                + ggf_hh4b_2024
-                + vbf_hh4b_2024
+                # + ggf_hh4b
+                + vbf_hh4b
             ),
             "samples_exclude": [],
             "year": year,

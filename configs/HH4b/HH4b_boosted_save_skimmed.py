@@ -48,7 +48,7 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_redirector_24EraG.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
         ],
         "filter": {
             "samples": (
