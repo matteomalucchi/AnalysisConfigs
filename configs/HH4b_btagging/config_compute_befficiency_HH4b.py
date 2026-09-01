@@ -50,7 +50,7 @@ parameters = defaults.merge_parameters_from_files(
 )
 parameters["run_period"] = "Run3"
 config_options_dict["num_bins"] = 20
-preselection = define_preselection({"no_btag": True})
+preselection = define_preselection(config_options_dict | {"no_btag": True})
 
 # Defining the used samples
 sample_ggF_list = [
@@ -120,7 +120,7 @@ cfg = Configurator(
 
     workflow=HH4bbtagWPefficiencyProcessor,
     workflow_options=config_options_dict,
-    skim=cuts.skimming_cut_list({"noL1": False}),
+    skim=cuts.skimming_cut_list(config_options_dict),
     preselections=preselection,
     categories=categories_dict,
     # calibrators=default_calibrators_sequence,

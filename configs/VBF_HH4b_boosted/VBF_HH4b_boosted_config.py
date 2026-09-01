@@ -166,7 +166,11 @@ categories_dict = define_categories(
     other_group=True if config_options_dict["approach"] == "boosted" else False,
     split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
     # vbf_analysis=config_options_dict["vbf_analysis"],
-    vbf_analysis=config_options_dict["vbf_selection"] if "vbf_selection" in config_options_dict.keys() else config_options_dict["vbf_analysis"],
+    vbf_analysis=(
+        config_options_dict["vbf_selection"]
+        if config_options_dict.get("vbf_selection") is not None
+        else config_options_dict["vbf_analysis"]
+    ),
     vbf_discriminator=config_options_dict["vbf_discriminator"],
     ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
 )

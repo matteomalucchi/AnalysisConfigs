@@ -91,6 +91,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `tight_cuts` | `False` | Apply the tight jet pt cuts (`pt_tight` in the object preselection) and require the pt preselection on the 4 b-tag-ordered Higgs candidate jets (`JetGoodHiggs`) instead of all `JetGood`. |
 | `vbf_presel` | `False` | Use the VBF preselection. **Not supported anymore**: `define_preselection` raises a `ValueError` if this is `True`, because the cut acts on the wrong jet collection. |
 | `boosted_presel` | `False` | Use the boosted preselection (at least 2 FatJets) instead of the resolved one. It also disables the jet veto map cut. |
+| `no_btag` | `False` | Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`). Needed to measure the b-tag WP efficiencies, which has to be done in a region where no cut on the b-tag score is applied. The configs in `configs/HH4b_btagging` turn it on at the call site with `define_preselection(config_options_dict | {"no_btag": True})`. |
 | `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
 | `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
 
@@ -111,6 +112,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `jets_add_vbf_order` | `"energy"` | Field used to order the additional VBF jets, e.g. `"energy"` or `"pt"`. |
 | `vbf_matching_after_higgs_pairing` | `False` | Run the SPANet Higgs pairing first and define the VBF candidates from the jets left over by the pairing, instead of from the b-tag-ordered `JetGoodClip` collection. Requires `spanet`. |
 | `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to split the pass/fail VBF categories. Only relevant if `vbf_discriminator` is set. |
+| `vbf_selection` | `None` | Boosted VBF only: overrides `vbf_analysis` when the categories are defined in [`VBF_HH4b_boosted_config.py`](../VBF_HH4b_boosted/VBF_HH4b_boosted_config.py), so that the VBF regions can be built without switching on the full VBF jet reconstruction in the workflow. `None` means "not set", i.e. `vbf_analysis` is used instead. |
 
 ### Fox-Wolfram momenta
 
@@ -138,6 +140,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | Option | Default | Description |
 | --- | --- | --- |
 | `spanet_input_name` | `dnn_vars.pairing_spanet_btag` | Input features of the SPANet pairing model, as an `OrderedDict` with a `"sequential"` (per-jet) and a `"global"` (per-event) block. It must match the event file used for the SPANet training. The available sets are defined in [`dnn_input_variables.py`](./dnn_input_variables.py) (`pairing_spanet_nobtag`, `pairing_spanet_btag`, `pairing_spanet_btagWP5`, `pairing_spanet_btagWP3`, `pairing_spanet_btagDeltaWP5`, ...). The first entry of the `"sequential"` block also defines the jet collection used for the pairing. |
+| `spanet_input_name_list` | `None` | Flat list of the SPANet sequential input names. Only its last entry is inspected by the config templates, to decide whether the b-tag working-point columns have to be saved for the SPANet training. `None` means "derive it from `spanet_input_name`", which is what the templates do; set it explicitly only to override that. |
 | `sig_bkg_dnn_input_variables` | `dnn_vars.sig_bkg_dnn_input_variables` | Input features of the signal-vs-background DNN. It is also used, together with the morphing variables, to build the list of columns saved when `dnn_variables` is `True`. |
 | `bkg_morphing_dnn_input_variables` | `dnn_vars.bkg_morphing_dnn_input_variables` | Input features of the background morphing DNN (and of the spread model). |
 | `vbf_discriminator_input_variables` | `None` | Input features of a standalone ggF/VBF discriminator model. Only needed when `vbf_discriminator` is a different file from `spanet`. |
@@ -158,6 +161,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `vr1` | `False` | Use the VR1 validation regions (Higgs mass planes centred at $(185, 180)$ GeV) instead of the nominal signal/control regions. |
 | `expandCR` | `False` | Use the wide control region ($30 < R_{HH} < 80$ instead of $30 < R_{HH} < 55$) for the morphing `preW`/`postW` categories. |
 | `blind` | `False` | Add the blinded copies of the signal regions, keeping only the events with `sig_bkg_dnn_score` below the blinding threshold (0.9). |
+| `split_qcd` | `True` | Boosted only: split the QCD control region into the `qcd_A`/`qcd_B`/`qcd_C` sub-regions instead of defining a single `qcd` region. Ignored when `boosted` is `False`. |
 | `qt_postEE` | `None` | Path to the pickled quantile transformer used to define variable-width bins of `sig_bkg_dnn_score` (constant SM signal yield per bin) for the 2022_postEE datacards. `None` (or `""`) falls back to the uniform binning. See [Quantile transformer to obtain constant signal binning](#quantile-transformer-to-obtain-constant-signal-binning). |
 | `qt_preEE` | `None` | Same as `qt_postEE`, for the 2022_preEE datacards. |
 
@@ -182,16 +186,15 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | --- | --- | --- |
 | `bdt_model` | `""` | Path to the XGBoost model of the other-group boosted analysis. It produces `boosted_bdt_score` and `boosted_bdt_vbf_score`. An empty string disables it. |
 
-### Options not present in the defaults
+### Keys added by the config templates
 
-A few configs add extra keys on top of `default_config.py`:
+These keys are not meant to be set by hand in a config file: the templates add
+them to `config_options_dict` while building the `Configurator`.
 
-| Option | Used by | Description |
+| Key | Added by | Description |
 | --- | --- | --- |
-| `split_qcd` | boosted configs | Split the boosted QCD control region into the `qcd_A`/`qcd_B`/`qcd_C` sub-regions instead of a single `qcd` region. |
-| `vbf_selection` | boosted configs | Takes precedence over `vbf_analysis` in [`VBF_HH4b_boosted_config.py`](../VBF_HH4b_boosted/VBF_HH4b_boosted_config.py) when defining the categories. |
-| `no_btag` | `configs/HH4b_btagging` | Passed to `define_preselection` to remove the b-tag requirement from the preselection, needed to measure the b-tag WP efficiencies. |
-| `spanet_input_name_list` | `HH4b_parton_matching_config.py`, `HH4b_boosted_config.py` | Flat list of the SPANet input names; only its last entry is inspected, to decide whether the b-tag working-point columns have to be saved. |
+| `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. |
+| `num_bins` | [`config_compute_befficiency_HH4b.py`](../HH4b_btagging/config_compute_befficiency_HH4b.py) | Leftover of the b-tag efficiency studies; currently not read anywhere. |
 
 ## Full analysis workflow
 

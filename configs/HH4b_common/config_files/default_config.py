@@ -93,6 +93,12 @@ default_config_options_dict = {
     # Use the boosted preselection (>= 2 FatJets) instead of the resolved one.
     # It also disables the jet veto map cut.
     "boosted_presel": False,
+    # Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`).
+    # Needed by the b-tag WP efficiency measurement, which has to be performed in
+    # a region where no cut on the b-tag score is applied. The configs in
+    # `configs/HH4b_btagging` turn it on with
+    # `define_preselection(config_options_dict | {"no_btag": True})`.
+    "no_btag": False,
     # Legacy flag for the semi-tight VBF jet selection; currently only accepted
     # as an argument of `jet_selection_nopu` and not used by any workflow.
     "semi_tight_vbf": True,
@@ -135,6 +141,11 @@ default_config_options_dict = {
     # Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to
     # split the pass/fail VBF categories.
     "ggf_vbf_threshold": 0.95,
+    # Boosted VBF only: overrides `vbf_analysis` when defining the categories in
+    # `VBF_HH4b_boosted_config.py`, so that the VBF regions can be built without
+    # switching on the full VBF jet reconstruction of the workflow.
+    # `None` means "not set": `vbf_analysis` is used instead.
+    "vbf_selection": None,
 
     # ------------------------------------------------------------------
     # FOX-WOLFRAM MOMENTA
@@ -186,6 +197,12 @@ default_config_options_dict = {
     # "sequential" (per-jet) and a "global" (per-event) block. Must match the
     # event file used for the SPANet training; see `dnn_input_variables.py`.
     "spanet_input_name": dnn_vars.pairing_spanet_btag,
+    # Flat list of the SPANet sequential input names. Only its last entry is
+    # inspected by the config templates, to decide whether the b-tag
+    # working-point columns have to be saved for the SPANet training.
+    # `None` means "derive it from `spanet_input_name`", which is what the
+    # templates do; set it explicitly only to override that.
+    "spanet_input_name_list": None,
     # Input features of the signal-vs-background DNN. Also used to build the
     # list of columns saved when `dnn_variables` is True.
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,
@@ -223,6 +240,9 @@ default_config_options_dict = {
     # Add the blinded copies of the signal regions, keeping only the events
     # with `sig_bkg_dnn_score` below the blinding threshold.
     "blind": False,
+    # Boosted only: split the QCD control region into the `qcd_A`/`qcd_B`/`qcd_C`
+    # sub-regions instead of defining a single `qcd` region.
+    "split_qcd": True,
     # Path to the pickled quantile transformer used to define variable-width
     # bins of `sig_bkg_dnn_score` (constant SM signal per bin) for the
     # datacards. One file per era; None disables the transformed histogram.
