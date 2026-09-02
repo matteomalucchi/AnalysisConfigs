@@ -20,7 +20,8 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir + "/params")
 
 # adding object preselection
-year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
+# year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
+year = ["2024"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/triggers_skim.yaml",
@@ -31,8 +32,8 @@ vbf_hh4b = [
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
     "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
-    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
-    "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96",
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96", # not in 2024
+    "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96", # only in 2024
     "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
     "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
     "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
@@ -77,7 +78,7 @@ cfg = Configurator(
             # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
         ],
         "filter": {
@@ -88,8 +89,8 @@ cfg = Configurator(
                     # "DATA_JetMET1_HH4bResolved",
                     # "DATA_ParkingHH",
                 ]
-                # + ggf_hh4b
-                + vbf_hh4b
+                + ggf_hh4b
+                # + vbf_hh4b
             ),
             "samples_exclude": [],
             "year": year,
