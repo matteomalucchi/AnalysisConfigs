@@ -1,8 +1,8 @@
 {
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2022_preEE": {
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+            "sample": "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.132782",
@@ -35,10 +35,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2540000/fed63165-6c3e-4abe-a165-01a2a863ed7f.root"
         ]
     },
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2022_postEE": {
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+            "sample": "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.132782",
@@ -74,10 +74,10 @@
             "root://sbgdcache.in2p3.fr//store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/fe0a24dc-b528-48bb-9903-6b1df8fa70fb.root"
         ]
     },
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_preBPix": {
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+            "sample": "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.132782",
@@ -133,10 +133,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/80000/d38c6487-a796-42e3-80bd-1f2a9720cad8.root"
         ]
     },
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix": {
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+            "sample": "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.132782",
@@ -181,10 +181,10 @@
             "root://xrootd-vanderbilt.sites.opensciencegrid.org:1094//store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/2530000/f7c774a4-f7dd-45e3-89f5-44e7b6cb7898.root"
         ]
     },
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2024": {
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+            "sample": "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -215,10 +215,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-1p74-C2V-1p37-C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/fda8c2ac-6a72-48f8-8c82-a74d2b8c7b05.root"
         ]
     },
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2022_preEE": {
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+            "sample": "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "4.2e-06",
@@ -252,10 +252,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2540000/fb837ec3-63db-457e-b42c-f68d18182ca4.root"
         ]
     },
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2022_postEE": {
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+            "sample": "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "4.2e-06",
@@ -290,10 +290,10 @@
             "root://eos.cms.rcac.purdue.edu//store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2550000/f96852ba-e057-4f0b-9b25-d88acc57a4f7.root"
         ]
     },
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_preBPix": {
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+            "sample": "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "4.2e-06",
@@ -340,10 +340,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/70000/feb6b4e1-f6df-4be6-b336-746bab81734d.root"
         ]
     },
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix": {
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+            "sample": "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "4.2e-06",
@@ -366,10 +366,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/80000/e9ba33c4-4942-4a5f-b875-ec9e759274e2.root"
         ]
     },
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2024": {
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+            "sample": "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -412,10 +412,10 @@
             "root://cmsdcache-kit-disk.gridka.de:1094//store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m0p012-C2V-0p030-C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2810000/ffff779d-fb9f-4a8c-84ef-0ca14e904071.root"
         ]
     },
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2022_preEE": {
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+            "sample": "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.1192",
@@ -445,10 +445,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/50000/febaeabf-a1ec-4dff-aedd-7f446bac9bf2.root"
         ]
     },
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2022_postEE": {
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+            "sample": "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.1192",
@@ -486,10 +486,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/50000/f29138b8-955a-4262-8947-44d488bcb00d.root"
         ]
     },
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_preBPix": {
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+            "sample": "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.1192",
@@ -531,10 +531,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/80000/fe5e1214-89ba-4cae-8d85-766e953793ff.root"
         ]
     },
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix": {
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+            "sample": "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.1192",
@@ -592,10 +592,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/70000/fdad033f-2d49-4cc7-91e0-0918f8b2790a.root"
         ]
     },
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2024": {
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+            "sample": "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -630,10 +630,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m0p758-C2V-1p44-C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/2810000/ffb8062b-f9d8-4306-b6b9-23c12443ad0f.root"
         ]
     },
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2022_preEE": {
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+            "sample": "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.000374",
@@ -666,10 +666,10 @@
             "root://redir.t2.ucsd.edu:1095//store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2550000/e774d732-c89d-4686-9dd2-4023f26b5d3b.root"
         ]
     },
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2022_postEE": {
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+            "sample": "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000374",
@@ -705,10 +705,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2550000/f0eedbab-3820-468d-bd0e-23cb35ce9866.root"
         ]
     },
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_preBPix": {
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+            "sample": "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.000374",
@@ -767,10 +767,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/70000/f414df9a-aacc-4a9f-987f-bd44e04035dd.root"
         ]
     },
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix": {
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+            "sample": "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.000374",
@@ -793,10 +793,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/70000/efd94cce-4add-42d6-9322-e34cb0ae9e41.root"
         ]
     },
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2024": {
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+            "sample": "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -831,10 +831,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m0p962-C2V-0p959-C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/28110000/dc6efff9-bac8-4aa6-a7a2-2ce45fed1090.root"
         ]
     },
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_2022_preEE": {
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+            "sample": "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.00126",
@@ -866,10 +866,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2550000/fb4150e8-220c-49fc-b8af-e40939d36f67.root"
         ]
     },
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_2022_postEE": {
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+            "sample": "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.00126",
@@ -907,10 +907,10 @@
             "root://cmsxrootd.hep.wisc.edu:1094//store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/ffe05381-86c2-4ae1-9902-b0c97c9080f6.root"
         ]
     },
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_2023_preBPix": {
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+            "sample": "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.00126",
@@ -963,10 +963,10 @@
             "root://cmsdcache-kit-disk.gridka.de:1094//store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/2530000/e7eacb71-df66-40d6-af18-6c4c1d864652.root"
         ]
     },
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_2023_postBPix": {
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+            "sample": "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.00126",
@@ -1004,10 +1004,10 @@
             "root://k8s-redir.ultralight.org:1094//store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/2530000/fab51c6f-68c7-4bfc-a86b-557c4a146718.root"
         ]
     },
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_2024": {
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+            "sample": "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -1037,10 +1037,10 @@
             "root://cmsdcache-kit-disk.gridka.de:1094//store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m1p21-C2V-1p94-C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/faf69b44-e873-4405-9327-6ffebc903053.root"
         ]
     },
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2022_preEE": {
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+            "sample": "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.003882",
@@ -1074,10 +1074,10 @@
             "root://cmsio3.rc.ufl.edu:1094//store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2540000/ffbd7ccd-6173-470e-a640-1e8e0fa0ba51.root"
         ]
     },
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2022_postEE": {
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+            "sample": "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.003882",
@@ -1113,10 +1113,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/ff3b3874-a990-45b4-8871-84e3f44f7241.root"
         ]
     },
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_preBPix": {
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+            "sample": "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.003882",
@@ -1197,10 +1197,10 @@
             "root://dcache-cms-xrootd.desy.de:1094//store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/80000/c41eaffb-5087-49d5-97cc-676987c950ce.root"
         ]
     },
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_postBPix": {
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+            "sample": "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.003882",
@@ -1228,10 +1228,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/2530000/f4140957-445d-4ae6-adb2-9d9aff090686.root"
         ]
     },
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2024": {
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+            "sample": "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -1265,10 +1265,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m1p60-C2V-2p72-C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/fa2c726c-7e49-41b5-ab88-99a5fee0f90b.root"
         ]
     },
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2022_preEE": {
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv13-133X_mcRun3_2022_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+            "sample": "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.00559",
@@ -1285,10 +1285,10 @@
             "root://ccxrdcms.in2p3.fr:1094//store/mc/Run3Summer22NanoAODv13/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2022_realistic_ForNanov13_v1-v2/70000/fcba3dea-058d-41eb-a6d1-58124e3bd5c8.root"
         ]
     },
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2022_postEE": {
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+            "sample": "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.00559",
@@ -1348,10 +1348,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/30000/e1398d6e-523b-4e1c-ac20-fce004267ddc.root"
         ]
     },
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_preBPix": {
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+            "sample": "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.00559",
@@ -1387,10 +1387,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/70000/fb77216a-1ad7-487b-b220-6045c479a9e5.root"
         ]
     },
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix": {
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+            "sample": "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.00559",
@@ -1439,10 +1439,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/70000/b13d3ab6-6b0f-4ffd-8fe1-6eb09fbb9c98.root"
         ]
     },
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2024": {
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+            "sample": "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",
@@ -1477,10 +1477,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/RunIII2024Summer24NanoAODv15/VBFHHto4B_Par-CV-m1p83-C2V-3p57-C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/120000/f0076415-a8e7-4e17-b1e1-be268e1c7bb4.root"
         ]
     },
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2022_preEE": {
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_2022_preEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+            "sample": "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
             "year": "2022_preEE",
             "isMC": "True",
             "xsec": "0.2256356",
@@ -1512,10 +1512,10 @@
             "root://eos.cms.rcac.purdue.edu//store/mc/Run3Summer22NanoAODv12/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/50000/f30dc339-17a5-4f36-8c13-28116f958525.root"
         ]
     },
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2022_postEE": {
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+            "sample": "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.2256356",
@@ -1553,10 +1553,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/f94ebcf8-4cfd-46bc-b6a0-1587303839e8.root"
         ]
     },
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_preBPix": {
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_2023_preBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv13-133X_mcRun3_2023_realistic_ForNanov13_v1-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+            "sample": "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
             "year": "2023_preBPix",
             "isMC": "True",
             "xsec": "0.2256356",
@@ -1592,10 +1592,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23NanoAODv13/VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_ForNanov13_v1-v2/70000/eb8d452d-d76d-4c1d-92f4-5fb60dac1190.root"
         ]
     },
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix": {
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_2023_postBPix": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+            "sample": "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
             "year": "2023_postBPix",
             "isMC": "True",
             "xsec": "0.2256356",
@@ -1619,10 +1619,10 @@
             "root://cmsdcadisk.fnal.gov//dcache/uscmsdisk/store/mc/Run3Summer23BPixNanoAODv13/VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/70000/f5358cc3-8b57-4aac-95da-f266572ac495.root"
         ]
     },
-    "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96_2024": {
+    "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96_2024": {
         "metadata": {
             "das_names": "['/VBFHHto4B_Par-CV-2p12-C2V-3p87-C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96",
+            "sample": "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96",
             "year": "2024",
             "isMC": "True",
             "xsec": "1.0",

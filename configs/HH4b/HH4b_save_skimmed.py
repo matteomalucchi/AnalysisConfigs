@@ -28,17 +28,17 @@ parameters = defaults.merge_parameters_from_files(
 )
 
 vbf_hh4b = [
-    "VBFHHto4B-CV-1-C2V-0-C3-1",
-    "VBFHHto4B-CV-1-C2V-1-C3-1",
-    "VBFHHto4B-CV-1p74-C2V-1p37-C3-14p4",
-    "VBFHHto4B-CV-m2p12-C2V-3p87-C3-m5p96",
-    "VBFHHto4B-CV-2p12-C2V-3p87-C3-m5p96",
-    "VBFHHto4B-CV-m0p012-C2V-0p030-C3-10p2",
-    "VBFHHto4B-CV-m0p758-C2V-1p44-C3-m19p3",
-    "VBFHHto4B-CV-m0p962-C2V-0p959-C3-m1p43",
-    "VBFHHto4B-CV-m1p21-C2V-1p94-C3-m0p94",
-    "VBFHHto4B-CV-m1p60-C2V-2p72-C3-m1p36",
-    "VBFHHto4B-CV-m1p83-C2V-3p57-C3-m3p39",
+    "VBFHHto4B_CV_1_C2V_0_C3_1",
+    "VBFHHto4B_CV_1_C2V_1_C3_1",
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
+    "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96",
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
 ]
 
 
