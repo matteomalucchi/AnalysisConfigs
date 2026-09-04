@@ -5,6 +5,7 @@ import awkward as ak
 import numpy as np
 import vector
 from pocket_coffea.lib.deltaR_matching import object_matching
+from pocket_coffea.lib.jets import merge_regressed_jets
 from pocket_coffea.workflows.base import BaseProcessorABC
 
 from utils_configs.basic_functions import add_fields, compute_fw_momenta
@@ -73,7 +74,7 @@ era_dict = {
     "2023_preBPix_MIX": -7,
     "2023_postBPix_MIX": -8,
     "2024_MC": -9,
-    "2024_MIX": -10
+    "2024_MIX": -10,
 }
 
 year_dict = {
@@ -155,42 +156,43 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetPNetPlusNeutrino"] = copy.copy(self.events["Jet"])
 
     def apply_object_preselection(self, variation):
-        # Use the regressed pt from PNet+Neutrino collection if available,
-        # otherwise use the JEC corrected pt collection
-        # This way we consider correctly all fields which change depending on
-        # the pt definition, namely the pt, mass and the associated systematic variations
-        if self.approach == "first":
-            self.events["Jet"] = ak.where(
-                ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0,
-                self.events["JetPNetPlusNeutrino"],
-                self.events.JetDefault,
+        # Build "Jet" from the regressed/standard collections. Taking a whole
+        # collection (not just pt) keeps every pt-dependent field consistent.
+        if self.approach in ("first", "boosted"):
+            # Always split the pt regression by b-tag: +neutrino regression for
+            # high-b-tag jets (above the loose WP), plain regression for the rest.
+            for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
+                if coll not in self.events.fields:
+                    raise ValueError(
+                        f"Collection '{coll}' is required to split the pt regression "
+                        "by b-tag but was not found. Make sure define_jet_collections() "
+                        "is called and the corresponding jet calibration "
+                        "(AK4PFPuppiPNetRegression and AK4PFPuppiPNetRegressionPlusNeutrino) "
+                        "is configured."
+                    )
+            self.events["Jet"] = merge_regressed_jets(
+                jets_high_btag=[
+                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetDefault"],
+                ],
+                jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
+                params=self.params,
+                year=self._year,
             )
         elif self.approach == "second":
-            self.events["Jet"] = ak.where(
-                (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
-                | (
-                    self.events["JetPNetPlusNeutrino"].btagPNetB
-                    > self.params["btagging"]["working_point"][self._year][
-                        "btagging_WP"
-                    ]["btagPNetB"]["L"]
-                ),
-                self.events["JetPNetPlusNeutrino"],
-                self.events.JetDefault,
+            # as "first", but high b-tag jets (loose WP) always use the regression
+            self.events["Jet"] = merge_regressed_jets(
+                jets_high_btag=[
+                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetDefault"],
+                ],
+                jets_low_btag=[
+                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetDefault"],
+                ],
+                params=self.params,
+                year=self._year,
             )
-        elif self.approach == "boosted":
-            # self.events["Jet"] = ak.where(
-            #     (ak.nan_to_num(self.events["JetPNetPlusNeutrino"].pt, nan=-1) > 0)
-            #     | (
-            #         self.events["JetPNetPlusNeutrino"].btagPNetB
-            #         > self.params["btagging"]["working_point"][self._year][
-            #             "btagging_WP"
-            #         ]["btagPNetB"]["L"]
-            #     ),
-            #     self.events["JetPNetPlusNeutrino"],
-            #     self.events.JetDefault,
-            # )
-            print("Skipping selection on jet objects for now - no btagging info available")
-
         else:
             raise ValueError(
                 f"Approach {self.approach} not known. Choose either 'first' or 'second' according to HIG24-010"
@@ -1416,7 +1418,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         # =========== BOOSTED ==============
         elif self.dnn_variables and self.boosted:
-            self.events["FatJetGoodSelected"] = ak.pad_none(self.events["FatJetGoodSelected"], target=2, axis=1)
+            self.events["FatJetGoodSelected"] = ak.pad_none(
+                self.events["FatJetGoodSelected"], target=2, axis=1
+            )
             (
                 self.events["HiggsLeading"],
                 self.events["HiggsSubLeading"],
