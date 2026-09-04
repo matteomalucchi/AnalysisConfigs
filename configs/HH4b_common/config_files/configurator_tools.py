@@ -1128,6 +1128,8 @@ SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
 SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "provenance",
     "provenance_higgs",
+    "provenance_z",
+    "provenance_X",
     "provenance_vbf",
     "pt",
     "eta",
@@ -1637,4 +1639,13 @@ def define_preselection(options):
     # corrected pT after the Calibrators have run
     if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
+
+    # Optional gen-level cut selecting X->bb X->bb decays (X = H or Z).
+    # It is needed only for the private/inclusive ZZ-ZH samples, which are not
+    # filtered on the decay channel. It is off by default because it changes
+    # the event yields (and therefore breaks the comparison with older results
+    # and the data/MC comparison), so enable it explicitly when needed.
+    if options.get("xx4b_presel", False):
+        preselection.append(cuts.XX4b_presel)
+
     return preselection

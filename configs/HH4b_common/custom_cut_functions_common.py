@@ -316,3 +316,36 @@ def dhh_cuts(events, params, **kwargs):
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
+
+def xx4b_cuts(events, params, **kwargs):
+    '''
+    Check whether the event of an inclusive XX sample has two X bosons decaying to 2 b quarks.
+    This is done by checking the GenPart collection for X bosons (pdgId == 23 or 25) and then
+    checking if there are 4 b quarks (pdgId == 5) as daughters.
+    '''
+    # data (and MC without a GenPart collection) is left untouched
+    if str(events.metadata.get("isMC", "True")) not in ("True", "true", "1"):
+        return ak.ones_like(events.event, dtype=bool)
+    if "GenPart" not in events.fields:
+        return ak.ones_like(events.event, dtype=bool)
+    # only the samples that are inclusive in the decay channel need this cut
+    dataset = events.metadata["dataset"]
+    if not any(tag in dataset for tag in ("ZZ", "ZH", "HH")):
+        return ak.ones_like(events.event, dtype=bool)
+
+    genpart = events["GenPart"]
+    # genPartIdxMother is -1 for particles without a mother: indexing with it
+    # would silently wrap around to the last GenPart, so mask those out
+    has_mother = genpart.genPartIdxMother >= 0
+    mother_idx = ak.where(has_mother, genpart.genPartIdxMother, 0)
+    mother_pdg = genpart.pdgId[mother_idx]
+
+    is_b_from_X = (
+        has_mother
+        & (abs(genpart.pdgId) == 5)
+        & ((mother_pdg == 23) | (mother_pdg == 25))
+    )
+    has_4_bs = ak.sum(is_b_from_X, axis=1) >= 4
+
+    # Pad None values with False
+    return ak.where(ak.is_none(has_4_bs), False, has_4_bs)

@@ -41,7 +41,11 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # adding object preselection
-year = ["2022_postEE"]
+year = ["2023_postBPix"]
+config_options_dict["year"] = year
+# the private ZZ/ZH samples are inclusive in the decay channel, so require the
+# X(->bb)X(->bb) final state at gen level
+config_options_dict["xx4b_presel"] = True
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
@@ -77,32 +81,44 @@ preselection = define_preselection(config_options_dict)
 
 # Define the samples to process
 sample_ggF_list = [
-    "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
-    "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-5p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p45_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-0p00_kt-0p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-3p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-4p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-3p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
+    # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
+    # 2023 Post_BPix
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
 ]
 
 sample_VBF_list = [
-    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
-    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
-    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
-    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
-    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
-    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
-    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
-    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
+    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+    # "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94", # not present in 2023_postBPix
+    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
+
+sample_ZZ_ZH_list = [
+    "ZZTo4B01j",
+    "ggZH_HToBB_ZToBB",
+    "ZH_ZToBB_HToBB"
+]
+
 sample_list = (
     [
         # 2022 preEE
@@ -112,9 +128,12 @@ sample_list = (
         # "DATA_JetMET_JMENano_E_skimmed",
         # "DATA_JetMET_JMENano_F_skimmed",
         # "DATA_JetMET_JMENano_G_skimmed",
+        # 2023 postBPix
+        "DATA_ParkingHH",
     ]
     + sample_ggF_list
     + sample_VBF_list
+    + sample_ZZ_ZH_list
     + (
         [
             #     "GluGlutoHHto4B_spanet_skimmed",
@@ -140,10 +159,8 @@ if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
 if SPANET_TRAINING:
-    categories_dict = define_single_category(
-        "vbf_best_candidates_6_jets_nokincut_4b_region"
-    )
-    categories_dict |= define_single_category("vbf_best_candidates_6_jets_4b_region")
+    # categories_dict = define_single_category("hh4b_vbf_best_candidates_6_jets_nokincut_region")
+    # categories_dict |= define_single_category("hh4b_vbf_best_candidates_6_jets_region")
     categories_dict |= define_single_category("4b_region")
 
 column_list = []
@@ -154,6 +171,15 @@ if not config_options_dict["spanet"]:
         column_list += get_columns_list(
             SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
         )
+        if config_options_dict["dnn_variables"]:
+            total_input_columns = (
+                config_options_dict["sig_bkg_dnn_input_variables"]
+                | config_options_dict["bkg_morphing_dnn_input_variables"]
+                | {"year": ["events", "year"]}
+            )
+            column_list += create_DNN_columns_list(
+                False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+            )
     else:
         column_list += get_columns_list(
             with_fw_momenta_columns(
@@ -168,12 +194,7 @@ elif (
     and not config_options_dict["run2"]
 ):
     column_list += get_columns_list(
-        with_fw_momenta_columns(
-            SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
-            config_options_dict["max_order_FW"],
-            config_options_dict["FW_momenta_norms"],
-        ),
-        not config_options_dict["save_chunk"],
+        SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
     )
     if config_options_dict["dnn_variables"]:
         total_input_columns = (
@@ -182,10 +203,7 @@ elif (
             | {"year": ["events", "year"]}
         )
         column_list += create_DNN_columns_list(
-            False,
-            not config_options_dict["save_chunk"],
-            total_input_columns,
-            btag=False,
+            False, not config_options_dict["save_chunk"], total_input_columns, btag=False
         )
 
 else:
@@ -260,8 +278,12 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_2023_postBPix_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_official_2023_postBPix_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_2023_postBPix_skimmed_hadd.json",
         ],
         "filter": {
             "samples": sample_list,

@@ -100,6 +100,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
         else:
             self.dummy_provenance(name="provenance_higgs")
+            self.dummy_provenance(name="provenance_z")
+            self.dummy_provenance(name="provenance_X")
 
         # Add btag WP
         if self.approach != "boosted":
@@ -107,21 +109,21 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events["Jet"] = self.generate_btag_workingpoints(self.events["Jet"], 3)
 
     def def_provenance_field(self, jet_collection="Jet"):
-        provenance_higgs = self.events[jet_collection].provenance_higgs
+        provenance_X = self.events[jet_collection].provenance_X
 
         if "provenance_vbf" in self.events[jet_collection].fields:
             provenance_vbf = self.events[jet_collection].provenance_vbf
-            # if a Jet is matched to both Higgs and VBF, give priority to the Higgs
+            # if a Jet is matched to both Higgs or Z and VBF, give priority to the Higgs
             provenance = ak.where(
-                ak.is_none(provenance_higgs, axis=1),
+                ak.is_none(provenance_X, axis=1),
                 provenance_vbf,
-                provenance_higgs,
+                provenance_X,
             )
 
             if self._isMC and "TTto" not in self.events.metadata["dataset"]:
                 # check that provenance fields are orthogonal
                 mask_both_not_none = ~ak.is_none(
-                    provenance_higgs, axis=1
+                    provenance_X, axis=1
                 ) & ~ak.is_none(provenance_vbf, axis=1)
                 n_jets_both_not_none = ak.sum(mask_both_not_none, axis=1)
                 n_events_with_jets_both_not_none = ak.sum(n_jets_both_not_none > 0)
@@ -136,7 +138,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     )
         else:
             self.dummy_provenance(jet_collection, name="provenance_vbf")
-            provenance = provenance_higgs
+            provenance = provenance_X
 
         self.events[jet_collection] = ak.with_field(
             self.events[jet_collection],
@@ -237,6 +239,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             year=self._year,
             pt_type="pt_default",
             pt_cut_name=self.pt_cut_name,
+            jet_tagger="PNet",
         )
 
         self.events["Electron"] = ak.with_field(
@@ -268,11 +271,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # Define the Matched collections
         self.events["JetGoodMatched"] = ak.mask(
             self.events["JetGood"],
-            ~ak.is_none(self.events["JetGood"].provenance_higgs, axis=1),
+            ~ak.is_none(self.events["JetGood"].provenance_X, axis=1),
         )
         self.events["JetGoodHiggsMatched"] = ak.mask(
             self.events["JetGoodHiggs"],
-            ~ak.is_none(self.events["JetGoodHiggs"].provenance_higgs, axis=1),
+            ~ak.is_none(self.events["JetGoodHiggs"].provenance_X, axis=1),
         )
 
     # def apply_preselection(self, variation):
@@ -287,28 +290,40 @@ class HH4bCommonProcessor(BaseProcessorABC):
     #     super().apply_preselection(self, variation)
     #     self._preselections = self._preselections_temp
 
-    def flatten_pt(self, rand_type, jet_collection):
-        if rand_type == 0.5:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) + 0.5
-            )  # [0.5,1.5]
-        elif rand_type == 0.3:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) * 1.4 + 0.3
-            )  # [0.3,1.7]
-        elif rand_type == 0.1:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
-            )  # [0.1,10.0]
+    def flatten_pt(self, rand_type, jet_collection, reuse_weights=True):
+        # NOTE: the smearing factor is a property of the event, not of the jet
+        # collection: several collections of the same event are flattened one
+        # after the other and then concatenated together (e.g.
+        # JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded), and the factor is
+        # stored only once per event as `random_pt_weights`. Drawing an
+        # independent factor per collection would scale the two halves of the
+        # same event differently and would leave `random_pt_weights` matching
+        # only the collection flattened last, so the factor drawn by the first
+        # call is reused by the following ones.
+        if reuse_weights and "random_pt_weights" in self.events.fields:
+            random_weights = self.events.random_pt_weights
         else:
-            raise ValueError(f"Invalid input. rand_type {rand_type} not known.")
+            if rand_type == 0.5:
+                random_weights = ak.Array(
+                    np.random.rand((len(self.events[jet_collection].pt))) + 0.5
+                )  # [0.5,1.5]
+            elif rand_type == 0.3:
+                random_weights = ak.Array(
+                    np.random.rand((len(self.events[jet_collection].pt))) * 1.4 + 0.3
+                )  # [0.3,1.7]
+            elif rand_type == 0.1:
+                random_weights = ak.Array(
+                    np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
+                )  # [0.1,10.0]
+            else:
+                raise ValueError(f"Invalid input. rand_type {rand_type} not known.")
 
-        random_weights = ak.to_regular(random_weights[:, np.newaxis], axis=1)
-        self.events = ak.with_field(
-            self.events,
-            random_weights,
-            "random_pt_weights",
-        )
+            random_weights = ak.to_regular(random_weights[:, np.newaxis], axis=1)
+            self.events = ak.with_field(
+                self.events,
+                random_weights,
+                "random_pt_weights",
+            )
 
         self.events[jet_collection] = ak.with_field(
             self.events[jet_collection],
@@ -387,6 +402,44 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         return ak.with_field(jets, deltaWP, f"btagPNetB_delta{num_wp}wp")
 
+    def define_quark_provenance(self, bquarks_first, genpart, higgs, z_boson, X_resonance):
+        mother_bquarks = genpart[bquarks_first.genPartIdxMother]
+        # restrict to b-quarks actually descended from a Higgs or Z boson,
+        # dropping any unrelated b-quarks (e.g. from top decays) before
+        # computing per-quark provenance labels
+        bquarks_from_X = bquarks_first[
+            (mother_bquarks.pdgId == 25) | (mother_bquarks.pdgId == 23)
+        ]
+
+        # sentinel for "this resonance does not exist in the event": it must not
+        # collide with genPartIdxMother == -1, which NanoAOD uses for "no mother"
+        NO_RESONANCE = -999
+
+        def resonance_index(resonance, i):
+            # NO_RESONANCE dummy when the event has fewer than i+1 of this resonance
+            return ak.fill_none(
+                ak.pad_none(resonance.index, i + 1, axis=1)[:, i], NO_RESONANCE
+            )
+
+        def provenance_for(resonance):
+            leading = resonance_index(resonance, 0)
+            subleading = resonance_index(resonance, 1)
+            mother_idx = bquarks_from_X.genPartIdxMother
+            return ak.where(
+                mother_idx == leading, 1,
+                ak.where(mother_idx == subleading, 2, -1),
+            )
+
+        # one label per entry in bquarks_from_X, for every resonance type: 1 =
+        # from the leading (pT-sorted) resonance of that type, 2 = from the
+        # subleading one, -1 = not from a resonance of that type at all (e.g. a
+        # Z-daughter quark gets -1 in provenance_higgs) or an anomalous mismatch
+        provenance_higgs = provenance_for(higgs)
+        provenance_z = provenance_for(z_boson)
+        provenance_X = provenance_for(X_resonance)
+
+        return provenance_higgs, provenance_z, provenance_X, bquarks_from_X
+
     def get_jet_higgs_provenance(self, which_bquark, jet_collection):  # -> ak.Array:
         # Select b-quarks at Gen level, coming from H->bb decay
         self.events["GenPart"] = ak.with_field(
@@ -395,6 +448,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         genpart = self.events.GenPart
 
         isHiggs = genpart.pdgId == 25
+        isZ = genpart.pdgId == 23
+        
         isB = abs(genpart.pdgId) == 5
         isLast = genpart.hasFlags(["isLastCopy"])
         isFirst = genpart.hasFlags(["isFirstCopy"])
@@ -404,18 +459,26 @@ class HH4bCommonProcessor(BaseProcessorABC):
         higgs = higgs[ak.num(higgs.childrenIdxG, axis=2) == 2]
         higgs = higgs[ak.argsort(higgs.pt, ascending=False)]
 
+        z_boson = genpart[isZ & isLast & isHard]
+        z_boson = z_boson[ak.num(z_boson.childrenIdxG, axis=2) == 2]
+        z_boson = z_boson[ak.argsort(z_boson.pt, ascending=False)]
+
+        X_resonance = genpart[(isHiggs | isZ) & isLast & isHard]
+        X_resonance = X_resonance[ak.num(X_resonance.childrenIdxG, axis=2) == 2]
+        X_resonance = X_resonance[ak.argsort(X_resonance.pt, ascending=False)]
+
         if which_bquark == "last_numba" or which_bquark == "last_numba_with_status":
             if which_bquark == "last_numba":
                 bquarks_first = genpart[isB & isHard & isFirst]
-                mother_bquarks = genpart[bquarks_first.genPartIdxMother]
-                bquarks_from_higgs = bquarks_first[mother_bquarks.pdgId == 25]
             else:
                 outgoing_part = genpart[genpart.status == 23]
-                bquarks_from_higgs = outgoing_part[abs(outgoing_part.pdgId) == 5]
+                bquarks_first = outgoing_part[abs(outgoing_part.pdgId) == 5]
 
-            provenance_higgs = ak.where(
-                bquarks_from_higgs.genPartIdxMother == higgs.index[:, 0], 1, 2
+            # define provenance for different kind of resonances
+            provenance_higgs, provenance_z, provenance_X, bquarks_from_X = self.define_quark_provenance(
+                bquarks_first, genpart, higgs, z_boson, X_resonance
             )
+
             # define variables to get the last copy
             children_idxG = ak.without_parameters(genpart.childrenIdxG, behavior={})
             children_idxG_flat = ak.flatten(children_idxG, axis=1)
@@ -436,10 +499,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     np.cumsum(ak.to_numpy(ak.num(genpart, axis=1), allow_missing=True)),
                 ]
             )
+            # General case for both Higgs and Z boson
             b_quark_idx = ak.to_numpy(
-                bquarks_from_higgs.index + genpart_offsets[:-1], allow_missing=False
+                bquarks_from_X.index + genpart_offsets[:-1], allow_missing=False
             )
-            b_quarks_pdgId = ak.to_numpy(bquarks_from_higgs.pdgId, allow_missing=False)
+            b_quarks_pdgId = ak.to_numpy(bquarks_from_X.pdgId, allow_missing=False)
             nevents = b_quark_idx.shape[0]
             firstgenpart_idxG = ak.firsts(genpart[:, 0].children).genPartIdxMotherG
             firstgenpart_idxG_numpy = ak.to_numpy(
@@ -464,22 +528,27 @@ class HH4bCommonProcessor(BaseProcessorABC):
             bquarks_first = bquarks
             while True:
                 b_mother = genpart[bquarks_first.genPartIdxMother]
-                mask_mother = (abs(b_mother.pdgId) == 5) | ((b_mother.pdgId) == 25)
+                mask_mother = (abs(b_mother.pdgId) == 5) | (
+                    (b_mother.pdgId == 25) | (b_mother.pdgId == 23)
+                )
                 bquarks = bquarks[mask_mother]
                 bquarks_first = bquarks_first[mask_mother]
                 b_mother = b_mother[mask_mother]
-                if ak.all((b_mother.pdgId) == 25):
+                stop = ak.all((b_mother.pdgId == 25) | (b_mother.pdgId == 23))
+                if stop:
                     break
                 bquarks_first = ak.where(
                     abs(b_mother.pdgId) == 5, b_mother, bquarks_first
                 )
-            provenance_higgs = ak.where(
-                bquarks_first.genPartIdxMother == higgs.index[:, 0], 1, 2
+            # define provenance for different kind of resonances
+            provenance_higgs, provenance_z, provenance_X, bquarks_from_X = self.define_quark_provenance(
+                bquarks_first, genpart, higgs, z_boson, X_resonance
             )
         elif which_bquark == "first":
-            bquarks_first = ak.flatten(higgs.children, axis=2)
-            provenance_higgs = ak.where(
-                bquarks_first.genPartIdxMother == higgs.index[:, 0], 1, 2
+            bquarks_first = ak.flatten(X_resonance.children, axis=2)
+            # define provenance for different kind of resonances
+            provenance_higgs, provenance_z, provenance_X, bquarks_from_X = self.define_quark_provenance(
+                bquarks_first, genpart, higgs, z_boson, X_resonance
             )
             bquarks = bquarks_first
         else:
@@ -487,7 +556,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 "which_bquark for the parton matching must be 'first', 'last', 'last_numba' or 'last_numba_with_status'"
             )
 
+        bquarks = ak.with_field(bquarks, provenance_X, "provenance_X")
         bquarks = ak.with_field(bquarks, provenance_higgs, "provenance_higgs")
+        bquarks = ak.with_field(bquarks, provenance_z, "provenance_z")
+        
         # Adding the provenance_higgs to the quark object
         self.events["bQuark"] = bquarks
         self.events["bQuarkFirst"] = bquarks_first
@@ -506,6 +578,16 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events[jet_collection],
             matched_bquarks.provenance_higgs,
             "provenance_higgs",
+        )
+        self.events[jet_collection] = ak.with_field(
+            self.events[jet_collection],
+            matched_bquarks.provenance_z,
+            "provenance_z",
+        )
+        self.events[jet_collection] = ak.with_field(
+            self.events[jet_collection],
+            matched_bquarks.provenance_X,
+            "provenance_X",
         )
 
         # add deltaR information

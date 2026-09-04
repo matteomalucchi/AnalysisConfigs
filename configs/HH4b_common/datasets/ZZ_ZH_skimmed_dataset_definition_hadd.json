@@ -1,0 +1,61 @@
+{
+  "ggZHto2Q2B_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ggZH_Hto2B_Zto2Q_M-125_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+      "sample": "ggZHto2Q2B",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.0544",
+      "nevents": "516898",
+      "size": "1085788407",
+      "skim_efficiency": "0.25902195656792826",
+      "skim_rescale_genweights": "3.8606768",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ggZHto2Q2B_2022_postEE/ggZHto2Q2B_2022_postEE_1.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ggZHto2Q2B_2022_postEE/ggZHto2Q2B_2022_postEE_2.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ggZHto2Q2B_2022_postEE/ggZHto2Q2B_2022_postEE_3.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ggZHto2Q2B_2022_postEE/ggZHto2Q2B_2022_postEE_4.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ggZHto2Q2B_2022_postEE/ggZHto2Q2B_2022_postEE_5.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ggZHto2Q2B_2022_postEE/ggZHto2Q2B_2022_postEE_6.root"
+    ]
+  },
+  "ZHto2Q2B_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ZH_Hto2B_Zto2Q_M-125_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+      "sample": "ZHto2Q2B",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "0.469",
+      "nevents": "343768",
+      "size": "622354743",
+      "skim_efficiency": "0.084033555928095",
+      "skim_rescale_genweights": "11.442684",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ZHto2Q2B_2022_postEE/ZHto2Q2B_2022_postEE_1.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ZHto2Q2B_2022_postEE/ZHto2Q2B_2022_postEE_2.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ZHto2Q2B_2022_postEE/ZHto2Q2B_2022_postEE_3.root",
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ZHto2Q2B_2022_postEE/ZHto2Q2B_2022_postEE_4.root"
+    ]
+  },
+  "ZZ_incl_2022_postEE": {
+    "metadata": {
+      "das_names": "['/ZZ_TuneCP5_13p6TeV_pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
+      "sample": "ZZ_incl",
+      "year": "2022_postEE",
+      "isMC": "True",
+      "xsec": "16.7",
+      "nevents": "22508",
+      "size": "28254927",
+      "skim_efficiency": "0.0057855233395023645",
+      "skim_rescale_genweights": "172.84521",
+      "isSkim": "True"
+    },
+    "files": [
+      "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved/hadded_skimmed/ZZ_incl_2022_postEE/ZZ_incl_2022_postEE_1.root"
+    ]
+  }
+}

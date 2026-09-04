@@ -90,7 +90,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             for jet_coll in ["JetGoodHiggs"]:
                 self.events[jet_coll] = ak.with_field(
                     self.events[jet_coll],
-                    self.events[jet_coll].provenance_higgs,
+                    self.events[jet_coll].provenance_X,
                     "provenance",
                 )
             for jet_coll in ["JetGoodVBFAN"]:
@@ -225,7 +225,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             self.events["JetGoodProvHiggsPadded"] = ak.zip(
                 {field: padded[field] for field in padded.fields}
-                | {"provenance": padded.provenance_higgs},
+                | {"provenance": padded.provenance_X},
                 with_name="PtEtaPhiMLorentzVector",
             )
 
@@ -270,7 +270,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 # flatten pt only for jets matched to the Higgs for the training of spanet
                 self.events["JetTotalSPANetPtFlattenHiggsMatchedPadded"] = ak.where(
                     ak.is_none(
-                        self.events["JetTotalSPANetPtFlattenPadded"].provenance_higgs,
+                        self.events["JetTotalSPANetPtFlattenPadded"].provenance_X,
                         axis=1,
                     ),
                     self.events["JetTotalSPANetPadded"],
@@ -312,15 +312,28 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
-            for jet_coll, jet_idx in zip(
-                [
+            # the pt-flattened collections only exist when the pt smearing is applied
+            if self._isMC and self.random_pt:
+                mjj_jet_colls = [
                     "JetTotalSPANetPadded",
                     "JetTotalSPANetPtFlattenPadded",
                     "JetGoodVBFMergedProvVBFPadded",
                     "JetGoodVBFMergedProvVBFPtFlattenPadded",
-                ],
-                [self.max_num_jets_good, self.max_num_jets_good, 0, 0],
-            ):
+                ]
+                mjj_jet_idxs = [
+                    self.max_num_jets_good,
+                    self.max_num_jets_good,
+                    0,
+                    0,
+                ]
+            else:
+                mjj_jet_colls = [
+                    "JetTotalSPANetPadded",
+                    "JetGoodVBFMergedProvVBFPadded",
+                ]
+                mjj_jet_idxs = [self.max_num_jets_good, 0]
+
+            for jet_coll, jet_idx in zip(mjj_jet_colls, mjj_jet_idxs):
                 # the 2 leading jets in mjj are the ones right after the JetGood
                 vbf_mjj = (
                     self.events[jet_coll][:, jet_idx]

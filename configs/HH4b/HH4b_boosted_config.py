@@ -6,10 +6,6 @@ from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
     onnx_model_dict,
 )
-from pocket_coffea.lib.calibrators.legacy.legacy_calibrators import (
-    JetsCalibrator,
-    JetsPtRegressionCalibrator,
-)
 
 
 from pocket_coffea.lib.weights.common.common import common_weights
@@ -59,11 +55,10 @@ defaults.register_configuration_dir("config_dir", localdir + "/params")
 year = ["2022_postEE", "2022_preEE"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection.yaml",
+    f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
-    f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
+    f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
     update=True,
 )
 

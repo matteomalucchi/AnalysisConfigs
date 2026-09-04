@@ -349,6 +349,15 @@ hh4b_boosted_vbf_region = Cut(
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
 
+
+# some of the private sample don't ensure the correct decay, only the final state, so we need to apply a presel cut to select the correct decay
+XX4b_presel = Cut(
+    name="xx4b_presel",
+    params={},
+    function=cuts_f.xx4b_cuts,
+)
+
+
 def skimming_cut_list(configs):
     skimlist = [
         eventFlags,

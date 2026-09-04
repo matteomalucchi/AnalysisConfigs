@@ -6,7 +6,6 @@ from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
     onnx_model_dict,
 )
-import pocket_coffea.lib.calibrators.legacy.legacy_calibrators as legacy_cal
 from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 
 
@@ -54,8 +53,6 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withoutVariations_withJERC.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_legacy_Calibrator_withVariations.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
     update=True,
 )
