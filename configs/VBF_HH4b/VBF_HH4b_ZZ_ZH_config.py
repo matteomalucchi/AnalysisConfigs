@@ -43,6 +43,9 @@ defaults.register_configuration_dir("config_dir", localdir)
 # adding object preselection
 year = ["2023_postBPix"]
 config_options_dict["year"] = year
+# the private ZZ/ZH samples are inclusive in the decay channel, so require the
+# X(->bb)X(->bb) final state at gen level
+config_options_dict["xx4b_presel"] = True
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",

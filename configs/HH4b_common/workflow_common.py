@@ -110,8 +110,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
     def def_provenance_field(self, jet_collection="Jet"):
         provenance_X = self.events[jet_collection].provenance_X
-        provenance_z = self.events[jet_collection].provenance_z
-        provenance_higgs = self.events[jet_collection].provenance_higgs
 
         if "provenance_vbf" in self.events[jet_collection].fields:
             provenance_vbf = self.events[jet_collection].provenance_vbf
@@ -292,28 +290,40 @@ class HH4bCommonProcessor(BaseProcessorABC):
     #     super().apply_preselection(self, variation)
     #     self._preselections = self._preselections_temp
 
-    def flatten_pt(self, rand_type, jet_collection):
-        if rand_type == 0.5:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) + 0.5
-            )  # [0.5,1.5]
-        elif rand_type == 0.3:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) * 1.4 + 0.3
-            )  # [0.3,1.7]
-        elif rand_type == 0.1:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
-            )  # [0.1,10.0]
+    def flatten_pt(self, rand_type, jet_collection, reuse_weights=True):
+        # NOTE: the smearing factor is a property of the event, not of the jet
+        # collection: several collections of the same event are flattened one
+        # after the other and then concatenated together (e.g.
+        # JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded), and the factor is
+        # stored only once per event as `random_pt_weights`. Drawing an
+        # independent factor per collection would scale the two halves of the
+        # same event differently and would leave `random_pt_weights` matching
+        # only the collection flattened last, so the factor drawn by the first
+        # call is reused by the following ones.
+        if reuse_weights and "random_pt_weights" in self.events.fields:
+            random_weights = self.events.random_pt_weights
         else:
-            raise ValueError(f"Invalid input. rand_type {rand_type} not known.")
+            if rand_type == 0.5:
+                random_weights = ak.Array(
+                    np.random.rand((len(self.events[jet_collection].pt))) + 0.5
+                )  # [0.5,1.5]
+            elif rand_type == 0.3:
+                random_weights = ak.Array(
+                    np.random.rand((len(self.events[jet_collection].pt))) * 1.4 + 0.3
+                )  # [0.3,1.7]
+            elif rand_type == 0.1:
+                random_weights = ak.Array(
+                    np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
+                )  # [0.1,10.0]
+            else:
+                raise ValueError(f"Invalid input. rand_type {rand_type} not known.")
 
-        random_weights = ak.to_regular(random_weights[:, np.newaxis], axis=1)
-        self.events = ak.with_field(
-            self.events,
-            random_weights,
-            "random_pt_weights",
-        )
+            random_weights = ak.to_regular(random_weights[:, np.newaxis], axis=1)
+            self.events = ak.with_field(
+                self.events,
+                random_weights,
+                "random_pt_weights",
+            )
 
         self.events[jet_collection] = ak.with_field(
             self.events[jet_collection],
@@ -401,9 +411,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
             (mother_bquarks.pdgId == 25) | (mother_bquarks.pdgId == 23)
         ]
 
+        # sentinel for "this resonance does not exist in the event": it must not
+        # collide with genPartIdxMother == -1, which NanoAOD uses for "no mother"
+        NO_RESONANCE = -999
+
         def resonance_index(resonance, i):
-            # -1 dummy when the event has fewer than i+1 of this resonance;
-            return ak.fill_none(ak.pad_none(resonance.index, i + 1, axis=1)[:, i], -1)
+            # NO_RESONANCE dummy when the event has fewer than i+1 of this resonance
+            return ak.fill_none(
+                ak.pad_none(resonance.index, i + 1, axis=1)[:, i], NO_RESONANCE
+            )
 
         def provenance_for(resonance):
             leading = resonance_index(resonance, 0)
@@ -524,10 +540,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 bquarks_first = ak.where(
                     abs(b_mother.pdgId) == 5, b_mother, bquarks_first
                 )
-                print("b first", bquarks_first[ak.num(bquarks_first) != 4].pdgId)
-                print("bs", bquarks[ak.num(bquarks) != 4].pdgId)
-                print("bmother", b_mother[ak.num(b_mother) != 4].pdgId)
-                print(mask_mother)
             # define provenance for different kind of resonances
             provenance_higgs, provenance_z, provenance_X, bquarks_from_X = self.define_quark_provenance(
                 bquarks_first, genpart, higgs, z_boson, X_resonance

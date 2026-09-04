@@ -50,9 +50,15 @@ cfg = Configurator(
             # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_2022_postEE.json",
-            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_2023_preBPix.json",
-            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private.json",
+            # TODO: these dataset definitions are not committed in the repository,
+            # re-enable them once they are added (otherwise the Configurator
+            # crashes with a FileNotFoundError). NOTE: the redirector file used
+            # below in their place only defines the 2023_postBPix ZZ/ZH
+            # datasets, so `year` has to be adapted before running it:
+            # f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_2022_postEE.json",
+            # f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_2023_preBPix.json",
+            # f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
         ],
         "filter": {

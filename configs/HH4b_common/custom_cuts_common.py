@@ -350,12 +350,6 @@ hh4b_boosted_vbf_region = Cut(
 )
 
 
-ZZ4b_presel = Cut(
-    name="zz4b_presel",
-    params={},
-    function=cuts_f.zz4b_cuts,
-)
-
 # some of the private sample don't ensure the correct decay, only the final state, so we need to apply a presel cut to select the correct decay
 XX4b_presel = Cut(
     name="xx4b_presel",

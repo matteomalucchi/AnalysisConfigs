@@ -59,6 +59,9 @@ default_config_options_dict = {
     "approach": "first",
     "expandCR": False,
     "mixeddata": False,
+    # gen-level X(->bb)X(->bb) preselection, needed only for the inclusive
+    # ZZ/ZH samples which are not filtered on the decay channel
+    "xx4b_presel": False,
     "TXbb_order": False,
     "bdt_model": "",
 } | default_onnx_model_dict
