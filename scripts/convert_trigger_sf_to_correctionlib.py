@@ -141,15 +141,24 @@ def index_objects(files):
     return index
 
 
+# Objects stored for completeness, not used to evaluate the efficiencies
+AUXILIARY_SUFFIXES = ("_FitFunction", "_FitResult")
+
+
 def find_object(index, name):
     '''Find an object in the index.
 
     The name is first looked for as it is, then as a prefix (the objects of the L1
     efficiency have the era appended to their name, e.g. `Efficiency_L1All_2022F`).
+    The fit function and the fit result are never returned.
     '''
     if name in index:
         return name
-    candidates = sorted(key for key in index if key.startswith(name))
+    candidates = sorted(
+        key
+        for key in index
+        if key.startswith(name) and not key.endswith(AUXILIARY_SUFFIXES)
+    )
     if len(candidates) == 0:
         return None
     if len(candidates) > 1:
@@ -189,13 +198,15 @@ def points_from_object(obj):
         else:
             exlow = exhigh = np.zeros_like(x)
             eylow = eyhigh = np.zeros_like(y)
+        # the points of a graph are not necessarily sorted by x
+        order = np.argsort(x)
         return {
-            "x": x,
-            "xlow": x - exlow,
-            "xhigh": x + exhigh,
-            "y": y,
-            "ylow": eylow,
-            "yhigh": eyhigh,
+            "x": x[order],
+            "xlow": (x - exlow)[order],
+            "xhigh": (x + exhigh)[order],
+            "y": y[order],
+            "ylow": eylow[order],
+            "yhigh": eyhigh[order],
         }
 
     if classname.startswith("TH1") or classname.startswith("TProfile"):
@@ -606,6 +617,22 @@ def selftest():
             correction_set["eff_data_1PFCentralJetTightIDPt70"].evaluate("nominal", x),
             eff_data,
         )
+
+    # the fit function and the fit result are never picked up when the name of the
+    # object is resolved by prefix (the L1 objects have the era appended)
+    index = {
+        "Data__Efficiency_L1All_2022F": ("f.root", "TGraphAsymmErrors"),
+        "Data__Efficiency_L1All_2022F_FitFunction": ("f.root", "TF1"),
+        "Data__Efficiency_L1All_2022F_FitResult": ("f.root", "TFitResult"),
+    }
+    assert find_object(index, "Data__Efficiency_L1All") == "Data__Efficiency_L1All_2022F"
+    assert find_object(index, "Data__Efficiency_L1All_2022F") == "Data__Efficiency_L1All_2022F"
+    assert find_object(index, "Data__Efficiency_HT") is None
+
+    # the points of a graph are sorted by x
+    shuffled = FakeGraph(x[::-1], eff_data[::-1], err[::-1], 10.0)
+    assert np.allclose(points_from_object(shuffled)["x"], x)
+    assert np.allclose(points_from_object(shuffled)["y"], eff_data)
 
     # the observables of the filters of the documentation are correctly assigned
     for filter_name, expected_variable in (
