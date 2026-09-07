@@ -1644,7 +1644,11 @@ def define_preselection(options):
     if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
 
-    # harmless for non ZZ/ZH/HH samples
-    preselection.append(cuts.XX4b_presel)
+    # Optional gen-level cut selecting X(->bb)X(->bb) decays (X = H or Z).
+    # Needed only by the private ZZ/ZH samples, which are inclusive in the
+    # decay channel. Off by default because it changes the yields of every
+    # sample whose name contains "HH", "ZH" or "ZZ".
+    if options.get("xx4b_presel", False):
+        preselection.append(cuts.XX4b_presel)
 
     return preselection

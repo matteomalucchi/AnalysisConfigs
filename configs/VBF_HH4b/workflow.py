@@ -313,94 +313,63 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
             if (self._isMC and self.random_pt) or (self.save_spanet_input_variables):
-                for jet_coll, jet_idx in zip(
-                    [
-                        "JetTotalSPANetPadded",
-                        "JetTotalSPANetPtFlattenPadded",
-                        "JetGoodVBFMergedProvVBFPadded",
-                        "JetGoodVBFMergedProvVBFPtFlattenPadded",
-                    ],
-                    [self.max_num_jets_good, self.max_num_jets_good, 0, 0],
-                ):
-                    # the 2 leading jets in mjj are the ones right after the JetGood
-                    vbf_mjj = (
-                        self.events[jet_coll][:, jet_idx]
-                        + self.events[jet_coll][:, jet_idx + 1]
-                    ).mass
-                    vbf_deta = abs(
-                        self.events[jet_coll][:, jet_idx].eta
-                        - self.events[jet_coll][:, jet_idx + 1].eta
-                    )
-
-                    self.events[f"mjj{jet_coll}"] = vbf_mjj
-                    self.events[f"deta{jet_coll}"] = vbf_deta
-
-                    # Define centrality
-                    for higgs_coll in (
-                        ["HiggsLeading", "HiggsSubLeading"]
-                    ):
-                        centrality = np.exp(
-                            -4
-                            / (
-                                self.events[jet_coll][:, jet_idx].eta
-                                - self.events[jet_coll][:, jet_idx + 1].eta
-                            )
-                            ** 2
-                            * (
-                                self.events[higgs_coll].eta
-                                - (
-                                    self.events[jet_coll][:, jet_idx].eta
-                                    + self.events[jet_coll][:, jet_idx + 1].eta
-                                )
-                                / 2
-                            )
-                            ** 2
-                        )
-                        self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(
-                            centrality
-                        )
+                mjj_jet_colls = [
+                    "JetTotalSPANetPadded",
+                    "JetTotalSPANetPtFlattenPadded",
+                    "JetGoodVBFMergedProvVBFPadded",
+                    "JetGoodVBFMergedProvVBFPtFlattenPadded",
+                ]
+                mjj_jet_idxs = [
+                    self.max_num_jets_good,
+                    self.max_num_jets_good,
+                    0,
+                    0,
+                ]
             else:
-                for jet_coll, jet_idx in zip(
-                    ["JetTotalSPANetPadded", "JetGoodVBFMergedProvVBFPadded"],
-                    [self.max_num_jets_good, 0],
+                mjj_jet_colls = [
+                    "JetTotalSPANetPadded",
+                    "JetGoodVBFMergedProvVBFPadded",
+                ]
+                mjj_jet_idxs = [self.max_num_jets_good, 0]
+
+            for jet_coll, jet_idx in zip(mjj_jet_colls, mjj_jet_idxs):
+                # the 2 leading jets in mjj are the ones right after the JetGood
+                vbf_mjj = (
+                    self.events[jet_coll][:, jet_idx]
+                    + self.events[jet_coll][:, jet_idx + 1]
+                ).mass
+                vbf_deta = abs(
+                    self.events[jet_coll][:, jet_idx].eta
+                    - self.events[jet_coll][:, jet_idx + 1].eta
+                )
+
+                self.events[f"mjj{jet_coll}"] = vbf_mjj
+                self.events[f"deta{jet_coll}"] = vbf_deta
+
+                # Define centrality
+                for higgs_coll in (
+                    ["HiggsLeading", "HiggsSubLeading"]
                 ):
-                    # the 2 leading jets in mjj are the ones right after the JetGood
-                    vbf_mjj = (
-                        self.events[jet_coll][:, jet_idx]
-                        + self.events[jet_coll][:, jet_idx + 1]
-                    ).mass
-                    vbf_deta = abs(
-                        self.events[jet_coll][:, jet_idx].eta
-                        - self.events[jet_coll][:, jet_idx + 1].eta
-                    )
-
-                    self.events[f"mjj{jet_coll}"] = vbf_mjj
-                    self.events[f"deta{jet_coll}"] = vbf_deta
-
-                    # Define centrality
-                    for higgs_coll in (
-                        ["HiggsLeading", "HiggsSubLeading"]
-                    ):
-                        centrality = np.exp(
-                            -4
-                            / (
+                    centrality = np.exp(
+                        -4
+                        / (
+                            self.events[jet_coll][:, jet_idx].eta
+                            - self.events[jet_coll][:, jet_idx + 1].eta
+                        )
+                        ** 2
+                        * (
+                            self.events[higgs_coll].eta
+                            - (
                                 self.events[jet_coll][:, jet_idx].eta
-                                - self.events[jet_coll][:, jet_idx + 1].eta
+                                + self.events[jet_coll][:, jet_idx + 1].eta
                             )
-                            ** 2
-                            * (
-                                self.events[higgs_coll].eta
-                                - (
-                                    self.events[jet_coll][:, jet_idx].eta
-                                    + self.events[jet_coll][:, jet_idx + 1].eta
-                                )
-                                / 2
-                            )
-                            ** 2
+                            / 2
                         )
-                        self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(
-                            centrality
-                        )
+                        ** 2
+                    )
+                    self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(
+                        centrality
+                    )
 
         super().process_extra_after_presel(variation=variation)
         if not self.vbf_analysis:
