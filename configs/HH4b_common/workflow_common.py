@@ -401,9 +401,15 @@ class HH4bCommonProcessor(BaseProcessorABC):
             (mother_bquarks.pdgId == 25) | (mother_bquarks.pdgId == 23)
         ]
 
+        # sentinel for "this resonance does not exist in the event"; it must not
+        # collide with genPartIdxMother == -1, which NanoAOD uses for "no mother"
+        NO_RESONANCE = -999
+
         def resonance_index(resonance, i):
-            # -1 dummy when the event has fewer than i+1 of this resonance;
-            return ak.fill_none(ak.pad_none(resonance.index, i + 1, axis=1)[:, i], -1)
+            # NO_RESONANCE dummy when the event has fewer than i+1 of this resonance
+            return ak.fill_none(
+                ak.pad_none(resonance.index, i + 1, axis=1)[:, i], NO_RESONANCE
+            )
 
         def provenance_for(resonance):
             leading = resonance_index(resonance, 0)
