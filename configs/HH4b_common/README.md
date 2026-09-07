@@ -710,25 +710,33 @@ them evaluated as a function of a different observable (Calo-HT for the L1 seeds
 jet filters, the HT for the PFHT filters, the atanh of the average b-tagging score of the two most b-tagged jets for the
 b-tagging filters).
 
-The ROOT files are converted to a correctionlib file with:
+The ROOT files are converted to a correctionlib file with, **one call per era**:
 
 ```bash
 # list the content of the ROOT files, to check the naming of the objects and the era
-python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py -i <dir with the ROOT files> --inspect
+python scripts/convert_trigger_sf_to_correctionlib.py \
+    -i /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE \
+    --inspect
 
 # convert the curves of all the filters of the trigger of the year
-python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py \
-    -i <dir with the ROOT files> \
-    -y 2022_preEE --era preEE \
-    -o configs/HH4b_common/params/trigger_sf/trigger_sf_2022_preEE.json.gz
+python scripts/convert_trigger_sf_to_correctionlib.py \
+    -i /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE \
+    -y 2022_postEE -o /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE/trigger_sf_2022_postEE.json.gz \
+    --dump-params configs/HH4b_common/params/trigger_sf_2022_postEE.yaml --era postEE
 ```
+
+`-i` points at the subfolder of **a single era**, never at the top-level `trgSFs_2022_to_2025` folder: the correctionlib
+file (`.json.gz`, potentially large) is written straight to the Tier-3 storage rather than committed to the repository,
+while `--dump-params` writes the small parameters snippet for that era directly under `configs/HH4b_common/params/`,
+which does get committed; merge it into the corresponding year's block of
+`configs/HH4b_common/params/trigger_scale_factors.yaml` (updating the `file:` path to match `-o` above).
 
 > [!warning]
 > The HLT filters of a trigger are usually measured **separately per era**, but the era does not appear anywhere in
 > the path of the objects (unlike the L1 efficiency, whose object name carries an explicit `_preEE`/`_postEE` suffix).
 > If `-i` is pointed at a folder containing the HLT files of *more than one era for the same trigger*, the converter
-> raises an error rather than silently keeping only one era's numbers — run the conversion once per era, with `-i`
-> restricted to that era's file(s), and a separate `-o`/`--dump-params` output per era.
+> raises an error rather than silently keeping only one era's numbers — this is exactly why `-i` must be restricted to
+> one era's file(s) per call, as in the example above.
 
 The observable of each filter is assigned from its name and cross-checked against the title of the x axis of the
 efficiency curve, which documents the observable actually used in the measurement; both are printed while converting:
@@ -743,12 +751,7 @@ efficiency curve, which documents the observable actually used in the measuremen
 
 The filters of each trigger are taken from `configs/HH4b_common/params/trigger_object_filters.yaml` (the same file used
 for the trigger object matching); `--triggers` selects one of the triggers of the year and `--filters` overrides the
-list completely. The output file has to be copied to the path referenced in
-`configs/HH4b_common/params/trigger_scale_factors.yaml`:
-
-```bash
-configs/HH4b_common/params/trigger_sf/trigger_sf_<year>.json.gz
-```
+list completely.
 
 The scale factors are then applied by adding the options to the config file:
 
@@ -760,9 +763,10 @@ config_options_dict |= {
 }
 ```
 
-The correction names and the observables of each filter are listed in
-`configs/HH4b_common/params/trigger_scale_factors.yaml`; the `--dump-params` option of the conversion script writes
-the same block automatically, so it can be used to update the parameters when the filters change. See the
+The correction names, the observables and the (Tier-3) `file:` path of each era are listed in
+`configs/HH4b_common/params/trigger_scale_factors.yaml`; the `--dump-params` snippet of a given era's conversion (as in
+the example above) is what gets merged into that year's block, so it can be used to update the parameters whenever the
+filters or the file's storage location change. See the
 [Trigger scale factors](https://pocketcoffea.readthedocs.io/en/latest/recipes.html#trigger-scale-factors) recipe of the
 PocketCoffea documentation for the details of the implementation.
 

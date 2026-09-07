@@ -7,20 +7,24 @@
 # evaluated as a function of a different observable.
 #
 # The correctionlib files are produced from the ROOT files with the efficiency
-# curves with
+# curves, one era per call (the HLT filters of a trigger are usually measured
+# separately per era, in files that do not carry the era in the object path -
+# see `configs/HH4b_common/README.md`), e.g.
 #
 #   python scripts/convert_trigger_sf_to_correctionlib.py \
-#       -i <dir with the ROOT files> -y <year> --era <era> \
-#       -o configs/HH4b_common/params/trigger_sf/trigger_sf_<year>.json.gz
+#       -i /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE \
+#       -y 2022_postEE -o /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE/trigger_sf_2022_postEE.json.gz \
+#       --dump-params configs/HH4b_common/params/trigger_sf_2022_postEE.yaml --era postEE
 #
-# N.B: the files are NOT in the repository, they have to be produced before
-# running with the `trigger_sf` option enabled.
+# N.B: the .json.gz files are NOT in the repository (they live on the Tier-3
+# storage referenced by `file:` below), they have to be produced before running
+# with the `trigger_sf` option enabled.
 
 trigger_scale_factors:
 
   # HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
   "2022_preEE":
-    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2022_preEE.json.gz"
+    file: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_preEE/trigger_sf_2022_preEE.json.gz"
     corrections:
       - name: sf_L1All
         variable:
@@ -75,7 +79,7 @@ trigger_scale_factors:
 
   # HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
   "2022_postEE":
-    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2022_postEE.json.gz"
+    file: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE/trigger_sf_2022_postEE.json.gz"
     corrections:
       - name: sf_L1All
         variable:
@@ -132,7 +136,7 @@ trigger_scale_factors:
   # For the ParkingHH trigger (HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55) the
   # corrections of its own filters have to be used instead.
   "2023_preBPix":
-    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2023_preBPix.json.gz"
+    file: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2023_preBPix/trigger_sf_2023_preBPix.json.gz"
     corrections:
       - name: sf_L1All
         variable:
@@ -187,7 +191,7 @@ trigger_scale_factors:
 
   # HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55 (ParkingHH primary dataset)
   "2023_postBPix":
-    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2023_postBPix.json.gz"
+    file: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2023_postBPix/trigger_sf_2023_postBPix.json.gz"
     corrections:
       - name: sf_L1All
         variable:
@@ -216,7 +220,7 @@ trigger_scale_factors:
 
   # HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55 (ParkingHH primary dataset)
   "2024":
-    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2024.json.gz"
+    file: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2024/trigger_sf_2024.json.gz"
     corrections:
       - name: sf_L1All
         variable:
