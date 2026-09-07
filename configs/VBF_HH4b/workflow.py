@@ -245,7 +245,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 axis=1,
             )
 
-            if self._isMC and self.random_pt:
+            if (self._isMC and self.random_pt) or (self.save_spanet_input_variables):
                 # flatten pt for all jets to train spanet
                 for jet_coll in [
                     "JetTotalSPANetPadded",
@@ -312,7 +312,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
-            if self._isMC and self.random_pt:
+            if (self._isMC and self.random_pt) or (self.save_spanet_input_variables):
                 for jet_coll, jet_idx in zip(
                     [
                         "JetTotalSPANetPadded",
@@ -331,6 +331,34 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                         self.events[jet_coll][:, jet_idx].eta
                         - self.events[jet_coll][:, jet_idx + 1].eta
                     )
+
+                    self.events[f"mjj{jet_coll}"] = vbf_mjj
+                    self.events[f"deta{jet_coll}"] = vbf_deta
+
+                    # Define centrality
+                    for higgs_coll in (
+                        ["HiggsLeading", "HiggsSubLeading"]
+                    ):
+                        centrality = np.exp(
+                            -4
+                            / (
+                                self.events[jet_coll][:, jet_idx].eta
+                                - self.events[jet_coll][:, jet_idx + 1].eta
+                            )
+                            ** 2
+                            * (
+                                self.events[higgs_coll].eta
+                                - (
+                                    self.events[jet_coll][:, jet_idx].eta
+                                    + self.events[jet_coll][:, jet_idx + 1].eta
+                                )
+                                / 2
+                            )
+                            ** 2
+                        )
+                        self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(
+                            centrality
+                        )
             else:
                 for jet_coll, jet_idx in zip(
                     ["JetTotalSPANetPadded", "JetGoodVBFMergedProvVBFPadded"],
@@ -346,33 +374,33 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                         - self.events[jet_coll][:, jet_idx + 1].eta
                     )
 
-                self.events[f"mjj{jet_coll}"] = vbf_mjj
-                self.events[f"deta{jet_coll}"] = vbf_deta
+                    self.events[f"mjj{jet_coll}"] = vbf_mjj
+                    self.events[f"deta{jet_coll}"] = vbf_deta
 
-                # Define centrality
-                for higgs_coll in (
-                    ["HiggsLeading", "HiggsSubLeading"]
-                ):
-                    centrality = np.exp(
-                        -4
-                        / (
-                            self.events[jet_coll][:, jet_idx].eta
-                            - self.events[jet_coll][:, jet_idx + 1].eta
-                        )
-                        ** 2
-                        * (
-                            self.events[higgs_coll].eta
-                            - (
+                    # Define centrality
+                    for higgs_coll in (
+                        ["HiggsLeading", "HiggsSubLeading"]
+                    ):
+                        centrality = np.exp(
+                            -4
+                            / (
                                 self.events[jet_coll][:, jet_idx].eta
-                                + self.events[jet_coll][:, jet_idx + 1].eta
+                                - self.events[jet_coll][:, jet_idx + 1].eta
                             )
-                            / 2
+                            ** 2
+                            * (
+                                self.events[higgs_coll].eta
+                                - (
+                                    self.events[jet_coll][:, jet_idx].eta
+                                    + self.events[jet_coll][:, jet_idx + 1].eta
+                                )
+                                / 2
+                            )
+                            ** 2
                         )
-                        ** 2
-                    )
-                    self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(
-                        centrality
-                    )
+                        self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(
+                            centrality
+                        )
 
         super().process_extra_after_presel(variation=variation)
         if not self.vbf_analysis:
