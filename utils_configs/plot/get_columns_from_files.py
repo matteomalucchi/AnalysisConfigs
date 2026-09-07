@@ -443,7 +443,7 @@ def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, m
         if accumulator["columns"] == {}:
             logger.info("Empty columns, trying to read from parquet files")
             return get_columns_from_parquet(
-                inputfiles, "", filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files
+                inputfiles, "", filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed
             )
         for sample in samples:
             if debug:
