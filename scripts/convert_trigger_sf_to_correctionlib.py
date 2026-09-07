@@ -101,6 +101,35 @@ FILTER_VARIABLE_RULES = [
 ]
 
 
+# Ordinal used in the axis title of the efficiency of the N-th jet filters
+ORDINALS = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th", 6: "6th"}
+
+
+def variable_title_mismatch(variable, title):
+    '''Check the observable assigned to a filter against the x axis title of its
+    efficiency curve, which is the observable actually used in the measurement.
+
+    :returns: a message describing the inconsistency, or None if they are compatible
+    '''
+    if not title:
+        return None
+    name, low = variable["name"], title.lower()
+
+    if name == "jet_pt":
+        ordinal = ORDINALS.get(variable.get("index", 1))
+        if "p_{t}" not in low and "pt" not in low:
+            return f"`{name}` assigned, but the x axis is `{title}`"
+        if ordinal and ordinal not in low:
+            return f"`{name}` with index {variable['index']} assigned, but the x axis is `{title}`"
+    elif name in ("alljet_ht", "calojet_ht"):
+        if "h_{t}" not in low and "ht" not in low:
+            return f"`{name}` assigned, but the x axis is `{title}`"
+    elif name == "atanh_btag_mean":
+        if "tag" not in low:
+            return f"`{name}` assigned, but the x axis is `{title}`"
+    return None
+
+
 def get_filter_variable(filter_name):
     '''Observable used to evaluate the efficiency of the filter `filter_name`'''
     for regex, builder in FILTER_VARIABLE_RULES:
@@ -145,26 +174,45 @@ def index_objects(files):
 AUXILIARY_SUFFIXES = ("_FitFunction", "_FitResult")
 
 
-def find_object(index, name):
+def directories(index):
+    '''Directories (TDirectory) containing the objects of the index'''
+    return {key.rpartition("/")[0] for key in index if "/" in key}
+
+
+def find_object(index, name, directory=None):
     '''Find an object in the index.
 
-    The name is first looked for as it is, then as a prefix (the objects of the L1
-    efficiency have the era appended to their name, e.g. `Efficiency_L1All_2022F`).
+    The objects can be at the top level of the file or inside a TDirectory (the
+    efficiencies of the HLT filters are usually stored in a directory named after
+    the trigger), so the name is matched against the last component of the path.
+    It is first looked for as it is, then as a prefix: the objects of the L1
+    efficiency have the era appended to their name, e.g. `Efficiency_L1All_preEE`.
     The fit function and the fit result are never returned.
+
+    :param index: dictionary {object path: (file, classname)}
+    :param name: name of the object, without the directory
+    :param directory: (optional) restrict the search to this directory
     '''
-    if name in index:
-        return name
-    candidates = sorted(
-        key
-        for key in index
-        if key.startswith(name) and not key.endswith(AUXILIARY_SUFFIXES)
-    )
+    exact, prefix = [], []
+    for key in index:
+        if key.endswith(AUXILIARY_SUFFIXES):
+            continue
+        head, _, base = key.rpartition("/")
+        if directory is not None and head != directory:
+            continue
+        if base == name:
+            exact.append(key)
+        elif base.startswith(name):
+            prefix.append(key)
+
+    candidates = sorted(exact) if exact else sorted(prefix)
     if len(candidates) == 0:
         return None
     if len(candidates) > 1:
         raise Exception(
             f"Multiple objects matching `{name}` found in the input files: "
-            f"{candidates}. Please select the era with the `--era` argument."
+            f"{candidates}. Please select the era with `--era` or the directory "
+            f"with `--directory`."
         )
     return candidates[0]
 
@@ -445,17 +493,25 @@ def dump_parameters(filter_curves, year, correction_file, output):
 
 
 def get_filters(args):
-    '''List of the filters to convert, in the order they are applied.
+    '''Filters to convert, as a list of (name, trigger) pairs.
 
-    The L1 efficiency is always the first one. The HLT filters are taken from the
-    `--filters` argument or from the yaml file with the trigger object filters
-    (the same file used for the trigger object matching), where each filter is
-    defined by the string `type:bit:n_objects:threshold:name`.
+    The L1 efficiency is always the first one, and it does not belong to any
+    trigger. The HLT filters are taken from the `--filters` argument or from the
+    yaml file with the trigger object filters (the same file used for the trigger
+    object matching), where each filter is defined by the string
+    `type:bit:n_objects:threshold:name`.
+
+    The trigger is used to look for the objects in the TDirectory named after it,
+    when the input files are organized in directories.
     '''
-    filters = [] if args.no_l1 else [args.l1_label + (f"_{args.era}" if args.era else "")]
+    filters = (
+        []
+        if args.no_l1
+        else [(args.l1_label + (f"_{args.era}" if args.era else ""), None)]
+    )
 
     if args.filters:
-        return filters + list(args.filters)
+        return filters + [(name, None) for name in args.filters]
 
     import yaml
 
@@ -472,8 +528,28 @@ def get_filters(args):
         if args.triggers and trigger not in args.triggers:
             continue
         for trigger_filter in trigger_filters:
-            filters.append(trigger_filter.split(":")[-1])
+            filters.append((trigger_filter.split(":")[-1], trigger))
     return filters
+
+
+def axis_title(obj):
+    '''Title of the x axis of a graph, i.e. the observable of the efficiency'''
+    try:
+        histogram = obj.member("fHistogram", none_if_missing=True)
+        if histogram is not None:
+            return histogram.member("fXaxis").member("fTitle")
+    except Exception:
+        pass
+    return ""
+
+
+def inspect(index):
+    '''Print the content of the input files, with the observable of each graph'''
+    for name, (filename, classname) in sorted(index.items()):
+        title = ""
+        if classname.startswith("TGraph") or classname.startswith("TH1"):
+            title = axis_title(read_object(index, name))
+        print(f"{classname:20s} {name:75s} {title:30s} {os.path.basename(filename)}")
 
 
 def convert(args):
@@ -482,30 +558,62 @@ def convert(args):
     index = index_objects(files)
 
     if args.inspect:
-        for name, (filename, classname) in sorted(index.items()):
-            print(f"{classname:25s} {name:70s} {os.path.basename(filename)}")
+        inspect(index)
         return
 
     filters = get_filters(args)
-    print(f"Converting {len(filters)} filters: {filters}")
+    print(f"Converting {len(filters)} filters: {[name for name, _ in filters]}")
+    available_directories = directories(index)
 
     filter_curves = {}
-    for filter_name in filters:
+    for filter_name, trigger in filters:
+        # the efficiencies of the filters of a trigger are usually stored in a
+        # TDirectory named after the trigger
+        directory = args.directory
+        if trigger is not None and trigger in available_directories:
+            directory = trigger
+
         curves = {}
         for label, prefix in (("data", args.data_prefix), ("mc", args.mc_prefix)):
-            efficiency_name = find_object(index, f"{prefix}__{EFFICIENCY_KEY}_{filter_name}")
+            efficiency_name = find_object(
+                index, f"{prefix}__{EFFICIENCY_KEY}_{filter_name}", directory
+            )
             if efficiency_name is None:
                 raise Exception(
                     f"The efficiency `{prefix}__{EFFICIENCY_KEY}_{filter_name}` is not "
-                    f"present in the input files. Run with `--inspect` to list the "
-                    f"content of the files."
+                    f"present in the input files"
+                    + (f" (directory `{directory}`)" if directory else "")
+                    + ". Run with `--inspect` to list the content of the files."
                 )
             ci_name = find_object(
-                index, f"{prefix}__{CONFIDENCE_INTERVALS_KEY}_{filter_name}"
+                index, f"{prefix}__{CONFIDENCE_INTERVALS_KEY}_{filter_name}", directory
             )
-            print(f"  {filter_name} ({label}): {efficiency_name}, {ci_name}")
+            efficiency = read_object(index, efficiency_name)
+            if label == "data":
+                # the x axis title of the efficiency curve documents the observable
+                # used in the measurement: check it against the assigned one
+                title = axis_title(efficiency)
+                variable = get_filter_variable(
+                    args.l1_label if filter_name.startswith(args.l1_label) else filter_name
+                )
+                description = variable["name"] + (
+                    f" (index {variable['index']})" if "index" in variable else ""
+                )
+                print(
+                    f"  {filter_name}"
+                    + (f"  [{directory}]" if directory else "")
+                    + f" -> {description}"
+                    + (f"  [x axis: {title}]" if title else "")
+                )
+                mismatch = variable_title_mismatch(variable, title)
+                if mismatch:
+                    print(f"    WARNING: {mismatch}", file=sys.stderr)
+            print(
+                f"      {label:4s}: {efficiency_name.rpartition('/')[2]}"
+                f" + {ci_name.rpartition('/')[2] if ci_name else 'NO CONFIDENCE INTERVALS'}"
+            )
             curves[label] = efficiency_and_error(
-                points_from_object(read_object(index, efficiency_name)),
+                points_from_object(efficiency),
                 points_from_object(read_object(index, ci_name)) if ci_name else None,
                 central=args.central,
             )
@@ -634,6 +742,14 @@ def selftest():
     assert np.allclose(points_from_object(shuffled)["x"], x)
     assert np.allclose(points_from_object(shuffled)["y"], eff_data)
 
+    # the observable assigned to a filter is checked against the x axis title
+    assert variable_title_mismatch({"name": "jet_pt", "index": 4}, "Offline p_{T}^{4th jet} [GeV]") is None
+    assert variable_title_mismatch({"name": "jet_pt", "index": 3}, "Offline p_{T}^{4th jet} [GeV]") is not None
+    assert variable_title_mismatch({"name": "calojet_ht"}, "Offline PF H_{T} [GeV]") is None
+    assert variable_title_mismatch({"name": "calojet_ht"}, "Offline p_{T}^{1st jet} [GeV]") is not None
+    assert variable_title_mismatch({"name": "atanh_btag_mean"}, "Offline atanh(mean b-tag)") is None
+    assert variable_title_mismatch({"name": "atanh_btag_mean"}, "") is None
+
     # the observables of the filters of the documentation are correctly assigned
     for filter_name, expected_variable in (
         ("L1All", "calojet_ht"),
@@ -659,6 +775,7 @@ def get_args():
     parser.add_argument("--era", default=None, help="Era appended to the name of the L1 efficiency objects")
     parser.add_argument("--filters-file", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "configs", "HH4b_common", "params", "trigger_object_filters.yaml"), help="yaml file with the trigger filters of each trigger")
     parser.add_argument("--triggers", nargs="+", default=None, help="Triggers to consider in the filters file (default: all)")
+    parser.add_argument("--directory", default=None, help="Restrict the search of the objects to this directory of the ROOT files (by default the directory named after the trigger is used, if present)")
     parser.add_argument("--filters", nargs="+", default=None, help="Explicit list of HLT filters, overwrites the filters file")
     parser.add_argument("--no-l1", action="store_true", help="Do not convert the L1 efficiency")
     parser.add_argument("--l1-label", default=L1_LABEL, help=f"Label of the L1 efficiency objects (default: {L1_LABEL})")

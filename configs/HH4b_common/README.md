@@ -695,11 +695,15 @@ The trigger efficiencies are measured filter-by-filter and provided as ROOT file
 efficiency curve and the 68% confidence intervals of the fit, for data and for simulation:
 
 ```
-<Data/Simulation>__Efficiency_<filter>             # efficiency curve
-<Data/Simulation>__ConfidenceIntervals_<filter>    # error of the efficiency
+<Data/Simulation>__Efficiency_<filter>             # efficiency curve (TGraphAsymmErrors)
+<Data/Simulation>__ConfidenceIntervals_<filter>    # error of the efficiency (TGraphErrors)
 <Data/Simulation>__Efficiency_<filter>_FitFunction # not used
 <Data/Simulation>__Efficiency_<filter>_FitResult   # not used
 ```
+
+The HLT objects are stored in a `TDirectory` named after the trigger (used automatically; `--directory` selects one
+explicitly), while the L1 objects are at the top level of the file with the era appended to their name
+(`Efficiency_L1All_preEE`), selected with `--era`.
 
 The total scale factor applied to the events is the product over the filters of the data/MC efficiency ratios, each of
 them evaluated as a function of a different observable (Calo-HT for the L1 seeds, the pt of the N-th leading jet for the
@@ -715,8 +719,19 @@ python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py
 # convert the curves of all the filters of the trigger of the year
 python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py \
     -i <dir with the ROOT files> \
-    -y 2022_postEE --era <era of the L1 curves, e.g. 2022F> \
-    -o configs/HH4b_common/params/trigger_sf/trigger_sf_2022_postEE.json.gz
+    -y 2022_preEE --era preEE \
+    -o configs/HH4b_common/params/trigger_sf/trigger_sf_2022_preEE.json.gz
+```
+
+The observable of each filter is assigned from its name and cross-checked against the title of the x axis of the
+efficiency curve, which documents the observable actually used in the measurement; both are printed while converting:
+
+```
+  L1All_preEE -> calojet_ht  [x axis: Offline PF H_{T} [GeV]]
+      data: Data__Efficiency_L1All_preEE + Data__ConfidenceIntervals_L1All_preEE
+      mc  : Simulation__Efficiency_L1All_preEE + Simulation__ConfidenceIntervals_L1All_preEE
+  4PFCentralJetTightIDPt35  [HLT_QuadPFJet70_...] -> jet_pt (index 4)  [x axis: Offline p_{T}^{4th jet} [GeV]]
+      ...
 ```
 
 The filters of each trigger are taken from `configs/HH4b_common/params/trigger_object_filters.yaml` (the same file used
