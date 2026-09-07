@@ -524,10 +524,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 bquarks_first = ak.where(
                     abs(b_mother.pdgId) == 5, b_mother, bquarks_first
                 )
-                print("b first", bquarks_first[ak.num(bquarks_first) != 4].pdgId)
-                print("bs", bquarks[ak.num(bquarks) != 4].pdgId)
-                print("bmother", b_mother[ak.num(b_mother) != 4].pdgId)
-                print(mask_mother)
             # define provenance for different kind of resonances
             provenance_higgs, provenance_z, provenance_X, bquarks_from_X = self.define_quark_provenance(
                 bquarks_first, genpart, higgs, z_boson, X_resonance

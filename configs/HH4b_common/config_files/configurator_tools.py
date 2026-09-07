@@ -1536,6 +1536,10 @@ def define_categories(
                 categories_dict |= define_single_category(
                     f"2b_signal_region_postW"
                 )
+                print(" -!!!!!- Defining 2b_region_postW category")
+                categories_dict |= (
+                    define_single_category(f"2b_region_postW")
+                )
                 if high_score_reg:
                     categories_dict |= (
                         define_single_category("2b_signal_region_postW_high_score_blind")
