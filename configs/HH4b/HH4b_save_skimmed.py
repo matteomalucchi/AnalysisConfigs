@@ -20,8 +20,8 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir + "/params")
 
 # adding object preselection
-# year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
-year = ["2024"]
+year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix"]
+# year = ["2024"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/triggers_skim.yaml",
@@ -89,8 +89,8 @@ cfg = Configurator(
                     # "DATA_JetMET1_HH4bResolved",
                     # "DATA_ParkingHH",
                 ]
-                + ggf_hh4b
-                # + vbf_hh4b
+                # + ggf_hh4b
+                + vbf_hh4b
             ),
             "samples_exclude": [],
             "year": year,
