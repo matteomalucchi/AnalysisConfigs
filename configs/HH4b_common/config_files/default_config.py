@@ -107,6 +107,24 @@ default_config_options_dict = {
     "noL1": False,
 
     # ------------------------------------------------------------------
+    # TRIGGER SCALE FACTORS
+    # ------------------------------------------------------------------
+    # Apply the `sf_trigger` weight of PocketCoffea: the trigger scale factor is
+    # the product of the data/MC efficiency ratios of the single filters of the
+    # trigger path (plus the OR of the L1 seeds). It requires the parameters of
+    # `params/trigger_scale_factors.yaml` and the correctionlib file referenced
+    # there, produced from the ROOT files with the efficiency curves with
+    # `scripts/convert_trigger_sf_to_correctionlib.py`.
+    "trigger_sf": False,
+    # Add the `sf_trigger` up/down variations to the output.
+    "trigger_sf_variations": False,
+    # Require the offline jets to be matched to the trigger objects firing each of
+    # the filters of the trigger (`params/trigger_object_filters.yaml`). The
+    # efficiencies are derived filter-by-filter, so this matching is part of the
+    # selection in which the trigger scale factors are valid.
+    "trigger_object_matching": False,
+
+    # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)
     # ------------------------------------------------------------------
     # Which copy of the b-quarks from H->bb is matched to the jets:

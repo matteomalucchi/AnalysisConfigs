@@ -95,6 +95,14 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
 | `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
 
+### Trigger scale factors
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `trigger_sf` | `False` | Apply the `sf_trigger` weight of PocketCoffea: the product of the data/MC efficiency ratios of the single filters of the trigger path (plus the OR of the L1 seeds). It needs the parameters of `params/trigger_scale_factors.yaml` and the correctionlib file referenced there, which is **not** in the repository and has to be produced with `scripts/convert_trigger_sf_to_correctionlib.py` (see [Produce the trigger scale factors](#produce-the-trigger-scale-factors)). |
+| `trigger_sf_variations` | `False` | Store the `sf_triggerUp`/`sf_triggerDown` variations of the trigger scale factor. |
+| `trigger_object_matching` | `False` | Require the offline jets (`JetGood`) to be matched within $\Delta R < 0.5$ to the trigger objects firing each of the filters of the trigger, as configured in `params/trigger_object_filters.yaml`. The trigger efficiencies are derived filter-by-filter in this phase space, so this cut is part of the selection in which the scale factors are valid. |
+
 ### Truth matching (MC only)
 
 | Option | Default | Description |
@@ -677,6 +685,64 @@ The output from that will save histograms of different kinematic variables. This
 There will be two regions saved. One is called `inclusive`, which only contains standard variations and weights and No b-tag sf. Then there is a `inclusive_btag_sf`. This contains also the b-tag sf. The histograms from both regions can be compared and should more or less fit. All histograms should have the same summed up values within each region if considering over-/underflow bins.
 
 > **TODO.** Write file for comparison of both regions (Notebook Matteo)
+
+#### Produce the trigger scale factors
+
+> [!TIP]
+> @Tier-3/AnalysisConfigs
+
+The trigger efficiencies are measured filter-by-filter and provided as ROOT files containing, for each filter, the
+efficiency curve and the 68% confidence intervals of the fit, for data and for simulation:
+
+```
+<Data/Simulation>__Efficiency_<filter>             # efficiency curve
+<Data/Simulation>__ConfidenceIntervals_<filter>    # error of the efficiency
+<Data/Simulation>__Efficiency_<filter>_FitFunction # not used
+<Data/Simulation>__Efficiency_<filter>_FitResult   # not used
+```
+
+The total scale factor applied to the events is the product over the filters of the data/MC efficiency ratios, each of
+them evaluated as a function of a different observable (Calo-HT for the L1 seeds, the pt of the N-th leading jet for the
+jet filters, the HT for the PFHT filters, the atanh of the average b-tagging score of the two most b-tagged jets for the
+b-tagging filters).
+
+The ROOT files are converted to a correctionlib file with:
+
+```bash
+# list the content of the ROOT files, to check the naming of the objects and the era
+python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py -i <dir with the ROOT files> --inspect
+
+# convert the curves of all the filters of the trigger of the year
+python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py \
+    -i <dir with the ROOT files> \
+    -y 2022_postEE --era <era of the L1 curves, e.g. 2022F> \
+    -o configs/HH4b_common/params/trigger_sf/trigger_sf_2022_postEE.json.gz
+```
+
+The filters of each trigger are taken from `configs/HH4b_common/params/trigger_object_filters.yaml` (the same file used
+for the trigger object matching); `--triggers` selects one of the triggers of the year and `--filters` overrides the
+list completely. The output file has to be copied to the path referenced in
+`configs/HH4b_common/params/trigger_scale_factors.yaml`:
+
+```bash
+configs/HH4b_common/params/trigger_sf/trigger_sf_<year>.json.gz
+```
+
+The scale factors are then applied by adding the options to the config file:
+
+```python
+config_options_dict |= {
+    "trigger_sf": True,
+    "trigger_sf_variations": True,      # optional, to store the up/down variations
+    "trigger_object_matching": True,    # phase space in which the SF are derived
+}
+```
+
+The correction names and the observables of each filter are listed in
+`configs/HH4b_common/params/trigger_scale_factors.yaml`; the `--dump-params` option of the conversion script writes
+the same block automatically, so it can be used to update the parameters when the filters change. See the
+[Trigger scale factors](https://pocketcoffea.readthedocs.io/en/latest/recipes.html#trigger-scale-factors) recipe of the
+PocketCoffea documentation for the details of the implementation.
 
 ## Example commands
 

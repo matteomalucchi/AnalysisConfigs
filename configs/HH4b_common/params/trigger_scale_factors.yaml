@@ -1,0 +1,235 @@
+# Configuration of the trigger scale factors applied by the `sf_trigger` weight of
+# PocketCoffea (see `pocket_coffea.lib.trigger_sf` and the "Trigger scale factors"
+# recipe of the PocketCoffea documentation).
+#
+# The total scale factor is the product of the data/MC efficiency ratios of the
+# single filters of the trigger path (plus the OR of the L1 seeds), each of them
+# evaluated as a function of a different observable.
+#
+# The correctionlib files are produced from the ROOT files with the efficiency
+# curves with
+#
+#   python scripts/convert_trigger_sf_to_correctionlib.py \
+#       -i <dir with the ROOT files> -y <year> --era <era> \
+#       -o configs/HH4b_common/params/trigger_sf/trigger_sf_<year>.json.gz
+#
+# N.B: the files are NOT in the repository, they have to be produced before
+# running with the `trigger_sf` option enabled.
+
+trigger_scale_factors:
+
+  # HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+  "2022_preEE":
+    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2022_preEE.json.gz"
+    corrections:
+      - name: sf_L1All
+        variable:
+          name: calojet_ht
+          collection: Jet
+      - name: sf_4PixelOnlyPFCentralJetTightIDPt20
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_3PixelOnlyPFCentralJetTightIDPt30
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 3
+      - name: sf_2PixelOnlyPFCentralJetTightIDPt40
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 2
+      - name: sf_1PixelOnlyPFCentralJetTightIDPt60
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 1
+      - name: sf_4PFCentralJetTightIDPt35
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_3PFCentralJetTightIDPt40
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 3
+      - name: sf_2PFCentralJetTightIDPt50
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 2
+      - name: sf_1PFCentralJetTightIDPt70
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 1
+      - name: sf_BTagCentralJetPt35PFParticleNet2BTagSum0p65
+        variable:
+          name: atanh_btag_mean
+          collection: JetGood
+          field: btagPNetB
+          n: 2
+
+  # HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65
+  "2022_postEE":
+    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2022_postEE.json.gz"
+    corrections:
+      - name: sf_L1All
+        variable:
+          name: calojet_ht
+          collection: Jet
+      - name: sf_4PixelOnlyPFCentralJetTightIDPt20
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_3PixelOnlyPFCentralJetTightIDPt30
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 3
+      - name: sf_2PixelOnlyPFCentralJetTightIDPt40
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 2
+      - name: sf_1PixelOnlyPFCentralJetTightIDPt60
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 1
+      - name: sf_4PFCentralJetTightIDPt35
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_3PFCentralJetTightIDPt40
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 3
+      - name: sf_2PFCentralJetTightIDPt50
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 2
+      - name: sf_1PFCentralJetTightIDPt70
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 1
+      - name: sf_BTagCentralJetPt35PFParticleNet2BTagSum0p65
+        variable:
+          name: atanh_btag_mean
+          collection: JetGood
+          field: btagPNetB
+          n: 2
+
+  # HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65 (JetMET primary dataset).
+  # For the ParkingHH trigger (HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55) the
+  # corrections of its own filters have to be used instead.
+  "2023_preBPix":
+    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2023_preBPix.json.gz"
+    corrections:
+      - name: sf_L1All
+        variable:
+          name: calojet_ht
+          collection: Jet
+      - name: sf_4PixelOnlyPFCentralJetTightIDPt20
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_3PixelOnlyPFCentralJetTightIDPt30
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 3
+      - name: sf_2PixelOnlyPFCentralJetTightIDPt40
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 2
+      - name: sf_1PixelOnlyPFCentralJetTightIDPt60
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 1
+      - name: sf_4PFCentralJetTightIDPt35
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_3PFCentralJetTightIDPt40
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 3
+      - name: sf_2PFCentralJetTightIDPt50
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 2
+      - name: sf_1PFCentralJetTightIDPt70
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 1
+      - name: sf_BTagCentralJetPt35PFParticleNet2BTagSum0p65
+        variable:
+          name: atanh_btag_mean
+          collection: JetGood
+          field: btagPNetB
+          n: 2
+
+  # HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55 (ParkingHH primary dataset)
+  "2023_postBPix":
+    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2023_postBPix.json.gz"
+    corrections:
+      - name: sf_L1All
+        variable:
+          name: calojet_ht
+          collection: Jet
+      - name: sf_4PixelOnlyPFCentralJetTightIDPt20
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_4PFCentralJetTightIDPt30
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_PFHT280Jet30
+        variable:
+          name: alljet_ht
+          collection: Jet
+      - name: sf_PFCentralJetPt30PNet2BTagMean0p55
+        variable:
+          name: atanh_btag_mean
+          collection: JetGood
+          field: btagPNetB
+          n: 2
+
+  # HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55 (ParkingHH primary dataset)
+  "2024":
+    file: "${config_dir:}/../HH4b_common/params/trigger_sf/trigger_sf_2024.json.gz"
+    corrections:
+      - name: sf_L1All
+        variable:
+          name: calojet_ht
+          collection: Jet
+      - name: sf_4PFCentralJetTightIDPt25
+        variable:
+          name: jet_pt
+          collection: JetGood
+          index: 4
+      - name: sf_PFCentralJetPt25PNet2BTagMean0p55
+        variable:
+          name: atanh_btag_mean
+          collection: JetGood
+          field: btagPNetB
+          n: 2

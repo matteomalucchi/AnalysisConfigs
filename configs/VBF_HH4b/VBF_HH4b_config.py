@@ -46,6 +46,8 @@ parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
+    f"{localdir}/../HH4b_common/params/trigger_object_filters.yaml",
+    f"{localdir}/../HH4b_common/params/trigger_scale_factors.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
@@ -250,6 +252,19 @@ for sample in sample_list:
         )
 
 # Define the weights to apply
+# The trigger scale factor is applied only if requested: it needs the correctionlib
+# file with the per-filter efficiencies referenced in
+# `HH4b_common/params/trigger_scale_factors.yaml` (see the README).
+common_weights_list = ["genWeight", "lumi", "XS"] + (
+    ["sf_trigger"] if config_options_dict.get("trigger_sf", False) else []
+)
+common_weights_variations = (
+    ["sf_trigger"]
+    if config_options_dict.get("trigger_sf", False)
+    and config_options_dict.get("trigger_sf_variations", False)
+    else []
+)
+
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
     if "DATA" in sample:
@@ -283,11 +298,7 @@ cfg = Configurator(
     + ([bkg_morphing_dnn_weight] if not BASELINE else []),
     weights={
         "common": {
-            "inclusive": [
-                "genWeight",
-                "lumi",
-                "XS",
-            ],
+            "inclusive": common_weights_list,
             "bycategory": {},
         },
         "bysample": bysample_bycategory_weight_dict,
@@ -296,7 +307,7 @@ cfg = Configurator(
     variations={
         "weights": {
             "common": {
-                "inclusive": [],
+                "inclusive": common_weights_variations,
                 "bycategory": {},
             },
             "bysample": {},
