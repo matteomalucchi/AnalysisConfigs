@@ -723,6 +723,13 @@ python </path/to/AnalysisConfigs>/scripts/convert_trigger_sf_to_correctionlib.py
     -o configs/HH4b_common/params/trigger_sf/trigger_sf_2022_preEE.json.gz
 ```
 
+> [!warning]
+> The HLT filters of a trigger are usually measured **separately per era**, but the era does not appear anywhere in
+> the path of the objects (unlike the L1 efficiency, whose object name carries an explicit `_preEE`/`_postEE` suffix).
+> If `-i` is pointed at a folder containing the HLT files of *more than one era for the same trigger*, the converter
+> raises an error rather than silently keeping only one era's numbers — run the conversion once per era, with `-i`
+> restricted to that era's file(s), and a separate `-o`/`--dump-params` output per era.
+
 The observable of each filter is assigned from its name and cross-checked against the title of the x axis of the
 efficiency curve, which documents the observable actually used in the measurement; both are printed while converting:
 

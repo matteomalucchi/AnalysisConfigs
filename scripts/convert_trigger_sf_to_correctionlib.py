@@ -166,7 +166,28 @@ def index_objects(files):
         with uproot.open(filename) as file:
             for key, classname in file.classnames().items():
                 # remove the cycle number from the key
-                index[key.split(";")[0]] = (filename, classname)
+                name = key.split(";")[0]
+                if name in index and index[name][0] != filename:
+                    # Objects with the same path can legitimately appear in more than
+                    # one input file: e.g. the HLT filters of the same trigger are
+                    # usually measured separately per era, but the era does not
+                    # appear anywhere in the path of the object (unlike the L1
+                    # efficiency, whose name carries an explicit era suffix). Silently
+                    # keeping only one of them would produce a correctionlib file with
+                    # the wrong era's numbers with no indication of the problem, so
+                    # this is a hard error: split the conversion so that `--input`
+                    # points to files holding a single era for a given trigger (one
+                    # call per era, or `--directory`/an explicit `--filters` selection
+                    # to disambiguate objects that legitimately share a path).
+                    raise Exception(
+                        f"The object `{name}` is present in more than one input "
+                        f"file: {index[name][0]} and {filename}. If this is the "
+                        f"same trigger measured separately per era, run the "
+                        f"conversion once per era (`--input` pointing only to the "
+                        f"file(s) of that era) instead of passing all the files "
+                        f"together."
+                    )
+                index[name] = (filename, classname)
     return index
 
 
@@ -725,6 +746,39 @@ def selftest():
             correction_set["eff_data_1PFCentralJetTightIDPt70"].evaluate("nominal", x),
             eff_data,
         )
+
+    # objects with the same path in different input files raise a clear error
+    # instead of one silently overwriting the other (e.g. the HLT filters of the
+    # same trigger measured separately per era, with no era in the object path)
+    import tempfile
+    with tempfile.TemporaryDirectory() as directory:
+        class FakeFile:
+            def __init__(self, classnames):
+                self._classnames = classnames
+
+            def classnames(self):
+                return self._classnames
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        real_open = uproot.open
+        fakes = {
+            "era1.root": FakeFile({"Data__Efficiency_L1All_preEE;1": "TGraphAsymmErrors"}),
+            "era2.root": FakeFile({"Data__Efficiency_L1All_preEE;1": "TGraphAsymmErrors"}),
+        }
+        uproot.open = lambda fname: fakes[fname]
+        try:
+            try:
+                index_objects(["era1.root", "era2.root"])
+                raise AssertionError("index_objects should reject a colliding path")
+            except Exception as exc:
+                assert "more than one input file" in str(exc), exc
+        finally:
+            uproot.open = real_open
 
     # the fit function and the fit result are never picked up when the name of the
     # object is resolved by prefix (the L1 objects have the era appended)
