@@ -66,8 +66,8 @@ cfg = Configurator(
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ttbar_boosted_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbf_boosted_skimmed",
     # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/DATA_ParkingHH_resolved_skimmed",
-    # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/signal_ggF_HH4b_skimmed",
-    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/signal_VBF_HH4b_skimmed",
+    save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/signal_ggF_HH4b_skimmed",
+    # save_skimmed_files="root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/skimmed_files/signal_VBF_HH4b_skimmed",
     parameters=parameters,
     datasets={
         "jsons": [
@@ -89,7 +89,7 @@ cfg = Configurator(
                     # "DATA_JetMET1_HH4bResolved",
                     # "DATA_ParkingHH",
                 ]
-                # + ggf_hh4b
+                + ggf_hh4b
                 + vbf_hh4b
             ),
             "samples_exclude": [],
