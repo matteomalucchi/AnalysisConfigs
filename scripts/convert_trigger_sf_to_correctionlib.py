@@ -513,6 +513,34 @@ def dump_parameters(filter_curves, year, correction_file, output):
 # Command line interface
 
 
+# PocketCoffea's parameters/nano_version.yaml `default_nano_version`: the NanoAOD
+# version used per data-taking period. Duplicated here (rather than importing
+# PocketCoffea) since this script only needs the small, stable year -> version
+# mapping, not the full parameters machinery.
+NANO_VERSION_BY_YEAR = {
+    "2016_PreVFP": 9,
+    "2016_PostVFP": 9,
+    "2017": 9,
+    "2018": 9,
+    "2022_preEE": 12,
+    "2022_postEE": 12,
+    "2023_preBPix": 12,
+    "2023_postBPix": 12,
+    "2024": 15,
+    "2025": 15,
+}
+
+
+def get_filter_name(trigger_filter):
+    '''Name of a filter entry (`type:bit:n_objects:threshold:name[:collection]` or
+    the equivalent mapping), regardless of whether the optional 6th `collection`
+    field is present.
+    '''
+    if isinstance(trigger_filter, str):
+        return trigger_filter.split(":")[4]
+    return trigger_filter["name"]
+
+
 def get_filters(args):
     '''Filters to convert, as a list of (name, trigger) pairs.
 
@@ -520,10 +548,16 @@ def get_filters(args):
     trigger. The HLT filters are taken from the `--filters` argument or from the
     yaml file with the trigger object filters (the same file used for the trigger
     object matching), where each filter is defined by the string
-    `type:bit:n_objects:threshold:name`.
+    `type:bit:n_objects:threshold:name` (see `get_filter_name`).
 
     The trigger is used to look for the objects in the TDirectory named after it,
     when the input files are organized in directories.
+
+    The yaml file is keyed by **NanoAOD version**, not by year (the meaning of the
+    filter bits depends on the NanoAOD version, not directly on the year - see the
+    "Trigger scale factors" recipe of the PocketCoffea documentation): the version
+    is taken from `--nano-version`, or else looked up from `--year` in
+    `NANO_VERSION_BY_YEAR`.
     '''
     filters = (
         []
@@ -538,18 +572,32 @@ def get_filters(args):
 
     with open(args.filters_file) as file:
         config = yaml.safe_load(file)
-    # allow both {year: {trigger: [filters]}} and {key: {year: {trigger: [filters]}}}
-    if args.year not in config:
+
+    nano_version = args.nano_version
+    if nano_version is None:
+        if args.year not in NANO_VERSION_BY_YEAR:
+            raise Exception(
+                f"Unknown NanoAOD version for year `{args.year}`: pass `--nano-version` "
+                f"explicitly, or add the year to NANO_VERSION_BY_YEAR."
+            )
+        nano_version = NANO_VERSION_BY_YEAR[args.year]
+
+    # allow both {nano_version: {trigger: [filters]}} and
+    # {key: {nano_version: {trigger: [filters]}}}
+    if nano_version not in config:
         config = config[list(config.keys())[0]]
-    if args.year not in config:
-        raise Exception(f"The year {args.year} is not present in {args.filters_file}")
-    triggers = config[args.year]
+    if nano_version not in config:
+        raise Exception(
+            f"NanoAOD version {nano_version} is not present in {args.filters_file} "
+            f"(available: {list(config.keys())}). Use `--nano-version` to override it."
+        )
+    triggers = config[nano_version]
 
     for trigger, trigger_filters in triggers.items():
         if args.triggers and trigger not in args.triggers:
             continue
         for trigger_filter in trigger_filters:
-            filters.append((trigger_filter.split(":")[-1], trigger))
+            filters.append((get_filter_name(trigger_filter), trigger))
     return filters
 
 
@@ -825,6 +873,7 @@ def get_args():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-i", "--input", nargs="+", help="ROOT files, directories or globs with the efficiency curves")
     parser.add_argument("-y", "--year", help="Data-taking period, e.g. 2022_postEE")
+    parser.add_argument("--nano-version", type=int, default=None, help="NanoAOD version of the filters to read from --filters-file (default: looked up from --year in NANO_VERSION_BY_YEAR)")
     parser.add_argument("-o", "--output", default=None, help="Output correctionlib file (.json or .json.gz)")
     parser.add_argument("--era", default=None, help="Era appended to the name of the L1 efficiency objects")
     parser.add_argument("--filters-file", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "configs", "HH4b_common", "params", "trigger_object_filters.yaml"), help="yaml file with the trigger filters of each trigger")

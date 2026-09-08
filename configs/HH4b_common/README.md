@@ -721,7 +721,8 @@ python scripts/convert_trigger_sf_to_correctionlib.py \
 # convert the curves of all the filters of the trigger of the year
 python scripts/convert_trigger_sf_to_correctionlib.py \
     -i /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE \
-    -y 2022_postEE -o /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE/trigger_sf_2022_postEE.json.gz \
+    -y 2022_postEE --triggers HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65 \
+    -o /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/trgSFs_2022_to_2025/2022_postEE/trigger_sf_2022_postEE.json.gz \
     --dump-params configs/HH4b_common/params/trigger_sf_2022_postEE.yaml --era postEE
 ```
 
@@ -730,6 +731,13 @@ file (`.json.gz`, potentially large) is written straight to the Tier-3 storage r
 while `--dump-params` writes the small parameters snippet for that era directly under `configs/HH4b_common/params/`,
 which does get committed; merge it into the corresponding year's block of
 `configs/HH4b_common/params/trigger_scale_factors.yaml` (updating the `file:` path to match `-o` above).
+
+`params/trigger_object_filters.yaml` is keyed by **NanoAOD version**, not by year (see the warning below): 2022 and 2023
+both use v12 but ran different triggers (2022's `..._PFBTagParticleNet_2BTagSum0p65` and 2023's
+`..._PNet2BTagMean0p65`/`HLT_PFHT280_...`), all three configured under the same `12:` block. `--triggers` (as in the
+example above) restricts the conversion to the trigger(s) actually present in the ROOT files of the year/era being
+converted; without it every trigger of the resolved NanoAOD version is converted, which fails if some of them are not
+in the input files (`--nano-version` overrides the version looked up from `--year`, if ever needed).
 
 > [!warning]
 > The HLT filters of a trigger are usually measured **separately per era**, but the era does not appear anywhere in
@@ -750,8 +758,8 @@ efficiency curve, which documents the observable actually used in the measuremen
 ```
 
 The filters of each trigger are taken from `configs/HH4b_common/params/trigger_object_filters.yaml` (the same file used
-for the trigger object matching); `--triggers` selects one of the triggers of the year and `--filters` overrides the
-list completely.
+for the trigger object matching); `--triggers` selects one or more of the triggers of the resolved NanoAOD version and
+`--filters` overrides the list completely.
 
 The scale factors are then applied by adding the options to the config file:
 
@@ -762,6 +770,14 @@ config_options_dict |= {
     "trigger_object_matching": True,    # phase space in which the SF are derived
 }
 ```
+
+`trigger_object_matching` applies the `get_trigger_object_matching` cut of PocketCoffea, which is generic over any type
+of trigger object and any offline collection (both resolved per filter via PocketCoffea's `trigger_object_types`
+registry, see the "Trigger scale factors" recipe of its documentation) — HH4b only ever matches jets against `JetGood`,
+which is exactly `trigger_object_types`' own default for the `Jet` type, so no override is needed here. Since
+`params/trigger_object_filters.yaml` is keyed by NanoAOD version and 2022/2023 share v12 with different triggers, the
+config passes the year-specific trigger name(s) explicitly (`TRIGGER_OBJECT_MATCHING_TRIGGERS_BY_YEAR` at the top of
+`VBF_HH4b_config.py`) rather than relying on the cut's default (OR of every trigger of the resolved version).
 
 The correction names, the observables and the (Tier-3) `file:` path of each era are listed in
 `configs/HH4b_common/params/trigger_scale_factors.yaml`; the `--dump-params` snippet of a given era's conversion (as in

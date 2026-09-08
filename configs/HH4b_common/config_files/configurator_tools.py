@@ -1613,7 +1613,7 @@ def define_categories(
     return categories_dict
 
 
-def define_preselection(options):
+def define_preselection(options, trigger_object_matching_triggers=None):
     ## Define the preselection to apply
     if "no_btag" in options.keys() and options["no_btag"]:
         preselection = [cuts.hh4b_presel_nobtag]
@@ -1642,8 +1642,14 @@ def define_preselection(options):
     # Match the offline jets to the trigger objects firing each of the filters of
     # the trigger: the trigger efficiencies (and therefore the scale factors) are
     # derived filter-by-filter in this phase space.
+    #
+    # `trigger_object_filters.yaml` is keyed by NanoAOD version, not by year: 2022
+    # and 2023 share v12 but ran different triggers, so `triggers` must be passed
+    # explicitly with the trigger name(s) valid for the year(s) this config
+    # processes (the caller, e.g. the top of `VBF_HH4b_config.py`, knows the year)
+    # rather than relying on the default OR of every v12 trigger in the yaml.
     if options.get("trigger_object_matching", False):
         preselection.append(
-            get_trigger_object_matching(collection="JetGood", dr_max=0.5)
+            get_trigger_object_matching(triggers=trigger_object_matching_triggers, dr_max=0.5)
         )
     return preselection

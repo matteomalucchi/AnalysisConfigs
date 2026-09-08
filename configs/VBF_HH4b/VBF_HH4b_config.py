@@ -78,7 +78,27 @@ variables_dict = get_variables_dict(
 # variables_dict = {}
 
 # Define the preselection to apply
-preselection = define_preselection(config_options_dict)
+# `trigger_object_filters.yaml` is keyed by NanoAOD version (2022 and 2023 share
+# v12), so the trigger(s) to match are picked explicitly per year here rather than
+# relying on the OR of every v12 trigger (see the comment in `define_preselection`).
+TRIGGER_OBJECT_MATCHING_TRIGGERS_BY_YEAR = {
+    "2022_preEE": ["HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65"],
+    "2022_postEE": ["HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65"],
+    "2023_preBPix": [
+        "HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65",
+        "HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55",
+    ],
+    "2023_postBPix": [
+        "HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65",
+        "HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55",
+    ],
+    "2024": ["HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55"],
+    "2025": ["HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55"],
+}
+preselection = define_preselection(
+    config_options_dict,
+    trigger_object_matching_triggers=TRIGGER_OBJECT_MATCHING_TRIGGERS_BY_YEAR.get(year[0]),
+)
 
 
 # Define the samples to process
