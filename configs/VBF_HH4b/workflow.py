@@ -6,12 +6,12 @@ import numpy as np
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils_configs.dnn_evaluation_functions import eval_spanet, eval_vbf_pairing
 from utils_configs.reconstruct_resonances import (
     get_lead_mjj_jet_pair,
     reconstruct_resonances_from_idx,
 )
 from utils_configs.reconstruct_resonances import run2_matching_algorithm
+from utils_configs.spanet_evaluation_functions import eval_spanet, eval_vbf_pairing
 
 logger = logging.getLogger()
 

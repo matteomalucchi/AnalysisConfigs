@@ -10,8 +10,6 @@ from pocket_coffea.workflows.base import BaseProcessorABC
 from utils_configs.basic_functions import add_fields, compute_fw_momenta
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.dnn_evaluation_functions import (
-    eval_spanet,
-    eval_vbf_discriminator,
     get_dnn_prediction,
     get_onnx_prediction,
 )
@@ -25,6 +23,10 @@ from utils_configs.reconstruct_resonances import (
     reconstruct_higgs_from_provenance,
     reconstruct_resonances_from_idx,
     run2_matching_algorithm,
+)
+from utils_configs.spanet_evaluation_functions import (
+    eval_spanet,
+    eval_vbf_discriminator,
 )
 
 from .custom_object_preselection_common import lepton_selection
