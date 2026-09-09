@@ -111,6 +111,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `max_num_jets_add_vbf` | `2` | Number of *additional* VBF jet candidates (on top of the leading-$m_{jj}$ pair) kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections. |
 | `jets_add_vbf_order` | `"energy"` | Field used to order the additional VBF jets, e.g. `"energy"` or `"pt"`. |
 | `vbf_matching_after_higgs_pairing` | `False` | Run the SPANet Higgs pairing first and define the VBF candidates from the jets left over by the pairing, instead of from the b-tag-ordered `JetGoodClip` collection. Requires `spanet`. |
+| `vbf_pairing_from_vbf_discriminator` | `False` | Take the VBF pair (`JetGoodVBFEnergyOrdered`) from the SPANet model given in `vbf_discriminator` instead of using the leading-mjj pair. Requires a standalone model (different file from `spanet`) predicting the VBF jet assignment (2 jets) on top of the ggF/VBF classification, with its sequential inputs read from the VBF candidate collection. The model is run only once and also provides `VBF_ggF_score`. |
 | `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to split the pass/fail VBF categories. Only relevant if `vbf_discriminator` is set. |
 | `vbf_selection` | `None` | Boosted VBF only: overrides `vbf_analysis` when the categories are defined in [`VBF_HH4b_boosted_config.py`](../VBF_HH4b_boosted/VBF_HH4b_boosted_config.py), so that the VBF regions can be built without switching on the full VBF jet reconstruction in the workflow. `None` means "not set", i.e. `vbf_analysis` is used instead. |
 
@@ -130,7 +131,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `max_num_jets_vbf_discriminator` | `None` | Number of jets given to a standalone ggF/VBF discriminator model. `None` means "use all the jets of the input collection". |
 | `max_num_jets_spanet_class` | `4` | Number of jets given to a SPANet-format signal-vs-background classifier. Only used when `sig_bkg_dnn` is a SPANet-format model. |
 | `fifth_jet` | `"pt"` | Ordering of the jets beyond the 4 Higgs candidates. `"pt"` re-sorts the 5th and following jets by pt (the first 4 stay b-tag ordered); any other value keeps the pure b-tag ordering. |
-| `add_jet_spanet` | `False` | Sort the `Jet` collection by regressed pt before the good-jet selection, and order the additional jet collection (`JetNotFromHiggs`) by b-tag score or pt depending on whether the pairing picked the 5th jet. |
+| `add_jet_spanet` | `False` | Sort the `Jet` collection by regressed pt before the good-jet selection, and order the additional jet collection (`JetNotFromHiggs`) by b-tag score or pt depending on whether the Higgs pairing (and, when `vbf_analysis` is on, the VBF pairing) took all the 4 jets leading in b-tag score. |
 | `old_wp_def` | `False` | Use the old b-tag working-point convention, where the WP index starts at `-1` (no WP passed) instead of `0`. It must match the convention used to train the SPANet/DNN models. |
 | `TXbb_order` | `False` | Boosted only: order the `FatJetGood` collection by `btagBBTXbb` instead of `btagBB`. |
 | `only5jetsbSF` | `False` | b-tag SF studies only (`configs/HH4b_btagging`): compute the b-tag scale factors using only the 5 leading jets instead of all the `JetGood`. |

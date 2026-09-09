@@ -22,11 +22,13 @@ from utils_configs.reconstruct_higgs_candidates import (
     get_lead_mjj_jet_pair,
     reconstruct_higgs_from_provenance,
     reconstruct_resonances_from_idx,
+    reconstruct_vbf_jets_from_idx,
     run2_matching_algorithm,
 )
 from utils_configs.spanet_evaluation_functions import (
     clean_assignment_prob,
     get_best_pairings,
+    get_best_vbf_pairing,
 )
 
 from .custom_object_preselection_common import lepton_selection
@@ -91,6 +93,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         for key, value in self.workflow_options.items():
             setattr(self, key, value)
+
+        # cache of the output of the standalone ggF/VBF discriminator model, so
+        # that the model is evaluated only once per chunk even when both the VBF
+        # pairing and the ggF/VBF score are read from it
+        self._vbf_discriminator_output = None
 
     def process_extra_after_skim(self):
         if self._isMC and "TTto" not in self.events.metadata["dataset"]:
@@ -738,7 +745,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return jets_not_from_idx
 
     def define_dnn_variables(
-        self, higgs1, higgs2, jets_from_higgs, jet_higgs_idx_per_event, sb_variables
+        self,
+        higgs1,
+        higgs2,
+        jets_from_higgs,
+        jet_higgs_idx_per_event,
+        sb_variables,
+        jet_vbf_idx_per_event=None,
     ):
         ########################
         # ADDITIONAL VARIABLES #
@@ -752,8 +765,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         self.events["year"] = ak.full_like(self.events.HT, year_dict[f"{self._year}"])
 
+        # the additional jet is searched among the jets which are not used by the
+        # Higgs pairing and, when the VBF pairing is available, not used by it
+        # either
+        jet_idx_from_pairings = jet_higgs_idx_per_event
+        if jet_vbf_idx_per_event is not None:
+            jet_idx_from_pairings = ak.concatenate(
+                [jet_higgs_idx_per_event, jet_vbf_idx_per_event], axis=1
+            )
+
         self.events["JetNotFromHiggs"] = self.get_jets_not_from_idx(
-            jet_higgs_idx_per_event
+            jet_idx_from_pairings
         )
 
         # Cut on the JEC pt (w/o regression)
@@ -1196,7 +1218,110 @@ class HH4bCommonProcessor(BaseProcessorABC):
             worst_pairing_probability,
         )
 
+    def eval_vbf_discriminator(self):
+        """
+        Run the standalone ggF/VBF discriminator model and cache its output.
+
+        The same model can provide both the ggF/VBF score and the VBF pairing,
+        so the ONNX session is created (and run) only the first time it is
+        needed in a chunk.
+        """
+        if self._vbf_discriminator_output is None:
+            (
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+            ) = get_model_session(self.vbf_discriminator, "vbf_discriminator")
+
+            self._vbf_discriminator_output, _ = get_onnx_prediction(
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+                self.events,
+                self.vbf_discriminator_input_variables,
+                self.pad_value,
+                self.pad_value_spanet,
+                self.max_num_jets_vbf_discriminator,
+            )
+
+            del (
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+            )
+
+        return self._vbf_discriminator_output
+
+    def eval_vbf_pairing(self):
+        """
+        Get the VBF jet pair from the SPANet model saved in `vbf_discriminator`,
+        when this model also predicts the VBF assignment (2 jets) on top of the
+        ggF/VBF classification.
+
+        Returns None when no such model is configured, so that the caller can
+        fall back to the leading-mjj pair.
+        """
+        if not (
+            self.vbf_pairing_from_vbf_discriminator
+            and self.vbf_discriminator
+            and self.vbf_discriminator != self.spanet
+            and self.vbf_discriminator_input_variables
+            and "sequential" in self.vbf_discriminator_input_variables
+        ):
+            return None
+
+        assignment_prob = self.eval_vbf_discriminator()["assignment_prob"]
+        if len(assignment_prob) == 0:
+            logger.warning(
+                "The model %s does not provide any jet assignment: "
+                "falling back to the leading mjj VBF pair",
+                self.vbf_discriminator,
+            )
+            return None
+
+        # the VBF pairing is predicted on the collection fed to the model
+        jet_coll_vbf_pairing = [
+            x[0] for x in self.vbf_discriminator_input_variables["sequential"].values()
+        ][0]
+
+        vbf_pairing_predictions, mask_enough_jets = get_best_vbf_pairing(
+            assignment_prob, self.events[jet_coll_vbf_pairing]
+        )
+
+        return reconstruct_vbf_jets_from_idx(
+            self.events[jet_coll_vbf_pairing],
+            vbf_pairing_predictions[:, -1, :],
+            mask_enough_jets,
+        )
+
+    def get_btag_order_add_jet(self, jet_idx_from_pairings):
+        """
+        Decide how the additional jet has to be chosen among the jets left over
+        by the pairing(s).
+
+        If one of the 4 jets leading in b-tag score was not taken by the Higgs
+        pairing (nor by the VBF pairing, when it is available), the additional
+        jet is the remaining b-tagged one, so the leftover jets are ordered by
+        b-tag score. If instead all the 4 leading in b-tag jets are taken, the
+        additional jet is the leading in pt among the remaining ones.
+        """
+        # `JetGood` is ordered by b-tag score for the first 4 jets
+        btag_lead_idx = self.events.JetGood[:, :4].index
+        # a None index means that no jet was assigned, -1 never matches a jet
+        jet_idx_from_pairings = ak.fill_none(jet_idx_from_pairings, -1)
+
+        idx_lead, idx_used = ak.unzip(
+            ak.cartesian([btag_lead_idx, jet_idx_from_pairings], axis=1, nested=True)
+        )
+        # for each of the 4 leading in b-tag jets, check if a pairing took it
+        btag_lead_used = ak.any(idx_lead == idx_used, axis=-1)
+
+        return ~ak.all(btag_lead_used, axis=-1)
+
     def process_extra_after_presel(self, variation):  # -> ak.Array:
+        # the ggF/VBF discriminator has to be re-evaluated on every chunk
+        self._vbf_discriminator_output = None
+
         # Extract the single weight values for each event:
         extract_single_weights = False
         if extract_single_weights:
@@ -1316,10 +1441,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             # ======= VBF PARAMETERS ============
             if self.vbf_analysis:
-                if jet_vbf is not None:
-                    self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
-                else:
-                    # get the vbf candidates as the leading in mjj
+                if jet_vbf is None:
+                    # the jets left over by the Higgs pairing are the vbf candidates
                     self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
                         self.events["JetGoodFromHiggsOrdered"].index
                     )
@@ -1333,9 +1456,30 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         pt_cut_name=self.pt_cut_name,
                         forward_jet_veto=True,
                     )
-                    self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
-                        self.events, "JetGoodVBFCandidates"
+                    # order in pt, as it is done in the VBF workflow, so that the
+                    # collection can be fed to the VBF pairing model
+                    self.events["JetGoodVBFCandidates"] = add_fields(
+                        self.events.JetGoodVBFCandidates[
+                            ak.argsort(
+                                self.events.JetGoodVBFCandidates.pt,
+                                axis=1,
+                                ascending=False,
+                            )
+                        ],
+                        "all",
                     )
+
+                    # get the vbf pairing from the model saved in
+                    # `vbf_discriminator`, if it provides one
+                    jet_vbf = self.eval_vbf_pairing()
+
+                    if jet_vbf is None:
+                        # get the vbf candidates as the leading in mjj
+                        jet_vbf = get_lead_mjj_jet_pair(
+                            self.events, "JetGoodVBFCandidates"
+                        )
+
+                self.events["JetGoodVBFEnergyOrdered"] = jet_vbf
 
             if (
                 self._isMC
@@ -1357,10 +1501,21 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     (self.events.HiggsLeading.mass - 125) ** 2
                     + (self.events.HiggsSubLeading.mass - 120) ** 2
                 )
-                # if the 5th jet is matched, then the add jet should be order by btag
-                # because we want to consider the leading in btag which the pairing discarded
-                self.events["btag_order_add_jet"] = ak.any(
-                    ak.flatten(pairing_predictions, axis=-1) > 3, axis=-1
+                # the jets taken by the Higgs pairing and, when the VBF analysis
+                # is run, by the VBF pairing
+                jet_idx_from_pairings = matched_jet_higgs_idx_not_none
+                jet_vbf_idx_not_none = None
+                if self.vbf_analysis:
+                    jet_vbf_idx_not_none = self.events.JetGoodVBFEnergyOrdered.index
+                    jet_idx_from_pairings = ak.concatenate(
+                        [jet_idx_from_pairings, jet_vbf_idx_not_none], axis=1
+                    )
+
+                # if one of the 4 leading in btag jets was discarded by the pairings,
+                # then the add jet should be ordered by btag because we want to
+                # consider the leading in btag which the pairings discarded
+                self.events["btag_order_add_jet"] = self.get_btag_order_add_jet(
+                    jet_idx_from_pairings
                 )
 
                 if self.dnn_variables:
@@ -1377,6 +1532,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         self.events.JetGoodFromHiggsOrdered,
                         matched_jet_higgs_idx_not_none,
                         sb_variables=True,  # if self.SIG_BKG_DNN else False,
+                        jet_vbf_idx_per_event=jet_vbf_idx_not_none,
                     )
                     # Create collection with 5 jets, where the first 4 are the Higgs candidates and the 5th one is the remaining jet from the original collection fed into SPANet
                     add_jet1pt_list = ak.pad_none(
@@ -1441,31 +1597,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 raise ValueError("This case was not implemented")
 
         elif self.vbf_discriminator and self.vbf_discriminator != self.spanet:
-            (
-                model_session_vbf_discriminator,
-                input_name_vbf_discriminator,
-                output_name_vbf_discriminator,
-            ) = get_model_session(self.vbf_discriminator, "vbf_discriminator")
-            spanet_output, _ = get_onnx_prediction(
-                model_session_vbf_discriminator,
-                input_name_vbf_discriminator,
-                output_name_vbf_discriminator,
-                self.events,
-                self.vbf_discriminator_input_variables,
-                self.pad_value,
-                self.pad_value_spanet,
-                self.max_num_jets_vbf_discriminator,
-            )
+            # the model may have already been run to get the VBF pairing
+            vbf_discriminator_output = self.eval_vbf_discriminator()
             if self.vbf_analysis:
-                self.events["VBF_ggF_score"] = spanet_output["class_prob"][0][:, -1]
+                self.events["VBF_ggF_score"] = vbf_discriminator_output["class_prob"][
+                    0
+                ][:, -1]
             else:
                 raise ValueError("This case was not implemented")
-
-            del (
-                model_session_vbf_discriminator,
-                input_name_vbf_discriminator,
-                output_name_vbf_discriminator,
-            )
 
         # ============== BKG MORPHING =============
         if self.bkg_morphing_dnn and not (

@@ -274,3 +274,46 @@ def clean_assignment_prob(assignment_prob, jet_coll_pairing):
         )
 
     return cleaned_assignment_prob
+
+
+def get_best_vbf_pairing(assignment_prob, jet_coll_pairing, min_num_jets=2):
+    """
+    Extract the best VBF jet pair from the assignment probabilities of a SPANet
+    model which predicts the two VBF jets (e.g. the model saved in
+    `vbf_discriminator`, which does the VBF pairing together with the ggF/VBF
+    classification).
+
+    `assignment_prob` is the list of assignment probability matrices returned by
+    `get_onnx_prediction`: the VBF matrix is the last one, so the function works
+    both for a model predicting only the VBF pair and for a model predicting the
+    two Higgs candidates as well.
+
+    Returns the predicted indices, with shape (n_events, 1, 2), and the mask of
+    the events which have at least `min_num_jets` jets in the input collection
+    (the prediction is meaningless for the other ones).
+    """
+    if len(assignment_prob) == 0:
+        return None, None
+
+    mask_enough_jets = ak.to_numpy(
+        ak.count(jet_coll_pairing.pt, axis=1) >= min_num_jets
+    )
+
+    if len(assignment_prob) > 1:
+        # the model predicts the Higgs candidates as well: run the standard
+        # pairing extraction, which avoids assigning the same jet twice, and
+        # keep only the VBF pair
+        pairing_predictions, *_ = get_best_pairings(
+            clean_assignment_prob(assignment_prob, jet_coll_pairing)
+        )
+        return pairing_predictions[:, -1:, :], mask_enough_jets
+
+    # the model predicts only the VBF pair
+    vbf_assignment_prob = np.copy(assignment_prob[-1])
+    # zero out the events which cannot have a VBF pair, they are masked afterwards
+    vbf_assignment_prob[~mask_enough_jets] = 0
+    vbf_predictions = np.swapaxes(
+        np.asarray(extract_predictions([vbf_assignment_prob])), 0, 1
+    )
+
+    return vbf_predictions, mask_enough_jets
