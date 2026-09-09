@@ -143,7 +143,8 @@ default_config_options_dict = {
     # (i.e. different from `spanet`) which predicts the VBF jet assignment (2
     # jets) on top of the ggF/VBF classification, and whose sequential inputs
     # are read from the VBF candidate collection. The same model is run only
-    # once and also provides `VBF_ggF_score`.
+    # once and also provides `VBF_ggF_score`. Implemented by the resolved VBF
+    # workflow (`configs/VBF_HH4b/workflow.py`).
     "vbf_pairing_from_vbf_discriminator": False,
     # Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to
     # split the pass/fail VBF categories.

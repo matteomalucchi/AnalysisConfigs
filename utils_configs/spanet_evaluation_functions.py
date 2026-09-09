@@ -197,65 +197,72 @@ def get_pairing_information(
 
 
 def get_best_pairings(assignment_prob):
+    """
+    Extract the best jet assignment of every resonance from the predicted
+    assignment probabilities.
 
-    # extract the best jet assignment from
-    # the predicted probabilities
+    `assignment_prob` is the list of the (n_events, n_jets, n_jets) probability
+    matrices predicted by SPANet, one per resonance decaying to two jets. It
+    works for any number of resonances, so it can be used both for the two Higgs
+    candidates and for the VBF pair (alone or together with the Higgs ones).
 
-    # NOTE: here the way this was implemented was changed
+    Returns the predicted indices, with shape (n_events, n_resonances, 2), and
+    the sum over the resonances of the probability of the best, of the second
+    best and of the worst assignment.
+    """
     assignment_probability = np.stack(tuple(assignment_prob), axis=0)
 
-
-    # get the probabilities of the best jet assignment
-
-    # NOTE: here the way this was implemented was changed
-    num_events = assignment_probability.shape[1]
-
+    num_resonances, num_events = assignment_probability.shape[:2]
     range_num_events = np.arange(num_events)
+
     prediction_list = []
-    pairing_probabilities_list = []
     pairing_probabilities_sum_list = []
-    while np.sum(assignment_probability) > 0:
-        # swap axis
+
+    # the assignments are extracted from the most to the least probable one:
+    # every iteration zeroes the assignment it just took, so that the loop stops
+    # once no assignment is left
+    while True:
+        # swap axis to have the events on the first axis
         predictions = np.swapaxes(extract_predictions(assignment_probability), 0, 1)
         prediction_list.append(predictions)
-        # assignment_probability=np.array(assignment_probability)
 
-        if len(assignment_prob) > 2:
-            return predictions, 0, 0
-        pairing_probabilities = np.ndarray((2, num_events))
-        for i in range(2):
-            pairing_probabilities[i] = assignment_probability[
-                i,
-                range_num_events,
-                predictions[:, i, 0],
-                predictions[:, i, 1],
-            ]
-        pairing_probabilities_list.append(pairing_probabilities)
+        # get the probability of the assignment chosen for each resonance
+        pairing_probabilities = np.stack(
+            [
+                assignment_probability[
+                    i,
+                    range_num_events,
+                    predictions[:, i, 0],
+                    predictions[:, i, 1],
+                ]
+                for i in range(num_resonances)
+            ],
+            axis=0,
+        )
         pairing_probabilities_sum_list.append(np.sum(pairing_probabilities, axis=0))
 
-        # set to zero the probabilities of the best jet assignment, the symmetrization and the same jet assignment on the other target
-        for j in range(2):
+        # set to zero the probabilities of the chosen jet assignment, of its
+        # symmetrization and of the same jet assignment on the other resonances
+        for j in range(num_resonances):
             for k in range(2):
-                assignment_probability[
-                    j,
-                    range_num_events,
-                    predictions[:, j, k],
-                    predictions[:, j, 1 - k],
-                ] = 0
-                assignment_probability[
-                    1 - j,
-                    range_num_events,
-                    predictions[:, j, k],
-                    predictions[:, j, 1 - k],
-                ] = 0
+                for i in range(num_resonances):
+                    assignment_probability[
+                        i,
+                        range_num_events,
+                        predictions[:, j, k],
+                        predictions[:, j, 1 - k],
+                    ] = 0
 
-    # extract the second best jet assignment from
-    # the predicted probabilities
+        if np.sum(assignment_probability) <= 0:
+            break
+
+    # a probability matrix with a single assignment left has no second best one
+    second_best_index = min(1, len(pairing_probabilities_sum_list) - 1)
 
     return (
         prediction_list[0],
         pairing_probabilities_sum_list[0],
-        pairing_probabilities_sum_list[1],
+        pairing_probabilities_sum_list[second_best_index],
         pairing_probabilities_sum_list[-1],
     )
 
@@ -274,46 +281,3 @@ def clean_assignment_prob(assignment_prob, jet_coll_pairing):
         )
 
     return cleaned_assignment_prob
-
-
-def get_best_vbf_pairing(assignment_prob, jet_coll_pairing, min_num_jets=2):
-    """
-    Extract the best VBF jet pair from the assignment probabilities of a SPANet
-    model which predicts the two VBF jets (e.g. the model saved in
-    `vbf_discriminator`, which does the VBF pairing together with the ggF/VBF
-    classification).
-
-    `assignment_prob` is the list of assignment probability matrices returned by
-    `get_onnx_prediction`: the VBF matrix is the last one, so the function works
-    both for a model predicting only the VBF pair and for a model predicting the
-    two Higgs candidates as well.
-
-    Returns the predicted indices, with shape (n_events, 1, 2), and the mask of
-    the events which have at least `min_num_jets` jets in the input collection
-    (the prediction is meaningless for the other ones).
-    """
-    if len(assignment_prob) == 0:
-        return None, None
-
-    mask_enough_jets = ak.to_numpy(
-        ak.count(jet_coll_pairing.pt, axis=1) >= min_num_jets
-    )
-
-    if len(assignment_prob) > 1:
-        # the model predicts the Higgs candidates as well: run the standard
-        # pairing extraction, which avoids assigning the same jet twice, and
-        # keep only the VBF pair
-        pairing_predictions, *_ = get_best_pairings(
-            clean_assignment_prob(assignment_prob, jet_coll_pairing)
-        )
-        return pairing_predictions[:, -1:, :], mask_enough_jets
-
-    # the model predicts only the VBF pair
-    vbf_assignment_prob = np.copy(assignment_prob[-1])
-    # zero out the events which cannot have a VBF pair, they are masked afterwards
-    vbf_assignment_prob[~mask_enough_jets] = 0
-    vbf_predictions = np.swapaxes(
-        np.asarray(extract_predictions([vbf_assignment_prob])), 0, 1
-    )
-
-    return vbf_predictions, mask_enough_jets

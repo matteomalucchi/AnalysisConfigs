@@ -1,15 +1,19 @@
 import awkward as ak
 import copy
+import logging
 import numpy as np
 
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils_configs.reconstruct_higgs_candidates import (
+from utils_configs.dnn_evaluation_functions import eval_spanet, eval_vbf_pairing
+from utils_configs.reconstruct_resonances import (
     get_lead_mjj_jet_pair,
     reconstruct_resonances_from_idx,
 )
-from utils_configs.reconstruct_higgs_candidates import run2_matching_algorithm
+from utils_configs.reconstruct_resonances import run2_matching_algorithm
+
+logger = logging.getLogger()
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):
@@ -56,6 +60,43 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             ],
             "all",
         )
+
+    @property
+    def vbf_pairing_from_spanet(self):
+        """
+        True when the model given in `vbf_discriminator` is a standalone SPANet
+        model whose VBF jet assignment can be used to build the VBF pair.
+        """
+        return bool(
+            self.vbf_pairing_from_vbf_discriminator
+            and self.vbf_discriminator
+            and self.vbf_discriminator != self.spanet
+            and self.vbf_discriminator_input_variables
+            and "sequential" in self.vbf_discriminator_input_variables
+        )
+
+    def define_vbf_jet_pair(self, jet_vbf):
+        """
+        Take the VBF pair from the SPANet model saved in `vbf_discriminator`,
+        when this model predicts the VBF assignment (2 jets) on top of the
+        ggF/VBF classification. Fall back to the common definition (the pair
+        leading in mjj) when it does not.
+        """
+        if jet_vbf is None and self.vbf_pairing_from_spanet:
+            self.define_vbf_candidates()
+            jet_vbf = eval_vbf_pairing(
+                self.events,
+                self.get_vbf_discriminator_output(),
+                self.vbf_discriminator_input_variables,
+            )
+            if jet_vbf is None:
+                logger.warning(
+                    "The model %s does not provide any jet assignment: "
+                    "falling back to the leading mjj VBF pair",
+                    self.vbf_discriminator,
+                )
+
+        return super().define_vbf_jet_pair(jet_vbf)
 
     def apply_object_preselection(self, variation):
         super().apply_object_preselection(variation=variation)
@@ -109,7 +150,14 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         if self.vbf_analysis:
             if self.vbf_matching_after_higgs_pairing and self.spanet:
                 # apply spanet model to get the pairing prediction for the b-jets from Higgs
-                pairing_predictions, jet_coll_pairing, *_ = self.eval_spanet()
+                pairing_predictions, jet_coll_pairing, *_ = eval_spanet(
+                    self.events,
+                    self.spanet,
+                    self.spanet_input_name,
+                    self.pad_value,
+                    self.pad_value_spanet,
+                    self.max_num_jets_higgs_pairing,
+                )
                 (
                     self.events["HiggsLeading"],
                     self.events["HiggsSubLeading"],

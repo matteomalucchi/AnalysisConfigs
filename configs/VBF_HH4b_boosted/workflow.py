@@ -7,8 +7,8 @@ import xgboost as xgb
 from utils_configs.custom_cut_functions import custom_jet_selection
 from utils_configs.basic_functions import add_fields
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils_configs.reconstruct_higgs_candidates import get_lead_mjj_jet_pair
-from utils_configs.reconstruct_higgs_candidates import run2_matching_algorithm
+from utils_configs.reconstruct_resonances import get_lead_mjj_jet_pair
+from utils_configs.reconstruct_resonances import run2_matching_algorithm
 from utils_configs.bdt_evaluation_functions import get_default_bdt_inputs, evaluate_bdt, disc_TXbb
 
 from configs.HH4b_common.custom_object_preselection_common import object_cleaning, clean_ak4_boosted
