@@ -22,11 +22,12 @@ from utils_configs.reconstruct_resonances import (
     get_lead_mjj_jet_pair,
     reconstruct_higgs_from_provenance,
     reconstruct_resonances_from_idx,
+    reconstruct_vbf_jets_from_idx,
     run2_matching_algorithm,
 )
 from utils_configs.spanet_evaluation_functions import (
-    eval_spanet,
-    eval_vbf_discriminator,
+    clean_assignment_prob,
+    get_best_pairings,
 )
 
 from .custom_object_preselection_common import lepton_selection
@@ -1173,13 +1174,143 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         return matched_jet_higgs_idx_not_none
 
-    def define_vbf_candidates(self):
+    def eval_spanet(self):
+        model_session_spanet, input_name_spanet, output_name_spanet = get_model_session(
+            self.spanet, "spanet"
+        )
+
+        spanet_output, _ = get_onnx_prediction(
+            model_session_spanet,
+            input_name_spanet,
+            output_name_spanet,
+            self.events,
+            self.spanet_input_name,
+            self.pad_value,
+            self.pad_value_spanet,
+            self.max_num_jets_higgs_pairing,
+        )
+        # Not needed anymore
+        del model_session_spanet, input_name_spanet, output_name_spanet
+
+        jet_coll_pairing = [
+            x[0] for x in self.spanet_input_name["sequential"].values()
+        ][0]
+
+        # if an event has less than 6 jets, than remove the vbf prob matrix
+        cleaned_assignment_prob = clean_assignment_prob(
+            spanet_output["assignment_prob"], self.events[jet_coll_pairing]
+        )
+
+        (
+            pairing_predictions,
+            best_pairing_probability,
+            second_best_pairing_probability,
+            worst_pairing_probability,
+        ) = get_best_pairings(cleaned_assignment_prob)
+
+        return (
+            pairing_predictions,
+            jet_coll_pairing,
+            spanet_output,
+            best_pairing_probability,
+            second_best_pairing_probability,
+            worst_pairing_probability,
+        )
+
+    def eval_vbf_discriminator(self):
         """
-        Build the VBF jet candidates as the jets left over by the Higgs pairing,
-        ordered in pt. Nothing is done if the collection already exists.
+        Run the standalone ggF/VBF discriminator model and cache its output.
+
+        The same model can provide both the ggF/VBF score and the VBF pairing,
+        so the ONNX session is created (and run) only the first time it is
+        needed in a chunk.
         """
-        if "JetGoodVBFCandidates" in self.events.fields:
-            return
+        if self._vbf_discriminator_output is None:
+            (
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+            ) = get_model_session(self.vbf_discriminator, "vbf_discriminator")
+
+            self._vbf_discriminator_output, _ = get_onnx_prediction(
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+                self.events,
+                self.vbf_discriminator_input_variables,
+                self.pad_value,
+                self.pad_value_spanet,
+                self.max_num_jets_vbf_discriminator,
+            )
+
+            del (
+                model_session_vbf_discriminator,
+                input_name_vbf_discriminator,
+                output_name_vbf_discriminator,
+            )
+
+        return self._vbf_discriminator_output
+
+    def eval_vbf_pairing(self):
+        """
+        Get the VBF jet pair from the SPANet model saved in `vbf_discriminator`,
+        when this model also predicts the VBF assignment (2 jets) on top of the
+        ggF/VBF classification.
+
+        Returns None when no such model is configured, so that the caller can
+        fall back to the leading-mjj pair.
+        """
+        if not (
+            self.vbf_pairing_from_vbf_discriminator
+            and self.vbf_discriminator
+            and self.vbf_discriminator != self.spanet
+            and self.vbf_discriminator_input_variables
+            and "sequential" in self.vbf_discriminator_input_variables
+        ):
+            return None
+
+        assignment_prob = self.eval_vbf_discriminator()["assignment_prob"]
+        if len(assignment_prob) == 0:
+            logger.warning(
+                "The model %s does not provide any jet assignment: "
+                "falling back to the leading mjj VBF pair",
+                self.vbf_discriminator,
+            )
+            return None
+
+        # the VBF pairing is predicted on the collection fed to the model
+        jet_collection = self.events[
+            [
+                x[0]
+                for x in self.vbf_discriminator_input_variables["sequential"].values()
+            ][0]
+        ]
+
+        # an event with less than two jets cannot have a VBF pair: zero its
+        # probabilities and mask it after the extraction
+        mask_enough_jets = ak.to_numpy(ak.count(jet_collection.pt, axis=1) >= 2)
+        cleaned_assignment_prob = [np.copy(prob) for prob in assignment_prob]
+        for prob in cleaned_assignment_prob:
+            prob[~mask_enough_jets] = 0
+
+        pairing_predictions, *_ = get_best_pairings(cleaned_assignment_prob)
+
+        # the VBF pair is the last resonance predicted by the model
+        return reconstruct_vbf_jets_from_idx(
+            jet_collection, pairing_predictions[:, -1, :], mask_enough_jets
+        )
+
+    def define_vbf_jet_pair(self, jet_vbf):
+        """
+        VBF jet pair used by the VBF categories.
+
+        `jet_vbf` is the pair given by the Higgs pairing model, when it predicts
+        the VBF jets as well. Otherwise the candidates are the jets left over by
+        the Higgs pairing, and the pair is taken from the VBF pairing model or,
+        when there is none, as the pair leading in mjj.
+        """
+        if jet_vbf is not None:
+            return jet_vbf
 
         self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
             self.events["JetGoodFromHiggsOrdered"].index
@@ -1195,7 +1326,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             forward_jet_veto=True,
         )
         # order in pt, as it is done in the VBF workflow, so that the collection
-        # can also be fed to a VBF pairing model
+        # can also be fed to the VBF pairing model
         self.events["JetGoodVBFCandidates"] = add_fields(
             self.events.JetGoodVBFCandidates[
                 ak.argsort(
@@ -1205,40 +1336,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
             "all",
         )
 
-    def define_vbf_jet_pair(self, jet_vbf):
-        """
-        VBF jet pair used by the VBF categories.
-
-        `jet_vbf` is the pair predicted by the Higgs pairing model, when it
-        predicts the VBF jets as well; otherwise the pair is the one leading in
-        mjj among the jets left over by the pairing. The VBF workflow overrides
-        this to take the pair from a dedicated VBF pairing model.
-        """
+        jet_vbf = self.eval_vbf_pairing()
         if jet_vbf is not None:
             return jet_vbf
 
-        self.define_vbf_candidates()
-
         # get the vbf candidates as the leading in mjj
         return get_lead_mjj_jet_pair(self.events, "JetGoodVBFCandidates")
-
-    def get_vbf_discriminator_output(self):
-        """
-        Output of the standalone ggF/VBF discriminator model, cached so that the
-        model is run only once per chunk even when both the VBF pairing and the
-        ggF/VBF score are read from it.
-        """
-        if self._vbf_discriminator_output is None:
-            self._vbf_discriminator_output = eval_vbf_discriminator(
-                self.events,
-                self.vbf_discriminator,
-                self.vbf_discriminator_input_variables,
-                self.pad_value,
-                self.pad_value_spanet,
-                self.max_num_jets_vbf_discriminator,
-            )
-
-        return self._vbf_discriminator_output
 
     def get_btag_order_add_jet(self, jet_idx_from_pairings):
         """
@@ -1322,14 +1425,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["best_pairing_probability"],
                     self.events["second_best_pairing_probability"],
                     self.events["worst_pairing_probability"],
-                ) = eval_spanet(
-                    self.events,
-                    self.spanet,
-                    self.spanet_input_name,
-                    self.pad_value,
-                    self.pad_value_spanet,
-                    self.max_num_jets_higgs_pairing,
-                )
+                ) = self.eval_spanet()
 
                 # get the probabilities difference between the best and second best jet assignment
                 self.events["Delta_pairing_probabilities"] = (
@@ -1515,7 +1611,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         elif self.vbf_discriminator and self.vbf_discriminator != self.spanet:
             # the model may have already been run to get the VBF pairing
-            vbf_discriminator_output = self.get_vbf_discriminator_output()
+            vbf_discriminator_output = self.eval_vbf_discriminator()
             if self.vbf_analysis:
                 self.events["VBF_ggF_score"] = vbf_discriminator_output["class_prob"][
                     0

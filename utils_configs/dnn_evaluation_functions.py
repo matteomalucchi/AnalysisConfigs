@@ -2,6 +2,10 @@ import numpy as np
 import awkward as ak
 from collections import defaultdict
 
+from utils_configs.spanet_evaluation_functions import (
+    define_spanet_pairing_inputs,
+)
+
 
 def get_input_name(collection, input_name):
     for name in input_name:
@@ -165,12 +169,6 @@ def get_onnx_prediction(
 ):
     if "sequential" in variables:
         # SPANet
-        # imported here and not at module level because
-        # `spanet_evaluation_functions` imports this module in turn
-        from utils_configs.spanet_evaluation_functions import (
-            define_spanet_pairing_inputs,
-        )
-
         assert "global" in variables
         input_name_forpop = input_name.copy()
         inputs_complete = {}

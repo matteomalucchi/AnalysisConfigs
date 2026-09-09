@@ -2,10 +2,7 @@ import numpy as np
 import awkward as ak
 import copy
 
-from utils_configs.dnn_evaluation_functions import get_onnx_prediction
-from utils_configs.inference_session_onnx import get_model_session
 from utils_configs.prediction_selection import extract_predictions
-from utils_configs.reconstruct_resonances import reconstruct_vbf_jets_from_idx
 
 
 def define_spanet_sequential_inputs(
@@ -222,8 +219,8 @@ def get_best_pairings(assignment_prob):
     pairing_probabilities_sum_list = []
 
     # the assignments are extracted from the most to the least probable one:
-    # every iteration zeroes the assignment it just took, so that the loop stops
-    # once no assignment is left
+    # every iteration zeroes the assignment it just took, so the loop stops once
+    # no assignment is left
     while True:
         # swap axis to have the events on the first axis
         predictions = np.swapaxes(extract_predictions(assignment_probability), 0, 1)
@@ -284,141 +281,3 @@ def clean_assignment_prob(assignment_prob, jet_coll_pairing):
         )
 
     return cleaned_assignment_prob
-
-
-def get_pairing_collection(input_variables):
-    """
-    Name of the jet collection the pairing indices of a SPANet model refer to,
-    i.e. the collection given as sequential input to the model.
-    """
-    return [x[0] for x in input_variables["sequential"].values()][0]
-
-
-def eval_spanet(
-    events,
-    spanet,
-    spanet_input_name,
-    pad_value,
-    pad_value_spanet,
-    max_num_jets_higgs_pairing,
-):
-    """
-    Run the SPANet pairing model and extract the best jet assignment of the
-    Higgs candidates (and of the VBF pair, when the model predicts it as well).
-    """
-    model_session_spanet, input_name_spanet, output_name_spanet = get_model_session(
-        spanet, "spanet"
-    )
-
-    spanet_output, _ = get_onnx_prediction(
-        model_session_spanet,
-        input_name_spanet,
-        output_name_spanet,
-        events,
-        spanet_input_name,
-        pad_value,
-        pad_value_spanet,
-        max_num_jets_higgs_pairing,
-    )
-    # Not needed anymore
-    del model_session_spanet, input_name_spanet, output_name_spanet
-
-    jet_coll_pairing = get_pairing_collection(spanet_input_name)
-
-    # if an event has less than 6 jets, than remove the vbf prob matrix
-    cleaned_assignment_prob = clean_assignment_prob(
-        spanet_output["assignment_prob"], events[jet_coll_pairing]
-    )
-
-    (
-        pairing_predictions,
-        best_pairing_probability,
-        second_best_pairing_probability,
-        worst_pairing_probability,
-    ) = get_best_pairings(cleaned_assignment_prob)
-
-    return (
-        pairing_predictions,
-        jet_coll_pairing,
-        spanet_output,
-        best_pairing_probability,
-        second_best_pairing_probability,
-        worst_pairing_probability,
-    )
-
-
-def eval_vbf_discriminator(
-    events,
-    vbf_discriminator,
-    vbf_discriminator_input_variables,
-    pad_value,
-    pad_value_spanet,
-    max_num_jets_vbf_discriminator,
-):
-    """
-    Run the standalone ggF/VBF discriminator model and return its raw output.
-
-    The same model can provide both the ggF/VBF score and the VBF pairing, so
-    the caller is expected to run it once and reuse the output.
-    """
-    (
-        model_session_vbf_discriminator,
-        input_name_vbf_discriminator,
-        output_name_vbf_discriminator,
-    ) = get_model_session(vbf_discriminator, "vbf_discriminator")
-
-    vbf_discriminator_output, _ = get_onnx_prediction(
-        model_session_vbf_discriminator,
-        input_name_vbf_discriminator,
-        output_name_vbf_discriminator,
-        events,
-        vbf_discriminator_input_variables,
-        pad_value,
-        pad_value_spanet,
-        max_num_jets_vbf_discriminator,
-    )
-
-    # Not needed anymore
-    del (
-        model_session_vbf_discriminator,
-        input_name_vbf_discriminator,
-        output_name_vbf_discriminator,
-    )
-
-    return vbf_discriminator_output
-
-
-def eval_vbf_pairing(
-    events,
-    vbf_discriminator_output,
-    vbf_discriminator_input_variables,
-    min_num_jets=2,
-):
-    """
-    Build the energy ordered VBF jet pair from the assignment probabilities of a
-    model which predicts the VBF jets on top of the ggF/VBF classification.
-
-    Returns None when the model does not provide any jet assignment, so that the
-    caller can fall back to another VBF pair definition.
-    """
-    assignment_prob = vbf_discriminator_output["assignment_prob"]
-    if len(assignment_prob) == 0:
-        return None
-
-    jet_collection = events[get_pairing_collection(vbf_discriminator_input_variables)]
-
-    # an event with less than two jets cannot have a VBF pair: zero its
-    # probabilities and mask it after the extraction
-    mask_enough_jets = ak.to_numpy(
-        ak.count(jet_collection.pt, axis=1) >= min_num_jets
-    )
-    cleaned_assignment_prob = [np.copy(x) for x in assignment_prob]
-    for prob in cleaned_assignment_prob:
-        prob[~mask_enough_jets] = 0
-
-    pairing_predictions, *_ = get_best_pairings(cleaned_assignment_prob)
-
-    # the VBF pair is the last resonance predicted by the model
-    return reconstruct_vbf_jets_from_idx(
-        jet_collection, pairing_predictions[:, -1, :], mask_enough_jets
-    )
