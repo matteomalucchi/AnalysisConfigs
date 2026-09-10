@@ -86,6 +86,8 @@ class HEPPlotter:
         self.label_pos = None
         self.rotate_xticks = False
         self.xtick_fontsize = 18
+        self.xlabel_fontsize = None
+        self.ylabel_fontsize = None
 
         # extra kwargs for plotting functions
         self.extra_kwargs = {}
@@ -191,6 +193,8 @@ class HEPPlotter:
         label_pos=None,
         rotate_xticks=False,
         xtick_fontsize=18,
+        xlabel_fontsize=None,
+        ylabel_fontsize=None,
     ):
         """Set the axis labels."""
         self.xlabel = xlabel
@@ -202,6 +206,8 @@ class HEPPlotter:
         self.label_pos = label_pos
         self.rotate_xticks = rotate_xticks
         self.xtick_fontsize = xtick_fontsize
+        self.xlabel_fontsize = xlabel_fontsize
+        self.ylabel_fontsize = ylabel_fontsize
 
         return self
 
@@ -628,7 +634,7 @@ class HEPPlotter:
         fig, ax, ax_ratio = self._create_figure(ratio_plot)
 
         ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
-        if self.normalize_1d_histo:
+        if self.normalize_1d_histo and ref_hist is not None:
             ref_hist = self._normalize(ref_hist)
 
         for index, (name, props) in enumerate(self.series_dict.items()):
@@ -1388,8 +1394,8 @@ class HEPPlotter:
         # X / Y LABELS
         # ----------------------------
         if ax_ratio:
-            ax_ratio.set_xlabel(self.xlabel)
-            ax_ratio.set_ylabel(self.ratio_label)
+            ax_ratio.set_xlabel(self.xlabel, fontsize=self.xlabel_fontsize)
+            ax_ratio.set_ylabel(self.ratio_label, fontsize=self.ylabel_fontsize)
 
             if self.grid:
                 ax_ratio.grid()
@@ -1425,9 +1431,9 @@ class HEPPlotter:
         else:
             # categorical plots may intentionally leave xlabel empty
             if self.xlabel:
-                ax.set_xlabel(self.xlabel)
+                ax.set_xlabel(self.xlabel, fontsize=self.xlabel_fontsize)
 
-        ax.set_ylabel(self.ylabel)
+        ax.set_ylabel(self.ylabel, fontsize=self.ylabel_fontsize)
 
         # print xticklabels
         if self.xticklabels is not None and self.label_pos is not None:

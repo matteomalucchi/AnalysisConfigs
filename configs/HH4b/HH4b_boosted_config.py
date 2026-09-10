@@ -117,14 +117,14 @@ sample_ggF_list = [
     # "GluGlutoHHto4B_spanet",
 ]
 sample_VBF_list=[
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
@@ -233,7 +233,10 @@ if config_options_dict["dnn_variables"]:
         False, not config_options_dict["save_chunk"], total_input_variables, btag=False
     )
 elif all([model == "" for model in onnx_model_dict.values()]) and not (config_options_dict["boosted"]):
-    if "wp" in config_options_dict["spanet_input_name_list"][-1]:
+    spanet_input_name_list = config_options_dict["spanet_input_name_list"] or list(
+        config_options_dict["spanet_input_name"]["sequential"].keys()
+    )
+    if "wp" in spanet_input_name_list[-1]:
         print("Taking btag Working Points")
         column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
     else:

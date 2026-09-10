@@ -79,7 +79,7 @@ signal_region_cut = Cut(
 
 # Dhh cut above 30 GeV
 dhh_above_30 = Cut(
-    name="hh4b",
+    name="dhh_above_30",
     params={
         "delta_dhh_cut": 30,
     },
