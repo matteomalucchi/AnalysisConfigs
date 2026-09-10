@@ -1618,13 +1618,21 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 max_num_jets_spanet=self.max_num_jets_spanet_class,
             )
             if out_type == "spanet":
-                onnx_output = onnx_output["class_prob"][0][:, 1]
+                if onnx_output["class_prob"][0].shape[1] > 2:
+                    print("Warning: multi-class DNN detected. Number of classes: ", onnx_output["class_prob"][0].shape[1])
+                    onnx_output = onnx_output["class_prob"][0]
+                else:
+                    onnx_output = onnx_output["class_prob"][0][:, 1]
             # if array is 1 dim just take it
-            if onnx_output.ndim == 1:
+            if isinstance(onnx_output, list):
+                # multi-output DNN — handle list of arrays
+                print("Warning: multi-output DNN detected. Not implemented yet.")
+            elif onnx_output.ndim == 1:
                 self.events["sig_bkg_dnn_score"] = onnx_output
             else:
-                # if array is 2 dim take the last column
-                self.events["sig_bkg_dnn_score"] = onnx_output[:, -1]
+                for i in range(onnx_output.shape[1]):
+                    self.events[f"sig_bkg_dnn_score_{i}"] = onnx_output[:, i]
+                self.events["sig_bkg_dnn_score"] = self.events[f"sig_bkg_dnn_score_0"] / (self.events[f"sig_bkg_dnn_score_0"] + self.events[f"sig_bkg_dnn_score_1"])
 
             del (
                 model_session_SIG_BKG_DNN,
