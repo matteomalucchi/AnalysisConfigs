@@ -20,7 +20,7 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir + "/params")
 
 # adding object preselection
-year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix"]
+year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
 # year = ["2024"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
