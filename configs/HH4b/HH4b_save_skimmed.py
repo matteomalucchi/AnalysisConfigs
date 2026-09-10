@@ -72,10 +72,15 @@ cfg = Configurator(
     datasets={
         "jsons": [
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_redirector.json",
             # e f"{localdir}/../HH4b_common/datasets/background_TTtoX_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_2022_postEE.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_2023_preBPix.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private.json",
             # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
@@ -85,10 +90,27 @@ cfg = Configurator(
         "filter": {
             "samples": (
                 [
+                    #"GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
+                    #"GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
+                    #"GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
+                    # "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
+                    "ZZTo4B01j",
+                    "ggZH_HToBB_ZToBB",
+                    "ZH_ZToBB_HToBB"
                     # "DATA_JetMET",
                     # "DATA_JetMET0_HH4bResolved",
                     # "DATA_JetMET1_HH4bResolved",
                     # "DATA_ParkingHH",
+                    # "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+                    # "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+                    # "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+                    # "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+                    # "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+                    # "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+                    # "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+                    # "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+                    # "VBFHHto4B_CV_1_C2V_0_C3_1",
+                    # "VBFHHto4B_CV_1_C2V_1_C3_1",
                 ]
                 # + ggf_hh4b
                 + vbf_hh4b

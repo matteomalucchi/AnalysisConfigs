@@ -13,8 +13,6 @@ HLT_triggers:
       ParkingHH:
          - PFHT280_QuadPFJet30_PNet2BTagMean0p55
    "2023_postBPix":
-      JetMET:
-         - QuadPFJet70_50_40_35_PNet2BTagMean0p65
       ParkingHH:
          - PFHT280_QuadPFJet30_PNet2BTagMean0p55
    "2024":

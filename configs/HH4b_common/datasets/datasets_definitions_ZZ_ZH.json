@@ -1,0 +1,83 @@
+{
+    "ZHto2Q2B": {
+        "sample": "ZHto2Q2B",
+        "json_output": "datasets/background_ZZ_ZH.json",
+        "description": "ZH to hadronic sample. Xsec from AN2023_151_vxx",
+        "files": [
+            {
+                "das_names": [
+                    "/ZH_Hto2B_Zto2Q_M-125_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 0.469
+                }
+            },
+            {
+                "das_names": [
+                    "/ZH_Hto2B_Zto2Q_M-125_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.469
+                }
+            }
+        ]
+    },
+    "ggZHto2Q2B": {
+        "sample": "ggZHto2Q2B",
+        "json_output": "datasets/background_ZZ_ZH.json",
+        "description": "GluGluZH to hadronic sample. Xsec from AN2023_151_vxx",
+        "files": [
+            {
+                "das_names": [
+                    "/ggZH_Hto2B_Zto2Q_M-125_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 0.0544
+                }
+            },
+            {
+                "das_names": [
+                    "/ggZH_Hto2B_Zto2Q_M-125_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 0.0544
+                }
+            }
+        ]
+    },
+    "ZZ_incl": {
+        "sample": "ZZ_incl",
+        "json_output": "datasets/background_ZZ_ZH.json",
+        "description": "Inclusive ZZ ptroduction sample. Xsec from AN2023_151_vxx",
+        "files": [
+            {
+                "das_names": [
+                    "/ZZ_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_preEE",
+                    "isMC": true,
+                    "xsec": 16.7
+                }
+            },
+            {
+                "das_names": [
+                    "/ZZ_TuneCP5_13p6TeV_pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM"
+                ],
+                "metadata": {
+                    "year": "2022_postEE",
+                    "isMC": true,
+                    "xsec": 16.7
+                }
+            }
+        ]
+    }
+}

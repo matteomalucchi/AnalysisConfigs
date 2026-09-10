@@ -1,0 +1,68 @@
+{
+  "ggZH_HToBB_ZToBB_2023_postBPix": {
+    "metadata": {
+      "sample": "ggZH_HToBB_ZToBB",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.01173",
+      "nevents": "2417988",
+      "size": "66075280036",
+      "skim_efficiency": "0.43702624755075214",
+      "skim_rescale_genweights": "2.220134",
+      "sum_genweights": 605421341507584.0,
+      "sum_signOf_genweights": 5532821.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_3.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_4.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_5.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_6.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ggZH_HToBB_ZToBB_2023_postBPix/ggZH_HToBB_ZToBB_2023_postBPix_7.root"
+    ]
+  },
+  "ZH_ZToBB_HToBB_2023_postBPix": {
+    "metadata": {
+      "sample": "ZH_ZToBB_HToBB",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.081526",
+      "nevents": "642792",
+      "size": "16861638261",
+      "skim_efficiency": "0.13666478080529046",
+      "skim_rescale_genweights": "7.022373",
+      "sum_genweights": 2788033.5,
+      "sum_signOf_genweights": 4426019.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZH_ZToBB_HToBB_2023_postBPix/ZH_ZToBB_HToBB_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZH_ZToBB_HToBB_2023_postBPix/ZH_ZToBB_HToBB_2023_postBPix_2.root"
+    ]
+  },
+  "ZZTo4B01j_2023_postBPix": {
+    "metadata": {
+      "sample": "ZZTo4B01j",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.381786",
+      "nevents": "2148257",
+      "size": "23582507855",
+      "skim_efficiency": "0.0807895595370951",
+      "skim_rescale_genweights": "15.603708",
+      "sum_genweights": 16193614.0,
+      "sum_signOf_genweights": 16852272.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZZTo4B01j_2023_postBPix/ZZTo4B01j_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZZTo4B01j_2023_postBPix/ZZTo4B01j_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZZTo4B01j_2023_postBPix/ZZTo4B01j_2023_postBPix_3.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZZTo4B01j_2023_postBPix/ZZTo4B01j_2023_postBPix_4.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZZTo4B01j_2023_postBPix/ZZTo4B01j_2023_postBPix_5.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/ZZ_ZH_resolved_private_skimmed/hadded/ZZTo4B01j_2023_postBPix/ZZTo4B01j_2023_postBPix_6.root"
+    ]
+  }
+}
