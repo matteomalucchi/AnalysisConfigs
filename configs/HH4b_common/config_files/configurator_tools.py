@@ -108,10 +108,10 @@ variables_dict_vbf = {
     **count_hist(coll="JetGood", bins=10, start=0, stop=10),
     **jet_hists_dict(coll="JetGood", start=1, end=5),
     **create_HistConf(
-        "JetGoodVBF", "eta", bins=60, start=-5, stop=5, label="JetGoodVBFeta"
+        "JetGoodVBFCandidates", "eta", bins=60, start=-5, stop=5, label="JetGoodVBFeta"
     ),
     **create_HistConf(
-        "JetGoodVBF",
+        "JetGoodVBFCandidates",
         "btagPNetQvG",
         pos=0,
         bins=60,
@@ -120,7 +120,7 @@ variables_dict_vbf = {
         label="JetGoodVBFQvG_0",
     ),
     **create_HistConf(
-        "JetGoodVBF",
+        "JetGoodVBFCandidates",
         "btagPNetQvG",
         pos=1,
         bins=60,
