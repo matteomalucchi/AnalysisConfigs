@@ -1,8 +1,8 @@
 {
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4__2022_postEE": {
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+            "sample": "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -39,10 +39,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/832c81c6-9caf-41cf-b3f9-58f0bc890e0a.root"
         ]
     },
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2__2022_postEE": {
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+            "sample": "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -78,10 +78,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2550000/ce8870a0-dcea-4ad0-bfb3-4c714c03dd6c.root"
         ]
     },
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3__2022_postEE": {
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+            "sample": "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -120,10 +120,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/50000/a504d69f-6dbb-41b1-996b-40e2220e0ffb.root"
         ]
     },
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43__2022_postEE": {
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+            "sample": "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -160,10 +160,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2550000/68c2f77b-acac-4888-9fc8-0648627c8293.root"
         ]
     },
-    "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94__2022_postEE": {
+    "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94",
+            "sample": "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -202,10 +202,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/8712e021-bbd3-4a38-a62c-e19b92c4702b.root"
         ]
     },
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36__2022_postEE": {
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+            "sample": "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -242,10 +242,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2540000/68eae588-1d34-4e67-ae0f-a493978ddea4.root"
         ]
     },
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39__2022_postEE": {
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+            "sample": "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
@@ -306,10 +306,10 @@
             "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/VBFHHto4B_dataset/store/mc/Run3Summer22EENanoAODv12/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_TuneCP5_13p6TeV_madgraph-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/30000/3894b1ef-3312-4693-9a50-1f1bc7b59db2.root"
         ]
     },
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96__2022_postEE": {
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96__2022_postEE": {
         "metadata": {
             "das_names": "['/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM']",
-            "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+            "sample": "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
             "year": "2022_postEE",
             "isMC": "True",
             "xsec": "0.000641",
