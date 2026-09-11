@@ -57,6 +57,11 @@ default_config_options_dict = {
     "only5jetsbSF": False,
     "noL1": False,
     "approach": "first",
+    # Separate the pt regression by b-tag (first/boosted approaches): +neutrino
+    # regression for high-b-tag jets (above the loose WP), plain regression for
+    # the rest. Set to False for the old behaviour (no split: +neutrino
+    # regression wherever valid, else the standard JEC jets).
+    "separate_regression_by_btag": True,
     "expandCR": False,
     "mixeddata": False,
     "TXbb_order": False,

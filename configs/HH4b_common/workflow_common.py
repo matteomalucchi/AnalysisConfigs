@@ -159,26 +159,34 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
         if self.approach in ("first", "boosted"):
-            # Always split the pt regression by b-tag: +neutrino regression for
-            # high-b-tag jets (above the loose WP), plain regression for the rest.
             for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
                 if coll not in self.events.fields:
                     raise ValueError(
-                        f"Collection '{coll}' is required to split the pt regression "
-                        "by b-tag but was not found. Make sure define_jet_collections() "
+                        f"Collection '{coll}' is required to build the regressed jets "
+                        "but was not found. Make sure define_jet_collections() "
                         "is called and the corresponding jet calibration "
                         "(AK4PFPuppiPNetRegression and AK4PFPuppiPNetRegressionPlusNeutrino) "
                         "is configured."
                     )
-            self.events["Jet"] = merge_regressed_jets(
-                jets_high_btag=[
-                    self.events["JetPNetPlusNeutrino"],
-                    self.events["JetDefault"],
-                ],
-                jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
-                params=self.params,
-                year=self._year,
-            )
+            if self.separate_regression_by_btag:
+                # Default: split the pt regression by b-tag: +neutrino regression
+                # for high-b-tag jets (above the loose WP), plain regression for
+                # the rest, each falling back to the standard JEC jets.
+                self.events["Jet"] = merge_regressed_jets(
+                    jets_high_btag=[
+                        self.events["JetPNetPlusNeutrino"],
+                        self.events["JetDefault"],
+                    ],
+                    jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
+                    params=self.params,
+                    year=self._year,
+                )
+            else:
+                # Old behaviour (no b-tag split): +neutrino regression wherever
+                # valid, else the standard JEC jets.
+                self.events["Jet"] = merge_regressed_jets(
+                    [self.events["JetPNetPlusNeutrino"], self.events["JetDefault"]],
+                )
         elif self.approach == "second":
             # as "first", but high b-tag jets (loose WP) always use the regression
             self.events["Jet"] = merge_regressed_jets(
