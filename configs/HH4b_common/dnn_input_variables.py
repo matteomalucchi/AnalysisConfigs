@@ -750,6 +750,77 @@ sig_bkg_dnn_input_variables_spanet = OrderedDict(
 )
 
 
+pairing_spanet_vbf_JetGoodVBFCandidates_DNNVars_JetHiggsGlobal = OrderedDict(
+    {
+        "sequential": {
+            "jet_log_pt": ["JetGoodVBFCandidates", "pt", "log_norm"],
+            "jet_eta": ["JetGoodVBFCandidates", "eta", "norm"],
+            "jet_phi": ["JetGoodVBFCandidates", "phi", "norm"],
+            "jet_btag_5wp": ["JetGoodVBFCandidates", "btagPNetB_5wp"],
+            },
+        "global": {
+            "centralityHiggsLeadingJetGoodVBFCandidates": [
+                "events", "centralityHiggsLeadingJetGoodVBFCandidates",
+            ],
+            "centralityHiggsSubLeadingJetGoodVBFCandidates": [
+                "events", "centralityHiggsSubLeadingJetGoodVBFCandidates",
+            ],
+            "detaJetGoodVBFCandidates": [
+                "events", "detaJetGoodVBFCandidates", "norm",
+            ],
+            "mjjJetGoodVBFCandidates": [
+                "events", "mjjJetGoodVBFCandidates", "norm",
+            ],
+            "HT": ["events", "HT", "log_norm"],
+            "maxDeltaR_Higgjj": ["events", "dR_max", "norm"],
+            "minDeltaR_Higgjj": ["events", "dR_min", "norm"],
+            "sigma_over_higgs1_reco_mass": ["events", "sigma_over_higgs1_reco_mass", "norm"],
+            "sigma_over_higgs2_reco_mass": ["events", "sigma_over_higgs2_reco_mass", "norm"],
+            "higgs1_DeltaEtajj": ["HiggsLeading", "dEta", "norm"],
+            "higgs1_DeltaPhijj": ["HiggsLeading", "dPhi", "norm"],
+            "higgs1_reco_dR": ["HiggsLeading", "dR", "norm"],
+            "higgs1_reco_eta": ["HiggsLeading", "eta", "norm"],
+            "higgs1_helicityCosTheta": ["HiggsLeading", "helicityCosTheta", "norm"],
+            "higgs1_reco_phi": ["HiggsLeading", "phi", "norm"],
+            "higgs1_reco_mass": ["HiggsLeading", "mass", "log_norm"],
+            "higgs1_reco_pt": ["HiggsLeading", "pt", "log_norm"],
+            "higgs2_DeltaEtajj": ["HiggsSubLeading", "dEta", "norm"],
+            "higgs2_DeltaPhijj": ["HiggsSubLeading", "dPhi", "norm"],
+            "higgs2_reco_dR": ["HiggsSubLeading", "dR", "norm"],
+            "higgs2_reco_eta": ["HiggsSubLeading", "eta", "norm"],
+            "higgs2_helicityCosTheta": ["HiggsSubLeading", "helicityCosTheta", "norm"],
+            "higgs2_reco_phi": ["HiggsSubLeading", "phi", "norm"],
+            "higgs2_reco_mass": ["HiggsSubLeading", "mass", "log_norm"],
+            "higgs2_reco_pt": ["HiggsSubLeading", "pt", "log_norm"],
+            "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS", "norm"],
+            "hh_vec_DeltaEta": ["HH", "dEta", "norm"],
+            "hh_vec_DeltaPhi": ["HH", "dPhi", "norm"],
+            "hh_vec_DeltaR": ["HH", "dR", "norm"],
+            "hh_vec_eta": ["HH", "eta", "norm"],
+            "hh_vec_mass": ["HH", "mass", "log_norm"],
+            "hh_vec_phi": ["HH", "phi", "norm"],
+            "hh_vec_pt": ["HH", "pt", "log_norm"],
+            "higgs1_reco_jet1_pt": ["JetGoodProvHiggsPadded:0", "pt", "log_norm"],
+            "higgs1_reco_jet1_eta": ["JetGoodProvHiggsPadded:0", "eta", "norm"],
+            "higgs1_reco_jet1_phi": ["JetGoodProvHiggsPadded:0", "phi", "norm"],
+            "higgs1_reco_jet1_btag_5wp": ["JetGoodProvHiggsPadded:0", "btagPNetB_5wp"],
+            "higgs1_reco_jet2_pt": ["JetGoodProvHiggsPadded:1", "pt", "log_norm"],
+            "higgs1_reco_jet2_eta": ["JetGoodProvHiggsPadded:1", "eta", "norm"],
+            "higgs1_reco_jet2_phi": ["JetGoodProvHiggsPadded:1", "phi", "norm"],
+            "higgs1_reco_jet2_btag_5wp": ["JetGoodProvHiggsPadded:1", "btagPNetB_5wp"],
+            "higgs2_reco_jet1_pt": ["JetGoodProvHiggsPadded:2", "pt", "log_norm"],
+            "higgs2_reco_jet1_eta": ["JetGoodProvHiggsPadded:2", "eta", "norm"],
+            "higgs2_reco_jet1_phi": ["JetGoodProvHiggsPadded:2", "phi", "norm"],
+            "higgs2_reco_jet1_btag_5wp": ["JetGoodProvHiggsPadded:2", "btagPNetB_5wp"],
+            "higgs2_reco_jet2_pt": ["JetGoodProvHiggsPadded:3", "pt", "log_norm"],
+            "higgs2_reco_jet2_eta": ["JetGoodProvHiggsPadded:3", "eta", "norm"],
+            "higgs2_reco_jet2_phi": ["JetGoodProvHiggsPadded:3", "phi", "norm"],
+            "higgs2_reco_jet2_btag_5wp": ["JetGoodProvHiggsPadded:3", "btagPNetB_5wp"],
+            }
+    }
+)
+
+
 sig_bkg_dnn_input_variables_spanet_AN23_184_vars = OrderedDict(
     {
         "sequential": {

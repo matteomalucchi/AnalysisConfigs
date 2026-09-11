@@ -674,8 +674,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
         if self.boosted:
             self.events["nFatJetGood"] = ak.num(self.events.FatJetGood, axis=1)
-            # self.events["nFatJetGoodSelected"] = ak.num(self.events.FatJetGoodSelected, axis=1)
-            # self.events["nDiJetVBFCandidates"] = ak.num(self.events.DiJetVBFCandidates, axis=1)
 
     def HelicityCosTheta(self, higgs, jet):
         higgs = add_fields(higgs, four_vec="Momentum4D")

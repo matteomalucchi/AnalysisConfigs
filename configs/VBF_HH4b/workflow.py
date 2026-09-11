@@ -168,6 +168,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     "JetTotalSPANetPtFlattenPadded",
                     "JetGoodVBFMergedProvVBFPadded",
                     "JetGoodVBFMergedProvVBFPtFlattenPadded",
+                    "JetGoodVBFCandidates",
                 ],
                 [self.max_num_jets_good, self.max_num_jets_good, 0, 0],
             )
