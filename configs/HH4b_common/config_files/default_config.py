@@ -197,7 +197,12 @@ default_config_options_dict = {
     # b-tag SF studies only: compute the b-tag scale factors using only the
     # 5 leading jets instead of all the `JetGood`.
     "only5jetsbSF": False,
-
+    # Separate the pt regression by b-tag (first/boosted approaches): +neutrino
+    # regression for high-b-tag jets (above the loose WP), plain regression for
+    # the rest. Set to False for the old behaviour (no split: +neutrino
+    # regression wherever valid, else the standard JEC jets).
+    "separate_regression_by_btag": True,
+  
     # ------------------------------------------------------------------
     # MODEL INPUTS AND PADDING
     # ------------------------------------------------------------------

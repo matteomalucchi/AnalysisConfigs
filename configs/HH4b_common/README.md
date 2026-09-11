@@ -219,6 +219,29 @@ To build the datasets needed for the Analysis, run the following command on `tie
 "build-datasets --cfg datasets/datasets_definitions.json -o -rs 'T[123]_(FR|IT|BE|CH|DE|US)_\w+'"
 ```
 
+#### Merge dataset-definition JSON files
+
+[`utils_configs/merge_ordered_datasets.py`](../../utils_configs/merge_ordered_datasets.py) merges several
+dataset-definition JSON files (e.g. the per-batch `skimmed_dataset_definition_hadd.json`
+produced by `pocket-coffea hadd-skimmed-files`) into a single file, with the dataset keys
+ordered like a reference redirector JSON instead of just concatenated:
+
+```bash
+python3 utils_configs/merge_ordered_datasets.py <input1.json> <input2.json> [...] \
+  -r <order_reference.json> -o <output.json>
+
+# e.g.
+python3 utils_configs/merge_ordered_datasets.py \
+  /work/mmalucch/out_hh4b/signal_ggF_HH4b_skim_22_23/skimmed_dataset_definition_hadd.json \
+  /work/mmalucch/out_hh4b/signal_ggF_HH4b_skim/skimmed_dataset_definition_hadd.json \
+  -r configs/HH4b_common/datasets/signal_ggF_HH4b_official_redirector.json \
+  -o configs/HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json
+```
+
+It errors out if the same dataset key appears in more than one input file, and warns (but
+does not fail) if some input keys are missing from the order-reference file — those are
+appended at the end, in the order they were encountered.
+
 ### Skimming
 
 > [!TIP]

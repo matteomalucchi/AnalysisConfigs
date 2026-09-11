@@ -9,7 +9,7 @@ from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 from utils_configs.reconstruct_resonances import get_lead_mjj_jet_pair
 from utils_configs.bdt_evaluation_functions import get_default_bdt_inputs, evaluate_bdt, disc_TXbb
 
-from configs.HH4b_common.custom_object_preselection_common import object_cleaning, clean_ak4_boosted
+from configs.HH4b_common.custom_object_preselection_common import clean_ak4_boosted
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):
