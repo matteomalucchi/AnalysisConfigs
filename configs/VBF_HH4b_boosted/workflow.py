@@ -177,41 +177,12 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.define_vbf_jet_collections()
 
             if self.boosted:
-                self.events["JetGood"], mask_jet_vbf = custom_jet_selection(
-                    self.events,
-                    "Jet",
-                    "JetBoosted",
-                    self.params,
-                    year=self._year,
-                    pt_type="pt_default",
-                    pt_cut_name=self.pt_cut_name,
-                    forward_jet_veto=False,
-                )
-                self.events["JetGoodVBFCandidates"], mask_jet_vbf = custom_jet_selection(
-                    self.events,
-                    "Jet",
-                    "JetVBF",
-                    self.params,
-                    year=self._year,
-                    pt_type="pt_default",
-                    pt_cut_name=self.pt_cut_name,
-                    forward_jet_veto=False,
-                )
-                self.events["JetGoodVBFCandidates"] = self.events.JetGoodVBFCandidates[
-                    ak.argsort(self.events.JetGoodVBFCandidates.pt, axis=1, ascending=False)
-                ]
-                self.events["JetVBFCandidates"] = copy.copy(self.events.Jet)
-                self.events["HT_jetJetGoodVBF"] = ak.sum(self.events.JetGoodVBFCandidates.pt, axis=1)
+                self.select_jets("JetGood", "JetBoosted")
+                self.select_jets("JetGoodVBFCandidates", "JetVBF", order_by="pt")
+                self.select_jets("JetGoodCloseToFatJet", "JetNearFatJet")
 
-                self.events["JetGoodCloseToFatJet"], mask_jet_close_to_fatjet = custom_jet_selection(
-                    self.events,
-                    "Jet",
-                    "JetNearFatJet",
-                    self.params,
-                    year=self._year,
-                    pt_type="pt_default",
-                    pt_cut_name=self.pt_cut_name,
-                    forward_jet_veto=False,
+                self.events["HT_jetJetGoodVBF"] = ak.sum(
+                    self.events.JetGoodVBFCandidates.pt, axis=1
                 )
                 # order in pt
                 # Clean From AK8

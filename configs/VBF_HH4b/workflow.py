@@ -50,7 +50,12 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events[jet_coll_pairing], pairing_predictions
                 )
 
-                self.define_vbf_candidates(self.events["JetGoodClip"])
+                # rebuild the VBF candidates out of the jets the pairing took
+                self.select_jets_not_from_idx(
+                    "JetGoodVBFCandidates",
+                    self.events.JetGoodClip.index,
+                    order_by="pt",
+                )
 
             self.define_vbf_pair_collections()
 

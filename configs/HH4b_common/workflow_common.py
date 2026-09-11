@@ -249,16 +249,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         else:
             self.pt_cut_name = "pt"
 
-        # Cut on the JEC pt (w/o regression)
-        self.events["JetGood"], mask_jet_good = custom_jet_selection(
-            self.events,
-            "Jet",
-            "Jet",
-            self.params,
-            year=self._year,
-            pt_type="pt_default",
-            pt_cut_name=self.pt_cut_name,
-        )
+        self.select_jets("JetGood", "Jet")
 
         self.events["Electron"] = ak.with_field(
             self.events.Electron,
@@ -760,6 +751,72 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         return jets_not_from_idx
 
+    def select_jets(
+        self,
+        name,
+        jet_type_obj_presel,
+        from_collection="Jet",
+        forward_jet_veto=False,
+        order_by=None,
+        add_all_fields=False,
+    ):
+        """
+        Define `self.events[name]` as `from_collection` with the
+        `jet_type_obj_presel` object selection applied.
+
+        `order_by` sorts the jets by that field in decreasing order and
+        `add_all_fields` turns them into a four-vector keeping every field.
+        """
+        # Cut on the JEC pt (w/o regression)
+        self.events[name], _ = custom_jet_selection(
+            self.events,
+            from_collection,
+            jet_type_obj_presel,
+            self.params,
+            year=self._year,
+            pt_type="pt_default",
+            pt_cut_name=self.pt_cut_name,
+            forward_jet_veto=forward_jet_veto,
+        )
+
+        if add_all_fields:
+            self.events[name] = add_fields(self.events[name], "all")
+
+        if order_by is not None:
+            self.events[name] = self.events[name][
+                ak.argsort(
+                    getattr(self.events[name], order_by), axis=1, ascending=False
+                )
+            ]
+
+        return self.events[name]
+
+    def select_jets_not_from_idx(
+        self,
+        name,
+        jet_idx_to_remove,
+        jet_type_obj_presel="JetVBF",
+        forward_jet_veto=True,
+        order_by=None,
+        add_all_fields=True,
+    ):
+        """
+        Same as `select_jets`, on the jets that `jet_idx_to_remove` leaves over.
+
+        The jets before the selection are stored under the same name, so that
+        each collection needs a single `self.events` key.
+        """
+        self.events[name] = self.get_jets_not_from_idx(jet_idx_to_remove)
+
+        return self.select_jets(
+            name,
+            jet_type_obj_presel,
+            from_collection=name,
+            forward_jet_veto=forward_jet_veto,
+            order_by=order_by,
+            add_all_fields=add_all_fields,
+        )
+
     def define_dnn_variables(
         self,
         higgs1,
@@ -790,19 +847,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 [jet_higgs_idx_per_event, jet_vbf_idx_per_event], axis=1
             )
 
-        self.events["JetNotFromHiggs"] = self.get_jets_not_from_idx(
-            jet_idx_from_pairings
-        )
-
-        # Cut on the JEC pt (w/o regression)
-        self.events["JetNotFromHiggs"], _ = custom_jet_selection(
-            self.events,
+        self.select_jets_not_from_idx(
             "JetNotFromHiggs",
-            "Jet",
-            self.params,
-            year=self._year,
-            pt_type="pt_default",
-            pt_cut_name=self.pt_cut_name,
+            jet_idx_from_pairings,
+            jet_type_obj_presel="Jet",
+            forward_jet_veto=False,
+            add_all_fields=False,
         )
 
         if self.add_jet_spanet:
@@ -1330,35 +1380,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             jet_collection, pairing_predictions[:, -1, :], mask_enough_jets
         )
 
-    def define_vbf_candidates(self, jet_coll_higgs):
-        """
-        Build `JetGoodVBFCandidates`: the jets that `jet_coll_higgs` leaves over,
-        with the VBF object selection and the forward jet veto applied, ordered
-        in pt so that the collection can also be fed to a VBF pairing model.
-        """
-        self.events["JetVBFCandidates"] = self.get_jets_not_from_idx(
-            jet_coll_higgs.index
-        )
-        self.events["JetGoodVBFCandidates"], _ = custom_jet_selection(
-            self.events,
-            "JetVBFCandidates",
-            "JetVBF",
-            self.params,
-            year=self._year,
-            pt_type="pt_default",
-            pt_cut_name=self.pt_cut_name,
-            forward_jet_veto=True,
-        )
-        # order in pt
-        self.events["JetGoodVBFCandidates"] = add_fields(
-            self.events.JetGoodVBFCandidates[
-                ak.argsort(
-                    self.events.JetGoodVBFCandidates.pt, axis=1, ascending=False
-                )
-            ],
-            "all",
-        )
-
     def define_vbf_jet_collections(self):
         """
         VBF jet collections built right after the object preselection, shared by
@@ -1372,34 +1393,24 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events.JetGood[:, : self.max_num_jets_good]
         )
 
-        self.define_vbf_candidates(self.events["JetGoodClip"])
+        # VBF candidates: the jets the b-tag ordered clip leaves over, in pt order
+        self.select_jets_not_from_idx(
+            "JetGoodVBFCandidates", self.events.JetGoodClip.index, order_by="pt"
+        )
 
         # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
-        self.events["JetVBFAN"] = self.get_jets_not_from_idx(
-            self.events.JetGoodHiggs.index
-        )
-        self.events["JetGoodVBFAN"], _ = custom_jet_selection(
-            self.events,
-            "JetVBFAN",
-            "JetVBF",
-            self.params,
-            year=self._year,
-            pt_type="pt_default",
-            pt_cut_name=self.pt_cut_name,
-            forward_jet_veto=True,
+        self.select_jets_not_from_idx(
+            "JetGoodVBFAN", self.events.JetGoodHiggs.index, add_all_fields=False
         )
 
         # create the provenance field separate for higgs and vbf
-        for jet_coll in ["JetGoodHiggs"]:
+        for jet_coll, provenance in [
+            ("JetGoodHiggs", "provenance_higgs"),
+            ("JetGoodVBFAN", "provenance_vbf"),
+        ]:
             self.events[jet_coll] = ak.with_field(
                 self.events[jet_coll],
-                self.events[jet_coll].provenance_higgs,
-                "provenance",
-            )
-        for jet_coll in ["JetGoodVBFAN"]:
-            self.events[jet_coll] = ak.with_field(
-                self.events[jet_coll],
-                self.events[jet_coll].provenance_vbf,
+                self.events[jet_coll][provenance],
                 "provenance",
             )
 
@@ -1442,34 +1453,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
             axis=1,
         )
 
-        self.events["JetAdditionalVBF"] = self.get_jets_not_from_idx(
-            jet_good_vbf_leading_mjj_idx_not_none
+        # get additional good VBF jets, ordered and padded
+        self.select_jets_not_from_idx(
+            "JetAdditionalGoodVBF",
+            jet_good_vbf_leading_mjj_idx_not_none,
+            order_by=self.jets_add_vbf_order,
         )
-
-        # get additional good VBF jets
-        self.events["JetAdditionalGoodVBF"], _ = custom_jet_selection(
-            self.events,
-            "JetAdditionalVBF",
-            "JetVBF",
-            self.params,
-            year=self._year,
-            pt_type="pt_default",
-            pt_cut_name=self.pt_cut_name,
-            forward_jet_veto=True,
-        )
-        self.events.JetAdditionalGoodVBF = add_fields(
-            self.events.JetAdditionalGoodVBF, "all"
-        )
-
-        # order in the additional VBF jets
         self.events["JetAdditionalGoodVBF"] = ak.pad_none(
-            self.events["JetAdditionalGoodVBF"][
-                ak.argsort(
-                    getattr(self.events.JetAdditionalGoodVBF, self.jets_add_vbf_order),
-                    axis=1,
-                    ascending=False,
-                )
-            ],
+            self.events["JetAdditionalGoodVBF"],
             self.max_num_jets_add_vbf,
             axis=1,
             clip=True,
@@ -1551,7 +1542,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # NOTE: the VBF workflows already built `JetGoodVBFCandidates` out of the
         # jets leading in b-tag score; rebuild it here out of the jets the
         # pairing actually took, which is what the VBF pair has to avoid
-        self.define_vbf_candidates(self.events["JetGoodFromHiggsOrdered"])
+        self.select_jets_not_from_idx(
+            "JetGoodVBFCandidates",
+            self.events.JetGoodFromHiggsOrdered.index,
+            order_by="pt",
+        )
 
         jet_vbf = self.eval_vbf_pairing()
         if jet_vbf is not None:
