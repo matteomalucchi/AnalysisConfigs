@@ -212,7 +212,7 @@ else:
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
             | {"year": ["events", "year"],
-               "vbf_jet_prov": ["JetGoodVBF", "provenance"],
+               "vbf_jet_prov": ["JetGoodVBFCandidates", "provenance"],
                "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"],
                "Higgs_leading_btag": ["HiggsLeading", "btagBB"],
                "Higgs_subleading_btag": ["HiggsSubLeading", "btagBB"],

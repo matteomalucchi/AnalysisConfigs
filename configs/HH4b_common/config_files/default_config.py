@@ -138,6 +138,13 @@ default_config_options_dict = {
     # jets left over by the pairing, instead of using the b-tag ordered
     # `JetGoodClip` collection. Requires `spanet`.
     "vbf_matching_after_higgs_pairing": False,
+    # Take the VBF pair from the SPANet model given in `vbf_discriminator`
+    # instead of using the leading-mjj pair. It requires a standalone model
+    # (i.e. different from `spanet`) which predicts the VBF jet assignment (2
+    # jets) on top of the ggF/VBF classification, and whose sequential inputs
+    # are read from the VBF candidate collection. The same model is run only
+    # once and also provides `VBF_ggF_score`.
+    "vbf_pairing_from_vbf_discriminator": False,
     # Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to
     # split the pass/fail VBF categories.
     "ggf_vbf_threshold": 0.95,
@@ -178,7 +185,8 @@ default_config_options_dict = {
     "fifth_jet": "pt",
     # Sort the `Jet` collection by regressed pt before the good-jet selection
     # and order the additional jet (`JetNotFromHiggs`) by b-tag score or pt
-    # depending on whether the pairing picked the 5th jet.
+    # depending on whether the Higgs pairing (and the VBF pairing, when the VBF
+    # analysis is run) took all the 4 jets leading in b-tag score.
     "add_jet_spanet": False,
     # Use the old b-tag working-point convention, where the WP index starts at
     # -1 (no WP passed) instead of 0. Must match the convention of the trained
