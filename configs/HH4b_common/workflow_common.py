@@ -187,7 +187,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["JetDefault"],
                 ],
                 jets_low_btag=[
-                    self.events["JetPNetPlusNeutrino"],
                     self.events["JetDefault"],
                 ],
                 params=self.params,
