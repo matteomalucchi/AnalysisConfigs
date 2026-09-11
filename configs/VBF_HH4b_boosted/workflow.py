@@ -11,7 +11,7 @@ from utils_configs.reconstruct_higgs_candidates import get_lead_mjj_jet_pair
 from utils_configs.reconstruct_higgs_candidates import run2_matching_algorithm
 from utils_configs.bdt_evaluation_functions import get_default_bdt_inputs, evaluate_bdt, disc_TXbb
 
-from configs.HH4b_common.custom_object_preselection_common import object_cleaning, clean_ak4_boosted
+from configs.HH4b_common.custom_object_preselection_common import clean_ak4_boosted
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):

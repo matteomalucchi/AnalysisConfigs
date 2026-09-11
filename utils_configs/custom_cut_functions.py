@@ -46,7 +46,15 @@ def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs)
 
     return mask
 
-def object_cleaning_mask(obj, cleaning_collection, dr_min=0.4):
+def object_cleaning_mask(obj, cleaning_collection, dr_min=0.4, return_mask=False):
+    """
+    Compute a deltaR-based cleaning mask between obj and cleaning_collection.
+    Args:
+        obj: awkward array of objects to clean (e.g. jets)
+        cleaning_collection: awkward array of objects to clean against (e.g. leptons)
+        dr_min: minimum deltaR to keep an object
+        return_mask: if True return the boolean mask, otherwise return obj filtered by the mask
+    """
     # here I create a deltaR matrix between jets and cleaning collection the output shape is (njets, ncleaning)
     dR = obj[:, :, None].delta_r(cleaning_collection[:, None, :])
 
@@ -54,7 +62,9 @@ def object_cleaning_mask(obj, cleaning_collection, dr_min=0.4):
     dR_mask = dR < dr_min
     dR_mask_jets = ~ak.any(dR_mask, axis=2)
 
-    return dR_mask_jets
+    if return_mask:
+        return dR_mask_jets
+    return obj[dR_mask_jets]
 
 def custom_jet_selection(
     events,
@@ -124,7 +134,7 @@ def custom_jet_selection(
     obj_param = params_copy.object_preselection[jet_type_obj_presel]
     if "dr_jet" in obj_param.keys():
         clean_jet_coll = obj_param["clean_jet_coll"] if "clean_jet_coll" in obj_param.keys() else "FatJetGood"
-        mask = mask & object_cleaning_mask(events_copy[jet_type_default], events_copy[clean_jet_coll], obj_param["dr_jet"])
+        mask = mask & object_cleaning_mask(events_copy[jet_type_default], events_copy[clean_jet_coll], obj_param["dr_jet"], return_mask=True)
     if "dr_lep" in obj_param.keys():
         eles = events_copy[obj_param["clean_ele_coll"] if "clean_ele_coll" in obj_param.keys() else "Electron"]
         muons = events_copy[obj_param["clean_mu_coll"] if "clean_mu_coll" in obj_param.keys() else "Muon"]
@@ -132,8 +142,8 @@ def custom_jet_selection(
             eles = eles[eles["pt"] > obj_param["clean_ele_pt"]]
         if "clean_mu_pt" in obj_param.keys():
             muons = muons[muons["pt"] > obj_param["clean_mu_pt"]]
-        mask = mask & object_cleaning_mask(events_copy[jet_type_default], eles, obj_param["dr_lep"])
-        mask = mask & object_cleaning_mask(events_copy[jet_type_default], muons, obj_param["dr_lep"])
+        mask = mask & object_cleaning_mask(events_copy[jet_type_default], eles, obj_param["dr_lep"], return_mask=True)
+        mask = mask & object_cleaning_mask(events_copy[jet_type_default], muons, obj_param["dr_lep"], return_mask=True)
 
     # remove copies
     del params_copy
