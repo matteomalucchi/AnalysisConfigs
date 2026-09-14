@@ -41,7 +41,7 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # adding object preselection
-year = ["2022_postEE"]
+year = ["2024"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
@@ -103,10 +103,26 @@ sample_VBF_list = [
     "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
     "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
     "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
-    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
+    # "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96", # not in 2024
+    "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96", # only in 2024
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
+
+sample_official_ggF_list = [
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
+    # new samples for 2024
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
+    "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
+]
+
 sample_list = (
     [
         # 2022 preEE
@@ -117,7 +133,7 @@ sample_list = (
         # "DATA_JetMET_JMENano_F_skimmed",
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
-    + sample_ggF_list
+    + sample_official_ggF_list
     + sample_VBF_list
     + (
         [
@@ -178,6 +194,9 @@ elif (
             config_options_dict["FW_momenta_norms"],
         ),
         not config_options_dict["save_chunk"],
+    )
+    column_list += get_columns_list(
+        SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
     )
     if config_options_dict["dnn_variables"]:
         total_input_columns = (
@@ -264,13 +283,15 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,
             "samples_exclude": [],
-            # "year": year,
+            "year": year,
         },
         "subsamples": {},
     },
