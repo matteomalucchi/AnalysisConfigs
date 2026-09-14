@@ -19,10 +19,10 @@ def add_fields(collection, fields=None, four_vec="PtEtaPhiMLorentzVector"):
         fields_add = [
             "pt_raw",
             "mass_raw",
-            "PNetRegPtRawRes",
-            "PNetRegPtRawCorr",
-            "PNetRegPtRawCorrNeutrino",
-            "btagPNetB",
+            # resolution of the pt estimated by the regression of the year
+            "pt_raw_res",
+            # b-tag discriminant of the algorithm chosen for the year
+            "btagB",
             "index",
         ]
         for field in fields_add:

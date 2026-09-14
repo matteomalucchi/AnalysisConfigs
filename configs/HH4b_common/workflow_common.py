@@ -17,6 +17,12 @@ from utils_configs.dnn_evaluation_functions import (
 
 # from utils_configs.inference_session_onnx_slurm import get_model_session
 from utils_configs.inference_session_onnx import get_model_session
+from utils_configs.jet_algorithms import (
+    add_btag_generic_fields,
+    get_btag_algorithm,
+    get_btag_working_points,
+    get_pt_regression_resolution_branch,
+)
 from utils_configs.parton_matching_function import get_parton_last_copy
 from utils_configs.reconstruct_resonances import (
     get_jets_idx_not_from_idx,
@@ -100,6 +106,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self._vbf_discriminator_output = None
 
     def process_extra_after_skim(self):
+        # copy the discriminants of the b-tagging algorithm chosen for the year
+        # onto algorithm-independent fields, so that everything downstream (and
+        # the saved columns) is written once for every year
+        self.events["Jet"] = add_btag_generic_fields(
+            self.events["Jet"], get_btag_algorithm(self.params, self._year)
+        )
+
         if self._isMC and "TTto" not in self.events.metadata["dataset"]:
             # do truth matching to get b-jet from Higgs
             self.get_jet_higgs_provenance(
@@ -158,8 +171,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         Create copies of the different pt definitions.
         """
         self.events["JetDefault"] = copy.copy(self.events["Jet"])
-        self.events["JetPNet"] = copy.copy(self.events["Jet"])
-        self.events["JetPNetPlusNeutrino"] = copy.copy(self.events["Jet"])
+        self.events["JetPtRegressed"] = copy.copy(self.events["Jet"])
+        self.events["JetPtRegressedPlusNeutrino"] = copy.copy(self.events["Jet"])
 
     def apply_object_preselection(self, variation):
         # new events: the cached model outputs do not apply to them any more.
@@ -171,14 +184,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
         if self.approach in ("first", "boosted"):
-            for coll in ("JetDefault", "JetPNet", "JetPNetPlusNeutrino"):
+            for coll in ("JetDefault", "JetPtRegressed", "JetPtRegressedPlusNeutrino"):
                 if coll not in self.events.fields:
                     raise ValueError(
                         f"Collection '{coll}' is required to build the regressed jets "
                         "but was not found. Make sure define_jet_collections() "
-                        "is called and the corresponding jet calibration "
-                        "(AK4PFPuppiPNetRegression and AK4PFPuppiPNetRegressionPlusNeutrino) "
-                        "is configured."
+                        "is called and that the jet calibration of the year "
+                        "regresses the pt into 'JetPtRegressed' and "
+                        "'JetPtRegressedPlusNeutrino'."
                     )
             if self.separate_regression_by_btag:
                 # Default: split the pt regression by b-tag: +neutrino regression
@@ -186,10 +199,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 # the rest, each falling back to the standard JEC jets.
                 self.events["Jet"] = merge_regressed_jets(
                     jets_high_btag=[
-                        self.events["JetPNetPlusNeutrino"],
+                        self.events["JetPtRegressedPlusNeutrino"],
                         self.events["JetDefault"],
                     ],
-                    jets_low_btag=[self.events["JetPNet"], self.events["JetDefault"]],
+                    jets_low_btag=[
+                        self.events["JetPtRegressed"],
+                        self.events["JetDefault"],
+                    ],
                     params=self.params,
                     year=self._year,
                 )
@@ -197,13 +213,16 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 # Old behaviour (no b-tag split): +neutrino regression wherever
                 # valid, else the standard JEC jets.
                 self.events["Jet"] = merge_regressed_jets(
-                    [self.events["JetPNetPlusNeutrino"], self.events["JetDefault"]],
+                    [
+                        self.events["JetPtRegressedPlusNeutrino"],
+                        self.events["JetDefault"],
+                    ],
                 )
         elif self.approach == "second":
             # as "first", but high b-tag jets (loose WP) always use the regression
             self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=[
-                    self.events["JetPNetPlusNeutrino"],
+                    self.events["JetPtRegressedPlusNeutrino"],
                     self.events["JetDefault"],
                 ],
                 jets_low_btag=[
@@ -226,8 +245,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
         self.events["Jet"] = ak.with_field(
             self.events.Jet,
-            self.events.JetPNetPlusNeutrino.pt,
+            self.events.JetPtRegressedPlusNeutrino.pt,
             "pt_regressed",
+        )
+
+        # resolution of the regressed pt, under an algorithm-independent name
+        self.events["Jet"] = ak.with_field(
+            self.events.Jet,
+            self.events.Jet[
+                get_pt_regression_resolution_branch(self.params, self._year)
+            ],
+            "pt_raw_res",
         )
 
         if self.add_jet_spanet:
@@ -264,7 +292,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         # order jet by btag score
         self.events["JetGood"] = self.events.JetGood[
-            ak.argsort(self.events.JetGood.btagPNetB, axis=1, ascending=False)
+            ak.argsort(self.events.JetGood.btagB, axis=1, ascending=False)
         ]
         # keep only the first 4 jets for the Higgs candidates reconstruction
         self.events["JetGoodHiggs"] = self.events.JetGood[:, :4]
@@ -348,12 +376,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             btag = "btagBB"
             wps = {"M": 0.95, "T": 0.975, "XT": 0.99}
         else:
-            btag = "btagPNetB"
-            # L, M, T, XT, XXT
-            # Right now hardcoded particleNet postEE
-            wps = self.params["btagging"]["working_point"][self._year]["btagging_WP"][
-                btag
-            ]
+            btag = "btagB"
+            # L, M, T, XT, XXT of the algorithm chosen for the year
+            wps = get_btag_working_points(self.params, self._year)
         btag_wp = ak.zeros_like(jets[btag], dtype=np.int32) - (
             1 if self.old_wp_def else 0
         )
@@ -368,7 +393,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return ak.with_field(jets, btag_wp, f"{btag}_{num_wp}wp")
 
     def generate_btag_delta_workingpoints(self, jets, num_wp):
-        wp_array = jets[f"btagPNetB_{num_wp}wp"]
+        wp_array = jets[f"btagB_{num_wp}wp"]
         num_jets = ak.num(wp_array)
         deltaWP = ak.where(
             # if 4 jets
@@ -397,7 +422,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 axis=1,
             ),
         )
-        return ak.with_field(jets, deltaWP, f"btagPNetB_delta{num_wp}wp")
+        return ak.with_field(jets, deltaWP, f"btagB_delta{num_wp}wp")
 
     def get_jet_higgs_provenance(self, which_bquark, jet_collection):  # -> ak.Array:
         # Select b-quarks at Gen level, coming from H->bb decay
@@ -693,12 +718,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
         jet1 = add_fields(jet1)
         jet2 = add_fields(jet2)
 
-        # PNetRegPtRawRes is the resolution of the jet pt estimated by PNet
-        jet1_up = jet1 * (1 + jet1.PNetRegPtRawRes)
-        jet2_up = jet2 * (1 + jet2.PNetRegPtRawRes)
+        # pt_raw_res is the resolution of the jet pt estimated by the regression
+        jet1_up = jet1 * (1 + jet1.pt_raw_res)
+        jet2_up = jet2 * (1 + jet2.pt_raw_res)
 
-        jet1_down = jet1 * (1 - jet1.PNetRegPtRawRes)
-        jet2_down = jet2 * (1 - jet2.PNetRegPtRawRes)
+        jet1_down = jet1 * (1 - jet1.pt_raw_res)
+        jet2_down = jet2 * (1 - jet2.pt_raw_res)
 
         jet1_up_sigma = ak.singletons(abs((jet1 + jet2).mass - (jet1_up + jet2).mass))
         jet1_down_sigma = ak.singletons(
@@ -863,7 +888,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["btag_order_add_jet"],
                     self.events["JetNotFromHiggs"][
                         ak.argsort(
-                            self.events["JetNotFromHiggs"].btagPNetB,
+                            self.events["JetNotFromHiggs"].btagB,
                             axis=1,
                             ascending=False,
                         )
@@ -877,7 +902,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             else:
                 self.events["JetNotFromHiggs"] = self.events["JetNotFromHiggs"][
                     ak.argsort(
-                        self.events["JetNotFromHiggs"].btagPNetB,
+                        self.events["JetNotFromHiggs"].btagB,
                         axis=1,
                         ascending=False,
                     )

@@ -136,6 +136,30 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `TXbb_order` | `False` | Boosted only: order the `FatJetGood` collection by `btagBBTXbb` instead of `btagBB`. |
 | `only5jetsbSF` | `False` | b-tag SF studies only (`configs/HH4b_btagging`): compute the b-tag scale factors using only the 5 leading jets instead of all the `JetGood`. |
 
+### Year-dependent jet algorithms
+
+The b-tagging and the pT-regression algorithms are not the same in every year
+(ParticleNet up to 2023, UParTAK4 from 2024), so the workflows never read a
+NanoAOD branch of a specific algorithm. They read which algorithm the year uses
+from the parameters and copy its discriminants onto algorithm-independent
+fields, defined in `utils_configs/jet_algorithms.py`:
+
+| Field | Content |
+| --- | --- |
+| `btagB` | b-tag discriminant of `btagging.working_point.<year>.btagging_algorithm`, the algorithm used to order the jets, to build the working points (`btagB_3wp`, `btagB_5wp`, `btagB_delta5wp`) and to split the pT regression |
+| `btagCvL`, `btagCvB`, `btagQvG` | the other discriminants of the same algorithm, when the input has them |
+| `pt_raw_res` | pT resolution estimated by the regression that calibrates `JetPtRegressed` in that year |
+
+These are the names to use in the columns and in the model inputs: the same
+configuration then runs on every year, and the working points are read from
+`btagging.working_point.<year>.btagging_WP` instead of being hardcoded.
+
+The pT-regressed collections are `JetPtRegressed` and
+`JetPtRegressedPlusNeutrino`, filled by the jet calibration of the year
+(`AK4PFPuppiPNetRegression*` up to 2023, `AK4PFPuppiUParTAK4Regression*` in
+2024). `Jet` is rebuilt from them and from `JetDefault` in
+`apply_object_preselection`.
+
 ### Model inputs and padding
 
 | Option | Default | Description |

@@ -59,7 +59,7 @@ def define_spanet_sequential_inputs(
 
     # Define btag and variations
     btag_padded = ak.pad_none(
-        events[collection].btagPNetB, max_num_jets_spanet, clip=True
+        events[collection].btagB, max_num_jets_spanet, clip=True
     )
 
     if max_num_jets_spanet >= 4:

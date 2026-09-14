@@ -103,7 +103,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetGoodVBFCandidates",
-        "btagPNetQvG",
+        "btagQvG",
         pos=0,
         bins=60,
         start=0,
@@ -112,7 +112,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetGoodVBFCandidates",
-        "btagPNetQvG",
+        "btagQvG",
         pos=1,
         bins=60,
         start=0,
@@ -132,7 +132,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBF_generalSelection",
-        "btagPNetQvG",
+        "btagQvG",
         pos=0,
         bins=60,
         start=0,
@@ -141,7 +141,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBF_generalSelection",
-        "btagPNetQvG",
+        "btagQvG",
         pos=1,
         bins=60,
         start=0,
@@ -174,7 +174,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBF_matched",
-        "btagPNetQvG",
+        "btagQvG",
         pos=0,
         bins=60,
         start=0,
@@ -183,7 +183,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBF_matched",
-        "btagPNetQvG",
+        "btagQvG",
         pos=1,
         bins=60,
         start=0,
@@ -208,7 +208,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBF_matched",
-        "btagPNetB",
+        "btagB",
         bins=100,
         start=0,
         stop=1,
@@ -283,16 +283,16 @@ variables_dict_vbf = {
         "Jet", "mass", bins=100, pos=1, start=0, stop=150, label="Jet_mass1"
     ),
     **create_HistConf(
-        "Jet", "btagPNetB", pos=0, bins=100, start=0, stop=1, label="Jet_btagPNetB0"
+        "Jet", "btagB", pos=0, bins=100, start=0, stop=1, label="Jet_btagB0"
     ),
     **create_HistConf(
-        "Jet", "btagPNetB", pos=1, bins=100, start=0, stop=1, label="Jet_btagPNetB1"
+        "Jet", "btagB", pos=1, bins=100, start=0, stop=1, label="Jet_btagB1"
     ),
     **create_HistConf(
-        "Jet", "btagPNetQvG", pos=0, bins=100, start=0, stop=1, label="Jet_btagPNetQvG0"
+        "Jet", "btagQvG", pos=0, bins=100, start=0, stop=1, label="Jet_btagQvG0"
     ),
     **create_HistConf(
-        "Jet", "btagPNetQvG", pos=1, bins=100, start=0, stop=1, label="Jet_btagPNetQvG1"
+        "Jet", "btagQvG", pos=1, bins=100, start=0, stop=1, label="Jet_btagQvG1"
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
@@ -332,21 +332,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=0,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetB0",
+        label="JetGoodFromHiggsOrdered_btagB0",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=0,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetQvG0",
+        label="JetGoodFromHiggsOrdered_btagQvG0",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
@@ -386,21 +386,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=1,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetB1",
+        label="JetGoodFromHiggsOrdered_btagB1",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=1,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetQvG1",
+        label="JetGoodFromHiggsOrdered_btagQvG1",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
@@ -440,21 +440,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=2,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetB2",
+        label="JetGoodFromHiggsOrdered_btagB2",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=2,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetQvG2",
+        label="JetGoodFromHiggsOrdered_btagQvG2",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
@@ -494,21 +494,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=3,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetB3",
+        label="JetGoodFromHiggsOrdered_btagB3",
     ),
     **create_HistConf(
         "JetGoodFromHiggsOrdered",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=3,
         start=0,
         stop=1,
-        label="JetGoodFromHiggsOrdered_btagPNetQvG3",
+        label="JetGoodFromHiggsOrdered_btagQvG3",
     ),
     **create_HistConf(
         "FatJetGood",
@@ -566,7 +566,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "FatJetGood",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=0,
         start=0,
@@ -629,7 +629,7 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "FatJetGood",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=1,
         start=0,
@@ -674,21 +674,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=0,
         start=0,
         stop=1,
-        label="JetVBFLeadingPtNotFromHiggs_btagPNetB0",
+        label="JetVBFLeadingPtNotFromHiggs_btagB0",
     ),
     **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=0,
         start=0,
         stop=1,
-        label="JetVBFLeadingPtNotFromHiggs_btagPNetQvG0",
+        label="JetVBFLeadingPtNotFromHiggs_btagQvG0",
     ),
     **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
@@ -728,21 +728,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=1,
         start=0,
         stop=1,
-        label="JetVBFLeadingPtNotFromHiggs_btagPNetB1",
+        label="JetVBFLeadingPtNotFromHiggs_btagB1",
     ),
     **create_HistConf(
         "JetVBFLeadingPtNotFromHiggs",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=1,
         start=0,
         stop=1,
-        label="JetVBFLeadingPtNotFromHiggs_btagPNetQvG1",
+        label="JetVBFLeadingPtNotFromHiggs_btagQvG1",
     ),
     **create_HistConf(
         "JetVBFLeadingMjjNotFromHiggs",
@@ -782,21 +782,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBFLeadingMjjNotFromHiggs",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=0,
         start=0,
         stop=1,
-        label="JetVBFLeadingMjjNotFromHiggs_btagPNetB0",
+        label="JetVBFLeadingMjjNotFromHiggs_btagB0",
     ),
     **create_HistConf(
         "JetVBFLeadingMjjNotFromHiggs",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=0,
         start=0,
         stop=1,
-        label="JetVBFLeadingMjjNotFromHiggs_btagPNetQvG0",
+        label="JetVBFLeadingMjjNotFromHiggs_btagQvG0",
     ),
     **create_HistConf(
         "JetVBFLeadingMjjNotFromHiggs",
@@ -836,21 +836,21 @@ variables_dict_vbf = {
     ),
     **create_HistConf(
         "JetVBFLeadingMjjNotFromHiggs",
-        "btagPNetB",
+        "btagB",
         bins=100,
         pos=1,
         start=0,
         stop=1,
-        label="JetVBFLeadingMjjNotFromHiggs_btagPNetB1",
+        label="JetVBFLeadingMjjNotFromHiggs_btagB1",
     ),
     **create_HistConf(
         "JetVBFLeadingMjjNotFromHiggs",
-        "btagPNetQvG",
+        "btagQvG",
         bins=100,
         pos=1,
         start=0,
         stop=1,
-        label="JetVBFLeadingMjjNotFromHiggs_btagPNetQvG1",
+        label="JetVBFLeadingMjjNotFromHiggs_btagQvG1",
     ),
     **create_HistConf(
         "events",

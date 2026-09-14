@@ -56,7 +56,7 @@ def hh4b_presel_cuts(events, params, **kwargs):
     mask_pt = ak.where(ak.is_none(mask_pt_none), False, mask_pt_none)
 
     mask_btag = (
-        jets_btag_order.btagPNetB[:, 0] + jets_btag_order.btagPNetB[:, 1]
+        jets_btag_order.btagB[:, 0] + jets_btag_order.btagB[:, 1]
     ) / 2 > params["mean_pnet_jet"]
 
     mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
@@ -213,8 +213,8 @@ def hh4b_2b_cuts(events, params, **kwargs):
 
     jets_btag_order = events.JetGoodHiggs[at_least_four_jets_none]
 
-    mask = (jets_btag_order.btagPNetB[:, 2] < params["third_pnet_jet"]) & (
-        jets_btag_order.btagPNetB[:, 3] < params["fourth_pnet_jet"]
+    mask = (jets_btag_order.btagB[:, 2] < params["third_pnet_jet"]) & (
+        jets_btag_order.btagB[:, 3] < params["fourth_pnet_jet"]
     )
 
     # Pad None values with False
@@ -228,8 +228,8 @@ def hh4b_4b_cuts(events, params, **kwargs):
 
     jets_btag_order = events.JetGoodHiggs[at_least_four_jets_none]
 
-    mask = (jets_btag_order.btagPNetB[:, 2] > params["third_pnet_jet"]) & (
-        jets_btag_order.btagPNetB[:, 3] > params["fourth_pnet_jet"]
+    mask = (jets_btag_order.btagB[:, 2] > params["third_pnet_jet"]) & (
+        jets_btag_order.btagB[:, 3] > params["fourth_pnet_jet"]
     )
 
     # Pad None values with False
