@@ -4,7 +4,6 @@ import cloudpickle
 from configs.HH4b_common.config_files.__config_file__ import (
     config_options_dict,
 )
-from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.weights.common.common import common_weights
 from pocket_coffea.parameters import defaults
 from pocket_coffea.parameters.cuts import passthrough
@@ -16,10 +15,11 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
-    DEFAULT_FATJET_COLUMNS,
     create_DNN_columns_list,
     define_categories,
+    define_single_category,
     define_preselection,
     get_columns_list,
     get_variables_dict,
@@ -28,29 +28,29 @@ from configs.HH4b_common.config_files.configurator_tools import (
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
 )
-from configs.VBF_HH4b_boosted.workflow import VBFHH4bProcessor
+from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
+SPANET_TRAINING = True
+
 
 localdir = os.path.dirname(os.path.abspath(__file__))
-
 
 # Loading default parameters
 default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # adding object preselection
-# year = ["2022_postEE"]
-year = ["2024"]
+year = ["2023_postBPix"]
+config_options_dict["year"] = year
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
-    f"{localdir}/../HH4b_common/params/triggers_boosted.yaml",
+    f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
-    # f"{localdir}/../HH4b_common/params/jets_calibration_regression_json_onlyJEC.yaml",
     update=True,
 )
 
@@ -59,7 +59,6 @@ if config_options_dict["save_chunk"]:
         "save_chunk"
     ]
 
-print(config_options_dict)
 # Define the variables to save
 variables_dict = get_variables_dict(
     year,
@@ -70,7 +69,6 @@ variables_dict = get_variables_dict(
     SCORE=bool(config_options_dict["sig_bkg_dnn"]),
     RUN2=config_options_dict["run2"],
     SPANET=bool(config_options_dict["spanet"]),
-    BOOSTED=config_options_dict["boosted"],
 )
 # variables_dict = {}
 
@@ -92,56 +90,56 @@ sample_ggF_list = [
     # "GluGlutoHHto4B_spanet_kl-2p00_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-1p50_kt-1p00_c2-0p00_skimmed",
     # "GluGlutoHHto4B_spanet_kl-0p50_kt-1p00_c2-0p00_skimmed",
-    # "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
-    # "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
-    # "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
-    # "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
-    # "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
-    # "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
-    # "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
-    # "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
-    # "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
-    # "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
+    # 2023 Post_BPix
+    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
+    "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
 ]
 
-sample_VBF_list=[
-    # "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
-    # "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
-    # "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
-    # "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
-    # "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
-    # "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
-    # "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
-    # "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
-    # "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96",
-    # "VBFHHto4B_CV_1_C2V_0_C3_1",
-    # "VBFHHto4B_CV_1_C2V_1_C3_1",
+sample_VBF_list = [
+    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+    # "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94", # not present in 2023_postBPix
+    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+    "VBFHHto4B_CV_1_C2V_0_C3_1",
+    "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
+
+sample_ZZ_ZH_list = [
+    "ZZTo4B01j",
+    "ggZH_HToBB_ZToBB",
+    "ZH_ZToBB_HToBB"
+]
+
 sample_list = (
     [
         # 2022 preEE
         # "DATA_JetMET_JMENano_C_skimmed",
         # "DATA_JetMET_JMENano_D_skimmed",
         # 2022 postEE
-        # "DATA_JetMET_JMENano_E",
-        # "DATA_JetMET_JMENano_F",
-        # "DATA_JetMET_JMENano_G",
-        # "TTtoLNu2Q",
-        # "TTto2L2Nu",
-        # "TTto4Q",
-        # "DATA_ParkingHH",
-        "DATA_JetMET0_HH4bBoosted"
+        # "DATA_JetMET_JMENano_E_skimmed",
+        # "DATA_JetMET_JMENano_F_skimmed",
+        # "DATA_JetMET_JMENano_G_skimmed",
+        # 2023 postBPix
+        "DATA_ParkingHH",
     ]
     + sample_ggF_list
     + sample_VBF_list
+    + sample_ZZ_ZH_list
     + (
         [
-        #     "GluGlutoHHto4B_spanet_skimmed",
-        #     # "GluGlutoHHto4B",
-        # "GluGlutoHHto4B_spanet"
+            #     "GluGlutoHHto4B_spanet_skimmed",
+            #     # "GluGlutoHHto4B",
+            # "GluGlutoHHto4B_spanet"
         ]
     )
 )
+
 
 # Define the categories to save
 categories_dict = define_categories(
@@ -150,29 +148,35 @@ categories_dict = define_categories(
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
     vr1=config_options_dict["vr1"],
-    boosted=config_options_dict["boosted"],
-    other_group=True if config_options_dict["approach"] == "boosted" else False,
-    split_qcd=config_options_dict["split_qcd"] if config_options_dict["boosted"] else False,
-    # vbf_analysis=config_options_dict["vbf_analysis"],
-    vbf_analysis=(
-        config_options_dict["vbf_selection"]
-        if config_options_dict.get("vbf_selection") is not None
-        else config_options_dict["vbf_analysis"]
-    ),
+    vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_discriminator=config_options_dict["vbf_discriminator"],
-    ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
 )
 
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
-column_list=[]
+if SPANET_TRAINING:
+    # categories_dict = define_single_category("hh4b_vbf_best_candidates_6_jets_nokincut_region")
+    # categories_dict |= define_single_category("hh4b_vbf_best_candidates_6_jets_region")
+    categories_dict |= define_single_category("4b_region")
+
+column_list = []
 
 # Add SPANet training inputs
-if not config_options_dict["spanet"] and not config_options_dict["run2"] and not config_options_dict["boosted"]:
-    print("somehow we arrived at a wrong point")
+if not config_options_dict["spanet"]:
     if not config_options_dict["vbf_analysis"]:
-        column_list += get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"])
+        column_list += get_columns_list(
+            SPANET_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
+        )
+        if config_options_dict["dnn_variables"]:
+            total_input_columns = (
+                config_options_dict["sig_bkg_dnn_input_variables"]
+                | config_options_dict["bkg_morphing_dnn_input_variables"]
+                | {"year": ["events", "year"]}
+            )
+            column_list += create_DNN_columns_list(
+                False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+            )
     else:
         column_list += get_columns_list(
             with_fw_momenta_columns(
@@ -182,6 +186,23 @@ if not config_options_dict["spanet"] and not config_options_dict["run2"] and not
             ),
             not config_options_dict["save_chunk"],
         )
+elif (
+    config_options_dict["vbf_matching_after_higgs_pairing"]
+    and not config_options_dict["run2"]
+):
+    column_list += get_columns_list(
+        SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, not config_options_dict["save_chunk"]
+    )
+    if config_options_dict["dnn_variables"]:
+        total_input_columns = (
+            config_options_dict["sig_bkg_dnn_input_variables"]
+            | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | {"year": ["events", "year"]}
+        )
+        column_list += create_DNN_columns_list(
+            False, not config_options_dict["save_chunk"], total_input_columns, btag=False
+        )
+
 else:
     # Define the other columns to save
     total_input_columns = {}
@@ -204,22 +225,14 @@ else:
         }
 
     if config_options_dict["dnn_variables"]:
-        # Be aware, that for boosted, you need a boosted sig/bkg and morphing
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
-            | {"year": ["events", "year"],
-               "vbf_jet_prov": ["JetGoodVBF", "provenance"],
-               "vbf_cand_jet_prov": ["JetGoodVBFCandidates", "provenance"],
-               "Higgs_leading_btag": ["HiggsLeading", "btagBB"],
-               "Higgs_subleading_btag": ["HiggsSubLeading", "btagBB"],
-              }
+            | {"year": ["events", "year"]}
         )
-        column_list += get_columns_list({})
-    elif config_options_dict["boosted"]:
-        column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
-
     else:
+        total_input_columns |= DEFAULT_JET_COLUMNS_DICT
+    if BASELINE:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
     column_list += create_DNN_columns_list(
@@ -262,21 +275,17 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b.json",
-            # f"{localdir}/../HH4b_common/datasets/DATA_JetMET_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/DATA_JetMET.json",
-            # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH.json",
-            # f"{localdir}/../HH4b_common/datasets/background_TTtoX.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_pnfs_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_boosted_test_24EraD.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
+            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_2023_postBPix_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_official_2023_postBPix_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_2023_postBPix_skimmed_hadd.json",
         ],
         "filter": {
             "samples": sample_list,
             "samples_exclude": [],
-            "year": year,
+            # "year": year,
         },
         "subsamples": {},
     },
@@ -286,7 +295,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight],
+    + ([bkg_morphing_dnn_weight] if not BASELINE else []),
     weights={
         "common": {
             "inclusive": [

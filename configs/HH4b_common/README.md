@@ -94,6 +94,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `no_btag` | `False` | Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`). Needed to measure the b-tag WP efficiencies, which has to be done in a region where no cut on the b-tag score is applied. The configs in `configs/HH4b_btagging` turn it on at the call site with `define_preselection(config_options_dict | {"no_btag": True})`. |
 | `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
 | `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
+| `xx4b_presel` | `False` | Apply a gen-level cut selecting $X(\to b\bar{b})X(\to b\bar{b})$ decays (X = H or Z), adding `cuts.XX4b_presel` to the preselection. Needed for the private ZZ/ZH samples, which are inclusive in the decay channel. Off by default because it changes the yields of every sample whose name contains "HH", "ZH" or "ZZ". |
 
 ### Trigger scale factors
 
@@ -225,6 +226,29 @@ To build the datasets needed for the Analysis, run the following command on `tie
 ```bash
 "build-datasets --cfg datasets/datasets_definitions.json -o -rs 'T[123]_(FR|IT|BE|CH|DE|US)_\w+'"
 ```
+
+#### Merge dataset-definition JSON files
+
+[`utils_configs/merge_ordered_datasets.py`](../../utils_configs/merge_ordered_datasets.py) merges several
+dataset-definition JSON files (e.g. the per-batch `skimmed_dataset_definition_hadd.json`
+produced by `pocket-coffea hadd-skimmed-files`) into a single file, with the dataset keys
+ordered like a reference redirector JSON instead of just concatenated:
+
+```bash
+python3 utils_configs/merge_ordered_datasets.py <input1.json> <input2.json> [...] \
+  -r <order_reference.json> -o <output.json>
+
+# e.g.
+python3 utils_configs/merge_ordered_datasets.py \
+  /work/mmalucch/out_hh4b/signal_ggF_HH4b_skim_22_23/skimmed_dataset_definition_hadd.json \
+  /work/mmalucch/out_hh4b/signal_ggF_HH4b_skim/skimmed_dataset_definition_hadd.json \
+  -r configs/HH4b_common/datasets/signal_ggF_HH4b_official_redirector.json \
+  -o configs/HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json
+```
+
+It errors out if the same dataset key appears in more than one input file, and warns (but
+does not fail) if some input keys are missing from the order-reference file — those are
+appended at the end, in the order they were encountered.
 
 ### Skimming
 

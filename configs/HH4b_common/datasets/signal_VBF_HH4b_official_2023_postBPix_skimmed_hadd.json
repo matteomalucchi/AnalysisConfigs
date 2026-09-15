@@ -1,0 +1,194 @@
+{
+  "VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_1_C2V_0_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV_1_C2V_0_C3_1",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.009846",
+      "nevents": "1532139",
+      "size": "4010237815",
+      "skim_efficiency": "0.46130243489586864",
+      "skim_rescale_genweights": "2.1677752",
+      "sum_genweights": 3321333.0,
+      "sum_signOf_genweights": 3321333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix_3.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_0_C3_1_2023_postBPix_4.root"
+    ]
+  },
+  "VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_1_C2V_1_C3_1_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV_1_C2V_1_C3_1",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.00064",
+      "nevents": "803641",
+      "size": "1804725168",
+      "skim_efficiency": "0.2426208355258967",
+      "skim_rescale_genweights": "4.1216574",
+      "sum_genweights": 3312333.0,
+      "sum_signOf_genweights": 3312333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix/VBFHHto4B_CV_1_C2V_1_C3_1_2023_postBPix_3.root"
+    ]
+  },
+  "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.132782",
+      "nevents": "1078813",
+      "size": "2529276772",
+      "skim_efficiency": "0.32510691362199035",
+      "skim_rescale_genweights": "3.0759113",
+      "sum_genweights": 3318333.0,
+      "sum_signOf_genweights": 3318333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix/VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4_2023_postBPix_3.root"
+    ]
+  },
+  "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "4.2e-06",
+      "nevents": "1341577",
+      "size": "3495024597",
+      "skim_efficiency": "0.40319889833689626",
+      "skim_rescale_genweights": "2.4801655",
+      "sum_genweights": 3327333.0,
+      "sum_signOf_genweights": 3327333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix_3.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix/VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2_2023_postBPix_4.root"
+    ]
+  },
+  "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.1192",
+      "nevents": "1243890",
+      "size": "3005005198",
+      "skim_efficiency": "0.3745152925045456",
+      "skim_rescale_genweights": "2.6701179",
+      "sum_genweights": 3321333.0,
+      "sum_signOf_genweights": 3321333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix_3.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix/VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3_2023_postBPix_4.root"
+    ]
+  },
+  "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.000374",
+      "nevents": "930305",
+      "size": "2116961209",
+      "skim_efficiency": "0.2800998876053681",
+      "skim_rescale_genweights": "3.570155",
+      "sum_genweights": 3321333.0,
+      "sum_signOf_genweights": 3321333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix/VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43_2023_postBPix_3.root"
+    ]
+  },
+  "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.003882",
+      "nevents": "731540",
+      "size": "1607896539",
+      "skim_efficiency": "0.22596995736922953",
+      "skim_rescale_genweights": "4.425367",
+      "sum_genweights": 3237333.0,
+      "sum_signOf_genweights": 3237333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_postBPix/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_postBPix/VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36_2023_postBPix_2.root"
+    ]
+  },
+  "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.00559",
+      "nevents": "1182227",
+      "size": "2850865390",
+      "skim_efficiency": "0.36017887277128796",
+      "skim_rescale_genweights": "2.7763982",
+      "sum_genweights": 3282333.0,
+      "sum_signOf_genweights": 3282333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix_3.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix/VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39_2023_postBPix_4.root"
+    ]
+  },
+  "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix": {
+    "metadata": {
+      "das_names": "['/VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv13-133X_mcRun3_2023_realistic_postBPix_ForNanov13_v2-v2/NANOAODSIM']",
+      "sample": "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+      "year": "2023_postBPix",
+      "isMC": "True",
+      "xsec": "0.2256356",
+      "nevents": "1077805",
+      "size": "2490469898",
+      "skim_efficiency": "0.32450976761438854",
+      "skim_rescale_genweights": "3.0815713",
+      "sum_genweights": 3321333.0,
+      "sum_signOf_genweights": 3321333.0,
+      "isSkim": "True"
+    },
+    "files": [
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix_1.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix_2.root",
+      "/pnfs/psi.ch/cms/trivcat/store/user/bevila_t/PostDoc/HH4b/skimmed_files/vbfhh_2023_postBPix/hadded/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix/VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96_2023_postBPix_3.root"
+    ]
+  }
+}
