@@ -103,6 +103,8 @@ SPANET_TRAINING_DEFAULT_COLUMNS_BTWP = {
 SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "provenance",
     "provenance_higgs",
+    "provenance_z",
+    "provenance_X",
     "provenance_vbf",
     "pt",
     "eta",
@@ -509,6 +511,9 @@ def define_categories(
                 categories_dict |= define_single_category(
                     f"2b_signal_region_postW"
                 )
+                categories_dict |= (
+                    define_single_category(f"2b_region_postW")
+                )
                 if high_score_reg:
                     categories_dict |= (
                         define_single_category("2b_signal_region_postW_high_score_blind")
@@ -612,4 +617,12 @@ def define_preselection(options):
     # corrected pT after the Calibrators have run
     if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
+
+    # Optional gen-level cut selecting X(->bb)X(->bb) decays (X = H or Z).
+    # Needed only by the private ZZ/ZH samples, which are inclusive in the
+    # decay channel. Off by default because it changes the yields of every
+    # sample whose name contains "HH", "ZH" or "ZZ".
+    if options["xx4b_presel"]:
+        preselection.append(cuts.XX4b_presel)
+
     return preselection
