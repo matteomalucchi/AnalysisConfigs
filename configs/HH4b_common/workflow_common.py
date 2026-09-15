@@ -35,12 +35,6 @@ from .custom_object_preselection_common import lepton_selection
 vector.register_awkward()
 
 # fix random seed
-# NOTE: this only fixes the *global* numpy RNG. It runs at import time, so every
-# worker process starts from the same state: it must not be used for anything
-# that has to be independent between chunks. The jet pt smearing of `flatten_pt`
-# uses its own per-chunk generator instead.
-np.random.seed(42)
-
 # master seed of the jet pt smearing: change it to regenerate a training sample
 # with completely different random weights
 RANDOM_PT_SEED = 42
@@ -308,9 +302,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
         The generator is seeded from the dataset name and from the first event of
         the chunk, so the weights are reproducible from one run to the next,
         differ between chunks and between datasets, and do not depend on which
-        worker picks the chunk up. The global numpy RNG cannot be used for this:
-        `np.random.seed(42)` runs at import time, so every worker process would
-        replay the very same sequence.
+        worker picks the chunk up.
         """
         if rand_type == 0.5:
             low, width = 0.5, 1.0  # [0.5,1.5]
