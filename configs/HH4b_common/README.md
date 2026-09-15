@@ -94,6 +94,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `no_btag` | `False` | Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`). Needed to measure the b-tag WP efficiencies, which has to be done in a region where no cut on the b-tag score is applied. The configs in `configs/HH4b_btagging` turn it on at the call site with `define_preselection(config_options_dict | {"no_btag": True})`. |
 | `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
 | `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
+| `xx4b_presel` | `False` | Apply a gen-level cut selecting $X(\to b\bar{b})X(\to b\bar{b})$ decays (X = H or Z), adding `cuts.XX4b_presel` to the preselection. Needed for the private ZZ/ZH samples, which are inclusive in the decay channel. Off by default because it changes the yields of every sample whose name contains "HH", "ZH" or "ZZ". |
 
 ### Truth matching (MC only)
 
