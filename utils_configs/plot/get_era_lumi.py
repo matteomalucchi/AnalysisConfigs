@@ -47,8 +47,8 @@ def get_era_lumi(dataset_data):
                 era_list.append("23 Era Cv4")
             elif "EraDv1" in dataset:
                 era_list.append("23 Era Dv1")
-            elif "EraDv1" in dataset:
-                era_list.append("23 Era Dv1")
+            elif "EraDv2" in dataset:
+                era_list.append("23 Era Dv2")
             elif "preBPix" in dataset:
                 era_list.append("23 preBPix")
             elif "postBPix" in dataset:
@@ -58,6 +58,9 @@ def get_era_lumi(dataset_data):
     print("Found eras in datasets")
     print(era_list)
     assert len(era_list) > 0
+    # several datasets can share an era (DATA_JetMET0 + DATA_JetMET1): keep each
+    # era once, otherwise its luminosity is counted per dataset
+    era_list = list(dict.fromkeys(era_list))
 
     # If nothing else will be satisfied:
     era_string = ", ".join(era_list)
@@ -69,7 +72,7 @@ def get_era_lumi(dataset_data):
         era_string = "22 preEE"
     elif all([era in era_list for era in ["22 Era E", "22 Era F", "22 Era G"]]):
         era_string = "22 postEE"
-    elif all([era in era_list for era in ["23 Era Cv1", "22 Era Cv2"]]):
+    elif all([era in era_list for era in ["23 Era Cv1", "23 Era Cv2"]]):
         era_string = "23 preParkingHH"
     elif all(
         [
