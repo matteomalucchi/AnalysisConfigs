@@ -185,7 +185,7 @@ default_jets_calibration:
     # From 2024 on the pt regression uses UParTAK4, the same algorithm that is
     # the default for the b-tagging of the year. The JERC corrections of the
     # regressed jets are read from the same file as the ParticleNet ones.
-    AK4PFPuppiUParTAK4Regression:
+    AK4PFPuppiUParTRegression:
       "2024":
         json_path: "${path_to_JERC_regression_files}/Run3Summer24Prompt24/latest/regJet_jerc.json.gz"
         jec_mc: Summer24Prompt24_V5_MC
@@ -201,7 +201,7 @@ default_jets_calibration:
         level: L1L2L3Res
 
 
-    AK4PFPuppiUParTAK4RegressionPlusNeutrino:
+    AK4PFPuppiUParTRegressionPlusNeutrino:
       "2024":
         json_path: "${path_to_JERC_regression_files}/Run3Summer24Prompt24/latest/regJet_jerc.json.gz"
         jec_mc: Summer24Prompt24_V5_MC
@@ -435,8 +435,8 @@ default_jets_calibration:
         "2025": "${default_jets_calibration.variations.full_variations.AK4PFPuppi.2025}"
       AK4PFPuppiPNetRegression: "${default_jets_calibration.variations.full_variations.AK4PFPuppi}"
       AK4PFPuppiPNetRegressionPlusNeutrino: "${default_jets_calibration.variations.full_variations.AK4PFPuppi}"
-      AK4PFPuppiUParTAK4Regression: "${default_jets_calibration.variations.full_variations.AK4PFPuppi}"
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: "${default_jets_calibration.variations.full_variations.AK4PFPuppi}"
+      AK4PFPuppiUParTRegression: "${default_jets_calibration.variations.full_variations.AK4PFPuppi}"
+      AK4PFPuppiUParTRegressionPlusNeutrino: "${default_jets_calibration.variations.full_variations.AK4PFPuppi}"
 
     total_variation: 
       AK4PFchs:
@@ -485,8 +485,8 @@ default_jets_calibration:
         - JER
       AK4PFPuppiPNetRegression: "${default_jets_calibration.variations.total_variation.AK4PFPuppi}"
       AK4PFPuppiPNetRegressionPlusNeutrino: "${default_jets_calibration.variations.total_variation.AK4PFPuppi}"
-      AK4PFPuppiUParTAK4Regression: "${default_jets_calibration.variations.total_variation.AK4PFPuppi}"
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: "${default_jets_calibration.variations.total_variation.AK4PFPuppi}"
+      AK4PFPuppiUParTRegression: "${default_jets_calibration.variations.total_variation.AK4PFPuppi}"
+      AK4PFPuppiUParTRegressionPlusNeutrino: "${default_jets_calibration.variations.total_variation.AK4PFPuppi}"
 
 #####################################################################################
 # Default jets calibration for the user used by the processor
@@ -501,8 +501,8 @@ jets_calibration:
     AK4CorrT1METJetPuppi: "${default_jets_calibration.factory_config_clib.AK4PFPuppi}" 
     AK4PFPuppiPNetRegression: "${default_jets_calibration.factory_config_clib.AK4PFPuppiPNetRegression}" 
     AK4PFPuppiPNetRegressionPlusNeutrino: "${default_jets_calibration.factory_config_clib.AK4PFPuppiPNetRegressionPlusNeutrino}" 
-    AK4PFPuppiUParTAK4Regression: "${default_jets_calibration.factory_config_clib.AK4PFPuppiUParTAK4Regression}" 
-    AK4PFPuppiUParTAK4RegressionPlusNeutrino: "${default_jets_calibration.factory_config_clib.AK4PFPuppiUParTAK4RegressionPlusNeutrino}" 
+    AK4PFPuppiUParTRegression: "${default_jets_calibration.factory_config_clib.AK4PFPuppiUParTRegression}" 
+    AK4PFPuppiUParTRegressionPlusNeutrino: "${default_jets_calibration.factory_config_clib.AK4PFPuppiUParTRegressionPlusNeutrino}" 
     AK8PFPuppi: "${default_jets_calibration.factory_config_clib.AK8PFPuppi}"
     
   collection:  # this is needed to know which collection is corrected with which jet factory
@@ -549,14 +549,14 @@ jets_calibration:
     "2024":
       AK4PFPuppi: "JetDefault"
       AK4CorrT1METJetPuppi: "CorrT1METJet"
-      AK4PFPuppiUParTAK4Regression: "JetPtRegressed"
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: "JetPtRegressedPlusNeutrino"
+      AK4PFPuppiUParTRegression: "JetPtRegressed"
+      AK4PFPuppiUParTRegressionPlusNeutrino: "JetPtRegressedPlusNeutrino"
       AK8PFPuppi: "FatJet"
     "2025":
       AK4PFPuppi: "JetDefault"
       AK4CorrT1METJetPuppi: "CorrT1METJet"
-      AK4PFPuppiUParTAK4Regression: "JetPtRegressed"
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: "JetPtRegressedPlusNeutrino"
+      AK4PFPuppiUParTRegression: "JetPtRegressed"
+      AK4PFPuppiUParTRegressionPlusNeutrino: "JetPtRegressedPlusNeutrino"
       AK8PFPuppi: "FatJet"
 
   collection_name_alias:
@@ -601,33 +601,33 @@ jets_calibration:
     2022_preEE:
       AK4Jet: 
         - AK4PFPuppi
-        # - AK4PFPuppiPNetRegression
+        - AK4PFPuppiPNetRegression
         - AK4PFPuppiPNetRegressionPlusNeutrino
     2022_postEE:
       AK4Jet: 
         - AK4PFPuppi
-        # - AK4PFPuppiPNetRegression
+        - AK4PFPuppiPNetRegression
         - AK4PFPuppiPNetRegressionPlusNeutrino
     2023_preBPix:
       AK4Jet: 
         - AK4PFPuppi
-        # - AK4PFPuppiPNetRegression
+        - AK4PFPuppiPNetRegression
         - AK4PFPuppiPNetRegressionPlusNeutrino
     2023_postBPix:
       AK4Jet: 
         - AK4PFPuppi
-        # - AK4PFPuppiPNetRegression
+        - AK4PFPuppiPNetRegression
         - AK4PFPuppiPNetRegressionPlusNeutrino
     "2024":
       AK4Jet: 
         - AK4PFPuppi
-        # - AK4PFPuppiUParTAK4Regression
-        - AK4PFPuppiUParTAK4RegressionPlusNeutrino
+        - AK4PFPuppiUParTRegression
+        - AK4PFPuppiUParTRegressionPlusNeutrino
     "2025":
       AK4Jet: 
         - AK4PFPuppi
-        # - AK4PFPuppiUParTAK4Regression
-        - AK4PFPuppiUParTAK4RegressionPlusNeutrino
+        - AK4PFPuppiUParTRegression
+        - AK4PFPuppiUParTRegressionPlusNeutrino
 
   sort_by_pt:
     2016_PreVFP:
@@ -665,13 +665,13 @@ jets_calibration:
     "2024":
       AK4PFPuppi: False
       AK8PFPuppi: False
-      AK4PFPuppiUParTAK4Regression: False
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: False
+      AK4PFPuppiUParTRegression: False
+      AK4PFPuppiUParTRegressionPlusNeutrino: False
     "2025":
       AK4PFPuppi: False
       AK8PFPuppi: False
-      AK4PFPuppiUParTAK4Regression: False
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: False
+      AK4PFPuppiUParTRegression: False
+      AK4PFPuppiUParTRegressionPlusNeutrino: False
   
   apply_jec_MC:  # this is needed to know which collection is corrected with which jet factory
     2016_PreVFP: 
@@ -708,13 +708,13 @@ jets_calibration:
       AK8PFPuppi: True
     "2024": 
       AK4PFPuppi: True
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
       AK8PFPuppi: True
     "2025": 
       AK4PFPuppi: True
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
       AK8PFPuppi: True      
 
   apply_jer_MC:  # this is needed to know which collection is corrected with which jet factory
@@ -752,13 +752,13 @@ jets_calibration:
       AK8PFPuppi: True
     "2024": 
       AK4PFPuppi: True
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
       AK8PFPuppi: True
     "2025": 
       AK4PFPuppi: True
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
       AK8PFPuppi: True
 
   apply_jec_Data:  # this is needed to know which collection is corrected with which jet factory
@@ -796,13 +796,13 @@ jets_calibration:
       AK8PFPuppi: True
     "2024": 
       AK4PFPuppi: True
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
       AK8PFPuppi: True
     "2025": 
       AK4PFPuppi: True
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
       AK8PFPuppi: True
 
   #  Default configuration for pt Regression  **before** JEC
@@ -851,14 +851,14 @@ jets_calibration:
       AK4PFPuppi: False
       AK8PFPuppi: False
       AK4CorrT1METJetPuppi: False
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
     "2025": 
       AK4PFPuppi: False
       AK8PFPuppi: False
       AK4CorrT1METJetPuppi: False
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True      
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True      
 
   apply_pt_regr_Data:
     2016_PreVFP: 
@@ -905,14 +905,14 @@ jets_calibration:
       AK4PFPuppi: False
       AK8PFPuppi: False
       AK4CorrT1METJetPuppi: False
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True
     "2025": 
       AK4PFPuppi: False
       AK8PFPuppi: False
       AK4CorrT1METJetPuppi: False
-      AK4PFPuppiUParTAK4Regression: True
-      AK4PFPuppiUParTAK4RegressionPlusNeutrino: True      
+      AK4PFPuppiUParTRegression: True
+      AK4PFPuppiUParTRegressionPlusNeutrino: True      
 
   apply_jec_msoftdrop_MC:
     2016_PreVFP: 

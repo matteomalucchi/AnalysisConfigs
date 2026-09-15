@@ -156,7 +156,7 @@ configuration then runs on every year, and the working points are read from
 
 The pT-regressed collections are `JetPtRegressed` and
 `JetPtRegressedPlusNeutrino`, filled by the jet calibration of the year
-(`AK4PFPuppiPNetRegression*` up to 2023, `AK4PFPuppiUParTAK4Regression*` from
+(`AK4PFPuppiPNetRegression*` up to 2023, `AK4PFPuppiUParTRegression*` from
 2024 on). `Jet` is rebuilt from them and from `JetDefault` in
 `apply_object_preselection`.
 

@@ -20,9 +20,9 @@ BTAG_GENERIC_FIELDS = {
     "QvG": "btagQvG",
 }
 
-# pT-regression algorithms supported by PocketCoffea's `JetsCalibrator`, longest
-# name first so that `UParTAK4V1` is not matched as `UParTAK4`.
-PT_REGRESSION_ALGORITHMS = ("UParTAK4V1", "UParTAK4", "PNet")
+# pT-regression algorithms supported by PocketCoffea's `JetsCalibrator` 
+# and the branch with the pT resolution estimated by the regression.
+PT_REGRESSION_ALGORITHMS = {"PNet": "PNetRegPtRawRes", "UParT": "UParTAK4RegPtRawRes"}
 
 # name of the collection holding the pT-regressed jets
 PT_REGRESSED_COLLECTION = "JetPtRegressed"
@@ -87,7 +87,7 @@ def get_pt_regression_algorithm(params, year, collection=PT_REGRESSED_COLLECTION
     """Return the pT-regression algorithm calibrating `collection` in `year`.
 
     The algorithm is the one that PocketCoffea's `JetsCalibrator` derives from
-    the name of the jet type (e.g. `AK4PFPuppiUParTAK4Regression` -> UParTAK4).
+    the name of the jet type (e.g. `AK4PFPuppiRegression` -> UParTAK4).
     """
     calibrated_collections = params["jets_calibration"]["collection"][year]
     jet_types = [
@@ -101,13 +101,13 @@ def get_pt_regression_algorithm(params, year, collection=PT_REGRESSED_COLLECTION
             "Make sure the pT regression is configured in jets_calibration."
         )
 
-    for algorithm in PT_REGRESSION_ALGORITHMS:
+    for algorithm in PT_REGRESSION_ALGORITHMS.keys():
         if algorithm in jet_types[0]:
             return algorithm
 
     raise ValueError(
         f"The jet type '{jet_types[0]}' does not name any of the supported pT "
-        f"regression algorithms {PT_REGRESSION_ALGORITHMS}."
+        f"regression algorithms {PT_REGRESSION_ALGORITHMS.keys()}."
     )
 
 
@@ -116,4 +116,4 @@ def get_pt_regression_resolution_branch(
 ):
     """Return the branch with the pT resolution estimated by the regression."""
     algorithm = get_pt_regression_algorithm(params, year, collection)
-    return f"{algorithm}RegPtRawRes"
+    return PT_REGRESSION_ALGORITHMS[algorithm]

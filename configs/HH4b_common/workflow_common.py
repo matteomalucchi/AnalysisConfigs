@@ -1533,7 +1533,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             # Define centrality
             for higgs_coll in ["HiggsLeading", "HiggsSubLeading"]:
-                centrality = np.exp(
+                centrality_value = np.exp(
                     -4
                     / (
                         self.events[jet_coll][:, jet_idx].eta
@@ -1550,7 +1550,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     )
                     ** 2
                 )
-                self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(centrality)
+                self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(centrality_value)
 
     def define_vbf_jet_pair(self, jet_vbf):
         """

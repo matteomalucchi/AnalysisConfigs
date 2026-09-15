@@ -179,6 +179,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             )
 
         super().process_extra_after_presel(variation=variation)
-        if not self.vbf_analysis:
+        if self._isMC and self.random_pt:
             self.events["JetGoodPtFlatten"] = copy.copy(self.events.JetGood)
             self.flatten_pt(self.rand_type, "JetGoodPtFlatten")
