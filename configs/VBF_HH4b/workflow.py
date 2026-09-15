@@ -245,7 +245,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 axis=1,
             )
 
-            if (self._isMC and self.random_pt) or (self.save_spanet_input_variables):
+            if (self._isMC and self.random_pt):
                 # flatten pt for all jets to train spanet
                 for jet_coll in [
                     "JetTotalSPANetPadded",
@@ -312,7 +312,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
             # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
-            if (self._isMC and self.random_pt) or (self.save_spanet_input_variables):
+            if (self._isMC and self.random_pt):
                 mjj_jet_colls = [
                     "JetTotalSPANetPadded",
                     "JetTotalSPANetPtFlattenPadded",
