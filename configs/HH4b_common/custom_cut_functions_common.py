@@ -343,9 +343,17 @@ def xx4b_cuts(events, params, **kwargs):
         return ak.ones_like(events.event, dtype=bool)
     else:
         genpart = copy.copy(events["GenPart"])
-        mother_pdg = genpart.pdgId[genpart.genPartIdxMother]
+        # genPartIdxMother is -1 for the particles without a stored mother:
+        # awkward reads it as a negative index and silently wraps around to the
+        # last GenPart of the event, so those particles are masked out
+        has_mother = genpart.genPartIdxMother >= 0
+        mother_pdg = genpart.pdgId[ak.where(has_mother, genpart.genPartIdxMother, 0)]
 
-        is_b_from_X = (abs(genpart.pdgId) == 5) & ((mother_pdg == 23) | (mother_pdg == 25))
+        is_b_from_X = (
+            has_mother
+            & (abs(genpart.pdgId) == 5)
+            & ((mother_pdg == 23) | (mother_pdg == 25))
+        )
         has_4_bs = ak.sum(is_b_from_X, axis=1) >= 4
 
         # Pad None values with False
