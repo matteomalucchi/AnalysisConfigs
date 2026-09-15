@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import logging
 
 import awkward as ak
@@ -34,7 +35,15 @@ from .custom_object_preselection_common import lepton_selection
 vector.register_awkward()
 
 # fix random seed
+# NOTE: this only fixes the *global* numpy RNG. It runs at import time, so every
+# worker process starts from the same state: it must not be used for anything
+# that has to be independent between chunks. The jet pt smearing of `flatten_pt`
+# uses its own per-chunk generator instead.
 np.random.seed(42)
+
+# master seed of the jet pt smearing: change it to regenerate a training sample
+# with completely different random weights
+RANDOM_PT_SEED = 42
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
@@ -292,28 +301,57 @@ class HH4bCommonProcessor(BaseProcessorABC):
     #     super().apply_preselection(self, variation)
     #     self._preselections = self._preselections_temp
 
-    def flatten_pt(self, rand_type, jet_collection):
+    def get_random_pt_weights(self, rand_type):
+        """
+        Draw one pt smearing factor per event for the current chunk.
+
+        The generator is seeded from the dataset name and from the first event of
+        the chunk, so the weights are reproducible from one run to the next,
+        differ between chunks and between datasets, and do not depend on which
+        worker picks the chunk up. The global numpy RNG cannot be used for this:
+        `np.random.seed(42)` runs at import time, so every worker process would
+        replay the very same sequence.
+        """
         if rand_type == 0.5:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) + 0.5
-            )  # [0.5,1.5]
+            low, width = 0.5, 1.0  # [0.5,1.5]
         elif rand_type == 0.3:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) * 1.4 + 0.3
-            )  # [0.3,1.7]
+            low, width = 0.3, 1.4  # [0.3,1.7]
         elif rand_type == 0.1:
-            random_weights = ak.Array(
-                np.random.rand((len(self.events[jet_collection].pt))) * 9.9 + 0.1
-            )  # [0.1,10.0]
+            low, width = 0.1, 9.9  # [0.1,10.0]
         else:
             raise ValueError(f"Invalid input. rand_type {rand_type} not known.")
 
-        random_weights = ak.to_regular(random_weights[:, np.newaxis], axis=1)
-        self.events = ak.with_field(
-            self.events,
-            random_weights,
-            "random_pt_weights",
-        )
+        if len(self.events) > 0:
+            chunk_tag = f"{self.events.luminosityBlock[0]}|{self.events.event[0]}"
+        else:
+            chunk_tag = "empty"
+        # hashlib instead of hash(): the built-in string hash is salted per
+        # process, so it would not be reproducible across runs
+        chunk_id = f"{RANDOM_PT_SEED}|{self.events.metadata['dataset']}|{chunk_tag}"
+        seed = int.from_bytes(hashlib.sha256(chunk_id.encode()).digest()[:8], "little")
+
+        rng = np.random.default_rng(seed)
+        random_weights = ak.Array(rng.random(len(self.events)) * width + low)
+        return ak.to_regular(random_weights[:, np.newaxis], axis=1)
+
+    def flatten_pt(self, rand_type, jet_collection):
+        # The smearing factor is a property of the event, not of the jet
+        # collection: several collections of the same chunk are flattened one
+        # after the other and then concatenated together (e.g. in
+        # JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded), and the factor is
+        # stored only once per event as `random_pt_weights`. So it is drawn once
+        # per chunk and reused by every following call, otherwise the two halves
+        # of an event would be scaled differently and the stored column would
+        # only match the collection flattened last.
+        if "random_pt_weights" in self.events.fields:
+            random_weights = self.events.random_pt_weights
+        else:
+            random_weights = self.get_random_pt_weights(rand_type)
+            self.events = ak.with_field(
+                self.events,
+                random_weights,
+                "random_pt_weights",
+            )
 
         self.events[jet_collection] = ak.with_field(
             self.events[jet_collection],
