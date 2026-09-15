@@ -34,7 +34,7 @@ def vbf_hh4b_presel_cuts(events, params, **kwargs):
     mask_pt = ak.where(ak.is_none(mask_pt_none), False, mask_pt_none)
 
     mask_btag = (
-        jets_btag_order.btagPNetB[:, 0] + jets_btag_order.btagPNetB[:, 1]
+        jets_btag_order.btagB[:, 0] + jets_btag_order.btagB[:, 1]
     ) / 2 > params["mean_pnet_jet"]
 
     mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)

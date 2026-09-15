@@ -158,6 +158,40 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
     return higgs_lead, higgs_sub, jets_ordered, None
 
 
+def reconstruct_vbf_jets_from_idx(jet_collection, vbf_idx_collection, valid_mask=None):
+    """
+    Build the VBF jet pair, ordered in energy, from the indices predicted by a
+    SPANet model doing the VBF pairing.
+
+    `vbf_idx_collection` has shape (n_events, 2) and refers to the position of
+    the jets inside `jet_collection`. The events for which the two predicted
+    jets are not distinct, or which are vetoed by `valid_mask`, are set to None
+    so that they behave like the output of `get_lead_mjj_jet_pair`.
+    """
+    vbf_idx = ak.Array(np.asarray(vbf_idx_collection))
+
+    # select the jets with a boolean mask instead of a positional index, so that
+    # a prediction pointing outside of the available jets cannot raise
+    local_idx = ak.local_index(jet_collection, axis=1)
+    mask_vbf = (local_idx == vbf_idx[:, 0]) | (local_idx == vbf_idx[:, 1])
+
+    vbf_jets = add_fields(jet_collection[mask_vbf], "all")
+    # sort jets by energy
+    vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
+
+    mask_two_jets = ak.num(vbf_jets, axis=1) == 2
+    if valid_mask is not None:
+        mask_two_jets = mask_two_jets & ak.Array(np.asarray(valid_mask))
+
+    vbf_jets = ak.pad_none(vbf_jets, 2, axis=1, clip=True)
+    # pad the vbf jets such that the events without a valid pair have two None
+    vbf_jets_pad_none = ak.mask(
+        vbf_jets, mask_two_jets[:, np.newaxis] * np.ones(2, dtype=bool)
+    )
+
+    return vbf_jets_pad_none
+
+
 def possible_higgs_reco(jets, comb_idx):
     """
     Currently `jets` is "JetsGoodHiggs", I just wanted to keep it modular.
