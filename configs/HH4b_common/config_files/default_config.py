@@ -105,6 +105,12 @@ default_config_options_dict = {
     # Drop the L1 seed requirement from the skim (`get_L1sel`). Needed for the
     # samples/eras for which the L1 emulation is not available.
     "noL1": False,
+    # Require, at gen level, two X -> bb decays (X = H or Z) with `XX4b_presel`.
+    # Needed only by the private ZZ/ZH samples, which are inclusive in the decay
+    # channel. Off by default because the cut acts on every dataset whose name
+    # contains "HH", "ZH" or "ZZ", so turning it on changes the yields of the
+    # ggF/VBF signal too and breaks the comparison with older results.
+    "xx4b_presel": False,
 
     # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)

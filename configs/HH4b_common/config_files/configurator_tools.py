@@ -1648,7 +1648,7 @@ def define_preselection(options):
     # Needed only by the private ZZ/ZH samples, which are inclusive in the
     # decay channel. Off by default because it changes the yields of every
     # sample whose name contains "HH", "ZH" or "ZZ".
-    if options.get("xx4b_presel", False):
+    if options["xx4b_presel"]:
         preselection.append(cuts.XX4b_presel)
 
     return preselection

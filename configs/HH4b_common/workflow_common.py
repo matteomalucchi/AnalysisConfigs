@@ -1618,21 +1618,42 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 max_num_jets_spanet=self.max_num_jets_spanet_class,
             )
             if out_type == "spanet":
-                if onnx_output["class_prob"][0].shape[1] > 2:
-                    print("Warning: multi-class DNN detected. Number of classes: ", onnx_output["class_prob"][0].shape[1])
-                    onnx_output = onnx_output["class_prob"][0]
+                class_prob = onnx_output["class_prob"][0]
+                if class_prob.shape[1] > 2:
+                    print(
+                        "Warning: multi-class DNN detected. Number of classes: ",
+                        class_prob.shape[1],
+                    )
+                    onnx_output = class_prob
                 else:
-                    onnx_output = onnx_output["class_prob"][0][:, 1]
-            # if array is 1 dim just take it
+                    onnx_output = class_prob[:, 1]
+
             if isinstance(onnx_output, list):
-                # multi-output DNN — handle list of arrays
-                print("Warning: multi-output DNN detected. Not implemented yet.")
-            elif onnx_output.ndim == 1:
+                raise NotImplementedError(
+                    "multi-output DNN is not supported for sig_bkg_dnn: "
+                    f"get_onnx_prediction returned {len(onnx_output)} arrays"
+                )
+            # if array is 1 dim just take it
+            if onnx_output.ndim == 1:
                 self.events["sig_bkg_dnn_score"] = onnx_output
+            elif onnx_output.shape[1] <= 2:
+                # single-output or binary classifier: the signal probability is the
+                # last column, which for 2 classes is the same convention as the
+                # spanet branch above (`class_prob[:, 1]`)
+                self.events["sig_bkg_dnn_score"] = onnx_output[:, -1]
             else:
+                # multi-class classifier: save one column per class and build the
+                # signal-vs-background discriminant out of the first two.
+                # NOTE: this assumes classes 0 and 1 are the ones to discriminate;
+                # adapt it if the model orders its classes differently.
                 for i in range(onnx_output.shape[1]):
                     self.events[f"sig_bkg_dnn_score_{i}"] = onnx_output[:, i]
-                self.events["sig_bkg_dnn_score"] = self.events[f"sig_bkg_dnn_score_0"] / (self.events[f"sig_bkg_dnn_score_0"] + self.events[f"sig_bkg_dnn_score_1"])
+                self.events["sig_bkg_dnn_score"] = self.events[
+                    "sig_bkg_dnn_score_0"
+                ] / (
+                    self.events["sig_bkg_dnn_score_0"]
+                    + self.events["sig_bkg_dnn_score_1"]
+                )
 
             del (
                 model_session_SIG_BKG_DNN,
