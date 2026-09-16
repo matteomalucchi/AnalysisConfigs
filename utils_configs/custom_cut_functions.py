@@ -76,7 +76,7 @@ def custom_jet_selection(
     jet_tagger="",
     pt_type="pt",
     pt_cut_name="pt",
-    forward_jet_veto=False,
+    forward_jet_veto=None,
 ):
     """
     Custom jet selection function to apply selection on different pt types.
@@ -89,6 +89,10 @@ def custom_jet_selection(
         jet_tagger: str, jet tagger to use
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
+        forward_jet_veto: veto of the low-pt forward-endcap jets, implemented in
+            PocketCoffea. None follows the `forward_jet_mitigation.jet_veto`
+            parameters, True/False force the veto on/off for this call. The veto
+            is applied on `pt_type`, like the rest of the selection.
     """
     jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
 
@@ -115,21 +119,17 @@ def custom_jet_selection(
         "pt",
     )
 
-    _, selection_mask = jet_selection(
+    # the forward-endcap jet veto is part of the PocketCoffea jet selection and is
+    # applied on events_copy, whose pt is already the requested pt_type
+    _, mask = jet_selection(
         events_copy,
         jet_type_default,
         params_copy,
         year,
         leptons_collection,
         jet_tagger,
+        forward_jet_veto=forward_jet_veto,
     )
-
-    if forward_jet_veto:
-        # Apply forward jet veto
-        _, forward_mask = get_forward_jet_veto(events, jet_type, pt_type)
-        mask = selection_mask & forward_mask
-    else:
-        mask = selection_mask
 
     obj_param = params_copy.object_preselection[jet_type_obj_presel]
     if "dr_jet" in obj_param.keys():
@@ -148,15 +148,5 @@ def custom_jet_selection(
     # remove copies
     del params_copy
     del events_copy
-
-    return events[jet_type][mask], mask
-
-
-def get_forward_jet_veto(events, jet_type, pt_type):
-    # jets rejected if pT < 50 GeV and  2.5 < |η| < 3
-    eta_range = (abs(events[jet_type].eta) < 2.5) | (abs(events[jet_type].eta) > 3.0)
-    pt_mask = events[jet_type][pt_type] > 50
-
-    mask = eta_range | pt_mask
 
     return events[jet_type][mask], mask
