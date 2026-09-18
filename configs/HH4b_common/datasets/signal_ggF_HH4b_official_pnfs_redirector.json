@@ -456,7 +456,7 @@
             "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1988270",
             "size": "7559493451"
         },
@@ -1871,7 +1871,7 @@
             "sample": "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-0p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.02505",
             "nevents": "1981254",
             "size": "6169433080"
         },
@@ -2496,7 +2496,7 @@
             "sample": "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.00493",
             "nevents": "1964470",
             "size": "6486544013"
         },
@@ -3360,7 +3360,7 @@
             "sample": "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.03294",
             "nevents": "1980512",
             "size": "5717275431"
         },
@@ -3486,7 +3486,7 @@
             "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1992064",
             "size": "6598083626"
         },
@@ -3644,7 +3644,7 @@
             "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1931490",
             "size": "7413899638"
         },
@@ -3788,7 +3788,7 @@
             "sample": "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1996031",
             "size": "7021590010"
         },
@@ -3841,7 +3841,7 @@
             "sample": "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1957455",
             "size": "5601510244"
         },
@@ -3945,7 +3945,7 @@
             "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1957664",
             "size": "6586749812"
         },
@@ -4047,7 +4047,7 @@
             "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
             "year": "2024",
             "isMC": "True",
-            "xsec": "1.0",
+            "xsec": "0.01127",
             "nevents": "1999574",
             "size": "6455906029"
         },

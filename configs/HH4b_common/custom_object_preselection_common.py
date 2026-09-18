@@ -79,14 +79,14 @@ def jet_selection_nopu(
             & (np.abs(jets.eta) > cuts["eta_min"])
             & (np.abs(jets.eta) < cuts["eta_max"])
             & (jets.jetId >= cuts["jetId"])
-            & (jets.btagPNetB >= cuts["btagPNetB"])
+            & (jets.btagB >= cuts["btagB"])
         )
     else:
         mask_jets = (
             (jets.pt > cuts[pt_cut])
             & (np.abs(jets.eta) < cuts["eta"])
             & (jets.jetId >= cuts["jetId"])
-            & (jets.btagPNetB > cuts["btagPNetB"])
+            & (jets.btagB > cuts["btagB"])
         )
 
     return jets[mask_jets]

@@ -8,7 +8,7 @@ import vector
 
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
 from utils_configs.inference_session_onnx import get_model_session
-from utils_configs.reconstruct_higgs_candidates import (
+from utils_configs.reconstruct_resonances import (
     reconstruct_resonances_from_idx,
 )
 from utils_configs.spanet_evaluation_functions import get_best_pairings, get_pairing_information
@@ -130,6 +130,7 @@ class HH4bbtagWPefficiencyProcessor(HH4bCommonProcessor):
                 pairing_predictions,
                 self.events["best_pairing_probability"],
                 self.events["second_best_pairing_probability"],
+                _,
             ) = get_best_pairings(pairing_outputs)
 
             # get the probabilities difference between the best and second best jet assignment

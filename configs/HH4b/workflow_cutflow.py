@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 from configs.HH4b_common.workflow_common import HH4bCommonProcessor
-from utils_configs.reconstruct_higgs_candidates import (
+from utils_configs.reconstruct_resonances import (
     possible_higgs_reco,
     distance_pt_func
 )
