@@ -1617,14 +1617,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
         not reconstructed yet.
         """
         for jet_coll, jet_idx in zip(jet_colls, jet_idxs):
+            
+            jets=self.events[jet_coll]
+            
             # the 2 leading jets in mjj are the ones right after the JetGood
-            vbf_mjj = (
-                self.events[jet_coll][:, jet_idx] + self.events[jet_coll][:, jet_idx + 1]
-            ).mass
-            vbf_deta = abs(
-                self.events[jet_coll][:, jet_idx].eta
-                - self.events[jet_coll][:, jet_idx + 1].eta
-            )
+            vbf_mjj = (jets[:, jet_idx] + jets[:, jet_idx + 1]).mass
+            vbf_deta = abs(jets[:, jet_idx].eta - jets[:, jet_idx + 1].eta)
 
             self.events[f"mjj{jet_coll}"] = vbf_mjj
             self.events[f"deta{jet_coll}"] = vbf_deta
@@ -1636,18 +1634,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
             for higgs_coll in ["HiggsLeading", "HiggsSubLeading"]:
                 centrality_value = np.exp(
                     -4
-                    / (
-                        self.events[jet_coll][:, jet_idx].eta
-                        - self.events[jet_coll][:, jet_idx + 1].eta
-                    )
-                    ** 2
+                    / (jets[:, jet_idx].eta - jets[:, jet_idx + 1].eta) ** 2
                     * (
                         self.events[higgs_coll].eta
-                        - (
-                            self.events[jet_coll][:, jet_idx].eta
-                            + self.events[jet_coll][:, jet_idx + 1].eta
-                        )
-                        / 2
+                        - (jets[:, jet_idx].eta + jets[:, jet_idx + 1].eta) / 2
                     )
                     ** 2
                 )

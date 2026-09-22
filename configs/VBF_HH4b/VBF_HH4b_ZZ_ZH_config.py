@@ -15,7 +15,6 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
-    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,

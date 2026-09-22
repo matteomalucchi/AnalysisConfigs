@@ -166,15 +166,14 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events["JetGoodFromHiggsOrdered"],
                 ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
 
-            # Define mjj,  delta eta and centrality of leading mjj vbf jet candidates
-            if (self._isMC and self.random_pt):
+            # Define mjj, delta eta and centrality of leading mjj vbf jet candidates
+            if self._isMC and self.random_pt:
                 mjj_jet_colls = [
                     "JetTotalSPANetPadded",
                     "JetTotalSPANetPtFlattenPadded",
                     "JetGoodVBFMergedProvVBFPadded",
                     "JetGoodVBFMergedProvVBFPtFlattenPadded",
-                    "JetGoodVBFCandidates",
-                ],
+                ]
                 mjj_jet_idxs = [
                     self.max_num_jets_good,
                     self.max_num_jets_good,
@@ -186,12 +185,11 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 mjj_jet_colls = [
                     "JetTotalSPANetPadded",
                     "JetGoodVBFMergedProvVBFPadded",
-                    "JetGoodVBFCandidates",
                 ]
-                mjj_jet_idxs = [self.max_num_jets_good, 0,0]
-            
+                mjj_jet_idxs = [self.max_num_jets_good, 0, 0]
+
             self.define_vbf_kinematics(mjj_jet_colls, mjj_jet_idxs)
-            
+
         super().process_extra_after_presel(variation=variation)
         if self._isMC and self.random_pt:
             self.events["JetGoodPtFlatten"] = copy.copy(self.events.JetGood)

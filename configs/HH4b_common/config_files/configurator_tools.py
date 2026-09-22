@@ -175,25 +175,6 @@ def with_fw_momenta_columns(columns_dict, max_order_FW, fw_momenta_norms):
     ]
     return {**columns_dict, "events": list(columns_dict["events"]) + fw_cols}
 
-SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2 = copy.deepcopy(
-    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP
-)
-SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2["events"] = [
-    "random_pt_weights",
-    # merged collections with combined provenance
-    "mjjJetTotalSPANetPadded",
-    "detaJetTotalSPANetPadded",
-    ## pt flatten
-    "mjjJetTotalSPANetPtFlattenPadded",
-    "detaJetTotalSPANetPtFlattenPadded",
-    # collections with provenance_vbf saved separately
-    "mjjJetGoodVBFMergedProvVBFPadded",
-    "detaJetGoodVBFMergedProvVBFPadded",
-    ## pt flatten
-    "mjjJetGoodVBFMergedProvVBFPtFlattenPadded",
-    "detaJetGoodVBFMergedProvVBFPtFlattenPadded",
-]
-
 DEFAULT_JET_COLUMN_PARAMS = [
     "pt",
     "eta",

@@ -15,7 +15,6 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
-    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
@@ -32,6 +31,7 @@ from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
 SPANET_TRAINING = True
+HIGGS_VBF_PAIRING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -40,8 +40,11 @@ localdir = os.path.dirname(os.path.abspath(__file__))
 default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
+# year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
+# year = ["2024"]
+year = ["2022_postEE"]
+
 # adding object preselection
-year = ["2024"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
@@ -69,7 +72,6 @@ variables_dict = get_variables_dict(
     RUN2=config_options_dict["run2"],
     SPANET=bool(config_options_dict["spanet"]),
 )
-# variables_dict = {}
 
 # Define the preselection to apply
 preselection = define_preselection(config_options_dict)
@@ -99,8 +101,8 @@ sample_VBF_list = [
     "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
     "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
     "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
-    # "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96", # not in 2024
-    "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96", # only in 2024
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96", # not in 2024
+    # "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96", # only in 2024
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
@@ -129,15 +131,9 @@ sample_list = (
         # "DATA_JetMET_JMENano_F_skimmed",
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
-    + sample_official_ggF_list
+    + sample_ggF_list
+    # + sample_official_ggF_list
     + sample_VBF_list
-    + (
-        [
-            #     "GluGlutoHHto4B_spanet_skimmed",
-            #     # "GluGlutoHHto4B",
-            # "GluGlutoHHto4B_spanet"
-        ]
-    )
 )
 
 
@@ -156,11 +152,12 @@ if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
 if SPANET_TRAINING:
-    categories_dict = define_single_category(
-        "vbf_best_candidates_6_jets_nokincut_4b_region"
-    )
-    categories_dict |= define_single_category("vbf_best_candidates_6_jets_4b_region")
-    categories_dict |= define_single_category("4b_region")
+    categories_dict = define_single_category("4b_region")
+    if not HIGGS_VBF_PAIRING:
+        categories_dict |= define_single_category(
+            "vbf_best_candidates_6_jets_nokincut_4b_region"
+        )
+        categories_dict |= define_single_category("vbf_best_candidates_6_jets_4b_region")
 
 column_list = []
 
@@ -279,9 +276,8 @@ cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json",
-            # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
         ],
         "filter": {
