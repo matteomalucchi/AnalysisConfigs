@@ -51,7 +51,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.132782
                 }
             }
         ]
@@ -108,7 +108,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 4.2e-06
                 }
             }
         ]
@@ -165,7 +165,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.1192
                 }
             }
         ]
@@ -222,7 +222,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.000374
                 }
             }
         ]
@@ -279,7 +279,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.00126
                 }
             }
         ]
@@ -336,7 +336,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.003882
                 }
             }
         ]
@@ -393,7 +393,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.00559
                 }
             }
         ]
@@ -456,7 +456,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.00064
                 }
             }
         ]
@@ -513,7 +513,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.009846
                 }
             }
         ]
@@ -570,7 +570,7 @@
                 "metadata": {
                     "year": "2024",
                     "isMC": true,
-                    "xsec": 1.0
+                    "xsec": 0.00064
                 }
             }
         ]

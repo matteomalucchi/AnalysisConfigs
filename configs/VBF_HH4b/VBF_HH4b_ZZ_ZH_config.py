@@ -15,7 +15,6 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
-    SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP_RUN2,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
@@ -98,14 +97,14 @@ sample_ggF_list = [
 ]
 
 sample_VBF_list = [
-    "VBFHHto4B_CV-1p74_C2V-1p37_C3-14p4",
-    "VBFHHto4B_CV-m0p012_C2V-0p030_C3-10p2",
-    "VBFHHto4B_CV-m0p758_C2V-1p44_C3-m19p3",
-    "VBFHHto4B_CV-m0p962_C2V-0p959_C3-m1p43",
-    # "VBFHHto4B_CV-m1p21_C2V-1p94_C3-m0p94", # not present in 2023_postBPix
-    "VBFHHto4B_CV-m1p60_C2V-2p72_C3-m1p36",
-    "VBFHHto4B_CV-m1p83_C2V-3p57_C3-m3p39",
-    "VBFHHto4B_CV-m2p12_C2V-3p87_C3-m5p96",
+    "VBFHHto4B_CV_1p74_C2V_1p37_C3_14p4",
+    "VBFHHto4B_CV_m0p012_C2V_0p030_C3_10p2",
+    "VBFHHto4B_CV_m0p758_C2V_1p44_C3_m19p3",
+    "VBFHHto4B_CV_m0p962_C2V_0p959_C3_m1p43",
+    # "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94", # not present in 2023_postBPix
+    "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
+    "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
+    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96",
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
@@ -278,9 +277,10 @@ cfg = Configurator(
             # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_hadd.json",
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_2023_postBPix_skimmed_hadd.json",
-            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_official_2023_postBPix_skimmed_hadd.json",
-            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_2023_postBPix_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_2022_postEE_2023_preBPix_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_HH4bResolved_skimmed_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,
