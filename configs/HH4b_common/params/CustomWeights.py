@@ -6,6 +6,8 @@ import numpy as np
 import copy
 from pocket_coffea.lib.weights.weights import WeightData, WeightDataMultiVariation, WeightLambda, WeightWrapper
 
+from utils_configs.jet_algorithms import get_btag_algorithm, get_btag_working_points
+
 
 class SF_btag_fixed_multiple_wp(WeightWrapper):
     name = "sf_btag_fixed_multiple_wp"
@@ -55,7 +57,7 @@ class SF_btag_fixed_multiple_wp(WeightWrapper):
         sampleGroups = params["btagging"]["sampleGroups"]
         # Additional algorithm, to correctly sort and choose jets used for analysis
         # if params["only5jetsbSF"]:
-        # Jets = Jets[ak.argsort(Jets.btagPNetB, axis=1, ascending=False)]
+        # Jets = Jets[ak.argsort(Jets.btagB, axis=1, ascending=False)]
         # JetsHiggs = Jets[:, :4]
 
         # jets5plus = Jets[:, 4:]
@@ -71,8 +73,8 @@ class SF_btag_fixed_multiple_wp(WeightWrapper):
             print("WARNING: Sample does not correspond to one of the given sample groupings!")
 
         paramsBtagSf = params["jet_scale_factors"]["btagSF"][year]
-        btag_algo = params["btagging"]["working_point"][year]["btagging_algorithm"]
-        btag_wps = params["btagging"]["working_point"][year]["btagging_WP"][btag_algo]
+        btag_algo = get_btag_algorithm(params, year)
+        btag_wps = get_btag_working_points(params, year, btag_algo)
         sf_file = paramsBtagSf["file"]
         btag_effi_file = paramsBtagSf["btagEfficiencyFile"][btag_algo]
 
@@ -250,7 +252,7 @@ class SF_btag_fixed_multiple_wp(WeightWrapper):
                         f"btag_weight={btag_weight_wp[bad_idx]}, "
                         f"numerator={numerator[bad_idx]}, "
                         f"denominator={denominator[bad_idx]}, "
-                        f"b-tag score={Jets['btagPNetB'][bad_idx]}, "
+                        f"b-tag score={Jets['btagB'][bad_idx]}, "
                         f"pt={ak.unflatten(jetpt, counts=jetcounts)[bad_idx]}, "
                         f"eta={ak.unflatten(jeteta, counts=jetcounts)[bad_idx]}, "
                         f"flavour={ak.unflatten(jetflav, counts=jetcounts)[bad_idx]} "
