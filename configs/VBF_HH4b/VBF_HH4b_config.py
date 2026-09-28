@@ -31,7 +31,7 @@ from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
 SPANET_TRAINING = True
-HIGGS_VBF_PAIRING = True
+HIGGS_VBF_PAIRING = False
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -41,8 +41,8 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
-# year = ["2024"]
-year = ["2022_postEE"]
+year = ["2024"]
+# year = ["2022_postEE"]
 
 # adding object preselection
 parameters = defaults.merge_parameters_from_files(
@@ -78,7 +78,7 @@ preselection = define_preselection(config_options_dict)
 
 
 # Define the samples to process
-sample_ggF_list = [
+sample_spanet_ggF_list = [
     "GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_skimmed",
     "GluGlutoHHto4B_spanet_kl-m2p00_kt-1p00_c2-0p00_skimmed",
     "GluGlutoHHto4B_spanet_kl-m1p00_kt-1p00_c2-0p00_skimmed",
@@ -101,8 +101,17 @@ sample_VBF_list = [
     "VBFHHto4B_CV_m1p21_C2V_1p94_C3_m0p94",
     "VBFHHto4B_CV_m1p60_C2V_2p72_C3_m1p36",
     "VBFHHto4B_CV_m1p83_C2V_3p57_C3_m3p39",
-    "VBFHHto4B_CV_m2p12_C2V_3p87_C3_m5p96", # not in 2024
-    # "VBFHHto4B_CV_2p12_C2V_3p87_C3_m5p96", # only in 2024
+    # ###################################################################### #
+    # !!!!!!!!!!!!!!!!!!!!!!!!!! HUGE WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+    # The `pm` in `pm2p12` stands for plus/minus and is NOT a typo: the      #
+    # official production names this SAME physics point CV-m2p12 (MINUS) in  #
+    # 2022/2023 and CV-2p12 (PLUS) in 2024. To have a single sample across   #
+    # all the years, both are renamed to `pm2p12` in                         #
+    # configs/HH4b_common/datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.  #
+    # json (dataset key + `sample` field only: `das_names` and the file      #
+    # paths keep the original per-year names).                               #
+    # ###################################################################### #
+    "VBFHHto4B_CV_pm2p12_C2V_3p87_C3_m5p96",
     "VBFHHto4B_CV_1_C2V_0_C3_1",
     "VBFHHto4B_CV_1_C2V_1_C3_1",
 ]
@@ -113,12 +122,12 @@ sample_official_ggF_list = [
     "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
     "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
     # new samples for 2024
-    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
-    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
-    "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
-    "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
-    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
-    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
+#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
+#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
+#     "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
+#     "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
+#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
+#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
 ]
 
 sample_list = (
@@ -131,8 +140,8 @@ sample_list = (
         # "DATA_JetMET_JMENano_F_skimmed",
         # "DATA_JetMET_JMENano_G_skimmed",
     ]
-    + sample_ggF_list
-    # + sample_official_ggF_list
+    # + sample_spanet_ggF_list
+    + sample_official_ggF_list
     + sample_VBF_list
 )
 
