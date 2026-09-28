@@ -244,6 +244,17 @@ To build the datasets needed for the Analysis, run the following command on `tie
 "build-datasets --cfg datasets/datasets_definitions.json -o -rs 'T[123]_(FR|IT|BE|CH|DE|US)_\w+'"
 ```
 
+> [!WARNING]
+> **`VBFHHto4B_CV_pm2p12_C2V_3p87_C3_m5p96`**: the `pm` (plus/minus) is not a typo. The
+> official production names this *same* physics point `CV-m2p12` (**minus**) in 2022/2023
+> and `CV-2p12` (**plus**) in 2024. To keep it as a single sample across all the years, both
+> are renamed to `pm2p12` in
+> [`datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json`](./datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json)
+> — only the dataset key and the `sample` field: `das_names` and the file paths keep the
+> original per-year names and must not be renamed. Use `pm2p12` in the sample lists of the
+> configs (e.g. [`VBF_HH4b_config.py`](../VBF_HH4b/VBF_HH4b_config.py)), and re-apply the
+> renaming if the JSON is regenerated with `build-datasets`.
+
 #### Merge dataset-definition JSON files
 
 [`utils_configs/merge_ordered_datasets.py`](../../utils_configs/merge_ordered_datasets.py) merges several
