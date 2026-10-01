@@ -3,6 +3,7 @@ import numpy as np
 import copy
 
 from utils_configs.basic_functions import add_fields
+from utils_configs.jet_algorithms import get_btag_working_points
 
 
 def mask_num_jets(events, params, **kwargs):
@@ -58,6 +59,97 @@ def hh4b_presel_cuts(events, params, **kwargs):
     mask_btag = (
         jets_btag_order.btagB[:, 0] + jets_btag_order.btagB[:, 1]
     ) / 2 > params["mean_pnet_jet"]
+
+    mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
+
+    mask = mask_pt & mask_btag
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def get_hh4b_presel_era(year, sample, isMC):
+    """Return the name of the resolved preselection to apply to a chunk.
+
+    The preselection depends on the data-taking period and, for the 2023
+    preBPix data, on the primary dataset (JetMET or ParkingHH):
+
+    |      | 2022 | 2023 preBPix JetMET | 2023 preBPix ParkingHH | 2023 postBPix | 2024 |
+    | ---- | ---- | ------------------- | ---------------------- | ------------- | ---- |
+    | MC   | A    | /                   | B                      | B             | C    |
+    | DATA | A    | A                   | B                      | B             | C    |
+
+    The primary dataset is read from the sample name: data samples whose name
+    contains "ParkingHH" are ParkingHH, all the other data samples are JetMET.
+    """
+    if year in ["2022_preEE", "2022_postEE"]:
+        return "A"
+    if year == "2023_preBPix":
+        if not isMC and "ParkingHH" not in sample:
+            return "A"
+        return "B"
+    if year == "2023_postBPix":
+        return "B"
+    if year == "2024":
+        return "C"
+    raise ValueError(f"No resolved preselection is defined for year {year}.")
+
+
+def hh4b_presel_era_dependent_cuts(
+    events, params, year, sample, isMC, processor_params, **kwargs
+):
+    """Resolved preselection chosen per chunk from its year and primary dataset.
+
+    `params["presel_by_era"]` holds the cuts of each preselection (see
+    `get_hh4b_presel_era`). Each one requires >= 4 jets, no leptons, a
+    minimum pt on the 4 leading jets and one of the two b-tag requirements:
+      - "mean_btag": the mean score of the 2 highest-score jets is above
+        `mean_btag_jet`
+      - "nbtag_wp": at least `nbtag` jets pass the `btag_wp` working point
+    computed with the b-tag discriminant `btag_tagger`.
+    """
+    presel = params["presel_by_era"][get_hh4b_presel_era(year, sample, isMC)]
+    pt_type = params["pt_type"]
+    tagger = presel["btag_tagger"]
+
+    at_least_four_jets = mask_num_jets(events, params, **kwargs)
+    lepton_veto_mask = lepton_veto(events, params, **kwargs)
+
+    mask_4jet_nolep = at_least_four_jets & lepton_veto_mask
+    # convert false to None
+    mask_4jet_nolep_none = ak.mask(mask_4jet_nolep, mask_4jet_nolep)
+
+    jets = (
+        copy.copy(events[mask_4jet_nolep_none].JetGood)
+        if not params["tight_cuts"]
+        else copy.copy(events[mask_4jet_nolep_none].JetGoodHiggs)
+    )
+    if tagger not in jets.fields:
+        raise ValueError(
+            f"The b-tag discriminant '{tagger}' of the preselection for year "
+            f"{year} is not available in the jets. Available fields: {jets.fields}."
+        )
+
+    jets_pt_order = jets[ak.argsort(jets[pt_type], axis=1, ascending=False)]
+
+    mask_pt_none = ak.ones_like(mask_4jet_nolep_none)
+    for i, pt_cut in enumerate(presel["pt_jets"]):
+        mask_pt_none = mask_pt_none & (jets_pt_order[pt_type][:, i] > pt_cut)
+    # convert none to false
+    mask_pt = ak.where(ak.is_none(mask_pt_none), False, mask_pt_none)
+
+    if presel["btag_type"] == "mean_btag":
+        btag_scores = ak.sort(jets[tagger], axis=1, ascending=False)
+        mask_btag = (btag_scores[:, 0] + btag_scores[:, 1]) / 2 > presel[
+            "mean_btag_jet"
+        ]
+    elif presel["btag_type"] == "nbtag_wp":
+        threshold = get_btag_working_points(processor_params, year, tagger)[
+            presel["btag_wp"]
+        ]
+        mask_btag = ak.sum(jets[tagger] > threshold, axis=1) >= presel["nbtag"]
+    else:
+        raise ValueError(f"Unknown preselection b-tag type {presel['btag_type']}.")
 
     mask_btag = ak.where(ak.is_none(mask_btag), False, mask_btag)
 

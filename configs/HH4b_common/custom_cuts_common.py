@@ -93,6 +93,42 @@ hh4b_presel_parking = Cut(
 )
 
 
+# Resolved preselection chosen per chunk from its year and primary dataset
+# (see `get_hh4b_presel_era`), so that several years can run in one go.
+# The |eta| < 2.5 requirement on the jets is in the object preselection.
+def hh4b_presel_era_dependent(tight_cuts=False):
+    return Cut(
+        name="hh4b_presel_era_dependent",
+        params={
+            "njet": 4,
+            "tight_cuts": tight_cuts,
+            "pt_type": "pt_default",
+            "presel_by_era": {
+                "A": {
+                    "pt_jets": [80, 60, 45, 35],
+                    "btag_type": "mean_btag",
+                    "btag_tagger": "btagPNetB",
+                    "mean_btag_jet": 0.65,
+                },
+                "B": {
+                    "pt_jets": [35, 35, 35, 30],
+                    "btag_type": "mean_btag",
+                    "btag_tagger": "btagPNetB",
+                    "mean_btag_jet": 0.55,
+                },
+                "C": {
+                    "pt_jets": [30, 30, 30, 30],
+                    "btag_type": "nbtag_wp",
+                    "btag_tagger": "btagUParTAK4B",
+                    "btag_wp": "M",
+                    "nbtag": 2,
+                },
+            },
+        },
+        function=cuts_f.hh4b_presel_era_dependent_cuts,
+    )
+
+
 hh4b_2b_region = Cut(
     name="hh4b_2b_region",
     params={
