@@ -198,7 +198,7 @@ elif (
             | config_options_dict["bkg_morphing_dnn_input_variables"]
             | {"year": ["events", "year"]}
         )
-        column_list += create_DNN_columns_list(
+        column_list += create_DNN_columns_list( 
             False, not config_options_dict["save_chunk"], total_input_columns, btag=False
         )
 
@@ -276,7 +276,6 @@ cfg = Configurator(
         "jsons": [
             # f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_2022_postEE_user_pnfs_redirector.json",
             # f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_hadd.json",
             f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_2022_postEE_2023_preBPix_hadd.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json",
