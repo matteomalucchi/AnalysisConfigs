@@ -587,6 +587,8 @@ def define_preselection(options):
                 preselection = [vbf_cuts.vbf_hh4b_presel]
         elif options["boosted_presel"]:
             preselection = [cuts.hh4b_boosted_presel]
+        elif options.get("era_dependent_presel", False):
+            preselection = [cuts.hh4b_presel_era_dependent(options["tight_cuts"])]
         else:
             if options["tight_cuts"]:
                 preselection = [cuts.hh4b_presel_tight]

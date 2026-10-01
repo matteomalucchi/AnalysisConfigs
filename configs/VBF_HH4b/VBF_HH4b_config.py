@@ -130,6 +130,12 @@ sample_official_ggF_list = [
 #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
 ]
 
+sample_ZZ_ZH_list = [
+    "ZZTo4B01j",
+    "ggZH_HToBB_ZToBB",
+    "ZH_ZToBB_HToBB"
+]
+
 sample_list = (
     [
         # 2022 preEE
@@ -143,6 +149,7 @@ sample_list = (
     # + sample_spanet_ggF_list
     + sample_official_ggF_list
     + sample_VBF_list
+    + sample_ZZ_ZH_list
 )
 
 
@@ -288,6 +295,7 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/signal_VBF_HH4b_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_22EE_23_24_hadd.json",
         ],
         "filter": {
             "samples": sample_list,
