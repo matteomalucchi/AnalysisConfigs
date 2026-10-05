@@ -6,9 +6,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 onnx_model_dict |= {
-    "spanet":"/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/vbf_ggf_all_Klambda_HiggsPairing.onnx",
-    # "vbf_discriminator":"/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/vbf_ggf_all_Klambda_VBFPairing_JetTotal_DNNVars_VBFNoKinCut_ClassLoss7_300e.onnx"
-
+    "spanet":"/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/hh4b_pairing_vbf_ggf_all_Klambda_HiggsPairing_2024.onnx",
 }
 
 config_options_dict |= {
@@ -24,8 +22,7 @@ config_options_dict |= {
     "qt_postEE": None,
     "random_pt": True,
     "rand_type": 0.3,
-    # "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_AllKlambda_DetaMjjCentrality_VBFPairingAfterHiggsPairing_DNNVars/parquet_files/",
-    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_AllKlambda_DetaMjjCentrality_VBFPairingAfterHiggsPairing_DNNVars_vbfregions_2024/parquet_files/",
+    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/out_ggf_vbf_spanet_input_AllKlambda_DetaMjjCentrality_VBFPairingAfterHiggsPairing_DNNVars_vbfregions_2024SPANetHiggsTraining/parquet_files/",
     "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
     # VBF
     # "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables,

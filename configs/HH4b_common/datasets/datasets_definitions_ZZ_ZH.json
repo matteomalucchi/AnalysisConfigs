@@ -1,7 +1,7 @@
 {
     "ZHto2Q2B": {
         "sample": "ZHto2Q2B",
-        "json_output": "datasets/background_ZZ_ZH.json",
+        "json_output": "datasets/background_ZZ_ZH_official.json",
         "description": "ZH to hadronic sample. Xsec from AN2023_151_vxx",
         "files": [
             {
@@ -28,7 +28,7 @@
     },
     "ggZHto2Q2B": {
         "sample": "ggZHto2Q2B",
-        "json_output": "datasets/background_ZZ_ZH.json",
+        "json_output": "datasets/background_ZZ_ZH_official.json",
         "description": "GluGluZH to hadronic sample. Xsec from AN2023_151_vxx",
         "files": [
             {
@@ -55,7 +55,7 @@
     },
     "ZZ_incl": {
         "sample": "ZZ_incl",
-        "json_output": "datasets/background_ZZ_ZH.json",
+        "json_output": "datasets/background_ZZ_ZH_official.json",
         "description": "Inclusive ZZ ptroduction sample. Xsec from AN2023_151_vxx",
         "files": [
             {

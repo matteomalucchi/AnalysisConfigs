@@ -173,7 +173,7 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_2023_postBPix_skimmed_hadd.json",
             f"{localdir}/../HH4b_common/datasets/DATA_JetMET_pnfs_redirector.json",
-            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_2022_postEE_2023_preBPix_2023_postBPix_hadd.json",
         ],
         "filter": {
             "samples": sample_list,
