@@ -13,6 +13,8 @@ onnx_model_dict |= {
 
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
     "dnn_variables": True,
     "run2": False,
     "max_num_jets_good": 5,

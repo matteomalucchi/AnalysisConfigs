@@ -101,7 +101,9 @@ default_config_options_dict = {
     #   B (2023 preBPix ParkingHH data and MC, 2023 postBPix): jet pt >
     #     35,35,35,30, mean PNet of the 2 highest-score jets > 0.55
     #   C (2024): jet pt > 30,30,30,30, >= 2 jets passing the UParT M WP
-    "era_dependent_presel": False,
+    # The config files written before this option existed set it to False to
+    # keep their old preselection (`hh4b_presel`, i.e. A for all the years).
+    "era_dependent_presel": True,
     # Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`).
     # Needed by the b-tag WP efficiency measurement, which has to be performed in
     # a region where no cut on the b-tag score is applied. The configs in

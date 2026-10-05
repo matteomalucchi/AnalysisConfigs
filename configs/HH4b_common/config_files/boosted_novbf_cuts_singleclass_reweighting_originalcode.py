@@ -16,6 +16,8 @@ onnx_model_dict  |= {
 
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
     "dnn_variables": True,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_boosted_dnn_input_variables,
     "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_boosted_dnn_input_variables,

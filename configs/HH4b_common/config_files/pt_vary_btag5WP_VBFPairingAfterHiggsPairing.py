@@ -10,6 +10,8 @@ onnx_model_dict |= {
 }
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
     "dnn_variables": False,
     "run2": False,
     "sig_bkg_dnn_input_variables": None,

@@ -8,6 +8,8 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
     # the private ZZ/ZH samples are inclusive in the decay channel, so require the
     # X(->bb)X(->bb) final state at gen level
     "xx4b_presel": True,

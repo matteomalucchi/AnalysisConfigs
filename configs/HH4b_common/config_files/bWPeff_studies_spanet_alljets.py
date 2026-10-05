@@ -11,6 +11,8 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 onnx_model_dict["spanet"] = "/work/tharte/datasets/onnx_spanet_models_for_pairing_and_mass_sculpting_studies/spanet_hh4b_5jets_ptvary_loose_300_btag_wp_newLeptonVeto_L1Cut_UpdateJetVetoMap.onnx"
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
     "vbf_parton_matching": False,
     "tight_cuts": False,
     "save_chunk": False,
