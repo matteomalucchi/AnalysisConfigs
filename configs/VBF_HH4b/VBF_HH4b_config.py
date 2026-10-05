@@ -31,7 +31,7 @@ from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
 SPANET_TRAINING = True
-HIGGS_VBF_PAIRING = False
+VBF_REGIONS = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -169,7 +169,7 @@ if BASELINE:
 
 if SPANET_TRAINING:
     categories_dict = define_single_category("4b_region")
-    if not HIGGS_VBF_PAIRING:
+    if VBF_REGIONS:
         categories_dict |= define_single_category(
             "vbf_best_candidates_6_jets_nokincut_4b_region"
         )
