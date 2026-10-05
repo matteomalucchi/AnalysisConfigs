@@ -9,20 +9,21 @@ from pocket_coffea.lib.cut_functions import (
 )
 from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
 
-hh4b_presel = Cut(
-    name="hh4b_presel",
-    params={
-        "njet": 4,
-        "pt_jet0": 80,
-        "pt_jet1": 60,
-        "pt_jet2": 45,
-        "pt_jet3": 35,
-        "mean_pnet_jet": 0.65,
-        "tight_cuts": False,
-        "pt_type": "pt_default",
-    },
-    function=cuts_f.hh4b_presel_cuts,
-)
+def hh4b_presel(pt_type):
+    return Cut(
+        name="hh4b_presel",
+        params={
+            "njet": 4,
+            "pt_jet0": 80,
+            "pt_jet1": 60,
+            "pt_jet2": 45,
+            "pt_jet3": 35,
+            "mean_pnet_jet": 0.65,
+            "tight_cuts": False,
+            "pt_type": pt_type,
+        },
+        function=cuts_f.hh4b_presel_cuts,
+    )
 
 hh4b_boosted_presel = Cut(
     name="hh4b_boosted_presel",
@@ -47,62 +48,65 @@ hh4b_boosted_lepton_veto = Cut(
     function=cuts_f.hh4b_boosted_lepton_veto,
 )
 
-hh4b_presel_tight = Cut(
-    name="hh4b_presel_tight",
-    params={
-        "njet": 4,
-        "pt_jet0": 80,
-        "pt_jet1": 60,
-        "pt_jet2": 45,
-        "pt_jet3": 35,
-        "mean_pnet_jet": 0.65,
-        "tight_cuts": True,
-        "pt_type": "pt_default",
-    },
-    function=cuts_f.hh4b_presel_cuts,
-)
+def hh4b_presel_tight(pt_type):
+    return Cut(
+        name="hh4b_presel_tight",
+        params={
+            "njet": 4,
+            "pt_jet0": 80,
+            "pt_jet1": 60,
+            "pt_jet2": 45,
+            "pt_jet3": 35,
+            "mean_pnet_jet": 0.65,
+            "tight_cuts": True,
+            "pt_type": pt_type,
+        },
+        function=cuts_f.hh4b_presel_cuts,
+    )
 
-hh4b_presel_nobtag = Cut(
-    name="hh4b_presel_nobtag",
-    params={
-        "njet": 4,
-        "pt_jet0": 80,
-        "pt_jet1": 60,
-        "pt_jet2": 45,
-        "pt_jet3": 35,
-        "mean_pnet_jet": -999,
-        "tight_cuts": False,
-        "pt_type": "pt_default",
-    },
-    function=cuts_f.hh4b_presel_cuts,
-)
+def hh4b_presel_nobtag(pt_type):
+    return Cut(
+        name="hh4b_presel_nobtag",
+        params={
+            "njet": 4,
+            "pt_jet0": 80,
+            "pt_jet1": 60,
+            "pt_jet2": 45,
+            "pt_jet3": 35,
+            "mean_pnet_jet": -999,
+            "tight_cuts": False,
+            "pt_type": pt_type,
+        },
+        function=cuts_f.hh4b_presel_cuts,
+    )
 
-hh4b_presel_parking = Cut(
-    name="hh4b_presel_parking",
-    params={
-        "njet": 4,
-        "pt_jet0": 35,
-        "pt_jet1": 35,
-        "pt_jet2": 35,
-        "pt_jet3": 30,
-        "mean_pnet_jet": 0.55,
-        "tight_cuts": False,
-        "pt_type": "pt_default",
-    },
-    function=cuts_f.hh4b_presel_cuts,
-)
+def hh4b_presel_parking(pt_type):
+    return Cut(
+        name="hh4b_presel_parking",
+        params={
+            "njet": 4,
+            "pt_jet0": 35,
+            "pt_jet1": 35,
+            "pt_jet2": 35,
+            "pt_jet3": 30,
+            "mean_pnet_jet": 0.55,
+            "tight_cuts": False,
+            "pt_type": pt_type,
+        },
+        function=cuts_f.hh4b_presel_cuts,
+    )
 
 
 # Resolved preselection chosen per chunk from its year and primary dataset
 # (see `get_hh4b_presel_era`), so that several years can run in one go.
 # The |eta| < 2.5 requirement on the jets is in the object preselection.
-def hh4b_presel_era_dependent(tight_cuts=False):
+def hh4b_presel_era_dependent(pt_type, tight_cuts):
     return Cut(
         name="hh4b_presel_era_dependent",
         params={
             "njet": 4,
             "tight_cuts": tight_cuts,
-            "pt_type": "pt_default",
+            "pt_type": pt_type,
             "presel_by_era": {
                 "A": {
                     "pt_jets": [80, 60, 45, 35],

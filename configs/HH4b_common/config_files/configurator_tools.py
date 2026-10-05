@@ -2,7 +2,6 @@ from collections import defaultdict
 import copy
 
 from pocket_coffea.lib.columns_manager import ColOut
-from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.parameters.cuts import passthrough
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
@@ -574,19 +573,12 @@ def define_categories(
     return categories_dict
 
 
-def with_pt_type(cut, pt_type):
-    """Return a copy of `cut` applying its jet pt cuts on the `pt_type` field."""
-    return Cut(
-        name=cut.name,
-        params={**cut.params, "pt_type": pt_type},
-        function=cut.function,
-    )
-
-
 def define_preselection(options):
     ## Define the preselection to apply
+    # jet pt field on which the pt cuts of the resolved preselections are applied
+    pt_type = options["preselection_pt_field"]
     if "no_btag" in options.keys() and options["no_btag"]:
-        preselection = [cuts.hh4b_presel_nobtag]
+        preselection = [cuts.hh4b_presel_nobtag(pt_type)]
     else:
         if options["vbf_presel"]:
             # block vbf_presel because it's done on the wrong jet collection
@@ -597,22 +589,15 @@ def define_preselection(options):
                 preselection = [vbf_cuts.vbf_hh4b_presel]
         elif options["boosted_presel"]:
             preselection = [cuts.hh4b_boosted_presel]
-        elif options.get("era_dependent_presel", False):
-            preselection = [cuts.hh4b_presel_era_dependent(options["tight_cuts"])]
+        elif options["era_dependent_presel"]:
+            preselection = [
+                cuts.hh4b_presel_era_dependent(pt_type, options["tight_cuts"])
+            ]
         else:
             if options["tight_cuts"]:
-                preselection = [cuts.hh4b_presel_tight]
+                preselection = [cuts.hh4b_presel_tight(pt_type)]
             else:
-                preselection = [cuts.hh4b_presel]
-
-    # Apply the jet pt cuts of the resolved preselections on the pt field
-    # chosen in the options (e.g. "pt" or "pt_default")
-    preselection = [
-        with_pt_type(cut, options.get("preselection_pt_field", "pt"))
-        if "pt_type" in cut.params
-        else cut
-        for cut in preselection
-    ]
+                preselection = [cuts.hh4b_presel(pt_type)]
 
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
