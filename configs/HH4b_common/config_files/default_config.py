@@ -93,6 +93,15 @@ default_config_options_dict = {
     # Use the boosted preselection (>= 2 FatJets) instead of the resolved one.
     # It also disables the jet veto map cut.
     "boosted_presel": False,
+    # Jet pt field used by the jet object preselection (`select_jets`) and by
+    # the pt cuts of the resolved event preselection:
+    #   "pt"         : the pt of the `Jet` collection, i.e. the regressed pt
+    #                  when the pt regression is applied (see `approach`)
+    #   "pt_default" : the standard JEC pt, without regression
+    # The config files written before this option existed set it to
+    # "pt_default" to keep their old selection. The jet veto map always uses
+    # "pt_default", as in the JME recommendation.
+    "preselection_pt_field": "pt",
     # Choose the resolved preselection per chunk from its year and primary
     # dataset (`hh4b_presel_era_dependent`) instead of using `hh4b_presel`
     # for all of them, so that several years can be processed in one go:

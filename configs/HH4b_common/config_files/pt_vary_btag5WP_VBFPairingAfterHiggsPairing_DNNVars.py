@@ -14,6 +14,8 @@ onnx_model_dict |= {
 config_options_dict |= {
     # keep the old preselection (hh4b_presel) for reproducibility
     "era_dependent_presel": False,
+    # keep the old jet pt (no regression) in the preselections for reproducibility
+    "preselection_pt_field": "pt_default",
     "dnn_variables": True,
     "run2": False,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,

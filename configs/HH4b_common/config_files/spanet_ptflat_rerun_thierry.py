@@ -18,6 +18,8 @@ onnx_model_dict  |= {
 config_options_dict |= {
     # keep the old preselection (hh4b_presel) for reproducibility
     "era_dependent_presel": False,
+    # keep the old jet pt (no regression) in the preselections for reproducibility
+    "preselection_pt_field": "pt_default",
     "vbf_parton_matching": False,
     "tight_cuts": False,
     "save_chunk": "root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/tharte/HH4b/spanet_ptflat_rerun_thierry_histtest",

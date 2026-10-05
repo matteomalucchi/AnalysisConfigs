@@ -893,14 +893,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
         `order_by` sorts the jets by that field in decreasing order and
         `add_all_fields` turns them into a four-vector keeping every field.
         """
-        # Cut on the JEC pt (w/o regression)
+        # Cut on the pt field chosen with `preselection_pt_field`
         self.events[name], _ = custom_jet_selection(
             self.events,
             from_collection,
             jet_type_obj_presel,
             self.params,
             year=self._year,
-            pt_type="pt_default",
+            pt_type=self.preselection_pt_field,
             pt_cut_name=self.pt_cut_name,
             forward_jet_veto=forward_jet_veto,
         )

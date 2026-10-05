@@ -2,6 +2,7 @@ from collections import defaultdict
 import copy
 
 from pocket_coffea.lib.columns_manager import ColOut
+from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.parameters.cuts import passthrough
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
@@ -573,6 +574,15 @@ def define_categories(
     return categories_dict
 
 
+def with_pt_type(cut, pt_type):
+    """Return a copy of `cut` applying its jet pt cuts on the `pt_type` field."""
+    return Cut(
+        name=cut.name,
+        params={**cut.params, "pt_type": pt_type},
+        function=cut.function,
+    )
+
+
 def define_preselection(options):
     ## Define the preselection to apply
     if "no_btag" in options.keys() and options["no_btag"]:
@@ -594,6 +604,15 @@ def define_preselection(options):
                 preselection = [cuts.hh4b_presel_tight]
             else:
                 preselection = [cuts.hh4b_presel]
+
+    # Apply the jet pt cuts of the resolved preselections on the pt field
+    # chosen in the options (e.g. "pt" or "pt_default")
+    preselection = [
+        with_pt_type(cut, options.get("preselection_pt_field", "pt"))
+        if "pt_type" in cut.params
+        else cut
+        for cut in preselection
+    ]
 
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on
