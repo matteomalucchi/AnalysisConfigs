@@ -93,6 +93,26 @@ default_config_options_dict = {
     # Use the boosted preselection (>= 2 FatJets) instead of the resolved one.
     # It also disables the jet veto map cut.
     "boosted_presel": False,
+    # Jet pt field used by the jet object preselection (`select_jets`) and by
+    # the pt cuts of the resolved event preselection:
+    #   "pt"         : the pt of the `Jet` collection, i.e. the regressed pt
+    #                  when the pt regression is applied (see `approach`)
+    #   "pt_default" : the standard JEC pt, without regression
+    # The config files written before this option existed set it to
+    # "pt_default" to keep their old selection. The jet veto map always uses
+    # "pt_default", as in the JME recommendation.
+    "preselection_pt_field": "pt",
+    # Choose the resolved preselection per chunk from its year and primary
+    # dataset (`hh4b_presel_era_dependent`) instead of using `hh4b_presel`
+    # for all of them, so that several years can be processed in one go:
+    #   A (2022, 2023 preBPix JetMET data): jet pt > 80,60,45,35, mean PNet of
+    #     the 2 highest-score jets > 0.65
+    #   B (2023 preBPix ParkingHH data and MC, 2023 postBPix): jet pt >
+    #     35,35,35,30, mean PNet of the 2 highest-score jets > 0.55
+    #   C (2024): jet pt > 30,30,30,30, >= 2 jets passing the UParT M WP
+    # The config files written before this option existed set it to False to
+    # keep their old preselection (`hh4b_presel`, i.e. A for all the years).
+    "era_dependent_presel": True,
     # Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`).
     # Needed by the b-tag WP efficiency measurement, which has to be performed in
     # a region where no cut on the b-tag score is applied. The configs in

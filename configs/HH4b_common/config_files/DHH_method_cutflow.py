@@ -7,6 +7,10 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
+    # keep the old jet pt (no regression) in the preselections for reproducibility
+    "preselection_pt_field": "pt_default",
     "dnn_variables": False,
     "run2": True,
     "fifth_jet": "pt",

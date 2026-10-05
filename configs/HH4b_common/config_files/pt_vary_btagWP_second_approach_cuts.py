@@ -9,6 +9,10 @@ from configs.HH4b_common.config_files.default_config import default_onnx_model_d
 from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
 
 config_options_dict |= {
+    # keep the old preselection (hh4b_presel) for reproducibility
+    "era_dependent_presel": False,
+    # keep the old jet pt (no regression) in the preselections for reproducibility
+    "preselection_pt_field": "pt_default",
     "vbf_parton_matching": False,
     "tight_cuts": False,
     "save_chunk": False,

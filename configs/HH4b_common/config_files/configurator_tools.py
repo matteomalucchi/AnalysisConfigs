@@ -575,8 +575,10 @@ def define_categories(
 
 def define_preselection(options):
     ## Define the preselection to apply
+    # jet pt field on which the pt cuts of the resolved preselections are applied
+    pt_type = options["preselection_pt_field"]
     if "no_btag" in options.keys() and options["no_btag"]:
-        preselection = [cuts.hh4b_presel_nobtag]
+        preselection = [cuts.hh4b_presel_nobtag(pt_type)]
     else:
         if options["vbf_presel"]:
             # block vbf_presel because it's done on the wrong jet collection
@@ -587,11 +589,15 @@ def define_preselection(options):
                 preselection = [vbf_cuts.vbf_hh4b_presel]
         elif options["boosted_presel"]:
             preselection = [cuts.hh4b_boosted_presel]
+        elif options["era_dependent_presel"]:
+            preselection = [
+                cuts.hh4b_presel_era_dependent(pt_type, options["tight_cuts"])
+            ]
         else:
             if options["tight_cuts"]:
-                preselection = [cuts.hh4b_presel_tight]
+                preselection = [cuts.hh4b_presel_tight(pt_type)]
             else:
-                preselection = [cuts.hh4b_presel]
+                preselection = [cuts.hh4b_presel(pt_type)]
 
     # Add the Jet Veto Map
     # Do this in the preselection to select jets based on

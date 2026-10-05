@@ -8,15 +8,11 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 
 config_options_dict |= {
-    # keep the old preselection (hh4b_presel) for reproducibility
-    "era_dependent_presel": False,
-    # keep the old jet pt (no regression) in the preselections for reproducibility
-    "preselection_pt_field": "pt_default",
     "dnn_variables": False,
     "run2": False,
     "sig_bkg_dnn_input_variables": None,
     "bkg_morphing_dnn_input_variables": None,
-    "max_num_jets_good": 4,
+    "max_num_jets_good": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "pad_value": -999.0,
@@ -24,9 +20,8 @@ config_options_dict |= {
     "qt_postEE": None,
     "random_pt": True,
     "rand_type": 0.3,
-    # VBF
-    "vbf_parton_matching": True,
-    "vbf_presel": False,
-    "vbf_analysis": True,
-    "which_vbf_quark":"with_mothers_children"
+    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/11_04_01_out_ggf_vbf_zz_zh_spanet_input_AllKlambda_HiggsPairing_2024_parking_presel/parquet_files/",
+    "vbf_analysis": False,
+    "era_dependent_presel": True,
+    "preselection_pt_field": "pt_default",
 }| onnx_model_dict
