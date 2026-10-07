@@ -582,7 +582,7 @@ def define_preselection(options):
     else:
         if options["vbf_presel"]:
             # block vbf_presel because it's done on the wrong jet collection
-            raise ValueError("vbf_presel is not spported anymore!")
+            raise ValueError("vbf_presel is not supported anymore!")
             if options["tight_cuts"]:
                 preselection = [vbf_cuts.vbf_hh4b_presel_tight]
             else:

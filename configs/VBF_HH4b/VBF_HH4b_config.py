@@ -32,6 +32,7 @@ from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 BASELINE = False
 SPANET_TRAINING = True
 VBF_REGIONS = True
+SIGNAL_REGION = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -168,13 +169,23 @@ if BASELINE:
     categories_dict = {"baseline": [passthrough]}
 
 if SPANET_TRAINING:
+    categories_dict = {}
     categories_dict = define_single_category("4b_region")
+    if SIGNAL_REGION:
+        categories_dict |= define_single_category("4b_signal_region")
     if VBF_REGIONS:
         categories_dict |= define_single_category(
             "vbf_best_candidates_6_jets_nokincut_4b_region"
         )
         categories_dict |= define_single_category("vbf_best_candidates_6_jets_4b_region")
-
+        if SIGNAL_REGION:
+            categories_dict |= define_single_category(
+                "vbf_best_candidates_6_jets_nokincut_4b_signal_region"
+            )
+            categories_dict |= define_single_category(
+                "vbf_best_candidates_6_jets_4b_signal_region"
+            )
+            
 column_list = []
 
 # Add SPANet training inputs
