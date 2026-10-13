@@ -233,8 +233,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                         - padded[:, 1].eta
                     )
 
-                    self.events[f"mjj{jet_coll}"] = ak.fill_none(vbf_mjj, -999.0)
-                    self.events[f"deta{jet_coll}"] = ak.fill_none(vbf_deta, -999.0)
+                    self.events[f"mjj{jet_coll}"] = ak.fill_none(vbf_mjj, self.pad_value)
+                    self.events[f"deta{jet_coll}"] = ak.fill_none(vbf_deta, self.pad_value)
 
                 # # build dijets for veto
                 # dijets = ak.combinations(self.events["JetGoodVBFCandidates"], 2, fields=["j_lead", "j_sublead"])
@@ -267,22 +267,22 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         super().process_extra_after_presel(variation=variation)
         self.events["HiggsLeading"] = ak.with_field(
             self.events["HiggsLeading"],
-            ak.fill_none(self.events.HiggsLeading.tau3 / self.events.HiggsLeading.tau2, -999),
+            ak.fill_none(self.events.HiggsLeading.tau3 / self.events.HiggsLeading.tau2, self.pad_value),
             "Tau3OverTau2"
         )
         self.events["HiggsSubLeading"] = ak.with_field(
             self.events["HiggsSubLeading"],
-            ak.fill_none(self.events.HiggsSubLeading.tau3 / self.events.HiggsSubLeading.tau2, -999),
+            ak.fill_none(self.events.HiggsSubLeading.tau3 / self.events.HiggsSubLeading.tau2, self.pad_value),
             "Tau3OverTau2"
         )
         self.events["HiggsLeading"] = ak.with_field(
             self.events["HiggsLeading"],
-            ak.fill_none(self.events.HiggsLeading.pt / self.events.HH.mass, -999),
+            ak.fill_none(self.events.HiggsLeading.pt / self.events.HH.mass, self.pad_value),
             "divHHmass"
         )
         self.events["HiggsSubLeading"] = ak.with_field(
             self.events["HiggsSubLeading"],
-            ak.fill_none(self.events.HiggsSubLeading.pt / self.events.HH.mass, -999),
+            ak.fill_none(self.events.HiggsSubLeading.pt / self.events.HH.mass, self.pad_value),
             "divHHmass"
         )
         self.events["JetGoodVBFNearHiggsLeading"] = ak.firsts(self.events["JetGoodCloseToFatJet"][ak.argsort(self.events["JetGoodCloseToFatJet"].delta_r(self.events["HiggsLeading"]), ascending=True)])
@@ -290,22 +290,22 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         self.events["HiggsLeadingByHiggsSubLeadingPt"] = self.events.HiggsLeading.pt / self.events.HiggsSubLeading.pt
         self.events["HiggsLeading"] = ak.with_field(
             self.events["HiggsLeading"],
-            ak.fill_none(self.events.HiggsLeading.delta_r(self.events.JetGoodVBFNearHiggsLeading), -999),
+            ak.fill_none(self.events.HiggsLeading.delta_r(self.events.JetGoodVBFNearHiggsLeading), self.pad_value),
             "dRclosestVBF"
         )
         self.events["HiggsSubLeading"] = ak.with_field(
             self.events["HiggsSubLeading"],
-            ak.fill_none(self.events.HiggsSubLeading.delta_r(self.events.JetGoodVBFNearHiggsSubLeading), -999),
+            ak.fill_none(self.events.HiggsSubLeading.delta_r(self.events.JetGoodVBFNearHiggsSubLeading), self.pad_value),
             "dRclosestVBF"
         )
         self.events["HiggsLeading"] = ak.with_field(
             self.events["HiggsLeading"],
-            ak.fill_none((self.events.HiggsLeading + self.events.JetGoodVBFNearHiggsLeading).mass, -999),
+            ak.fill_none((self.events.HiggsLeading + self.events.JetGoodVBFNearHiggsLeading).mass, self.pad_value),
             "massclosestVBF",
         )
         self.events["HiggsSubLeading"] = ak.with_field(
             self.events["HiggsSubLeading"],
-            ak.fill_none((self.events.HiggsSubLeading + self.events.JetGoodVBFNearHiggsSubLeading).mass, -999),
+            ak.fill_none((self.events.HiggsSubLeading + self.events.JetGoodVBFNearHiggsSubLeading).mass, self.pad_value),
             "massclosestVBF",
         )
 
@@ -313,8 +313,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
             self.events["HiggsLeading"] = ak.with_field(
                 self.events["HiggsLeading"],
-                ak.fill_none(disc_TXbb(self.events.HiggsLeading.btagBBTXbb), -999),
+                ak.fill_none(disc_TXbb(self.events.HiggsLeading.btagBBTXbb), self.pad_value),
                 "btagBBTXbb_dig",
                 )
-            bdt_events = get_default_bdt_inputs(self.events)
+            bdt_events = get_default_bdt_inputs(self.events, self.pad_value)
             self.events["boosted_bdt_score"], self.events["boosted_bdt_vbf_score"] = evaluate_bdt(self.bdt_model, bdt_events)
