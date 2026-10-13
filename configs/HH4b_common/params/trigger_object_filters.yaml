@@ -1,0 +1,66 @@
+# Trigger filters of the HH4b triggers, used for
+#  - the trigger object matching (`get_trigger_object_matching` cut of PocketCoffea)
+#  - the conversion of the trigger efficiencies to a correctionlib file
+#    (scripts/convert_trigger_sf_to_correctionlib.py)
+#
+# Each filter is defined by the string `type:bit:n_objects:threshold:name`:
+#   type:      symbolic name of the trigger object, a key of PocketCoffea's
+#              `trigger_object_types` registry (`Jet`, `Electron`, `Muon`, `Tau`,
+#              `Photon`, `FatJet`, `BoostedTau`, or the non-matchable, event-level
+#              `HT`/`MHT`/`MET`) - see `parameters/trigger_object_types.yaml` in
+#              PocketCoffea. It resolves both the numeric `TrigObj.id` to require
+#              and, unless overridden with an optional 6th `:collection` field,
+#              the offline collection matched against this filter's trigger
+#              objects (`JetGood` for `Jet`, none for the non-matchable types).
+#   bit:       index of the bit of `TrigObj_filterBits` for the specific filter
+#   n_objects: number of objects required to pass the filter (ignored for the
+#              non-matchable HT/MHT/MET types: firing the filter is by itself
+#              the requirement, regardless of n_objects)
+#   threshold: online threshold of the filter (bookkeeping only)
+#   name:      name of the filter (the same used to name the efficiency curves)
+#
+# N.B: the meaning of the bits of `TrigObj_filterBits` is NOT consistent between
+# NanoAOD versions (nor, generally, across data-taking eras sharing the same
+# version): always check the NanoAOD self-documentation of the version used in the
+# analysis at https://cms-xpog.docs.cern.ch/autoDoc/ . Because of this, the filters
+# below are keyed by **NanoAOD version** (`12`, `15`, ... matching
+# PocketCoffea's `parameters/nano_version.yaml`), not by data-taking year: 2022 and
+# 2023 share NanoAOD v12, 2024 and 2025 share v15.
+#
+# `get_trigger_object_matching(triggers=[...])` defaults to the OR of *all* the
+# triggers configured for the resolved NanoAOD version: since 2022 and 2023 share
+# v12 but ran different triggers, `configurator_tools.py::define_preselection`
+# passes an explicit, year-specific `triggers=[...]` list rather than relying on
+# that default (see the comment at its call site).
+
+trigger_object_filters:
+  12:
+    # 2022 preEE/postEE (JetMET primary dataset)
+    HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65: &v12_quadjet_particlenet
+      - "Jet:0:4:20:4PixelOnlyPFCentralJetTightIDPt20"
+      - "Jet:1:3:30:3PixelOnlyPFCentralJetTightIDPt30"
+      - "Jet:6:2:40:2PixelOnlyPFCentralJetTightIDPt40"
+      - "Jet:22:1:60:1PixelOnlyPFCentralJetTightIDPt60"
+      - "Jet:4:4:35:4PFCentralJetTightIDPt35"
+      - "Jet:8:3:40:3PFCentralJetTightIDPt40"
+      - "Jet:21:2:50:2PFCentralJetTightIDPt50"
+      - "Jet:23:1:70:1PFCentralJetTightIDPt70"
+      - "Jet:26:2:0.65:BTagCentralJetPt35PFParticleNet2BTagSum0p65"
+
+    # 2023 preBPix/postBPix, JetMET primary dataset (same v12 bit layout as above,
+    # under the 2023-specific HLT path name)
+    HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65: *v12_quadjet_particlenet
+
+    # 2023 preBPix/postBPix, ParkingHH primary dataset
+    HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55:
+      - "Jet:0:4:20:4PixelOnlyPFCentralJetTightIDPt20"
+      - "Jet:3:4:30:4PFCentralJetTightIDPt30"
+      - "HT:5:0:280:PFHT280Jet30"
+      - "Jet:26:2:0.55:PFCentralJetPt30PNet2BTagMean0p55"
+
+  15:
+    # 2024/2025, ParkingHH primary dataset
+    HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55:
+      - "Jet:34:4:25:4PFCentralJetTightIDPt25"
+      # the PFHT250Jet25 filter is not stored in NanoAOD
+      - "Jet:35:2:0.55:PFCentralJetPt25PNet2BTagMean0p55"
