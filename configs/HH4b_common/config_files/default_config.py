@@ -256,6 +256,10 @@ default_config_options_dict = {
     # separate from `pad_value` because SPANet was trained with a different
     # padding convention.
     "pad_value_spanet": 9999.0,
+    # Mask of the SPANet global inputs: "ones" keeps the mask always True,
+    # "padded" masks away the global inputs whose features are all equal to
+    # `pad_value_spanet` (e.g. a missing VBF jet).
+    "spanet_global_mask": "ones",
 
     # ------------------------------------------------------------------
     # PAIRING PROBABILITY VARIABLES (SPANet only)

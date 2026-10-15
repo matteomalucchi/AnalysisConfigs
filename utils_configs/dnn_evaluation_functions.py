@@ -20,7 +20,14 @@ def get_input_name(collection, input_name):
 
 
 def extract_inputs_global(
-    input_name, output_name, events, variables, pad_value, pad_value_spanet, run2
+    input_name,
+    output_name,
+    events,
+    variables,
+    pad_value,
+    pad_value_spanet,
+    run2,
+    mask_type="ones",
 ):
     """
     Extract inputs for SPANet global inputs.
@@ -28,8 +35,19 @@ def extract_inputs_global(
     The variables defined in the workflow are padded with `pad_value`, so
     those entries are replaced with `pad_value_spanet` to have all the SPANet
     inputs padded with the same value.
+
+    `mask_type` sets the mask of each global input:
+    - "ones": the mask is always True
+    - "padded": an input is masked away (False) when all its features are
+      equal to `pad_value_spanet`, i.e. when the object is missing
     """
+    if mask_type not in ["ones", "padded"]:
+        raise ValueError(
+            f"Unknown SPANet global mask type {mask_type}, use 'ones' or 'padded'"
+        )
     variables_dict = {}
+    # whether each feature is padded, used to build the mask
+    is_padded_dict = defaultdict(list)
     for var_name, attributes in variables.items():
         collection = attributes[0]
         feature = attributes[1]
@@ -56,6 +74,11 @@ def extract_inputs_global(
         # replace the workflow padding with the SPANet one
         ak_array = ak.fill_none(ak_array, pad_value_spanet)
         ak_array = ak.where(ak_array == pad_value, pad_value_spanet, ak_array)
+        # checked before the log, which would change the padded value
+        is_padded = ak.to_numpy(ak_array == pad_value_spanet, allow_missing=True)
+        if is_padded.ndim == 1:
+            is_padded = is_padded[:, None]
+        is_padded_dict[mask_name].append(is_padded)
         if scale and "log" in scale:
             # apply the log to the padded value
             arr = np.array(
@@ -86,6 +109,9 @@ def extract_inputs_global(
     for key, value in variables_dict.items():
         if "data" in key:
             variables_dict[key] = np.stack(value, axis=-1)
+    if mask_type == "padded":
+        for mask_name, is_padded in is_padded_dict.items():
+            variables_dict[mask_name] = ~np.all(np.stack(is_padded, axis=-1), axis=-1)
     return variables_dict
 
 
@@ -177,6 +203,7 @@ def get_onnx_prediction(
     pad_value_spanet,
     max_num_jets_spanet,
     run2=False,
+    spanet_global_mask="ones",
 ):
     if "sequential" in variables:
         # SPANet
@@ -215,6 +242,7 @@ def get_onnx_prediction(
             pad_value,
             pad_value_spanet,
             run2,
+            mask_type=spanet_global_mask,
         )  # use remaining input_name, which is reduced by the pops from before
         inputs_complete |= global_inputs_total
         spanet_output = session.run(output_name, inputs_complete)

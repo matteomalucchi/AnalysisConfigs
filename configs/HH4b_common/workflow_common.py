@@ -1392,6 +1392,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.pad_value,
             self.pad_value_spanet,
             self.max_num_jets_higgs_pairing,
+            spanet_global_mask=self.spanet_global_mask,
         )
         # Not needed anymore
         del model_session_spanet, input_name_spanet, output_name_spanet
@@ -1447,6 +1448,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.pad_value,
                 self.pad_value_spanet,
                 self.max_num_jets_vbf_discriminator,
+                spanet_global_mask=self.spanet_global_mask,
             )
 
             del (
@@ -2023,6 +2025,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 pad_value=self.pad_value,
                 pad_value_spanet=self.pad_value_spanet,
                 max_num_jets_spanet=self.max_num_jets_spanet_class,
+                spanet_global_mask=self.spanet_global_mask,
             )
             if out_type == "spanet":
                 class_prob = onnx_output["class_prob"][0]
