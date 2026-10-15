@@ -8,14 +8,19 @@ from utils_configs.spanet_evaluation_functions import (
 
 
 def get_input_name(collection, input_name):
-    for name in input_name:
-        # in case of "events", the last s has to be removed to map to "Event_data"
-        if collection == "events":
-            collection = "event"
-        if collection.lower() in name.lower():
-            data_name = f"{'_'.join(name.split('_')[:-1])}_data"
-            mask_name = f"{'_'.join(name.split('_')[:-1])}_mask"
-            return data_name, mask_name
+    # in case of "events", the last s has to be removed to map to "Event_data"
+    if collection == "events":
+        collection = "event"
+    # "Collection:N" is a separate SPANet global input named "Collection_N"
+    # (as in the h5 files of the SPANet training)
+    collection = collection.replace(":", "_")
+    base_names = ["_".join(name.split("_")[:-1]) for name in input_name]
+    # prefer the exact match, to avoid e.g. "Collection" matching "Collection_0"
+    matches = [base for base in base_names if base.lower() == collection.lower()]
+    if not matches:
+        matches = [base for base in base_names if collection.lower() in base.lower()]
+    if matches:
+        return f"{matches[0]}_data", f"{matches[0]}_mask"
     raise ValueError(f"No {collection} found in {input_name}")
 
 
@@ -56,8 +61,8 @@ def extract_inputs_global(
         else:
             scale = None
         # "Collection:N" selects the N-th object of the collection, which is
-        # fed to the global input of the collection
-        data_name, mask_name = get_input_name(collection.split(":")[0], input_name)
+        # fed to the global input "Collection_N"
+        data_name, mask_name = get_input_name(collection, input_name)
         if data_name not in variables_dict.keys():
             variables_dict[data_name] = []
 
