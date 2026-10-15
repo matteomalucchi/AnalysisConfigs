@@ -55,7 +55,9 @@ def extract_inputs_global(
             scale = attributes[2]
         else:
             scale = None
-        data_name, mask_name = get_input_name(collection, input_name)
+        # "Collection:N" selects the N-th object of the collection, which is
+        # fed to the global input of the collection
+        data_name, mask_name = get_input_name(collection.split(":")[0], input_name)
         if data_name not in variables_dict.keys():
             variables_dict[data_name] = []
 
@@ -66,7 +68,7 @@ def extract_inputs_global(
             pos = int(collection.split(":")[1])
             ak_array = ak.fill_none(
                 ak.pad_none(ak_array, pos + 1, clip=True), pad_value_spanet
-            )
+            )[:, pos]
         else:
             ak_array = ak.fill_none(
                 getattr(getattr(events, collection), feature), pad_value_spanet
