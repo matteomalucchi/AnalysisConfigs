@@ -1201,12 +1201,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         higgs1 = ak.with_field(
             higgs1,
-            ak.fill_none(dR_min, -999.0),
+            ak.fill_none(dR_min, self.pad_value),
             "dR_Hjet_min",
         )
         higgs1 = ak.with_field(
             higgs1,
-            ak.fill_none(m_hj, -999.0),
+            ak.fill_none(m_hj, self.pad_value),
             "m_Hjet_min_dR",
         )
 
@@ -1225,12 +1225,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         higgs2 = ak.with_field(
             higgs2,
-            ak.fill_none(dR_min, -999.0),
+            ak.fill_none(dR_min, self.pad_value),
             "dR_Hjet_min",
         )
         higgs2 = ak.with_field(
             higgs2,
-            ak.fill_none(m_hj, -999.0),
+            ak.fill_none(m_hj, self.pad_value),
             "m_Hjet_min_dR",
         )
 
@@ -1282,12 +1282,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             higgs1 = ak.with_field(
                 higgs1,
-                ak.fill_none(C_1, -999),
+                ak.fill_none(C_1, self.pad_value),
                 "centrality",
             )
             higgs2 = ak.with_field(
                 higgs2,
-                ak.fill_none(C_2, -999),
+                ak.fill_none(C_2, self.pad_value),
                 "centrality",
             )
 
