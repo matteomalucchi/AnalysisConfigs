@@ -19,8 +19,16 @@ def get_input_name(collection, input_name):
     raise ValueError(f"No {collection} found in {input_name}")
 
 
-def extract_inputs_global(input_name, output_name, events, variables, pad_value_spanet, run2):
-    """Extract inputs for SPANet global inputs."""
+def extract_inputs_global(
+    input_name, output_name, events, variables, pad_value, pad_value_spanet, run2
+):
+    """
+    Extract inputs for SPANet global inputs.
+
+    The variables defined in the workflow are padded with `pad_value`, so
+    those entries are replaced with `pad_value_spanet` to have all the SPANet
+    inputs padded with the same value.
+    """
     variables_dict = {}
     for var_name, attributes in variables.items():
         collection = attributes[0]
@@ -45,6 +53,9 @@ def extract_inputs_global(input_name, output_name, events, variables, pad_value_
             ak_array = ak.fill_none(
                 getattr(getattr(events, collection), feature), pad_value_spanet
             )
+        # replace the workflow padding with the SPANet one
+        ak_array = ak.fill_none(ak_array, pad_value_spanet)
+        ak_array = ak.where(ak_array == pad_value, pad_value_spanet, ak_array)
         if scale and "log" in scale:
             # apply the log to the padded value
             arr = np.array(
@@ -197,7 +208,13 @@ def get_onnx_prediction(
                 input_name_forpop.pop(0): mask,
             }  # Take always the first element from input_name.
         global_inputs_total = extract_inputs_global(
-            input_name_forpop, output_name, events, variables["global"], pad_value_spanet, run2
+            input_name_forpop,
+            output_name,
+            events,
+            variables["global"],
+            pad_value,
+            pad_value_spanet,
+            run2,
         )  # use remaining input_name, which is reduced by the pops from before
         inputs_complete |= global_inputs_total
         spanet_output = session.run(output_name, inputs_complete)
