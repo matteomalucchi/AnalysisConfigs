@@ -200,6 +200,44 @@ def get_collections(input_dict):
     return coll_dict
 
 
+def check_spanet_input_order(produced_names, onnx_input_names):
+    """
+    Check that the SPANet inputs are produced in the same order as the inputs
+    of the ONNX model.
+
+    The sequential inputs are assigned to the ONNX input names by position,
+    so a different order means that some arrays are fed to the wrong input.
+    """
+    if list(produced_names) == list(onnx_input_names):
+        return
+
+    missing = [name for name in onnx_input_names if name not in produced_names]
+    extra = [name for name in produced_names if name not in onnx_input_names]
+    mismatches = [
+        f"  position {i}: produced '{produced}', ONNX expects '{expected}'"
+        for i, (produced, expected) in enumerate(
+            zip(produced_names, onnx_input_names)
+        )
+        if produced != expected
+    ]
+    raise ValueError(
+        "The order of the SPANet inputs differs from the order of the ONNX "
+        "model inputs.\n"
+        "The ONNX inputs follow the order of the INPUTS in the SPANet event "
+        "file (SEQUENTIAL first, then GLOBAL, each as <input>_data, "
+        "<input>_mask). The sequential collections are assigned to the ONNX "
+        "inputs by position, and the global inputs follow the order of the "
+        "first variable of each collection in the 'global' block, so reorder "
+        "the 'sequential' and 'global' blocks of the input variables to match "
+        "the event file used for the training.\n"
+        f"Produced order: {list(produced_names)}\n"
+        f"ONNX order:     {list(onnx_input_names)}\n"
+        + ("Mismatches:\n" + "\n".join(mismatches) + "\n" if mismatches else "")
+        + (f"Missing inputs: {missing}\n" if missing else "")
+        + (f"Unexpected inputs: {extra}\n" if extra else "")
+    )
+
+
 def get_onnx_prediction(
     session,
     input_name,
@@ -252,6 +290,7 @@ def get_onnx_prediction(
             mask_type=spanet_global_mask,
         )  # use remaining input_name, which is reduced by the pops from before
         inputs_complete |= global_inputs_total
+        check_spanet_input_order(list(inputs_complete.keys()), input_name)
         spanet_output = session.run(output_name, inputs_complete)
 
         order = ["h1", "h2", "vbf"]
