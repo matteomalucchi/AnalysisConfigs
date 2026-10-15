@@ -1463,6 +1463,7 @@ bkg_morphing_dnn_input_variables_mixeddata_bestworst = OrderedDict(
         "sigma_over_higgs2_reco_mass": ["events", "sigma_over_higgs2_reco_mass"],
     }
 )
+
 sig_bkg_dnn_input_variables_spanet_mixeddata = OrderedDict(
     {
         "sequential": {
@@ -1500,6 +1501,7 @@ sig_bkg_dnn_input_variables_spanet_mixeddata = OrderedDict(
             }
     }
 )
+
 sig_bkg_dnn_input_variables_spanet_mixeddata_btag = OrderedDict(
     {
         "sequential": {
@@ -1536,6 +1538,7 @@ sig_bkg_dnn_input_variables_spanet_mixeddata_btag = OrderedDict(
             }
     }
 )
+
 sig_bkg_dnn_input_variables_spanet_mixeddata_pd = OrderedDict(
     {
         "sequential": {
@@ -1572,6 +1575,7 @@ sig_bkg_dnn_input_variables_spanet_mixeddata_pd = OrderedDict(
             }
     }
 )
+
 sig_bkg_dnn_input_variables_spanet_mixeddata_btag_pd = OrderedDict(
     {
         "sequential": {
@@ -1660,6 +1664,43 @@ sig_bkg_boosted_dnn_input_variables = OrderedDict(
         "met_et": ["PuppiMET", "sumEt"],
     }
 )
+
+ggf_vbf_input_variables_spanet_nobtag = OrderedDict(
+    {
+        "sequential": {
+            "jet_eta": ["JetGoodFromHiggsOrdered5Jets", "eta", "norm"],
+            "jet_log_mass": ["JetGoodFromHiggsOrdered5Jets", "mass", "log_norm"],
+            "jet_phi": ["JetGoodFromHiggsOrdered5Jets", "phi", "norm"],
+            "jet_log_pt": ["JetGoodFromHiggsOrdered5Jets", "pt", "log_norm"],
+            },
+        "global": {
+            "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
+            "HT": ["events", "HT", "log_norm"],
+            "maxDeltaR_Higgjj": ["events", "dR_max"],
+            "minDeltaR_Higgjj": ["events", "dR_min"],
+            "higgs1_reco_dR": ["HiggsLeading", "dR"],
+            "higgs1_reco_eta": ["HiggsLeading", "eta"],
+            "higgs1_helicityCosTheta": ["HiggsLeading", "helicityCosTheta"],
+            "higgs1_reco_phi": ["HiggsLeading", "phi"],
+            "higgs1_reco_mass": ["HiggsLeading", "mass", "log_norm"],
+            "higgs1_reco_pt": ["HiggsLeading", "pt", "log_norm"],
+            "higgs2_reco_dR": ["HiggsSubLeading", "dR"],
+            "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
+            "higgs2_helicityCosTheta": ["HiggsSubLeading", "helicityCosTheta"],
+            "higgs2_reco_phi": ["HiggsSubLeading", "phi"],
+            "higgs2_reco_mass": ["HiggsSubLeading", "mass", "log_norm"],
+            "higgs2_reco_pt": ["HiggsSubLeading", "pt", "log_norm"],
+            "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS"],
+            "hh_vec_DeltaEta": ["HH", "dEta"],
+            "hh_vec_DeltaR": ["HH", "dR"],
+            "hh_vec_eta": ["HH", "eta", "norm"],
+            "hh_vec_mass": ["HH", "mass", "log_norm"],
+            "hh_vec_phi": ["HH", "phi"],
+            "hh_vec_pt": ["HH", "pt", "log_norm"],
+            }
+    }
+)
+
 
 if __name__ == "__main__":
     # print the difference between the two dictionaries
