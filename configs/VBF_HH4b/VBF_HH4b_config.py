@@ -259,6 +259,20 @@ else:
         )
     else:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
+    if config_options_dict["vbf_analysis"]:
+        # VBF jets assigned by the pairing, used by the VBF categories
+        total_input_columns |= {
+            f"JetGoodVBFEnergyOrdered_{x}": ["JetGoodVBFEnergyOrdered", x]
+            for x in ["pt", "eta", "phi", "mass", "index"]
+        } | {
+            x: ["events", x]
+            for x in [
+                "mjjJetGoodVBFEnergyOrdered",
+                "detaJetGoodVBFEnergyOrdered",
+                "centralityHiggsLeadingJetGoodVBFEnergyOrdered",
+                "centralityHiggsSubLeadingJetGoodVBFEnergyOrdered",
+            ]
+        }
     if BASELINE:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 

@@ -198,6 +198,27 @@ def get_collections(input_dict):
     return coll_dict
 
 
+def get_sequential_collection_sizes(events, variables, max_num_jets_spanet):
+    """
+    Collections of the SPANet sequential inputs, in the order in which they are
+    fed to the model, with the number of jets each one is padded to.
+
+    The assignment indices predicted by SPANet run over the concatenation of
+    the sequential inputs in this order.
+    """
+    return [
+        (
+            collection,
+            # None: use all the jets of the collection (each collection can
+            # have a different number of jets, e.g. 4 Higgs jets and 5 VBF jets)
+            max_num_jets_spanet
+            if max_num_jets_spanet is not None
+            else int(ak.max(ak.num(events[collection], axis=1))),
+        )
+        for collection in get_collections(variables["sequential"])
+    ]
+
+
 def check_spanet_input_order(produced_names, onnx_input_names):
     """
     Check that the SPANet inputs are produced in the same order as the inputs
@@ -254,14 +275,10 @@ def get_onnx_prediction(
         input_name_forpop = input_name.copy()
         inputs_complete = {}
         collection_feature_dict = get_collections(variables["sequential"])
-        for collection, features in collection_feature_dict.items():
-            # None: use all the jets of the collection (each collection can have
-            # a different number of jets, e.g. 4 Higgs jets and 5 VBF jets)
-            max_num_jets_coll = (
-                max_num_jets_spanet
-                if max_num_jets_spanet is not None
-                else int(ak.max(ak.num(events[collection], axis=1)))
-            )
+        for collection, max_num_jets_coll in get_sequential_collection_sizes(
+            events, variables, max_num_jets_spanet
+        ):
+            features = collection_feature_dict[collection]
             sequential_inputs = define_spanet_pairing_inputs(
                 events, max_num_jets_coll, collection, features, pad_value_spanet
             )
