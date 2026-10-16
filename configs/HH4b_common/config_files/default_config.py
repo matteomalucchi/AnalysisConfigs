@@ -172,7 +172,9 @@ default_config_options_dict = {
     # once and also provides `VBF_ggF_score`.
     "vbf_pairing_from_vbf_discriminator": False,
     # Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to
-    # split the pass/fail VBF categories.
+    # split the pass/fail VBF categories, also combined with the VBF
+    # preselection (deta and mjj) in the resolved VBF regions. It depends on
+    # the `vbf_discriminator` model, so set it in the config file of the model.
     "ggf_vbf_threshold": 0.95,
     # Boosted VBF only: overrides `vbf_analysis` when defining the categories in
     # `VBF_HH4b_boosted_config.py`, so that the VBF regions can be built without

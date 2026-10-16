@@ -339,6 +339,9 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
 
     if "vbf" in category_name and "boosted" not in category_name:
         cut_list.append(cuts.hh4b_vbf_2_jets)
+        if "best_candidates" not in category_name and "discriminator" not in category_name:
+            raise ValueError("Unrecognized region name")
+        # VBF preselection on the deta and mjj of the VBF jets
         if "best_candidates" in category_name:
             if "nokincut" in category_name:
                 cut_list.append(
@@ -346,16 +349,23 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
                 )
             else:
                 cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
-        elif "discriminator" in category_name:
+        # ggF vs VBF discriminator cut, which can be combined with the VBF
+        # preselection
+        if "discriminator" in category_name:
+            if ggf_vbf_threshold is False or ggf_vbf_threshold is None:
+                raise ValueError(
+                    f"The category {category_name} requires a ggf_vbf_threshold"
+                )
             if "pass" in category_name:
-                cut_list.append(cuts.hh4b_vbf_pass_discriminator_region)
+                cut_list.append(
+                    cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold)
+                )
             elif "fail" in category_name:
-                cut_list.append(cuts.hh4b_vbf_fail_discriminator_region)
+                cut_list.append(
+                    cuts.hh4b_vbf_fail_discriminator_region(ggf_vbf_threshold)
+                )
             else:
                 raise ValueError("Unrecognized region name")
-
-        else:
-            raise ValueError("Unrecognized region name")
     if "high_score" in category_name:
         cut_list.append(cuts.hh4b_sig_bkg_score_cut(0.5))
 
@@ -396,37 +406,37 @@ def define_categories(
             categories_dict |= define_single_category(f"boosted{is_vbf}_boosted_group_signal_region")
         elif not vbf_discriminator:
             categories_dict |= define_single_category(f"boosted{is_vbf}_incl_region")
-            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_signal_region", ggf_vbf_threshold)
-            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region", ggf_vbf_threshold)
-            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_B_region", ggf_vbf_threshold)
-            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_C_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_signal_region", ggf_vbf_threshold=ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region", ggf_vbf_threshold=ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_B_region", ggf_vbf_threshold=ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_C_region", ggf_vbf_threshold=ggf_vbf_threshold)
             if bkg_morphing_dnn:
-                categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region_postW", ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_A_region_postW", ggf_vbf_threshold=ggf_vbf_threshold)
                 categories_dict |= (
-                    define_single_category(f"boosted{is_vbf}_incl_qcd_C_region_postW" + "_blind", ggf_vbf_threshold)
+                    define_single_category(f"boosted{is_vbf}_incl_qcd_C_region_postW" + "_blind", ggf_vbf_threshold=ggf_vbf_threshold)
                     if blind
                     else {}
                 )
-                categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_C_region_postW", ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_incl_qcd_C_region_postW", ggf_vbf_threshold=ggf_vbf_threshold)
         else:
-            categories_dict |= define_single_category(f"boosted{is_vbf}_signal_region", ggf_vbf_threshold)
-            categories_dict |= define_single_category(f"boosted{is_vbf}_ttbar_region", ggf_vbf_threshold)
-            categories_dict |= define_single_category(f"boosted{is_vbf}_pass_region", ggf_vbf_threshold)
-            categories_dict |= define_single_category(f"boosted{is_vbf}_fail_region", ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_signal_region", ggf_vbf_threshold=ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_ttbar_region", ggf_vbf_threshold=ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_pass_region", ggf_vbf_threshold=ggf_vbf_threshold)
+            categories_dict |= define_single_category(f"boosted{is_vbf}_fail_region", ggf_vbf_threshold=ggf_vbf_threshold)
             if split_qcd:
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region", ggf_vbf_threshold)
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_B_region", ggf_vbf_threshold)
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region", ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region", ggf_vbf_threshold=ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_B_region", ggf_vbf_threshold=ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region", ggf_vbf_threshold=ggf_vbf_threshold)
                 if bkg_morphing_dnn:
-                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region_postW", ggf_vbf_threshold)
+                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_A_region_postW", ggf_vbf_threshold=ggf_vbf_threshold)
                     categories_dict |= (
-                        define_single_category(f"boosted{is_vbf}_qcd_C_region_postW" + "_blind", ggf_vbf_threshold)
+                        define_single_category(f"boosted{is_vbf}_qcd_C_region_postW" + "_blind", ggf_vbf_threshold=ggf_vbf_threshold)
                         if blind
                         else {}
                     )
-                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region_postW", ggf_vbf_threshold)
+                    categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_C_region_postW", ggf_vbf_threshold=ggf_vbf_threshold)
             else:
-                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_region", ggf_vbf_threshold)
+                categories_dict |= define_single_category(f"boosted{is_vbf}_qcd_region", ggf_vbf_threshold=ggf_vbf_threshold)
     elif not vr1:
         categories_dict |= define_single_category("4b_region")
         categories_dict |= define_single_category("4b_control_region")
@@ -538,11 +548,20 @@ def define_categories(
             if vbf_discriminator:
                 # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above/below the threshold
                 categories_dict |= define_single_category(
-                    "vbf_pass_discriminator_4b_region"
+                    "vbf_pass_discriminator_4b_region",
+                    ggf_vbf_threshold=ggf_vbf_threshold,
                 )
                 categories_dict |= define_single_category(
-                    "vbf_fail_discriminator_4b_region"
+                    "vbf_fail_discriminator_4b_region",
+                    ggf_vbf_threshold=ggf_vbf_threshold,
                 )
+                # NOTE: these regions require the VBF preselection (deta and
+                # mjj of the VBF jets) and the vbf vs ggf score above the threshold
+                for region in ["region", "signal_region", "control_region"]:
+                    categories_dict |= define_single_category(
+                        f"vbf_best_candidates_6_jets_pass_discriminator_4b_{region}",
+                        ggf_vbf_threshold=ggf_vbf_threshold,
+                    )
     else:
         categories_dict |= define_single_category(f"4b_VR1_control_region")
         categories_dict |= define_single_category(

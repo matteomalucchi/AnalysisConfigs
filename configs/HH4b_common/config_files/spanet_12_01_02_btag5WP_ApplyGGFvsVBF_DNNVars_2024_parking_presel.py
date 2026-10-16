@@ -31,6 +31,8 @@ config_options_dict |= {
     # VBF
     "vbf_discriminator_input_variables": dnn_vars.ggf_vbf_input_variables_spanet_nobtag,
     "max_num_jets_vbf_discriminator": 5,
+    # threshold on VBF_ggF_score optimized for this vbf_discriminator model
+    "ggf_vbf_threshold": 0.77,
     "vbf_parton_matching": False,
     "vbf_presel": False,
     "vbf_analysis": True,
