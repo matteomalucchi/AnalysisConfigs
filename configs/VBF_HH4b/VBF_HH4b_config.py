@@ -123,34 +123,28 @@ sample_official_ggF_list = [
     "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
     "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
     # new samples for 2024
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
-#     "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
-#     "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
+    #     "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
+    #     "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
 ]
 
-sample_ZZ_ZH_list = [
-    "ZZTo4B01j",
-    "ggZH_HToBB_ZToBB",
-    "ZH_ZToBB_HToBB"
-]
+sample_ZZ_ZH_list = ["ZZTo4B01j", "ggZH_HToBB_ZToBB", "ZH_ZToBB_HToBB"]
+
+sample_data_jme_list = ["DATA_JetMET_HH4bResolved"]
+
+sample_data_parkinghh_list = ["DATA_ParkingHH"]
 
 sample_list = (
-    [
-        # 2022 preEE
-        # "DATA_JetMET_JMENano_C_skimmed",
-        # "DATA_JetMET_JMENano_D_skimmed",
-        # 2022 postEE
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        # "DATA_JetMET_JMENano_G_skimmed",
-    ]
+    []
     # + sample_spanet_ggF_list
-    + sample_official_ggF_list
-    + sample_VBF_list
-    + sample_ZZ_ZH_list
+    # + sample_official_ggF_list
+    # + sample_VBF_list
+    # + sample_ZZ_ZH_list
+    # + sample_data_jme_list
+    + sample_data_parkinghh_list
 )
 
 
@@ -177,7 +171,9 @@ if SPANET_TRAINING:
         categories_dict |= define_single_category(
             "vbf_best_candidates_6_jets_nokincut_4b_region"
         )
-        categories_dict |= define_single_category("vbf_best_candidates_6_jets_4b_region")
+        categories_dict |= define_single_category(
+            "vbf_best_candidates_6_jets_4b_region"
+        )
         if SIGNAL_REGION:
             categories_dict |= define_single_category(
                 "vbf_best_candidates_6_jets_nokincut_4b_signal_region"
@@ -185,7 +181,7 @@ if SPANET_TRAINING:
             categories_dict |= define_single_category(
                 "vbf_best_candidates_6_jets_4b_signal_region"
             )
-            
+
 column_list = []
 
 # Add SPANet training inputs
@@ -307,6 +303,8 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_22EE_23_24_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_HH4bResolved_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_HH4bResolved_skimmed_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,
