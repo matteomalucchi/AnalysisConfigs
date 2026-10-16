@@ -169,13 +169,19 @@ def reconstruct_vbf_jets_from_idx(jet_collection, vbf_idx_collection, valid_mask
     so that they behave like the output of `get_lead_mjj_jet_pair`.
     """
     vbf_idx = ak.Array(np.asarray(vbf_idx_collection))
+    # a regular (padded) collection would be flattened by the boolean mask
+    jet_collection = ak.from_regular(jet_collection, axis=1)
 
     # select the jets with a boolean mask instead of a positional index, so that
     # a prediction pointing outside of the available jets cannot raise
     local_idx = ak.local_index(jet_collection, axis=1)
-    mask_vbf = (local_idx == vbf_idx[:, 0]) | (local_idx == vbf_idx[:, 1])
+    # the explicit axis broadcasts per event also for a regular (padded)
+    # jet collection
+    mask_vbf = (local_idx == vbf_idx[:, 0:1]) | (local_idx == vbf_idx[:, 1:2])
 
-    vbf_jets = add_fields(jet_collection[mask_vbf], "all")
+    vbf_jets = jet_collection[mask_vbf]
+    # a prediction pointing to a padded (None) jet is not a valid jet
+    vbf_jets = add_fields(vbf_jets[~ak.is_none(vbf_jets.pt, axis=1)], "all")
     # sort jets by energy
     vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
 
