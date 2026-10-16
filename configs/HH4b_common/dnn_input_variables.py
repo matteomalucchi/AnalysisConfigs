@@ -1668,13 +1668,30 @@ sig_bkg_boosted_dnn_input_variables = OrderedDict(
 ggf_vbf_input_variables_spanet_nobtag = OrderedDict(
     {
         "sequential": {
-            "jet_eta": ["JetGoodFromHiggsOrdered5Jets", "eta", "norm"],
-            "jet_log_mass": ["JetGoodFromHiggsOrdered5Jets", "mass", "log_norm"],
-            "jet_phi": ["JetGoodFromHiggsOrdered5Jets", "phi", "norm"],
-            "jet_log_pt": ["JetGoodFromHiggsOrdered5Jets", "pt", "log_norm"],
+            # higgs
+            "jethiggs_log_pt": ["JetGoodProvHiggsPadded", "pt", "log_norm"],
+            "jethiggs_eta": ["JetGoodProvHiggsPadded", "eta", "norm"],
+            "jethiggs_phi": ["JetGoodProvHiggsPadded", "phi", "norm"],
+            # vbf
+            "jetvbf_log_pt": ["JetGoodVBFMergedProvVBFPadded", "pt", "log_norm"],
+            "jetvbf_eta": ["JetGoodVBFMergedProvVBFPadded", "eta", "norm"],
+            "jetvbf_phi": ["JetGoodVBFMergedProvVBFPadded", "phi", "norm"],
             },
         "global": {
-            "Delta_pairing_probabilities": ["events", "Delta_pairing_probabilities"],
+            # vbf
+            "centralityHiggsLeadingJetGoodVBFMergedProvVBFPadded": [
+                "events", "centralityHiggsLeadingJetGoodVBFMergedProvVBFPadded",
+            ],
+            "centralityHiggsSubLeadingJetGoodVBFMergedProvVBFPadded": [
+                "events", "centralityHiggsSubLeadingJetGoodVBFMergedProvVBFPadded",
+            ],
+            "detaJetGoodVBFMergedProvVBFPadded": [
+                "events", "detaJetGoodVBFMergedProvVBFPadded", "norm",
+            ],
+            "mjjJetGoodVBFMergedProvVBFPadded": [
+                "events", "mjjJetGoodVBFMergedProvVBFPadded", "norm",
+            ],
+            # higgs
             "HT": ["events", "HT", "log_norm"],
             "maxDeltaR_Higgjj": ["events", "dR_max"],
             "minDeltaR_Higgjj": ["events", "dR_min"],

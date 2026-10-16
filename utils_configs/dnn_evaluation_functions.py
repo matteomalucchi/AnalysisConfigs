@@ -105,8 +105,8 @@ def extract_inputs_global(
 
             if arr.ndim == 1:
                 arr = arr[:, None]  # <-- THIS is the missing axis
-
             variables_dict[data_name].append(arr)
+
         if mask_name not in variables_dict.keys():
             mask_ak = ak.ones_like(ak_array)
             mask_np = ak.to_numpy(mask_ak, allow_missing=True)
@@ -179,9 +179,7 @@ def extract_inputs(input_name, output_name, events, variables, pad_value, run2):
 def get_dnn_prediction(
     session, input_name, output_name, events, variables, pad_value, run2=False
 ):
-    inputs = extract_inputs(
-        input_name, output_name, events, variables, pad_value, run2
-    )
+    inputs = extract_inputs(input_name, output_name, events, variables, pad_value, run2)
 
     inputs_complete = {input_name[0]: inputs}
 
@@ -259,7 +257,7 @@ def get_onnx_prediction(
         for collection, features in collection_feature_dict.items():
             sequential_inputs = define_spanet_pairing_inputs(
                 events, max_num_jets_spanet, collection, features, pad_value_spanet
-            )  
+            )
             mask = np.array(
                 ak.to_numpy(
                     ak.fill_none(
