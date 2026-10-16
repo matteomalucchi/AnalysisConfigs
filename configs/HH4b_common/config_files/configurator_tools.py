@@ -537,33 +537,42 @@ def define_categories(
                     )
         if vbf_analysis:
             # NOTE: this region requires at least 6 jets
-            categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_4b_region"
-            )
+            # categories_dict |= define_single_category(
+            #     "vbf_best_candidates_6_jets_4b_region"
+            # )
             # NOTE: this region requires at least 6 jets
-            categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_nokincut_4b_region"
-            )
+            # categories_dict |= define_single_category(
+            #     "vbf_best_candidates_6_jets_nokincut_4b_region"
+            # )
 
             if vbf_discriminator:
                 # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above/below the threshold
-                categories_dict |= define_single_category(
-                    "vbf_pass_discriminator_4b_region",
-                    ggf_vbf_threshold=ggf_vbf_threshold,
-                )
-                categories_dict |= define_single_category(
-                    "vbf_fail_discriminator_4b_region",
-                    ggf_vbf_threshold=ggf_vbf_threshold,
-                )
+                # categories_dict |= define_single_category(
+                #     "vbf_pass_discriminator_4b_region",
+                #     ggf_vbf_threshold=ggf_vbf_threshold,
+                # )
+                # categories_dict |= define_single_category(
+                #     "vbf_fail_discriminator_4b_region",
+                #     ggf_vbf_threshold=ggf_vbf_threshold,
+                # )
                 # NOTE: these regions require the VBF preselection (deta and
                 # mjj of the VBF jets) and the vbf vs ggf score above (pass)
                 # or below (fail) the threshold
-                for discr in ["pass", "fail"]:
-                    for region in ["region", "signal_region", "control_region"]:
-                        categories_dict |= define_single_category(
-                            f"vbf_best_candidates_6_jets_{discr}_discriminator_4b_{region}",
-                            ggf_vbf_threshold=ggf_vbf_threshold,
-                        )
+                
+                for n_b in ["4b", "2b"]:
+                    # for discr in ["pass", "fail"]:
+                    for discr in ["pass"]:
+                        # for region in ["region", "signal_region", "control_region"]:
+                        for region in ["signal_region", "control_region"]:
+                            categories_dict |= define_single_category(
+                                f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_{region}",
+                                ggf_vbf_threshold=ggf_vbf_threshold,
+                            )
+                            if bkg_morphing_dnn and n_b == "2b":
+                                categories_dict |= define_single_category(
+                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_postW_{region}",
+                                    ggf_vbf_threshold=ggf_vbf_threshold,
+                                )
     else:
         categories_dict |= define_single_category(f"4b_VR1_control_region")
         categories_dict |= define_single_category(

@@ -30,9 +30,9 @@ from configs.HH4b_common.custom_weights import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
-SPANET_TRAINING = True
-VBF_REGIONS = True
-SIGNAL_REGION = True
+SPANET_TRAINING = False
+VBF_REGIONS = False
+SIGNAL_REGION = False
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -159,6 +159,7 @@ categories_dict = define_categories(
     vbf_discriminator=config_options_dict["vbf_discriminator"],
     ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
 )
+categories_dict.pop("4b_region", None)
 
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
@@ -282,6 +283,8 @@ else:
     # Add special columns
     if config_options_dict["sig_bkg_dnn"]:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
+    if config_options_dict["vbf_discriminator"]:
+        column_list += get_columns_list({"events": ["VBF_ggF_score"]})
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
