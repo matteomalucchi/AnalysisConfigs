@@ -556,12 +556,14 @@ def define_categories(
                     ggf_vbf_threshold=ggf_vbf_threshold,
                 )
                 # NOTE: these regions require the VBF preselection (deta and
-                # mjj of the VBF jets) and the vbf vs ggf score above the threshold
-                for region in ["region", "signal_region", "control_region"]:
-                    categories_dict |= define_single_category(
-                        f"vbf_best_candidates_6_jets_pass_discriminator_4b_{region}",
-                        ggf_vbf_threshold=ggf_vbf_threshold,
-                    )
+                # mjj of the VBF jets) and the vbf vs ggf score above (pass)
+                # or below (fail) the threshold
+                for discr in ["pass", "fail"]:
+                    for region in ["region", "signal_region", "control_region"]:
+                        categories_dict |= define_single_category(
+                            f"vbf_best_candidates_6_jets_{discr}_discriminator_4b_{region}",
+                            ggf_vbf_threshold=ggf_vbf_threshold,
+                        )
     else:
         categories_dict |= define_single_category(f"4b_VR1_control_region")
         categories_dict |= define_single_category(
