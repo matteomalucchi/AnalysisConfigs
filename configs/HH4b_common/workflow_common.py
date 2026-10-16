@@ -943,15 +943,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
             add_all_fields=add_all_fields,
         )
 
-    def define_dnn_variables(
+    def define_higgs_dnn_variables(
         self,
         higgs1,
         higgs2,
         jets_from_higgs,
-        jet_higgs_idx_per_event,
         sb_variables,
-        jet_vbf_idx_per_event=None,
     ):
+        """
+        DNN variables which depend only on the Higgs pairing.
+
+        They are defined before the VBF pairing, so that the VBF discriminator
+        model, which takes them as inputs, can be evaluated only once to get
+        both the VBF pairing and the ggF/VBF score.
+        """
         ########################
         # ADDITIONAL VARIABLES #
         ########################
@@ -963,53 +968,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events.HT, era_dict[f"{self._year}_{self._era}"]
         )
         self.events["year"] = ak.full_like(self.events.HT, year_dict[f"{self._year}"])
-
-        # the additional jet is searched among the jets which are not used by the
-        # Higgs pairing and, when the VBF pairing is available, not used by it
-        # either
-        jet_idx_from_pairings = jet_higgs_idx_per_event
-        if jet_vbf_idx_per_event is not None:
-            jet_idx_from_pairings = ak.concatenate(
-                [jet_higgs_idx_per_event, jet_vbf_idx_per_event], axis=1
-            )
-
-        self.select_jets_not_from_idx(
-            "JetNotFromHiggs",
-            jet_idx_from_pairings,
-            jet_type_obj_presel="Jet",
-            forward_jet_veto=False,
-            add_all_fields=False,
-        )
-
-        if self.add_jet_spanet:
-            if self.fifth_jet == "pt":
-                # order the self.events["JetNotFromHiggs"] according to btag or to pt
-                # depending on wether the pairing chose the 5th jet or not
-                self.events["JetNotFromHiggs"] = ak.where(
-                    self.events["btag_order_add_jet"],
-                    self.events["JetNotFromHiggs"][
-                        ak.argsort(
-                            self.events["JetNotFromHiggs"].btagB,
-                            axis=1,
-                            ascending=False,
-                        )
-                    ],
-                    self.events["JetNotFromHiggs"][
-                        ak.argsort(
-                            self.events["JetNotFromHiggs"].pt, axis=1, ascending=False
-                        )
-                    ],
-                )
-            else:
-                self.events["JetNotFromHiggs"] = self.events["JetNotFromHiggs"][
-                    ak.argsort(
-                        self.events["JetNotFromHiggs"].btagB,
-                        axis=1,
-                        ascending=False,
-                    )
-                ]
-
-        add_jet1pt = ak.pad_none(self.events.JetNotFromHiggs, 1, clip=True)[:, 0]
 
         # Minimum ∆R ( jj ) among all possible pairings of the leading b-tagged jets
         # Maximum ∆R( jj ) among all possible pairings of the leading b-tagged jets
@@ -1129,6 +1087,74 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 "dEta",
             )
 
+        return (
+            higgs1,
+            higgs2,
+            hh,
+            sigma_over_higgs1_reco_mass,
+            sigma_over_higgs2_reco_mass,
+        )
+
+    def define_add_jet_dnn_variables(
+        self,
+        higgs1,
+        higgs2,
+        jet_higgs_idx_per_event,
+        sb_variables,
+        jet_vbf_idx_per_event=None,
+    ):
+        """
+        DNN variables of the additional jet, which depend on both the Higgs and
+        the VBF pairing.
+        """
+        # the additional jet is searched among the jets which are not used by the
+        # Higgs pairing and, when the VBF pairing is available, not used by it
+        # either
+        jet_idx_from_pairings = jet_higgs_idx_per_event
+        if jet_vbf_idx_per_event is not None:
+            jet_idx_from_pairings = ak.concatenate(
+                [jet_higgs_idx_per_event, jet_vbf_idx_per_event], axis=1
+            )
+
+        self.select_jets_not_from_idx(
+            "JetNotFromHiggs",
+            jet_idx_from_pairings,
+            jet_type_obj_presel="Jet",
+            forward_jet_veto=False,
+            add_all_fields=False,
+        )
+
+        if self.add_jet_spanet:
+            if self.fifth_jet == "pt":
+                # order the self.events["JetNotFromHiggs"] according to btag or to pt
+                # depending on wether the pairing chose the 5th jet or not
+                self.events["JetNotFromHiggs"] = ak.where(
+                    self.events["btag_order_add_jet"],
+                    self.events["JetNotFromHiggs"][
+                        ak.argsort(
+                            self.events["JetNotFromHiggs"].btagB,
+                            axis=1,
+                            ascending=False,
+                        )
+                    ],
+                    self.events["JetNotFromHiggs"][
+                        ak.argsort(
+                            self.events["JetNotFromHiggs"].pt, axis=1, ascending=False
+                        )
+                    ],
+                )
+            else:
+                self.events["JetNotFromHiggs"] = self.events["JetNotFromHiggs"][
+                    ak.argsort(
+                        self.events["JetNotFromHiggs"].btagB,
+                        axis=1,
+                        ascending=False,
+                    )
+                ]
+
+        add_jet1pt = ak.pad_none(self.events.JetNotFromHiggs, 1, clip=True)[:, 0]
+
+        if sb_variables:
             # add jet and higgs1
             add_jet1pt = ak.with_field(
                 add_jet1pt,
@@ -1163,14 +1189,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 "SubLeadingHiggs_mass",
             )
 
-        return (
-            higgs1,
-            higgs2,
-            hh,
-            add_jet1pt,
-            sigma_over_higgs1_reco_mass,
-            sigma_over_higgs2_reco_mass,
-        )
+        return add_jet1pt
 
     def define_boosted_dnn_variables(self, higgs1, higgs2, cleaned_jets, vbf_variables):
         # HT : scalar sum of all jets with pT > 25 GeV inside | η | < 2.5
@@ -1815,6 +1834,23 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
                 jet_vbf = None
 
+            # the DNN variables of the Higgs candidates are defined before the
+            # VBF pairing, because the VBF discriminator model takes them as
+            # inputs and it is evaluated only once for the pairing and the score
+            if (self.spanet or self.run2) and self.dnn_variables:
+                (
+                    self.events["HiggsLeading"],
+                    self.events["HiggsSubLeading"],
+                    self.events["HH"],
+                    self.events["sigma_over_higgs1_reco_mass"],
+                    self.events["sigma_over_higgs2_reco_mass"],
+                ) = self.define_higgs_dnn_variables(
+                    self.events.HiggsLeading,
+                    self.events.HiggsSubLeading,
+                    self.events.JetGoodFromHiggsOrdered,
+                    sb_variables=True,  # if self.SIG_BKG_DNN else False,
+                )
+
             # ======= VBF PARAMETERS ============
             if self.vbf_analysis:
                 self.events["JetGoodVBFEnergyOrdered"] = self.define_vbf_jet_pair(
@@ -1859,17 +1895,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
 
                 if self.dnn_variables:
-                    (
-                        self.events["HiggsLeading"],
-                        self.events["HiggsSubLeading"],
-                        self.events["HH"],
-                        self.events["add_jet1pt"],
-                        self.events["sigma_over_higgs1_reco_mass"],
-                        self.events["sigma_over_higgs2_reco_mass"],
-                    ) = self.define_dnn_variables(
+                    self.events["add_jet1pt"] = self.define_add_jet_dnn_variables(
                         self.events.HiggsLeading,
                         self.events.HiggsSubLeading,
-                        self.events.JetGoodFromHiggsOrdered,
                         matched_jet_higgs_idx_not_none,
                         sb_variables=True,  # if self.SIG_BKG_DNN else False,
                         jet_vbf_idx_per_event=jet_vbf_idx_not_none,
