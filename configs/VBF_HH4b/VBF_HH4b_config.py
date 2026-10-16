@@ -218,6 +218,7 @@ elif (
         total_input_columns = (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | config_options_dict["vbf_discriminator_input_variables"]
             | {"year": ["events", "year"]}
         )
         column_list += create_DNN_columns_list(
@@ -252,6 +253,7 @@ else:
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | config_options_dict["vbf_discriminator_input_variables"]
             | {"year": ["events", "year"]}
         )
     else:
