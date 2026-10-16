@@ -255,15 +255,22 @@ def get_onnx_prediction(
         inputs_complete = {}
         collection_feature_dict = get_collections(variables["sequential"])
         for collection, features in collection_feature_dict.items():
+            # None: use all the jets of the collection (each collection can have
+            # a different number of jets, e.g. 4 Higgs jets and 5 VBF jets)
+            max_num_jets_coll = (
+                max_num_jets_spanet
+                if max_num_jets_spanet is not None
+                else int(ak.max(ak.num(events[collection], axis=1)))
+            )
             sequential_inputs = define_spanet_pairing_inputs(
-                events, max_num_jets_spanet, collection, features, pad_value_spanet
+                events, max_num_jets_coll, collection, features, pad_value_spanet
             )
             mask = np.array(
                 ak.to_numpy(
                     ak.fill_none(
                         ak.pad_none(
                             ak.ones_like(events[collection].pt),
-                            max_num_jets_spanet,
+                            max_num_jets_coll,
                             clip=True,
                         ),
                         value=0,
