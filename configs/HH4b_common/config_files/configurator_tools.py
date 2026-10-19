@@ -564,13 +564,20 @@ def define_categories(
                     for discr in ["pass"]:
                         # for region in ["region", "signal_region", "control_region"]:
                         for region in ["signal_region", "control_region"]:
-                            categories_dict |= define_single_category(
-                                f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_{region}",
-                                ggf_vbf_threshold=ggf_vbf_threshold,
-                            )
-                            if bkg_morphing_dnn and n_b == "2b":
+                            if n_b == "2b":
+                                if bkg_morphing_dnn:
+                                    categories_dict |= define_single_category(
+                                        f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_postW_{region}",
+                                        ggf_vbf_threshold=ggf_vbf_threshold,
+                                    )
+                                
                                 categories_dict |= define_single_category(
-                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_postW_{region}",
+                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_preW_{region}",
+                                    ggf_vbf_threshold=ggf_vbf_threshold,
+                                )
+                            else:
+                                categories_dict |= define_single_category(
+                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_{region}",
                                     ggf_vbf_threshold=ggf_vbf_threshold,
                                 )
     else:
