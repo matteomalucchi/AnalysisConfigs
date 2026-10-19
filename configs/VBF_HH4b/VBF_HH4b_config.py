@@ -33,6 +33,7 @@ BASELINE = False
 SPANET_TRAINING = False
 VBF_REGIONS = False
 SIGNAL_REGION = False
+TRAIN_BKG_MORPHING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -183,6 +184,9 @@ if SPANET_TRAINING:
             categories_dict |= define_single_category(
                 "vbf_best_candidates_6_jets_4b_signal_region"
             )
+if TRAIN_BKG_MORPHING:
+    categories_dict = define_single_category("4b_control_region")
+    categories_dict |= define_single_category("2b_control_region_preW")
 
 column_list = []
 
