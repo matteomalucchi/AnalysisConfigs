@@ -1535,18 +1535,16 @@ class HH4bCommonProcessor(BaseProcessorABC):
             with_name="PtEtaPhiMLorentzVector",
         )
 
-        # an event with less than two jets cannot have a VBF pair: zero its
-        # probabilities and mask it after the extraction
-        mask_enough_jets = ak.to_numpy(ak.count(jet_collection.pt, axis=1) >= 2)
-        cleaned_assignment_prob = [np.copy(prob) for prob in assignment_prob]
-        for prob in cleaned_assignment_prob:
-            prob[~mask_enough_jets] = 0
-
-        pairing_predictions, *_ = get_best_pairings(cleaned_assignment_prob)
+        # the prediction is kept also for the events with less than two VBF
+        # candidates: a jet predicted on a padded position is dropped, so that
+        # the VBF pair can have a single jet
+        pairing_predictions, *_ = get_best_pairings(
+            [np.copy(prob) for prob in assignment_prob]
+        )
 
         # the VBF pair is the last resonance predicted by the model
         return reconstruct_vbf_jets_from_idx(
-            jet_collection, pairing_predictions[:, -1, :], mask_enough_jets
+            jet_collection, pairing_predictions[:, -1, :]
         )
 
     def define_vbf_jet_collections(self):
