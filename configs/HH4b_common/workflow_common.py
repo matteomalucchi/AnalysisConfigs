@@ -1486,7 +1486,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         ggF/VBF classification.
 
         Returns None when no such model is configured, so that the caller can
-        fall back to the leading-mjj pair.
+        fall back to the pair of the Higgs pairing model or to the leading-mjj
+        pair.
         """
         if not (
             self.vbf_pairing_from_vbf_discriminator
@@ -1499,9 +1500,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         assignment_prob = self.eval_vbf_discriminator()["assignment_prob"]
         if len(assignment_prob) == 0:
-            logger.warning(
-                "The model %s does not provide any jet assignment: "
-                "falling back to the leading mjj VBF pair",
+            # the model only does the ggF/VBF classification
+            logger.debug(
+                "The model %s does not provide any jet assignment",
                 self.vbf_discriminator,
             )
             return None
@@ -1685,20 +1686,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
                 self.events[f"centrality{higgs_coll}{jet_coll}"] = ak.Array(centrality_value)
 
-    def define_vbf_collections_after_pairing(self, jet_vbf_pair=None):
+    def define_vbf_collections_after_pairing(self):
         """
-        Collections and variables of the VBF jets built out of the Higgs pairing.
+        Inputs of the ggF/VBF discriminator built out of the Higgs pairing, as
+        in the training.
 
-        `JetGoodProvHiggsPadded` holds the jets of the Higgs pairing.
-        `JetGoodVBFMergedProvVBFPadded` holds the VBF pair `jet_vbf_pair` (by
-        default the pair leading in mjj among the VBF candidates) followed by
-        the additional VBF jets, and its mjj, deta and centrality are the ones
-        of the VBF pair. These are the VBF variables saved in the columns and
-        fed to the VBF discriminator.
+        `JetGoodProvHiggsPadded` holds the jets of the Higgs pairing (SPANet,
+        when available). `JetGoodVBFMergedProvVBFPadded` holds the pair leading
+        in mjj among the VBF candidates followed by the additional VBF jets,
+        ordered according to `jets_add_vbf_order` and padded to
+        `max_num_jets_add_vbf`, together with its mjj, deta and centrality.
         """
         jet_higgs = self.events.JetGoodFromHiggsOrdered
-        if jet_vbf_pair is None:
-            jet_vbf_pair = get_lead_mjj_jet_pair(self.events, "JetGoodVBFCandidates")
+        jet_vbf_pair = get_lead_mjj_jet_pair(self.events, "JetGoodVBFCandidates")
+        self.events["JetGoodVBFLeadingMjj"] = jet_vbf_pair
 
         # Higgs jets with the provenance of the Higgs
         padded_higgs = add_fields(
@@ -1726,9 +1727,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             clip=True,
         )
 
-        # the concatenation is done field by field: the VBF pair can come from
-        # a model with different fields, and concatenating different records
-        # gives a UnionArray
+        # the concatenation is done field by field, since concatenating
+        # records with different fields gives a UnionArray
         jet_colls = [
             add_fields(jet_vbf_pair, "all"),
             add_fields(self.events["JetAdditionalGoodVBF"], "all"),
@@ -1754,22 +1754,23 @@ class HH4bCommonProcessor(BaseProcessorABC):
             with_name="PtEtaPhiMLorentzVector",
         )
 
-        # mjj, deta and centrality of the VBF pair, with the Higgs candidates of
-        # the pairing
+        # mjj, deta and centrality of the pair leading in mjj, with the Higgs
+        # candidates of the pairing
         self.define_vbf_kinematics(["JetGoodVBFMergedProvVBFPadded"], [0])
 
-    def define_vbf_jet_pair(self, jet_vbf):
+    def define_vbf_jet_pair(self, jet_vbf_higgs_model):
         """
         VBF jet pair used by the VBF categories.
 
-        `jet_vbf` is the pair given by the Higgs pairing model, when it predicts
-        the VBF jets as well. Otherwise the candidates are the jets left over by
-        the Higgs pairing, and the pair is taken from the VBF pairing model or,
-        when there is none, as the pair leading in mjj.
+        The VBF candidates are the jets left over by the Higgs pairing. The
+        inputs of the ggF/VBF discriminator are built out of them (the pair
+        leading in mjj followed by the additional jets) before the model is
+        run. The VBF pair is then, in order of preference:
+        - the pair predicted by the ggF/VBF discriminator, when it predicts one
+        - `jet_vbf_higgs_model`, the pair given by the Higgs pairing model, when
+          it predicts the VBF jets as well
+        - the pair leading in mjj among the VBF candidates
         """
-        if jet_vbf is not None:
-            return jet_vbf
-
         # NOTE: the VBF workflows already built `JetGoodVBFCandidates` out of the
         # jets leading in b-tag score; rebuild it here out of the jets the
         # pairing actually took, which is what the VBF pair has to avoid
@@ -1787,6 +1788,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         jet_vbf = self.eval_vbf_pairing()
         if jet_vbf is not None:
             return jet_vbf
+
+        if jet_vbf_higgs_model is not None:
+            return jet_vbf_higgs_model
 
         # get the vbf candidates as the leading in mjj
         return get_lead_mjj_jet_pair(self.events, "JetGoodVBFCandidates")
@@ -1955,13 +1959,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 self.events["JetGoodVBFEnergyOrdered"] = self.define_vbf_jet_pair(
                     jet_vbf
                 )
-                if self.spanet or self.run2:
-                    # save the VBF variables of the VBF pair actually assigned,
-                    # which is the one used by the VBF categories
-                    self.define_vbf_collections_after_pairing(
-                        self.events.JetGoodVBFEnergyOrdered
-                    )
-                    self.define_vbf_kinematics(["JetGoodVBFEnergyOrdered"], [0])
+                # mjj, deta and centrality of the VBF pair actually assigned,
+                # which are saved and propagated forward
+                self.define_vbf_kinematics(["JetGoodVBFEnergyOrdered"], [0])
 
             if (
                 self._isMC
