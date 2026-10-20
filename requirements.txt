@@ -1,6 +1,7 @@
 matplotlib
 hist
 scipy
-numpy
+numpy==1.23.5
 mplhep==0.4.1
 scikit-learn
+xgboost
