@@ -2,7 +2,7 @@
   "DATA_JetMET0_HH4bResolved_2023_preBPix_EraCv1": {
     "metadata": {
       "das_names": "['/JetMET0/Run2023C-22Sep2023_v1-v1/NANOAOD']",
-      "sample": "DATA_JetMET0_HH4bResolved",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2023_preBPix",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -98,7 +98,7 @@
   "DATA_JetMET0_HH4bResolved_2023_preBPix_EraCv2": {
     "metadata": {
       "das_names": "['/JetMET0/Run2023C-22Sep2023_v2-v1/NANOAOD']",
-      "sample": "DATA_JetMET0_HH4bResolved",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2023_preBPix",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -139,7 +139,7 @@
   "DATA_JetMET1_HH4bResolved_2023_preBPix_EraCv1": {
     "metadata": {
       "das_names": "['/JetMET1/Run2023C-22Sep2023_v1-v1/NANOAOD']",
-      "sample": "DATA_JetMET1_HH4bResolved",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2023_preBPix",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -235,7 +235,7 @@
   "DATA_JetMET1_HH4bResolved_2023_preBPix_EraCv2": {
     "metadata": {
       "das_names": "['/JetMET1/Run2023C-22Sep2023_v2-v1/NANOAOD']",
-      "sample": "DATA_JetMET1_HH4bResolved",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2023_preBPix",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -276,7 +276,7 @@
   "DATA_JetMET_2022_postEE_EraE": {
     "metadata": {
       "das_names": "['/JetMET/Run2022E-22Sep2023-v1/NANOAOD']",
-      "sample": "DATA_JetMET",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2022_postEE",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -428,7 +428,7 @@
   "DATA_JetMET_2022_postEE_EraF": {
     "metadata": {
       "das_names": "['/JetMET/Run2022F-22Sep2023-v2/NANOAOD']",
-      "sample": "DATA_JetMET",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2022_postEE",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -1051,7 +1051,7 @@
   "DATA_JetMET_2022_postEE_EraG": {
     "metadata": {
       "das_names": "['/JetMET/Run2022G-22Sep2023-v2/NANOAOD']",
-      "sample": "DATA_JetMET",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2022_postEE",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -1164,7 +1164,7 @@
   "DATA_JetMET_2022_preEE_EraC": {
     "metadata": {
       "das_names": "['/JetMET/Run2022C-22Sep2023-v1/NANOAOD']",
-      "sample": "DATA_JetMET",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2022_preEE",
       "isMC": "False",
       "primaryDataset": "JetMET",
@@ -1305,7 +1305,7 @@
   "DATA_JetMET_2022_preEE_EraD": {
     "metadata": {
       "das_names": "['/JetMET/Run2022D-22Sep2023-v1/NANOAOD']",
-      "sample": "DATA_JetMET",
+      "sample": "DATA_JetMET_HH4bResolved",
       "year": "2022_preEE",
       "isMC": "False",
       "primaryDataset": "JetMET",

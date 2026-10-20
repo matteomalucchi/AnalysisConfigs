@@ -164,15 +164,18 @@ default_config_options_dict = {
     # jets left over by the pairing, instead of using the b-tag ordered
     # `JetGoodClip` collection. Requires `spanet`.
     "vbf_matching_after_higgs_pairing": False,
-    # Take the VBF pair from the SPANet model given in `vbf_discriminator`
-    # instead of using the leading-mjj pair. It requires a standalone model
-    # (i.e. different from `spanet`) which predicts the VBF jet assignment (2
-    # jets) on top of the ggF/VBF classification, and whose sequential inputs
-    # are read from the VBF candidate collection. The same model is run only
-    # once and also provides `VBF_ggF_score`.
-    "vbf_pairing_from_vbf_discriminator": False,
+    # Take the VBF pair from the SPANet model given in `vbf_discriminator`,
+    # when it predicts the VBF jet assignment (2 jets) on top of the ggF/VBF
+    # classification, instead of the pair of the Higgs pairing model or the
+    # leading-mjj pair. It requires a standalone model (i.e. different from
+    # `spanet`). The same model is run only once and also provides
+    # `VBF_ggF_score`; a model without assignment outputs falls back to the
+    # other pairs.
+    "vbf_pairing_from_vbf_discriminator": True,
     # Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to
-    # split the pass/fail VBF categories.
+    # split the pass/fail VBF categories, also combined with the VBF
+    # preselection (deta and mjj) in the resolved VBF regions. It depends on
+    # the `vbf_discriminator` model, so set it in the config file of the model.
     "ggf_vbf_threshold": 0.95,
     # Boosted VBF only: overrides `vbf_analysis` when defining the categories in
     # `VBF_HH4b_boosted_config.py`, so that the VBF regions can be built without
@@ -256,6 +259,10 @@ default_config_options_dict = {
     # separate from `pad_value` because SPANet was trained with a different
     # padding convention.
     "pad_value_spanet": 9999.0,
+    # Mask of the SPANet global inputs: "ones" keeps the mask always True,
+    # "padded" masks away the global inputs whose features are all equal to
+    # `pad_value_spanet` (e.g. a missing VBF jet).
+    "spanet_global_mask": "ones",
 
     # ------------------------------------------------------------------
     # PAIRING PROBABILITY VARIABLES (SPANet only)

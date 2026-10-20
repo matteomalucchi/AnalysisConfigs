@@ -30,9 +30,10 @@ from configs.HH4b_common.custom_weights import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
-SPANET_TRAINING = True
-VBF_REGIONS = True
-SIGNAL_REGION = True
+SPANET_TRAINING = False
+VBF_REGIONS = False
+SIGNAL_REGION = False
+TRAIN_BKG_MORPHING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -123,34 +124,28 @@ sample_official_ggF_list = [
     "GluGlutoHHto4B_kl-2p45_kt-1p00_c2-0p00",
     "GluGlutoHHto4B_kl-5p00_kt-1p00_c2-0p00",
     # new samples for 2024
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
-#     "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
-#     "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
-#     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p10",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p35",
+    #     "GluGlutoHHto4B_kl-0p00_kt-1p00_c2-1p00",
+    #     "GluGlutoHHto4B_kl-m20p00_kt-1p00_c2-2p24",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-3p00",
+    #     "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-m2p00",
 ]
 
-sample_ZZ_ZH_list = [
-    "ZZTo4B01j",
-    "ggZH_HToBB_ZToBB",
-    "ZH_ZToBB_HToBB"
-]
+sample_ZZ_ZH_list = ["ZZTo4B01j", "ggZH_HToBB_ZToBB", "ZH_ZToBB_HToBB"]
+
+sample_data_jme_list = ["DATA_JetMET_HH4bResolved"]
+
+sample_data_parkinghh_list = ["DATA_ParkingHH"]
 
 sample_list = (
-    [
-        # 2022 preEE
-        # "DATA_JetMET_JMENano_C_skimmed",
-        # "DATA_JetMET_JMENano_D_skimmed",
-        # 2022 postEE
-        # "DATA_JetMET_JMENano_E_skimmed",
-        # "DATA_JetMET_JMENano_F_skimmed",
-        # "DATA_JetMET_JMENano_G_skimmed",
-    ]
+    []
     # + sample_spanet_ggF_list
-    + sample_official_ggF_list
-    + sample_VBF_list
-    + sample_ZZ_ZH_list
+    # + sample_official_ggF_list
+    # + sample_VBF_list
+    # + sample_ZZ_ZH_list
+    # + sample_data_jme_list
+    + sample_data_parkinghh_list
 )
 
 
@@ -163,7 +158,9 @@ categories_dict = define_categories(
     vr1=config_options_dict["vr1"],
     vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_discriminator=config_options_dict["vbf_discriminator"],
+    ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
 )
+categories_dict.pop("4b_region", None)
 
 if BASELINE:
     categories_dict = {"baseline": [passthrough]}
@@ -177,7 +174,9 @@ if SPANET_TRAINING:
         categories_dict |= define_single_category(
             "vbf_best_candidates_6_jets_nokincut_4b_region"
         )
-        categories_dict |= define_single_category("vbf_best_candidates_6_jets_4b_region")
+        categories_dict |= define_single_category(
+            "vbf_best_candidates_6_jets_4b_region"
+        )
         if SIGNAL_REGION:
             categories_dict |= define_single_category(
                 "vbf_best_candidates_6_jets_nokincut_4b_signal_region"
@@ -185,7 +184,10 @@ if SPANET_TRAINING:
             categories_dict |= define_single_category(
                 "vbf_best_candidates_6_jets_4b_signal_region"
             )
-            
+if TRAIN_BKG_MORPHING:
+    categories_dict = define_single_category("4b_control_region")
+    categories_dict |= define_single_category("2b_control_region_preW")
+
 column_list = []
 
 # Add SPANet training inputs
@@ -222,6 +224,7 @@ elif (
         total_input_columns = (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | config_options_dict["vbf_discriminator_input_variables"]
             | {"year": ["events", "year"]}
         )
         column_list += create_DNN_columns_list(
@@ -256,10 +259,25 @@ else:
         total_input_columns |= (
             config_options_dict["sig_bkg_dnn_input_variables"]
             | config_options_dict["bkg_morphing_dnn_input_variables"]
+            | config_options_dict["vbf_discriminator_input_variables"]
             | {"year": ["events", "year"]}
         )
     else:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
+    if config_options_dict["vbf_analysis"]:
+        # VBF jets assigned by the pairing, used by the VBF categories
+        total_input_columns |= {
+            f"JetGoodVBFEnergyOrdered_{x}": ["JetGoodVBFEnergyOrdered", x]
+            for x in ["pt", "eta", "phi", "mass", "index"]
+        } | {
+            x: ["events", x]
+            for x in [
+                "mjjJetGoodVBFEnergyOrdered",
+                "detaJetGoodVBFEnergyOrdered",
+                "centralityHiggsLeadingJetGoodVBFEnergyOrdered",
+                "centralityHiggsSubLeadingJetGoodVBFEnergyOrdered",
+            ]
+        }
     if BASELINE:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
@@ -269,6 +287,8 @@ else:
     # Add special columns
     if config_options_dict["sig_bkg_dnn"]:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
+    if config_options_dict["vbf_discriminator"]:
+        column_list += get_columns_list({"events": ["VBF_ggF_score"]})
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
@@ -307,6 +327,8 @@ cfg = Configurator(
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_spanet_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_official_skimmed_pnfs_redirector.json",
             f"{localdir}/../HH4b_common/datasets/background_ZZ_ZH_private_skimmed_22EE_23_24_hadd.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_JetMET_HH4bResolved_skimmed_pnfs_redirector.json",
+            f"{localdir}/../HH4b_common/datasets/DATA_ParkingHH_HH4bResolved_skimmed_pnfs_redirector.json",
         ],
         "filter": {
             "samples": sample_list,
