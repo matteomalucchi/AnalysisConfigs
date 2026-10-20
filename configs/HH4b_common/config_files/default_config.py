@@ -251,7 +251,7 @@ default_config_options_dict = {
     # Input features of the background morphing DNN (and of the spread model).
     "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
     # Input features of a standalone ggF/VBF discriminator model.
-    "vbf_discriminator_input_variables": None,
+    "vbf_discriminator_input_variables": dnn_vars.ggf_vbf_input_variables_spanet_nobtag,
     # Value used to fill missing entries (padding, unmatched jets, ...) for the
     # DNN inputs and for the padded pairing-probability variable.
     "pad_value": -999.0,

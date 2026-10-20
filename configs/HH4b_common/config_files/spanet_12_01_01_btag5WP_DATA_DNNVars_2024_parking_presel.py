@@ -8,7 +8,7 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 onnx_model_dict  |= {
     "spanet": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/hh4b_pairing_vbf_ggf_all_Klambda_HiggsPairing_2024_Zsamples_5jets_parking_presel.onnx",
     "vbf_discriminator": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/hh4b_pairing_vbf_ggf_all_Klambda_VBFPairingAfterHiggsPairingWithZSamples_JetHiggsSeparate_DNNVars_VBFNoKinCut_ClassLoss7_2024_NormWeightsPerSample_NoBtag.onnx",
-    # "bkg_morphing_dnn": "",
+    "bkg_morphing_dnn": "",
     # "sig_bkg_dnn": "",
 }
 
