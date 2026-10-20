@@ -89,10 +89,9 @@ def custom_jet_selection(
         jet_tagger: str, jet tagger to use
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
-        forward_jet_veto: bool or None, reject the low-pt forward (HE/HF) jets following the
-            year-dependent JME recommendations implemented in PocketCoffea
-            (params.jets_calibration.forward_jets_mitigation.pt_cut), applied on the pt_type pt.
-            None follows the `apply` switch of the parameters.
+        forward_jet_veto: bool, apply the low-pt forward (HE/HF) jet cuts of PocketCoffea
+            (params.jets_calibration.forward_jets_mitigation.pt_cut_HE / pt_cut_HF), on the
+            pt_type pt. Only the cuts switched on in the parameters are applied.
     """
     jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
 
