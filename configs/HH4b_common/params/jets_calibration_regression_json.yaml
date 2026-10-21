@@ -1027,8 +1027,8 @@ jets_calibration:
 
   # Run3 forward jets mitigations of PocketCoffea, each one switched on separately
   # (see pocket_coffea/parameters/jets_calibration.yaml). pt_cut_HE rejects the jets with
-  # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in the selections called with
-  # forward_jet_veto=True (the VBF jets).
+  # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in every jet selection (only the
+  # VBF jets reach |eta| > 2.5).
   forward_jets_mitigation:
     pt_cut_HF:
       apply: False

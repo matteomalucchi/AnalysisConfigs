@@ -71,7 +71,7 @@ object_preselection:
   # medium b-tag WP of the year's algorithm (PNet 2022-2023, UParT 2024-2025).
   # The pt > 50 GeV requirement in 2.5 < |eta| < 3.0 is the PocketCoffea pt_cut_HE
   # forward jets mitigation (see params/jets_calibration_regression_json.yaml),
-  # applied to the selections with forward_jet_veto=True.
+  # applied to every jet selection.
   JetVBF:
     pt: 30
     eta: 4.7

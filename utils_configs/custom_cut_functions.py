@@ -88,7 +88,6 @@ def custom_jet_selection(
     jet_tagger="",
     pt_type="pt",
     pt_cut_name="pt",
-    forward_jet_veto=False,
 ):
     """
     Custom jet selection function to apply selection on different pt types.
@@ -101,10 +100,10 @@ def custom_jet_selection(
         jet_tagger: str, jet tagger to use
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
-        forward_jet_veto: bool, apply the low-pt forward (HE/HF) jet cuts of PocketCoffea
-            (params.jets_calibration.forward_jets_mitigation.pt_cut_HE / pt_cut_HF), on the
-            pt_type pt. Only the cuts switched on in the parameters are applied.
 
+    The low-pt forward jet cuts and the rawFactor cut of PocketCoffea
+    (params.jets_calibration.forward_jets_mitigation) are applied on the pt_type pt
+    when they are switched on in the parameters.
     The pt cut can be given per year as {"default": value, <year>: value}.
     With `max_btag_wp` (e.g. "M") in the object preselection, the jets passing that
     b-tag working point of the year's algorithm (generic `btagB` field) are rejected.
@@ -141,7 +140,6 @@ def custom_jet_selection(
         year,
         leptons_collection,
         jet_tagger,
-        forward_jet_veto=forward_jet_veto,
     )
 
     obj_param = params_copy.object_preselection[jet_type_obj_presel]

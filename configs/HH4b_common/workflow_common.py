@@ -923,7 +923,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         name,
         jet_type_obj_presel,
         from_collection="Jet",
-        forward_jet_veto=False,
         order_by=None,
         add_all_fields=False,
     ):
@@ -943,7 +942,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             year=self._year,
             pt_type=self.preselection_pt_field,
             pt_cut_name=self.pt_cut_name,
-            forward_jet_veto=forward_jet_veto,
         )
 
         if add_all_fields:
@@ -963,7 +961,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         name,
         jet_idx_to_remove,
         jet_type_obj_presel="JetVBF",
-        forward_jet_veto=True,
         order_by=None,
         add_all_fields=True,
     ):
@@ -979,7 +976,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             name,
             jet_type_obj_presel,
             from_collection=name,
-            forward_jet_veto=forward_jet_veto,
             order_by=order_by,
             add_all_fields=add_all_fields,
         )
@@ -1019,7 +1015,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             "JetNotFromHiggs",
             jet_idx_from_pairings,
             jet_type_obj_presel="Jet",
-            forward_jet_veto=False,
             add_all_fields=False,
         )
 
