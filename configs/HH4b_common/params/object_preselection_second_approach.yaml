@@ -1,10 +1,25 @@
 object_preselection:
+  # Second approach (HIG-24-010 second approach, Run3 resolved HH4b)
   ## Jet selection
+  # Jets considered for the HH reconstruction and the event preselection:
+  # AK4PFPuppi, Tight ID, |eta| < 2.5, pt > 30 GeV (25 GeV in 2023)
   Jet:
-    pt: 30
+    pt:
+      default: 30
+      2023_preBPix: 25
+      2023_postBPix: 25
     eta: 2.5
-    jetId: 6 # 6 with lepveto or 2 w/o lepveto
-    #TODO: trigger matching?
+    jetId: 2 # 2 tight, 6 tight with lepton veto
+  # Jets entering HT: pt > 30 GeV, |eta| < 2.5 (on top of the Jet selection)
+  HT:
+    pt: 30
+  # pt regression (with neutrino) applied on the JEC-corrected jets with
+  # raw pt > raw_pt_min, |eta| < eta_max, passing the btag_wp b-tag working point;
+  # the other jets keep the standard JEC (AK4PFPuppi)
+  PtRegression:
+    raw_pt_min: 15
+    eta_max: 2.5
+    btag_wp: L
   FatJetLeading:
     pt: 300
     eta: 2.4
@@ -22,15 +37,17 @@ object_preselection:
     mass_regr_min: 50
     mass_regr_max: 200
   
-  ## Lepton selection
+  ## Lepton selection (event veto)
+  # the impact parameter cuts are |dz| < dz_lowEta, |dxy| < dxy_lowEta for
+  # |eta| < eta_threshold, and |dz| < dz_highEta, |dxy| < dxy_highEta above it
   Electron:
     pt: 15
     eta: 2.5
-    id: 
+    id:
       type: mvaIso_WP90
-      working_point: 1 # cut-based ID RunIII Winter22 (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
-    iso: 0.15 # 0.3? #DeltaR=0.3
-    eta_threshold: 0.1479
+      working_point: 1 # boolean ID: 1 = passing
+    iso: 0.15 # pfRelIso03_all
+    eta_threshold: 1.479
     dz_lowEta: 0.1
     dz_highEta: 0.2
     dxy_lowEta: 0.05
@@ -40,29 +57,30 @@ object_preselection:
     pt: 10
     eta: 2.4
     id: looseId
-    iso: # 0.15 # 0.3? #DeltaR=0.3
-      type: pfRelIso04_all # PFIso ID from miniAOD selector (1=PFIsoVeryLoose, 2=PFIsoLoose, 3=PFIsoMedium, 4=PFIsoTight, 5=PFIsoVeryTight, 6=PFIsoVeryVeryTight)
+    iso:
+      type: pfRelIso04_all
       max_value: 0.15
-      # working_point: 2
-    eta_threshold: 0.1479
+    eta_threshold: 1.479
     dz_lowEta: 0.1
     dz_highEta: 0.2
     dxy_lowEta: 0.05
     dxy_highEta: 0.1
 
   ## VBF jet selection
+  # VBF candidates: AK4PFPuppi, Tight ID, pt > 30 GeV, |eta| < 4.7, not passing the
+  # medium b-tag WP of the year's algorithm (PNet 2022-2023, UParT 2024-2025).
+  # The pt > 50 GeV requirement in 2.5 < |eta| < 3.0 is the PocketCoffea pt_cut_HE
+  # forward jets mitigation (see params/jets_calibration_regression_json.yaml),
+  # applied to the selections with forward_jet_veto=True.
   JetVBF:
-    pt: 25
-    gap_pt: 50
+    pt: 30
     eta: 4.7
-    gap_eta_min: 2.5
-    gap_eta_max: 3.0
-    jetId: 6 # 6 with lepveto or 2 w/o lepveto
-    btagB: -2 # 0.2605
+    jetId: 2 # 2 tight, 6 tight with lepton veto
+    max_btag_wp: M
     delta_eta: 3.5
     mjj: 400
   JetVBF_generalSelection:
     pt: 10
     ptSemiTight: 25
     eta: 4.7
-    jetId: 6 # 6 with lepveto or 2 w/o lepveto
+    jetId: 2 # 2 tight, 6 tight with lepton veto

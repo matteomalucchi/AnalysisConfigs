@@ -61,8 +61,14 @@ default_config_options_dict = {
     # the `Jet` collection is built in `apply_object_preselection`:
     #   "first"   : use the PNet+Neutrino regressed pt when it is available
     #               (HIG-24-010 first approach)
-    #   "second"  : use the regressed pt also when the jet passes the loose
-    #               b-tag WP (HIG-24-010 second approach)
+    #   "second"  : second approach (HIG-24-010): the +neutrino regressed pt
+    #               only for the jets with raw pt > 15 GeV, |eta| < 2.5 passing
+    #               the loose b-tag WP. It also selects the second approach event
+    #               preselection (`hh4b_presel_second_approach`), loads
+    #               `params/second_approach.yaml`, drops the L1 seeds from the
+    #               skim, and, without SPANet, takes the D_HH pairing (`run2`)
+    #               with the HH-frame pt tie-break and the leading-pt /
+    #               opposite-eta VBF pair
     #   "boosted" : skip the resolved jet-pt handling and the b-tag WP
     #               definition (used for the boosted analysis)
     "approach": "first",
@@ -155,11 +161,15 @@ default_config_options_dict = {
     #   "with_mothers_children" : quarks whose mother also has two Higgs children
     #   "with_status"           : outgoing (status==23) non-b partons
     "which_vbf_quark": "with_mothers_children",
-    # Number of additional VBF jet candidates (on top of the leading-mjj pair)
-    # kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections.
+    # Number of additional VBF jet candidates (on top of the VBF pair chosen with
+    # `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF`, ordered by pt, and
+    # merged into the SPANet input collections.
     "max_num_jets_add_vbf": 2,
-    # Field used to order the additional VBF jets, e.g. "energy" or "pt".
-    "jets_add_vbf_order": "energy",
+    # VBF pair fed to SPANet (`JetTotalSPANetPadded`) before the additional VBF jets:
+    #   "leading_mjj"             : the pair leading in mjj (SPANet models so far)
+    #   "leading_pt_opposite_eta" : the leading-pt jet and the leading-pt jet with
+    #                               eta1 * eta2 < 0 (second approach VBF pair)
+    "spanet_vbf_candidates": "leading_mjj",
     # Run the SPANet Higgs pairing first and define the VBF candidates from the
     # jets left over by the pairing, instead of using the b-tag ordered
     # `JetGoodClip` collection. Requires `spanet`.

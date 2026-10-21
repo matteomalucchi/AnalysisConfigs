@@ -265,7 +265,7 @@ column_list = get_columns_list(
         "JetGood": ["pt_regressed", "pt_default", "pt", "eta", "phi", "mass"],
         "JetGoodVBFCandidates": ["pt", "eta", "phi", "mass"],
         "Jet": ["pt_regressed", "pt_default", "eta"],
-        "JetGoodVBFEnergyOrdered": ["pt", "eta", "phi", "mass"],
+        "JetGoodVBFPair": ["pt", "eta", "phi", "mass"],
         "events": ["HT_jetJetGoodVBF", "HT_jetJetGoodVBF", "nJetGood", "nFatJetGoodSelected", "event", "boosted_bdt_score", "boosted_bdt_vbf_score", "mjjJetGoodVBF", "mjjJetGood", "detaJetGoodVBF", "HiggsLeadingByHiggsSubLeadingPt"],
         "JetGoodVBFNearHiggsLeading": ["pt", "eta", "phi", "mass"],
         "JetGoodVBFNearHiggsSubLeading": ["pt", "eta", "phi", "mass"],

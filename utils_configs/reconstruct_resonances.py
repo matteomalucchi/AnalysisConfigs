@@ -143,8 +143,8 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
             ak.concatenate([vbf_1, vbf_2], axis=1),
             "all",
         )
-        # sort jets by energy
-        vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
+        # sort jets by pt
+        vbf_jets = order_jet_pair_by_pt(vbf_jets)
         # pad the vbf jets such that if an event doesn't have at least 6 jets
         # the vbf jets are two None
         vbf_jets_pad_none = ak.mask(
@@ -160,7 +160,7 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
 
 def reconstruct_vbf_jets_from_idx(jet_collection, vbf_idx_collection, valid_mask=None):
     """
-    Build the VBF jet pair, ordered in energy, from the indices predicted by a
+    Build the VBF jet pair, ordered in pt, from the indices predicted by a
     SPANet model doing the VBF pairing.
 
     `vbf_idx_collection` has shape (n_events, 2) and refers to the position of
@@ -176,8 +176,8 @@ def reconstruct_vbf_jets_from_idx(jet_collection, vbf_idx_collection, valid_mask
     mask_vbf = (local_idx == vbf_idx[:, 0]) | (local_idx == vbf_idx[:, 1])
 
     vbf_jets = add_fields(jet_collection[mask_vbf], "all")
-    # sort jets by energy
-    vbf_jets = vbf_jets[ak.argsort(vbf_jets.energy, axis=1, ascending=False)]
+    # sort jets by pt
+    vbf_jets = order_jet_pair_by_pt(vbf_jets)
 
     mask_two_jets = ak.num(vbf_jets, axis=1) == 2
     if valid_mask is not None:
@@ -264,13 +264,34 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     )
     lead_mjj_jet_pair = add_fields(lead_mjj_jet_pair, "all")
 
-    energy = ak.fill_none(lead_mjj_jet_pair.energy, -np.inf)
-    # order the jets according to the energy
-    lead_mjj_jet_pair = lead_mjj_jet_pair[
-        ak.argsort(energy, axis=1, ascending=False)
-    ]
+    return order_jet_pair_by_pt(lead_mjj_jet_pair)
 
-    return lead_mjj_jet_pair
+
+def order_jet_pair_by_pt(jet_pair):
+    """Order the jets of each pair by decreasing pt (missing jets last)."""
+    pt = ak.fill_none(jet_pair.pt, -np.inf)
+    return jet_pair[ak.argsort(pt, axis=1, ascending=False)]
+
+
+def get_lead_pt_opposite_eta_jet_pair(events, jet_coll):
+    """Pair made of the jet leading in pt and the leading-pt jet among the others
+    with eta * eta_leading < 0 (opposite hemisphere).
+
+    Always two entries per event, padded with None when the event has no jet or no
+    jet in the opposite hemisphere. The pair is ordered by pt by construction.
+    """
+    jets = events[jet_coll]
+    jets = jets[ak.argsort(jets.pt, axis=1, ascending=False)]
+    jets_padded = ak.pad_none(jets, 1)
+    leading = jets_padded[:, :1]
+    others = jets[:, 1:]
+    opposite = others[others.eta * ak.fill_none(leading.eta[:, 0], 0) < 0]
+    subleading = ak.pad_none(opposite, 1, clip=True)
+    jet_pair = ak.with_name(
+        ak.concatenate([leading, subleading], axis=1),
+        name="PtEtaPhiMCandidate",
+    )
+    return add_fields(jet_pair, "all")
 
 
 def distance_pt_func(higgs_pair, k):
@@ -283,14 +304,45 @@ def distance_pt_func(higgs_pair, k):
     return dist, max_pt
 
 
-def run2_matching_algorithm(jet_collection):
-    # implement the Run 2 pairing algorithm
+def distance_pt_hh_frame_func(higgs_pair, k):
+    """D_HH distance and tie-break variable as in HIG-20-005.
+
+    In each pairing the leading Higgs candidate is the one with the higher pt, and
+    the tie-break variable is the pt of the Higgs candidates in the HH rest frame
+    (the same for the two candidates, which are back-to-back there).
+    """
+    if len(higgs_pair[0, 0]) == 0:
+        return np.array([])
+    higgs1 = higgs_pair[:, :, 0]
+    higgs2 = higgs_pair[:, :, 1]
+    lead_is_1 = higgs1.pt >= higgs2.pt
+    mass_lead = ak.where(lead_is_1, higgs1.mass, higgs2.mass)
+    mass_sublead = ak.where(lead_is_1, higgs2.mass, higgs1.mass)
+    dist = abs(mass_lead - mass_sublead * k) / sqrt(1 + k**2)
+    hh = higgs1 + higgs2
+    pt_hh_frame = higgs1.boost(-hh.boostvec).pt
+    return dist, pt_hh_frame
+
+
+def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
+    """Run 2 (minimum distance to the diagonal) pairing of the 4 jets.
+
+    The pairing with the smallest D_HH is chosen, unless the two smallest D_HH
+    differ by less than 30 GeV: then the pairing maximising the Higgs candidate pt
+    is chosen. With `pt_in_hh_frame` (second approach, as in HIG-20-005) the
+    leading candidate of each pairing in D_HH is the one with the higher pt and the
+    tie-break is on the pt in the HH rest frame; otherwise (default, kept for
+    reproducibility) the candidates are taken in the pairing order and the
+    tie-break is on the highest lab-frame pt.
+    """
 
     # this index are referred to the index of the JetGoodHiggs not the index of the jets
     comb_idx = np.array([[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]])
 
     higgs_candidates_unflatten = possible_higgs_reco(jet_collection, comb_idx)
-    distance, max_pt = distance_pt_func(
+    distance, max_pt = (
+        distance_pt_hh_frame_func if pt_in_hh_frame else distance_pt_func
+    )(
         higgs_candidates_unflatten,
         1.04,
     )

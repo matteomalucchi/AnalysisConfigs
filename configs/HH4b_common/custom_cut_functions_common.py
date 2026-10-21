@@ -159,6 +159,60 @@ def hh4b_presel_era_dependent_cuts(
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def hh4b_presel_second_approach_cuts(
+    events, params, year, processor_params, **kwargs
+):
+    """Resolved preselection of the second approach, chosen from the year.
+
+    `params["presel_by_year"]` holds the cuts of each year ("2022", "2023",
+    "2024", "2025"). Each one requires, on the `JetGood` jets (|eta| < 2.5,
+    tight ID, see the object preselection):
+      - no leptons and >= 4 jets with pt above `pt_jets` (pt ordered)
+      - >= `nbtag` jets with pt > `btag_min_pt` passing the `btag_wp` working point
+        of the year's b-tag algorithm (generic `btagB` field: PNet in 2022-2023,
+        UParT in 2024-2025)
+      - if `two_leading_btag` is given, the mean (`op: mean`) or the sum
+        (`op: sum`) of the scores of the 2 jets leading in b-tag score above
+        `threshold`
+    With `params["no_btag"]` the b-tag requirements are dropped.
+    """
+    presel = params["presel_by_year"][year.split("_")[0]]
+    pt_type = params["pt_type"]
+
+    at_least_four_jets = mask_num_jets(events, params, **kwargs)
+    lepton_veto_mask = lepton_veto(events, params, **kwargs)
+    mask_4jet_nolep = at_least_four_jets & lepton_veto_mask
+    # convert false to None
+    mask_4jet_nolep_none = ak.mask(mask_4jet_nolep, mask_4jet_nolep)
+
+    jets = copy.copy(events[mask_4jet_nolep_none].JetGood)
+    jets_pt_order = jets[ak.argsort(jets[pt_type], axis=1, ascending=False)]
+
+    mask = ak.ones_like(mask_4jet_nolep_none)
+    for i, pt_cut in enumerate(presel["pt_jets"]):
+        mask = mask & (jets_pt_order[pt_type][:, i] > pt_cut)
+
+    if not params["no_btag"]:
+        threshold = get_btag_working_points(processor_params, year)[presel["btag_wp"]]
+        n_tagged = ak.sum(
+            (jets.btagB > threshold) & (jets[pt_type] > presel["btag_min_pt"]), axis=1
+        )
+        mask = mask & (n_tagged >= presel["nbtag"])
+
+        two_leading = presel.get("two_leading_btag")
+        if two_leading:
+            btag_scores = ak.sort(jets.btagB, axis=1, ascending=False)
+            score = btag_scores[:, 0] + btag_scores[:, 1]
+            if two_leading["op"] == "mean":
+                score = score / 2
+            elif two_leading["op"] != "sum":
+                raise ValueError(f"Unknown two_leading_btag op {two_leading['op']}.")
+            mask = mask & (score > two_leading["threshold"])
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
 def hh4b_boosted_presel_cuts(events, params, **kwargs):
     # selection is already performed in the object preselection, 
     # here I just need to count the fat jets

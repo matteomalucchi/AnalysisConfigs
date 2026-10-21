@@ -14,11 +14,12 @@ def lepton_selection(events, lepton_flavour, params):
 
     # Requirements on the impact parameters
     if "eta_threshold" in cuts.keys():
-        mask_highEta = leptons.eta > cuts["eta_threshold"]
+        # |dz| and |dxy| cuts depending on |eta| (barrel / endcap)
+        mask_highEta = abs(leptons.eta) > cuts["eta_threshold"]
         threshold_dxy = ak.where(mask_highEta, cuts["dxy_highEta"], cuts["dxy_lowEta"])
         threshold_dz = ak.where(mask_highEta, cuts["dz_highEta"], cuts["dz_lowEta"])
-        passes_dxy = leptons.dxy < threshold_dxy
-        passes_dz = leptons.dz < threshold_dz
+        passes_dxy = abs(leptons.dxy) < threshold_dxy
+        passes_dz = abs(leptons.dz) < threshold_dz
     else:
         if "dxy" in cuts.keys():
             passes_dxy = leptons.dxy < cuts["dxy"]

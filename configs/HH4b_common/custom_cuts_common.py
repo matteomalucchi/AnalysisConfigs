@@ -133,6 +133,38 @@ def hh4b_presel_era_dependent(pt_type, tight_cuts):
     )
 
 
+# Resolved preselection of the second approach, chosen per chunk from its year.
+# Jets: JetGood (|eta| < 2.5, tight ID, pt > 30 GeV, 25 GeV in 2023).
+# The two_leading_btag requirement mirrors the HLT b-tag cut of 2022-2023
+# (mean of the 2 highest PNet scores); set `op: sum` to cut on the sum instead.
+def hh4b_presel_second_approach(pt_type, no_btag=False):
+    medium_btag = {"nbtag": 2, "btag_wp": "M", "btag_min_pt": 30}
+    return Cut(
+        name="hh4b_presel_second_approach",
+        params={
+            "njet": 4,
+            "pt_type": pt_type,
+            "no_btag": no_btag,
+            "presel_by_year": {
+                "2022": {
+                    "pt_jets": [70, 50, 40, 35],
+                    "two_leading_btag": {"op": "mean", "threshold": 0.65},
+                    **medium_btag,
+                },
+                "2023": {
+                    "pt_jets": [30, 30, 30, 30],
+                    "two_leading_btag": {"op": "mean", "threshold": 0.55},
+                    **medium_btag,
+                },
+                # no cut on the 2 leading b-tag scores: online PNet, offline UParT
+                "2024": {"pt_jets": [30, 30, 30, 30], **medium_btag},
+                "2025": {"pt_jets": [30, 30, 30, 30], **medium_btag},
+            },
+        },
+        function=cuts_f.hh4b_presel_second_approach_cuts,
+    )
+
+
 hh4b_2b_region = Cut(
     name="hh4b_2b_region",
     params={
@@ -324,7 +356,7 @@ hh4b_vbf_best_candidates_6_jets_region = Cut(
     params={
         "min_mjj": 400,
         "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "jet_vbf_coll": "JetGoodVBFPair",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
@@ -334,7 +366,7 @@ hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
     params={
         "min_mjj": 0,
         "min_deta": 0,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "jet_vbf_coll": "JetGoodVBFPair",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
@@ -374,7 +406,7 @@ def hh4b_vbf_fail_discriminator_region(thresh):
 hh4b_vbf_2_jets = Cut(
     name="hh4b_vbf_2_jets",
     params={
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "jet_vbf_coll": "JetGoodVBFPair",
     },
     function=cuts_f.hh4b_vbf_2_jets,
 )
@@ -384,7 +416,7 @@ hh4b_boosted_vbf_region = Cut(
     params={
         "min_mjj": 300,
         "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "jet_vbf_coll": "JetGoodVBFPair",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
@@ -405,6 +437,12 @@ def skimming_cut_list(configs):
     ]
     if not configs["mixeddata"] and not configs["approach"] == "boosted":
         skimlist.append(get_HLTsel())
-    if not configs["noL1"] and not configs["mixeddata"] and not configs["boosted"]:
+    # no L1 seed requirement in the second approach (HLT only)
+    if (
+        not configs["noL1"]
+        and not configs["mixeddata"]
+        and not configs["boosted"]
+        and configs["approach"] != "second"
+    ):
         skimlist.append(get_L1sel())
     return skimlist

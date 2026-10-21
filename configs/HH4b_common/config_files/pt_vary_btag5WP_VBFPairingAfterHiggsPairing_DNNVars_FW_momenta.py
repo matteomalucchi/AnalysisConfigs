@@ -34,7 +34,6 @@ config_options_dict |= {
     "vbf_analysis": True,
     "which_vbf_quark":"with_mothers_children",
     "max_num_jets_add_vbf": 3,
-    "jets_add_vbf_order": "pt",
     "vbf_matching_after_higgs_pairing": True,
     # FW momenta 
     "max_order_FW": 12,

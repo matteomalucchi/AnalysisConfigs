@@ -577,7 +577,11 @@ def define_preselection(options):
     ## Define the preselection to apply
     # jet pt field on which the pt cuts of the resolved preselections are applied
     pt_type = options["preselection_pt_field"]
-    if "no_btag" in options.keys() and options["no_btag"]:
+    no_btag = "no_btag" in options.keys() and options["no_btag"]
+    if options["approach"] == "second":
+        # second approach: its own year-dependent preselection
+        preselection = [cuts.hh4b_presel_second_approach(pt_type, no_btag=no_btag)]
+    elif no_btag:
         preselection = [cuts.hh4b_presel_nobtag(pt_type)]
     else:
         if options["vbf_presel"]:

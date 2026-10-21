@@ -62,8 +62,8 @@ def get_default_bdt_inputs(events):
             "H2Pt_HHmass": to_col(events.HiggsSubLeading.divHHmass),
             "H1Pt/H2Pt": to_col(events.HiggsLeadingByHiggsSubLeadingPt, "99999"),
             # vbf mjj and eta_jj
-            "VBFjjMass": to_col(events.mjjJetGoodVBFEnergyOrdered, "NaN"),
-            "VBFjjDeltaEta": to_col(events.detaJetGoodVBFEnergyOrdered),
+            "VBFjjMass": to_col(events.mjjJetGoodVBFPair, "NaN"),
+            "VBFjjDeltaEta": to_col(events.detaJetGoodVBFPair),
             # AK4JetAway
             "H1AK4JetAway1dR": to_col(events.HiggsLeading.dRclosestVBF, "0"),
             "H2AK4JetAway2dR": to_col(events.HiggsSubLeading.dRclosestVBF, "0"),

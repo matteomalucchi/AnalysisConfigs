@@ -63,21 +63,14 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events.JetGoodClip, self.max_num_jets_good, clip=True
             )
 
-            # merge the 3 jet collections to feed to spanet training
+            # merge the 3 jet collections to feed to spanet training: the good
+            # jets, the VBF pair chosen with `spanet_vbf_candidates` and the
+            # additional VBF jets
             self.events["JetTotalSPANetPadded"] = ak.concatenate(
                 [
                     self.events["JetGoodPadded"],
-                    self.events["JetGoodVBFLeadingMjj"],
+                    self.spanet_vbf_pair(),
                     self.events["JetAdditionalGoodVBF"],
-                ],
-                axis=1,
-            )
-
-            # create a new collection which is similar to the one of the AN
-            self.events["JetGoodHiggsPlusVBF1mjjAN"] = ak.concatenate(
-                [
-                    self.events["JetGoodHiggs"],
-                    self.events["JetGoodVBFLeadingMjjAN"],
                 ],
                 axis=1,
             )
@@ -164,7 +157,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events["HiggsLeading"],
                     self.events["HiggsSubLeading"],
                     self.events["JetGoodFromHiggsOrdered"],
-                ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
+                ) = run2_matching_algorithm(
+                    self.events["JetGoodHiggs"],
+                    pt_in_hh_frame=self.approach == "second",
+                )
 
             # Define mjj, delta eta and centrality of leading mjj vbf jet candidates
             if self._isMC and self.random_pt:
