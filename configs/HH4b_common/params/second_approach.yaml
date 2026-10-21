@@ -13,12 +13,6 @@ HLT_triggers:
       ParkingHH:
          - PFHT250_QuadPFJet25_PNet2BTagMean0p55
 
-lumi:
-  picobarns:
-    "2025":
-      # 110.15 fb-1 of the analysis (the per-era values are the PocketCoffea defaults)
-      tot: 110150
-
 jets_calibration:
   forward_jets_mitigation:
     # VBF candidates in 2.5 < |eta| < 3.0 need pt > 50 GeV in every year, 2025 included

@@ -249,7 +249,7 @@ All the VBF collections are ordered by pt (the jet energy is not used anymore).
 - **Event preselection** (`hh4b_presel_second_approach`): lepton veto, ≥ 4 `JetGood` with pt > 70, 50, 40, 35 GeV (2022) or 30 GeV (2023-2025), ≥ 2 `JetGood` with pt > 30 GeV passing the medium WP of the year's tagger, the mean of the 2 highest b-tag scores > 0.65 (2022) / 0.55 (2023) (no cut in 2024-2025), and the jet veto maps.
 - **HH reconstruction** without SPANet (`run2 = True`): D_HH on the 4 `JetGood` leading in b-tag score, with the leading Higgs candidate of each pairing taken as the one with the higher pt, and the tie-break (ΔD_HH < 30 GeV) on the pt of the Higgs candidates in the HH rest frame. With SPANet the Higgs and VBF jets are the ones of the model.
 - **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` forward jets mitigation, extended to 2025 in `params/second_approach.yaml`). VBF pair: leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$.
-- **2025**: trigger, luminosity (110.15 fb⁻¹) and HE cut in `params/second_approach.yaml`.
+- **2025**: trigger and HE cut in `params/second_approach.yaml`; the luminosity is the PocketCoffea default.
 
 Not implemented: the offline-online trigger object matching (2022-2023), the JER smearing factor derived from the standard-JEC jets and applied on top of the regressed jets (the regressed collections are smeared with their own JER), the b-tag SFs of the second approach and its signal and control regions.
 
