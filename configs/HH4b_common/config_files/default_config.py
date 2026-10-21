@@ -62,8 +62,7 @@ default_config_options_dict = {
     #   "first"   : use the PNet+Neutrino regressed pt when it is available
     #               (HIG-24-010 first approach)
     #   "second"  : second approach (HIG-24-010): the +neutrino regressed pt
-    #               only for the jets with raw pt > 15 GeV, |eta| < 2.5 passing
-    #               the loose b-tag WP. It also selects the second approach event
+    #               for the jets passing the loose b-tag WP. It also selects the second approach event
     #               preselection (`hh4b_presel_second_approach`), drops the
     #               L1 seeds from the skim, and, without SPANet, takes the D_HH pairing (`run2`)
     #               with the HH-frame pt tie-break and the leading-pt /

@@ -10,16 +10,6 @@ object_preselection:
       2023_postBPix: 25
     eta: 2.5
     jetId: 2 # 2 tight, 6 tight with lepton veto
-  # Jets entering HT: pt > 30 GeV, |eta| < 2.5 (on top of the Jet selection)
-  HT:
-    pt: 30
-  # pt regression (with neutrino) applied on the JEC-corrected jets with
-  # raw pt > raw_pt_min, |eta| < eta_max, passing the btag_wp b-tag working point;
-  # the other jets keep the standard JEC (AK4PFPuppi)
-  PtRegression:
-    raw_pt_min: 15
-    eta_max: 2.5
-    btag_wp: L
   FatJetLeading:
     pt: 300
     eta: 2.4

@@ -57,6 +57,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 
+# second approach: HT is the sum of the pt of the jets with pt > 30 GeV, |eta| < 2.5
+SECOND_APPROACH_HT_MIN_PT = 30
+
 # VBF jet pair definitions: option value -> (collection name, function building it)
 VBF_PAIR_DEFINITIONS = {
     "leading_mjj": ("JetGoodVBFLeadingMjj", get_lead_mjj_jet_pair),
@@ -247,9 +250,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     ],
                 )
         elif self.approach == "second":
-            # the +neutrino regression only for the jets passing the loose b-tag
-            # WP, the standard JEC jets for the others
-            jets_regressed = merge_regressed_jets(
+            # as "first", but high b-tag jets (loose WP) always use the regression
+            self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=[
                     self.events["JetPtRegressedPlusNeutrino"],
                     self.events["JetDefault"],
@@ -259,16 +261,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 ],
                 params=self.params,
                 year=self._year,
-                btag_wp=self.params.object_preselection["PtRegression"]["btag_wp"],
-            )
-            # and only for raw pt > raw_pt_min and |eta| < eta_max
-            reg_cuts = self.params.object_preselection["PtRegression"]
-            jets_default = self.events["JetDefault"]
-            apply_regression = (
-                jets_default.pt * (1 - jets_default.rawFactor) > reg_cuts["raw_pt_min"]
-            ) & (abs(jets_default.eta) < reg_cuts["eta_max"])
-            self.events["Jet"] = ak.where(
-                apply_regression, jets_regressed, jets_default
             )
         else:
             raise ValueError(
@@ -875,12 +867,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return ak.flatten(np.sqrt(sigma_hbbCand_A**2 + sigma_hbbCand_B**2), axis=None)
 
     def get_jets_for_ht(self):
-        """JetGood jets entering HT: with `HT: {pt: ...}` in the object
-        preselection only the ones above that pt (on `preselection_pt_field`)."""
+        """Jets entering HT: the JetGood jets (|eta| < 2.5), in the second
+        approach only the ones with pt > 30 GeV (on `preselection_pt_field`)."""
         jets = self.events.JetGood
-        if "HT" in self.params.object_preselection:
-            ht_pt = self.params.object_preselection["HT"]["pt"]
-            jets = jets[jets[self.preselection_pt_field] > ht_pt]
+        if self.approach == "second":
+            jets = jets[jets[self.preselection_pt_field] > SECOND_APPROACH_HT_MIN_PT]
         return jets
 
     def get_jets_not_from_idx(self, jet_idx_to_remove_per_event):
@@ -993,8 +984,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # ADDITIONAL VARIABLES #
         ########################
 
-        # HT : scalar sum of the pt of the JetGood jets (|eta| < 2.5), with an
-        # additional pt cut if `HT` is in the object preselection
+        # HT : scalar sum of the pt of the JetGood jets (|eta| < 2.5), above
+        # 30 GeV in the second approach
         self.events["HT"] = ak.sum(self.get_jets_for_ht().pt, axis=1)
 
         self.events["era"] = ak.full_like(
@@ -1210,8 +1201,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
 
     def define_boosted_dnn_variables(self, higgs1, higgs2, cleaned_jets, vbf_variables):
-        # HT : scalar sum of the pt of the JetGood jets (|eta| < 2.5), with an
-        # additional pt cut if `HT` is in the object preselection
+        # HT : scalar sum of the pt of the JetGood jets (|eta| < 2.5), above
+        # 30 GeV in the second approach
         self.events["HT"] = ak.sum(self.get_jets_for_ht().pt, axis=1)
 
         self.events["era"] = ak.full_like(
