@@ -57,12 +57,6 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
-    # triggers, lumi and forward jet cuts specific to the second approach
-    *(
-        [f"{localdir}/../HH4b_common/params/second_approach.yaml"]
-        if config_options_dict["approach"] == "second"
-        else []
-    ),
     update=True,
 )
 

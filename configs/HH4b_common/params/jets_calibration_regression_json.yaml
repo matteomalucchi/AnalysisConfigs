@@ -1034,6 +1034,9 @@ jets_calibration:
       apply: False
     pt_cut_HE:
       apply: True
+      # pt > 50 GeV in 2.5 < |eta| < 3.0 also in 2025 (PocketCoffea default: 2022-2024)
+      eta_regions:
+        "2025": [[2.5, 3.0]]
     jer_genmatched_only:
       apply: True
     residual_pt_floor:
