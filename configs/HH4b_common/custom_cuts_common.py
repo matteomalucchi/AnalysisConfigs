@@ -356,7 +356,7 @@ hh4b_vbf_best_candidates_6_jets_region = Cut(
     params={
         "min_mjj": 400,
         "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFPair",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
@@ -366,7 +366,7 @@ hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
     params={
         "min_mjj": 0,
         "min_deta": 0,
-        "jet_vbf_coll": "JetGoodVBFPair",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )
@@ -406,7 +406,7 @@ def hh4b_vbf_fail_discriminator_region(thresh):
 hh4b_vbf_2_jets = Cut(
     name="hh4b_vbf_2_jets",
     params={
-        "jet_vbf_coll": "JetGoodVBFPair",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
     function=cuts_f.hh4b_vbf_2_jets,
 )
@@ -416,7 +416,7 @@ hh4b_boosted_vbf_region = Cut(
     params={
         "min_mjj": 300,
         "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFPair",
+        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )

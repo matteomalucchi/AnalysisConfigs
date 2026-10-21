@@ -85,6 +85,18 @@ def get_variables_dict(
     return variables_dict
 
 
+# VBF pair selected by SPANet or by the approach, ordered by pt
+VBF_SELECTED_PAIR_COLUMNS = {
+    "JetGoodVBFSelectedPair": [
+        "provenance_vbf",
+        "pt",
+        "eta",
+        "phi",
+        "mass",
+        "btagB",
+    ],
+}
+
 SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "provenance",
     "pt",

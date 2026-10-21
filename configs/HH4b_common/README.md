@@ -111,10 +111,11 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | --- | --- | --- |
 | `vbf_parton_matching` | `False` | Run the gen-level matching of the VBF quarks to the jets (VBF MC only) and fill the `provenance_vbf` field. When `False`, a dummy (all-`None`) `provenance_vbf` is created. |
 | `which_vbf_quark` | `"with_mothers_children"` | How the VBF quarks are identified at gen level. `"with_mothers_children"`: hard-process quarks whose mother also has two Higgs children. `"with_status"`: outgoing (`status == 23`) non-b partons. |
-| `max_num_jets_add_vbf` | `2` | Number of *additional* VBF jet candidates (on top of the pair chosen with `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF`, ordered by pt, and merged into the SPANet input collections. |
+| `max_num_jets_add_vbf` | `2` | Number of *additional* VBF jet candidates (on top of the pair chosen with `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections. |
+| `jets_add_vbf_order` | `"energy"` | Field used to order the additional VBF jets, e.g. `"energy"` or `"pt"`. |
 | `spanet_vbf_candidates` | `"leading_mjj"` | VBF pair fed to SPANet (`JetTotalSPANetPadded`, `JetGoodVBFMergedProvVBFPadded`) before the additional VBF jets. `"leading_mjj"`: the pair leading in $m_{jj}$, as for the SPANet models trained so far. `"leading_pt_opposite_eta"`: the leading-pt jet and the leading-pt jet with $\eta_1 \eta_2 < 0$, as the VBF pair of the second approach. |
 | `vbf_matching_after_higgs_pairing` | `False` | Run the SPANet Higgs pairing first and define the VBF candidates from the jets left over by the pairing, instead of from the b-tag-ordered `JetGoodClip` collection. Requires `spanet`. |
-| `vbf_pairing_from_vbf_discriminator` | `False` | Take the VBF pair (`JetGoodVBFPair`) from the SPANet model given in `vbf_discriminator` instead of using the leading-mjj pair. Requires a standalone model (different file from `spanet`) predicting the VBF jet assignment (2 jets) on top of the ggF/VBF classification, with its sequential inputs read from the VBF candidate collection. The model is run only once and also provides `VBF_ggF_score`. |
+| `vbf_pairing_from_vbf_discriminator` | `False` | Take the VBF pair (`JetGoodVBFEnergyOrdered`) from the SPANet model given in `vbf_discriminator` instead of using the leading-mjj pair. Requires a standalone model (different file from `spanet`) predicting the VBF jet assignment (2 jets) on top of the ggF/VBF classification, with its sequential inputs read from the VBF candidate collection. The model is run only once and also provides `VBF_ggF_score`. |
 | `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to split the pass/fail VBF categories. Only relevant if `vbf_discriminator` is set. |
 | `vbf_selection` | `None` | Boosted VBF only: overrides `vbf_analysis` when the categories are defined in [`VBF_HH4b_boosted_config.py`](../VBF_HH4b_boosted/VBF_HH4b_boosted_config.py), so that the VBF regions can be built without switching on the full VBF jet reconstruction in the workflow. `None` means "not set", i.e. `vbf_analysis` is used instead. |
 
@@ -226,17 +227,16 @@ them to `config_options_dict` while building the `Configurator`.
 
 ### VBF jet candidates
 
-All the VBF collections are ordered by pt (the jet energy is not used anymore).
-
 | Collection | Content |
 | --- | --- |
-| `JetGoodVBFCandidates` | Jets passing the `JetVBF` object preselection which are not among the `max_num_jets_good` jets leading in b-tag score (or, for the final pair, not taken by the Higgs pairing). |
-| `JetGoodVBFLeadingMjj` | Pair of candidates leading in $m_{jj}$. |
-| `JetGoodVBFLeadingPtOppositeEta` | Leading-pt candidate and leading-pt candidate with $\eta_1 \eta_2 < 0$ (padded with `None`). |
-| `JetAdditionalGoodVBF` | Candidates left over by the pair chosen with `spanet_vbf_candidates`, padded to `max_num_jets_add_vbf`. |
+| `JetGoodVBFCandidates` | Jets passing the `JetVBF` object preselection which are not among the `max_num_jets_good` jets leading in b-tag score (or, for the final pair, not taken by the Higgs pairing), ordered by pt. |
+| `JetGoodVBFLeadingMjj` | Pair of candidates leading in $m_{jj}$, ordered by energy. |
+| `JetGoodVBFLeadingPtOppositeEta` | Leading-pt candidate and leading-pt candidate with $\eta_1 \eta_2 < 0$ (padded with `None`), ordered by pt. |
+| `JetAdditionalGoodVBF` | Candidates left over by the pair chosen with `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to `max_num_jets_add_vbf`. |
 | `JetGoodVBFMergedProvVBFPadded` | That pair followed by `JetAdditionalGoodVBF`, with `provenance = provenance_vbf`. |
 | `JetTotalSPANetPadded` | `JetGoodPadded` (the `max_num_jets_good` jets leading in b-tag score), followed by the pair chosen with `spanet_vbf_candidates` and by `JetAdditionalGoodVBF`: the SPANet input. |
-| `JetGoodVBFPair` | VBF pair used by the VBF categories: the one predicted by SPANet when the model predicts the VBF jets; otherwise, out of the candidates left over by the Higgs pairing, the one predicted by the VBF pairing model (`vbf_pairing_from_vbf_discriminator`) or, without it, `leading_pt_opposite_eta` in the second approach and `leading_mjj` otherwise. |
+| `JetGoodVBFEnergyOrdered` | VBF pair used by the VBF categories, ordered by energy: the one predicted by SPANet when the model predicts the VBF jets; otherwise, out of the candidates left over by the Higgs pairing, the one predicted by the VBF pairing model (`vbf_pairing_from_vbf_discriminator`) or, without it, `leading_pt_opposite_eta` in the second approach and `leading_mjj` otherwise. |
+| `JetGoodVBFSelectedPair` | Resolved analysis: the same pair ordered by pt, saved in the output of the VBF configs (`VBF_SELECTED_PAIR_COLUMNS`). |
 
 ### Second approach
 

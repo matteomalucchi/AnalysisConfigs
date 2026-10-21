@@ -219,10 +219,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 # )
                 # self.events["JetGoodVBFCandidates"] = ak.pad_none(vbf_pool[mask_pt_vbf & mask_eta_vbf], 2, clip=True)
 
-                self.events["JetGoodVBFPair"] = get_lead_mjj_jet_pair(
+                self.events["JetGoodVBFEnergyOrdered"] = get_lead_mjj_jet_pair(
                     self.events, "JetGoodVBFCandidates"
                 )
-                for jet_coll in ["JetGood", "JetGoodVBFCandidates", "JetGoodVBFPair"]:
+                for jet_coll in ["JetGood", "JetGoodVBFCandidates", "JetGoodVBFEnergyOrdered"]:
                     padded = ak.pad_none(self.events[jet_coll], 2, axis=1)
                     vbf_mjj = (
                         padded[:, 0]
@@ -250,7 +250,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         super().count_objects(variation=variation)
         if self.vbf_analysis:
             self.events["nJetGoodCloseToFatJet"] = ak.num(self.events.JetGoodCloseToFatJet, axis=1)
-            self.events["nJetGoodVBFPair"] = ak.num(self.events.JetGoodVBFPair, axis=1)
+            self.events["nJetGoodVBFEnergyOrdered"] = ak.num(self.events.JetGoodVBFEnergyOrdered, axis=1)
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         if self.vbf_analysis and not self.boosted:

@@ -20,6 +20,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     define_categories,
     define_single_category,
     define_preselection,
+    VBF_SELECTED_PAIR_COLUMNS,
     get_columns_list,
     get_variables_dict,
     with_fw_momenta_columns,
@@ -246,6 +247,12 @@ else:
     # Add special columns
     if config_options_dict["sig_bkg_dnn"]:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
+
+# Save the selected VBF pair (from SPANet or from the approach), ordered by pt
+if config_options_dict["vbf_analysis"]:
+    column_list += get_columns_list(
+        VBF_SELECTED_PAIR_COLUMNS, not config_options_dict["save_chunk"]
+    )
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:

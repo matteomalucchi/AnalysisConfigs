@@ -162,9 +162,11 @@ default_config_options_dict = {
     #   "with_status"           : outgoing (status==23) non-b partons
     "which_vbf_quark": "with_mothers_children",
     # Number of additional VBF jet candidates (on top of the VBF pair chosen with
-    # `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF`, ordered by pt, and
-    # merged into the SPANet input collections.
+    # `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF` and merged into the
+    # SPANet input collections.
     "max_num_jets_add_vbf": 2,
+    # Field used to order the additional VBF jets, e.g. "energy" or "pt".
+    "jets_add_vbf_order": "energy",
     # VBF pair fed to SPANet (`JetTotalSPANetPadded`) before the additional VBF jets:
     #   "leading_mjj"             : the pair leading in mjj (SPANet models so far)
     #   "leading_pt_opposite_eta" : the leading-pt jet and the leading-pt jet with

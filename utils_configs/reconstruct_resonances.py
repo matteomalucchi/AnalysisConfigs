@@ -143,8 +143,8 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
             ak.concatenate([vbf_1, vbf_2], axis=1),
             "all",
         )
-        # sort jets by pt
-        vbf_jets = order_jet_pair_by_pt(vbf_jets)
+        # sort jets by energy
+        vbf_jets = order_jet_pair_by_energy(vbf_jets)
         # pad the vbf jets such that if an event doesn't have at least 6 jets
         # the vbf jets are two None
         vbf_jets_pad_none = ak.mask(
@@ -160,7 +160,7 @@ def reconstruct_resonances_from_idx(jet_collection, idx_collection):
 
 def reconstruct_vbf_jets_from_idx(jet_collection, vbf_idx_collection, valid_mask=None):
     """
-    Build the VBF jet pair, ordered in pt, from the indices predicted by a
+    Build the VBF jet pair, ordered in energy, from the indices predicted by a
     SPANet model doing the VBF pairing.
 
     `vbf_idx_collection` has shape (n_events, 2) and refers to the position of
@@ -176,8 +176,8 @@ def reconstruct_vbf_jets_from_idx(jet_collection, vbf_idx_collection, valid_mask
     mask_vbf = (local_idx == vbf_idx[:, 0]) | (local_idx == vbf_idx[:, 1])
 
     vbf_jets = add_fields(jet_collection[mask_vbf], "all")
-    # sort jets by pt
-    vbf_jets = order_jet_pair_by_pt(vbf_jets)
+    # sort jets by energy
+    vbf_jets = order_jet_pair_by_energy(vbf_jets)
 
     mask_two_jets = ak.num(vbf_jets, axis=1) == 2
     if valid_mask is not None:
@@ -264,7 +264,14 @@ def get_lead_mjj_jet_pair(events, jet_coll):
     )
     lead_mjj_jet_pair = add_fields(lead_mjj_jet_pair, "all")
 
-    return order_jet_pair_by_pt(lead_mjj_jet_pair)
+    # order the jets according to the energy
+    return order_jet_pair_by_energy(lead_mjj_jet_pair)
+
+
+def order_jet_pair_by_energy(jet_pair):
+    """Order the jets of each pair by decreasing energy (missing jets last)."""
+    energy = ak.fill_none(jet_pair.energy, -np.inf)
+    return jet_pair[ak.argsort(energy, axis=1, ascending=False)]
 
 
 def order_jet_pair_by_pt(jet_pair):

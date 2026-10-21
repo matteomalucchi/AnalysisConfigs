@@ -29,6 +29,8 @@ from utils_configs.reconstruct_resonances import (
     get_jets_idx_not_from_idx,
     get_lead_mjj_jet_pair,
     get_lead_pt_opposite_eta_jet_pair,
+    order_jet_pair_by_energy,
+    order_jet_pair_by_pt,
     reconstruct_higgs_from_provenance,
     reconstruct_resonances_from_idx,
     reconstruct_vbf_jets_from_idx,
@@ -1576,13 +1578,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def define_vbf_pair_collections(self):
         """
         VBF candidates from `JetGoodVBFCandidates`, shared by the resolved and the
-        boosted VBF workflows. Every collection is ordered by pt:
+        boosted VBF workflows:
 
-        - `JetGoodVBFLeadingMjj`: the pair leading in mjj
+        - `JetGoodVBFLeadingMjj`: the pair leading in mjj, ordered by energy
         - `JetGoodVBFLeadingPtOppositeEta`: the leading-pt jet and the leading-pt
-          jet in the opposite eta hemisphere (eta1 * eta2 < 0)
+          jet in the opposite eta hemisphere (eta1 * eta2 < 0), ordered by pt
         - `JetAdditionalGoodVBF`: the candidates left over by the pair chosen with
-          `spanet_vbf_candidates` (padded to `max_num_jets_add_vbf`)
+          `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to
+          `max_num_jets_add_vbf`
         - `JetGoodVBFMergedProvVBFPadded`: that pair followed by the additional
           jets, with `provenance` = `provenance_vbf`, i.e. the VBF jets fed to
           SPANet (see `spanet_vbf_pair`)
@@ -1593,11 +1596,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         spanet_vbf_pair = self.spanet_vbf_pair()
         pair_idx = spanet_vbf_pair.index[~ak.is_none(spanet_vbf_pair.pt, axis=1)]
 
-        # get additional good VBF jets, ordered by pt and padded
+        # get additional good VBF jets, ordered and padded
         self.select_jets_not_from_idx(
             "JetAdditionalGoodVBF",
             ak.concatenate([self.events.JetGoodClip.index, pair_idx], axis=1),
-            order_by="pt",
+            order_by=self.jets_add_vbf_order,
         )
         self.events["JetAdditionalGoodVBF"] = ak.pad_none(
             self.events["JetAdditionalGoodVBF"],
@@ -1666,7 +1669,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
     def define_vbf_jet_pair(self, jet_vbf):
         """
-        VBF jet pair used by the VBF categories (`JetGoodVBFPair`), ordered by pt.
+        VBF jet pair used by the VBF categories (`JetGoodVBFEnergyOrdered`),
+        ordered by energy. The same pair ordered by pt is `JetGoodVBFSelectedPair`.
 
         `jet_vbf` is the pair given by the Higgs pairing model (SPANet), when it
         predicts the VBF jets as well. Otherwise the candidates are the
@@ -1694,8 +1698,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
         pair_definition = (
             "leading_pt_opposite_eta" if self.approach == "second" else "leading_mjj"
         )
-        return VBF_PAIR_DEFINITIONS[pair_definition][1](
-            self.events, "JetGoodVBFCandidates"
+        return order_jet_pair_by_energy(
+            VBF_PAIR_DEFINITIONS[pair_definition][1](
+                self.events, "JetGoodVBFCandidates"
+            )
         )
 
     def get_btag_order_add_jet(self, jet_idx_from_pairings):
@@ -1845,8 +1851,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
             # ======= VBF PARAMETERS ============
             if self.vbf_analysis:
-                self.events["JetGoodVBFPair"] = self.define_vbf_jet_pair(
+                self.events["JetGoodVBFEnergyOrdered"] = self.define_vbf_jet_pair(
                     jet_vbf
+                )
+                # the selected VBF pair (SPANet, or the definition of the
+                # approach) ordered by pt, saved in the output
+                self.events["JetGoodVBFSelectedPair"] = order_jet_pair_by_pt(
+                    self.events["JetGoodVBFEnergyOrdered"]
                 )
 
             if (
@@ -1874,7 +1885,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 jet_idx_from_pairings = matched_jet_higgs_idx_not_none
                 jet_vbf_idx_not_none = None
                 if self.vbf_analysis:
-                    jet_vbf_idx_not_none = self.events.JetGoodVBFPair.index
+                    jet_vbf_idx_not_none = self.events.JetGoodVBFEnergyOrdered.index
                     jet_idx_from_pairings = ak.concatenate(
                         [jet_idx_from_pairings, jet_vbf_idx_not_none], axis=1
                     )
@@ -1952,7 +1963,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             ) = self.define_boosted_dnn_variables(
                 self.events["FatJetGoodSelected"][:, 0],
                 self.events["FatJetGoodSelected"][:, 1],
-                self.events.JetGoodVBFPair,
+                self.events.JetGoodVBFEnergyOrdered,
                 vbf_variables=True,
             )
         # ======= VBF GGF DISCRIMINATOR ===========
