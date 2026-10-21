@@ -1,6 +1,7 @@
 # Parameters of the second approach, merged on top of the common ones
 # (triggers.yaml, jets_calibration_regression_json.yaml, ...) when
-# approach == "second" (see configurator_tools.get_approach_parameter_files).
+# approach == "second" (see the parameter files loaded by the config templates,
+# e.g. configs/VBF_HH4b/VBF_HH4b_config.py).
 
 HLT_triggers:
    # 2023: HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65 (JetMET) or
