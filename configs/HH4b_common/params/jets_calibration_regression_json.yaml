@@ -1030,7 +1030,15 @@ jets_calibration:
   # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in the selections called with
   # forward_jet_veto=True (the VBF jets).
   forward_jets_mitigation:
+    pt_cut_HF:
+      apply: False
     pt_cut_HE:
+      apply: True
+    jer_genmatched_only:
+      apply: True
+    residual_pt_floor:
+      apply: False
+    raw_factor_cut:
       apply: True
 
 # path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/JERC_json/JERC_json_forPNetUParT_WithJER/"
