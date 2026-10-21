@@ -11,6 +11,7 @@ from pocket_coffea.parameters.histograms import *
 from pocket_coffea.utils.configurator import Configurator
 
 import configs.HH4b_common.custom_cuts_common as cuts
+import configs.HH4b_common.trigger_sf_variables as trigger_sf_variables
 import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
@@ -344,3 +345,6 @@ cfg = Configurator(
     },
 )
 cloudpickle.register_pickle_by_value(quantile_transformer)
+# Makes the `jet_pt`/`alljet_ht`/`calojet_ht`/`atanh_btag_mean` observables of
+# `trigger_scale_factors.yaml` (see `trigger_sf_variables.py`) available to the workers.
+cloudpickle.register_pickle_by_value(trigger_sf_variables)

@@ -732,7 +732,10 @@ explicitly), while the L1 objects are at the top level of the file with the era 
 The total scale factor applied to the events is the product over the filters of the data/MC efficiency ratios, each of
 them evaluated as a function of a different observable (Calo-HT for the L1 seeds, the pt of the N-th leading jet for the
 jet filters, the HT for the PFHT filters, the atanh of the average b-tagging score of the two most b-tagged jets for the
-b-tagging filters).
+b-tagging filters). These observables (`calojet_ht`, `jet_pt`, `alljet_ht`, `atanh_btag_mean`) are specific to this
+measurement of the HH4b jet trigger, not shipped by PocketCoffea: they are defined and registered with
+PocketCoffea's `register_trigger_sf_variable` in `configs/HH4b_common/trigger_sf_variables.py`, imported and registered
+with `cloudpickle` in `VBF_HH4b_config.py`.
 
 The ROOT files are converted to a correctionlib file with, **one call per era**:
 
