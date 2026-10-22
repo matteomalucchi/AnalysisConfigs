@@ -22,8 +22,14 @@ def reconstruct_higgs_from_provenance(matched_jets_higgs):
     # has less than 4 jets != None. In any case it has >= 4 jets because we preselected
     # events with >=4 jets. So if the event is not fully matched, some of the jets are None and
     # the higgs candidate associated is set to None so it doesn't crash.
-    higgs_lead = add_fields(jet_higgs1[:, 0] + jet_higgs1[:, 1])
-    higgs_sub = add_fields(jet_higgs2[:, 0] + jet_higgs2[:, 1])
+    # The collections are padded to 2 jets for the case in which the preselection
+    # does not require >= 4 jets in the matched collection (e.g. synchronization,
+    # where the >= 4 jets are required on the full Jet collection): in this case
+    # the higgs candidate is None.
+    jet_higgs1_padded = ak.pad_none(jet_higgs1, 2, axis=1)
+    jet_higgs2_padded = ak.pad_none(jet_higgs2, 2, axis=1)
+    higgs_lead = add_fields(jet_higgs1_padded[:, 0] + jet_higgs1_padded[:, 1])
+    higgs_sub = add_fields(jet_higgs2_padded[:, 0] + jet_higgs2_padded[:, 1])
 
     jets_ordered = ak.with_name(
         ak.concatenate([jet_higgs1[:, :2], jet_higgs2[:, :2]], axis=1),
