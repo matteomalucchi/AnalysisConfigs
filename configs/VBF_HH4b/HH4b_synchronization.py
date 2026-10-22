@@ -85,20 +85,8 @@ sample_list = ["GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization"]
 categories_dict = {"baseline": [passthrough]}
 
 total_input_variables = {}
-column_list = get_columns_list(
-    {
-        "JetGood": [
-            "provenance",
-            "pt",
-            "eta",
-            "phi",
-            "mass",
-            "btagB_3wp",
-            "btagB_5wp",
-            "btagB",
-        ],
-    }
-)
+
+
 # Synchronization "Events" tree: trigger bits, noise filters, jet veto maps, the
 # AK4 jets with pt > 15 GeV and tight ID, and the indices (the `index` field of
 # the jets) of the 4 jets of the HH pairing
@@ -112,7 +100,7 @@ sync_flags = sorted(
         for f in list(parameters.event_flags[y]) + list(parameters.event_flags_data[y])
     }
 )
-column_list += get_columns_list(
+column_list = get_columns_list(
     {
         "HLT": sync_triggers,
         "Flag": sync_flags,
