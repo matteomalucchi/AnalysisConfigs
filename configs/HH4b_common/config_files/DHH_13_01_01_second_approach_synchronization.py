@@ -16,6 +16,4 @@ config_options_dict |= {
     "run2": True,
     "vbf_analysis": True,
     "max_num_jets_higgs_pairing": 4,
-    # only >= 4 JetGood jets (|eta| < 2.5), no pt thresholds
-    "only_4jets_presel": True,
 } | onnx_model_dict
