@@ -58,10 +58,15 @@ parameters = defaults.merge_parameters_from_files(
     update=True,
 )
 
-# Object preselection of the synchronization: the jet selections (|eta|, jet ID
-# and, for the VBF jets, the b-tag veto) without any pt threshold
-parameters.object_preselection.Jet.pt = 0
+# Object preselection of the synchronization
+# - JetGood: pt > 15 GeV (|eta| < 2.5 and tight ID as in the second approach)
+# - JetVBF: no pt threshold (|eta|, tight ID and b-tag veto as in the second approach)
+# - JetSync: the saved AK4 jets, pt > 15 GeV, |eta| < 4.7, tight ID
+parameters.object_preselection.Jet.pt = 15
 parameters.object_preselection.JetVBF.pt = 0
+parameters.object_preselection.JetSync = {"pt": 15, "eta": 4.7, "jetId": 2}
+# no pt > 50 GeV cut for the jets in 2.5 < |eta| < 3.0
+parameters.jets_calibration.forward_jets_mitigation.pt_cut_HE.apply = False
 
 
 if config_options_dict["save_chunk"]:
@@ -96,6 +101,51 @@ column_list = get_columns_list(
             "btagB_3wp",
             "btagB_5wp",
             "btagB",
+        ],
+    }
+)
+# Synchronization "Events" tree: trigger bits, noise filters, jet veto maps, the
+# AK4 jets with pt > 15 GeV and tight ID, and the indices (the `index` field of
+# the jets) of the 4 jets of the HH pairing
+sync_triggers = sorted(
+    {t for y in year for trgs in parameters.HLT_triggers[y].values() for t in trgs}
+)
+sync_flags = sorted(
+    {
+        f
+        for y in year
+        for f in list(parameters.event_flags[y]) + list(parameters.event_flags_data[y])
+    }
+)
+column_list += get_columns_list(
+    {
+        "HLT": sync_triggers,
+        "Flag": sync_flags,
+        "events": [
+            "passJetVetoMap",
+            "ak4_h1b1_index",
+            "ak4_h1b2_index",
+            "ak4_h2b1_index",
+            "ak4_h2b2_index",
+        ],
+        # NOTE: the regression branches are the UParT ones (2024-2025)
+        "JetSync": [
+            "index",
+            "pt",
+            "pt_default",
+            "pt_regressed",
+            "pt_raw_default",
+            "mass",
+            "mass_raw_default",
+            "eta",
+            "phi",
+            "btagB",
+            "jec_factor_default",
+            "jer_factor_default",
+            "jec_factor",
+            "jer_factor",
+            "UParTAK4RegPtRawCorr",
+            "UParTAK4RegPtRawCorrNeutrino",
         ],
     }
 )

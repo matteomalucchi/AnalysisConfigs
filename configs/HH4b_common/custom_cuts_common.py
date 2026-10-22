@@ -133,13 +133,13 @@ def hh4b_presel_era_dependent(pt_type, tight_cuts):
     )
 
 
-# At least 4 JetGood jets (|eta| < 2.5, jet ID and the object preselection pt),
-# without any event-level pt threshold, b-tag requirement or lepton veto
-# (e.g. for the synchronization)
+# At least 4 jets of the full Jet collection with |eta| < 2.5, without any pt
+# threshold, jet ID, b-tag requirement or lepton veto (e.g. for the
+# synchronization)
 hh4b_4jets_presel = Cut(
     name="hh4b_4jets_presel",
-    params={"njet": 4},
-    function=cuts_f.mask_num_jets,
+    params={"njet": 4, "jet_collection": "Jet", "eta_max": 2.5},
+    function=cuts_f.mask_num_jets_in_eta,
 )
 
 

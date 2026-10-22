@@ -135,11 +135,16 @@ default_config_options_dict = {
     # contains "HH", "ZH" or "ZZ", so turning it on changes the yields of the
     # ggF/VBF signal too and breaks the comparison with older results.
     "xx4b_presel": False,
-    # Replace the resolved preselection with the only requirement of >= 4
-    # `JetGood` jets (|eta| < 2.5, jet ID and the object preselection pt), without
-    # event-level pt thresholds, b-tag requirements or lepton veto (e.g. for the
-    # synchronization). The jet veto map is still applied.
+    # Replace the resolved preselection with the only requirement of >= 4 jets
+    # of the full `Jet` collection with |eta| < 2.5, without pt thresholds, jet
+    # ID, b-tag requirements or lepton veto. The jet veto map is still applied.
     "only_4jets_presel": False,
+    # Compute the variables saved by the synchronization config
+    # (configs/VBF_HH4b/HH4b_synchronization.py): `JetSync` (`JetSync` object
+    # preselection), the standard-JEC raw pt/mass and JEC/JER factors of the jets
+    # (`*_default` fields), `passJetVetoMap` and the indices of the 4 jets of the HH
+    # pairing (`ak4_h{1,2}b{1,2}_index`, the `index` of the jets).
+    "synchronization": False,
 
     # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)
