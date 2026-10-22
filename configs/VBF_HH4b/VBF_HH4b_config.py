@@ -163,6 +163,7 @@ categories_dict = define_categories(
     vr1=config_options_dict["vr1"],
     vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_discriminator=config_options_dict["vbf_discriminator"],
+    approach=config_options_dict["approach"],
 )
 
 if BASELINE:

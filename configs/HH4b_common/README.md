@@ -250,7 +250,22 @@ them to `config_options_dict` while building the `Configurator`.
 - **HH reconstruction** without SPANet (`run2 = True`): D_HH on the 4 `JetGood` leading in b-tag score, with the leading Higgs candidate of each pairing taken as the one with the higher pt, and the tie-break (ΔD_HH < 30 GeV) on the pt of the Higgs candidates in the HH rest frame. With SPANet the Higgs and VBF jets are the ones of the model.
 - **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` forward jets mitigation, extended to 2025 in `params/jets_calibration_regression_json.yaml`). VBF pair: leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$.
 
-Not implemented: the offline-online trigger object matching (2022-2023), the JER smearing factor derived from the standard-JEC jets and applied on top of the regressed jets (the regressed collections are smeared with their own JER), the b-tag SFs of the second approach and its signal and control regions.
+- **Regions** (`define_second_approach_categories`, used by `define_categories` when `approach = "second"`). In the ($M_{H1}$, $M_{H2}$) plane, with
+  $X_{HH} = \sqrt{(M_{H1}-125)^2 + (M_{H2}-120)^2}$ and $X_{ab} = \sqrt{((M_{H1}-m_a)/(0.1 M_{H1}))^2 + ((M_{H2}-m_b)/(0.1 M_{H2}))^2}$ with $m_H = 125$ (H1) / 120 (H2), $m_Z = 91$ (H1) / 89 (H2):
+  SR = $X_{HH}$ < 30 GeV ∪ $X_{ZZ}$ < 2.6 ∪ $X_{ZH}$ < 1.9 ∪ $X_{HZ}$ < 1.9; CR = (52 < $M_{H1}$ < 180 GeV) ∩ (50 < $M_{H2}$ < 173 GeV), outside the SR (`SECOND_APPROACH_MASS_PLANE` in `custom_cuts_common.py`).
+  b-tag categories of the 4 HH jets (`JetGoodFromHiggsOrdered`, WPs of the year's tagger):
+
+  | Category | b-tag requirement | Use |
+  | --- | --- | --- |
+  | `SR3T1M`, `CR3T1M` | ≥ 3 T, 4th jet at least M | signal region; CR of the CR2M → CR3T1M background training |
+  | `SR3T1L`, `CR3T1L` | exactly 3 T, 4th jet L but not M | second signal region; CR of its background training |
+  | `CR2M`, `SR2M` | exactly 2 M | background training (CR2M) and derivation (SR2M, weights applied on data) |
+  | `SR3MnT` | ≥ 3 M, fewer than 3 T | validation, background training of SR3T1L |
+  | `SR3M`, `CR3M`, `SR4M`, `CR4M` | exactly 3 M, 4 M | 2024 only (empty in the other years) |
+
+  With `bkg_morphing_dnn` the `SR2M_postW` and `CR2M_postW` categories get the morphing weights on data, with `blind` the `SR3T1M_blind` and `SR3T1L_blind` categories apply the blinding cut.
+
+Not implemented: the offline-online trigger object matching (2022-2023), the JER smearing factor derived from the standard-JEC jets and applied on top of the regressed jets (the regressed collections are smeared with their own JER) and the b-tag SFs of the second approach.
 
 ## Full analysis workflow
 

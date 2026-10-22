@@ -165,6 +165,32 @@ def hh4b_presel_second_approach(pt_type, no_btag=False):
     )
 
 
+# Second approach regions in the (M_H1, M_H2) plane: the SR is the union of the
+# HH, ZZ, ZH and HZ regions, the CR is the rest of the square
+SECOND_APPROACH_MASS_PLANE = {
+    "sr_max": {"HH": 30, "ZZ": 2.6, "ZH": 1.9, "HZ": 1.9},
+    "cr_m1": [52, 180],
+    "cr_m2": [50, 173],
+}
+
+
+def hh4b_mass_plane_region(region):
+    return Cut(
+        name=f"hh4b_mass_plane_{region}_region",
+        params={"region": region, **SECOND_APPROACH_MASS_PLANE},
+        function=cuts_f.hh4b_mass_plane_cuts,
+    )
+
+
+def hh4b_btag_category(category, years=None):
+    return Cut(
+        name=f"hh4b_btag_{category}"
+        + (f"_{'_'.join(years)}" if years else ""),
+        params={"category": category, "years": years},
+        function=cuts_f.hh4b_btag_category_cuts,
+    )
+
+
 hh4b_2b_region = Cut(
     name="hh4b_2b_region",
     params={

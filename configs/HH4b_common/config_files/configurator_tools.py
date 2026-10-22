@@ -379,6 +379,55 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     return category_item
 
 
+def define_second_approach_categories(
+    bkg_morphing_dnn=False, blind=False, btag_wp_category_years=("2024",)
+):
+    """Regions of the second approach.
+
+    Mass plane (`hh4b_mass_plane_region`, H1/H2 = HiggsLeading/HiggsSubLeading):
+    SR = X_HH < 30 GeV or X_ZZ < 2.6 or X_ZH < 1.9 or X_HZ < 1.9, CR = inside
+    52 < M_H1 < 180 GeV, 50 < M_H2 < 173 GeV and outside the SR.
+    b-tag categories (`hh4b_btag_category`) of the 4 HH jets:
+      - SR3T1M, CR3T1M: >= 3 T, 4th jet at least M
+      - SR3T1L, CR3T1L: exactly 3 T, 4th jet L but not M
+      - SR2M, CR2M: exactly 2 M (CR2M -> CR3T1M background training, weights
+        applied in SR2M)
+      - SR3MnT: >= 3 M but fewer than 3 T (validation, training for SR3T1L)
+      - SR3M, CR3M, SR4M, CR4M: exactly 3 M, 4 M, only in `btag_wp_category_years`
+    With `bkg_morphing_dnn`, SR2M_postW and CR2M_postW get the morphing weights on
+    data; with `blind`, SR3T1M_blind and SR3T1L_blind apply the blinding cut.
+    """
+    signal = cuts.hh4b_mass_plane_region("signal")
+    control = cuts.hh4b_mass_plane_region("control")
+    regions = {"SR": signal, "CR": control}
+    categories = {
+        "SR3T1M": ["SR", "3T1M"],
+        "SR3T1L": ["SR", "3T1L"],
+        "CR3T1M": ["CR", "3T1M"],
+        "CR3T1L": ["CR", "3T1L"],
+        "SR2M": ["SR", "2M"],
+        "CR2M": ["CR", "2M"],
+        "SR3MnT": ["SR", "3MnT"],
+    }
+    categories_dict = {
+        name: [regions[region], cuts.hh4b_btag_category(category)]
+        for name, (region, category) in categories.items()
+    }
+    for category in ("3M", "4M"):
+        for region, cut in regions.items():
+            categories_dict[f"{region}{category}"] = [
+                cut,
+                cuts.hh4b_btag_category(category, years=list(btag_wp_category_years)),
+            ]
+    if bkg_morphing_dnn:
+        for name in ("SR2M", "CR2M"):
+            categories_dict[f"{name}_postW"] = categories_dict[name]
+    if blind:
+        for name in ("SR3T1M", "SR3T1L"):
+            categories_dict[f"{name}_blind"] = categories_dict[name] + [cuts.blinded]
+    return categories_dict
+
+
 def define_categories(
     bkg_morphing_dnn=False,
     blind=False,
@@ -394,10 +443,23 @@ def define_categories(
     vbf_analysis=False,
     vbf_discriminator=False,
     ggf_vbf_threshold=0.95,  # Only needed if using a vbf_discriminator
-    high_score_reg=False
+    high_score_reg=False,
+    approach="first",
 ):
     """Define the categories for the analysis."""
     categories_dict = {}
+
+    if approach == "second" and not boosted:
+        categories_dict |= define_second_approach_categories(bkg_morphing_dnn, blind)
+        if vbf_analysis:
+            # NOTE: these regions require at least 6 jets
+            categories_dict |= define_single_category(
+                "vbf_best_candidates_6_jets_4b_region"
+            )
+            categories_dict |= define_single_category(
+                "vbf_best_candidates_6_jets_nokincut_4b_region"
+            )
+        return categories_dict
 
     if boosted:
         if vbf_analysis:
