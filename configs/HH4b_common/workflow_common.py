@@ -1781,7 +1781,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         - the pair predicted by the ggF/VBF discriminator, when it predicts one
         - `jet_vbf_higgs_model`, the pair given by the Higgs pairing model, when
           it predicts the VBF jets as well
-        - the pair leading in mjj among the VBF candidates
+        - among the VBF candidates, the leading-pt jet and the leading-pt jet in
+          the opposite eta hemisphere in the second approach, the pair leading
+          in mjj otherwise (ordered by energy)
         """
         # NOTE: the VBF workflows already built `JetGoodVBFCandidates` out of the
         # jets leading in b-tag score; rebuild it here out of the jets the
@@ -1800,11 +1802,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         jet_vbf = self.eval_vbf_pairing()
         if jet_vbf is not None:
             return jet_vbf
-        # leading-pt / opposite-eta pair in the second approach, leading mjj otherwise
+
         if jet_vbf_higgs_model is not None:
             return jet_vbf_higgs_model
-        
-        
+
+        # leading-pt / opposite-eta pair in the second approach, leading mjj otherwise
         pair_definition = (
             "leading_pt_opposite_eta" if self.approach == "second" else "leading_mjj"
         )

@@ -439,6 +439,55 @@ def define_second_approach_categories(
     return categories_dict
 
 
+# b-tag categories of the high b-tag VBF regions of the second approach, by year
+SECOND_APPROACH_VBF_BTAG_CATEGORIES = {
+    "3T1M": ["2022", "2023"],
+    "3T1L": ["2022", "2023"],
+    "4M": ["2024", "2025"],
+}
+
+
+def define_second_approach_vbf_categories(
+    bkg_morphing_dnn=False, vbf_discriminator=False, ggf_vbf_threshold=0.95
+):
+    """VBF regions of the second approach.
+
+    VBF selection: two VBF jets with mjj > 400 GeV and deta > 3.5 (and, with a
+    `vbf_discriminator`, the ggF/VBF score above `ggf_vbf_threshold`), in the
+    SR and CR of the mass plane of:
+      - the high b-tag categories of `SECOND_APPROACH_VBF_BTAG_CATEGORIES`
+        (3T1M and 3T1L in 2022-2023, 4M in 2024-2025; empty in the other years):
+        vbf_SR3T1M, vbf_CR3T1M, vbf_SR3T1L, vbf_CR3T1L, vbf_SR4M, vbf_CR4M
+      - the 2M category for the background estimate: vbf_SR2M, vbf_CR2M
+        (and vbf_SR2M_postW, vbf_CR2M_postW with `bkg_morphing_dnn`)
+    """
+    vbf_cuts = [cuts.hh4b_vbf_2_jets, cuts.hh4b_vbf_best_candidates_6_jets_region]
+    if vbf_discriminator:
+        vbf_cuts.append(cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold))
+    regions = {
+        "SR": cuts.hh4b_mass_plane_region("signal"),
+        "CR": cuts.hh4b_mass_plane_region("control"),
+    }
+    btag_categories = {
+        category: cuts.hh4b_btag_category(category, years=years)
+        for category, years in SECOND_APPROACH_VBF_BTAG_CATEGORIES.items()
+    }
+    btag_categories["2M"] = cuts.hh4b_btag_category("2M")
+
+    categories_dict = {}
+    for category, btag_cut in btag_categories.items():
+        for region, region_cut in regions.items():
+            categories_dict[f"vbf_{region}{category}"] = [
+                region_cut,
+                btag_cut,
+                *vbf_cuts,
+            ]
+    if bkg_morphing_dnn:
+        for name in ("vbf_SR2M", "vbf_CR2M"):
+            categories_dict[f"{name}_postW"] = categories_dict[name]
+    return categories_dict
+
+
 def define_categories(
     bkg_morphing_dnn=False,
     blind=False,
@@ -462,6 +511,10 @@ def define_categories(
 
     if approach == "second" and not boosted:
         categories_dict |= define_second_approach_categories(bkg_morphing_dnn, blind)
+        if vbf_analysis:
+            categories_dict |= define_second_approach_vbf_categories(
+                bkg_morphing_dnn, vbf_discriminator, ggf_vbf_threshold
+            )
         return categories_dict
 
     if boosted:

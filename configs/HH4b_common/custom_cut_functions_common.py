@@ -462,9 +462,14 @@ def hh4b_btag_category_cuts(events, params, year, processor_params, **kwargs):
       - "2M": exactly 2 M (s1 >= M, s2 < M)
       - "3M": exactly 3 M (s2 >= M, s3 < M)
       - "4M": 4 M (s3 >= M)
-    If `years` is given, the events of the other years fail the cut.
+    If `years` is given (full year names or just the year, e.g. "2022"), the
+    events of the other years fail the cut.
     """
-    if params.get("years") and year not in params["years"]:
+    if (
+        params.get("years")
+        and year not in params["years"]
+        and year.split("_")[0] not in params["years"]
+    ):
         return ak.zeros_like(events.event, dtype=bool)
 
     wps = get_btag_working_points(processor_params, year)
