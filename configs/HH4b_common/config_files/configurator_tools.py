@@ -380,7 +380,7 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
 
 
 def define_second_approach_categories(
-    bkg_morphing_dnn=False, blind=False, btag_wp_category_years=("2024",)
+    bkg_morphing_dnn=False, blind=False, btag_wp_category_years=("2024", "2025")
 ):
     """Regions of the second approach.
 
@@ -392,7 +392,8 @@ def define_second_approach_categories(
       - SR3T1L, CR3T1L: exactly 3 T, 4th jet L but not M
       - SR2M, CR2M: exactly 2 M (CR2M -> CR3T1M background training, weights
         applied in SR2M)
-      - SR3MnT: >= 3 M but fewer than 3 T (validation, training for SR3T1L)
+      - SR3MnT: the 3 jets leading in b-tag score pass M but fail T (validation,
+        training for SR3T1L)
       - SR3M, CR3M, SR4M, CR4M: exactly 3 M, 4 M, only in `btag_wp_category_years`
     With `bkg_morphing_dnn`, SR2M_postW and CR2M_postW get the morphing weights on
     data; with `blind`, SR3T1M_blind and SR3T1L_blind apply the blinding cut.

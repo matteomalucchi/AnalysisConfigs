@@ -458,7 +458,7 @@ def hh4b_btag_category_cuts(events, params, year, processor_params, **kwargs):
     With s0 >= s1 >= s2 >= s3 the b-tag scores of the 4 jets:
       - "3T1M": >= 3 T and the 4th jet at least M (s2 >= T, s3 >= M)
       - "3T1L": exactly 3 T and the 4th jet L but not M (s2 >= T, L <= s3 < M)
-      - "3MnT": >= 3 M but fewer than 3 T (s2 >= M, s2 < T)
+      - "3MnT": the 3 jets leading in b-tag score pass M but fail T (M <= s2, s0 < T)
       - "2M": exactly 2 M (s1 >= M, s2 < M)
       - "3M": exactly 3 M (s2 >= M, s3 < M)
       - "4M": 4 M (s3 >= M)
@@ -473,7 +473,7 @@ def hh4b_btag_category_cuts(events, params, year, processor_params, **kwargs):
         axis=1,
         ascending=False,
     )
-    s1, s2, s3 = scores[:, 1], scores[:, 2], scores[:, 3]
+    s0, s1, s2, s3 = scores[:, 0], scores[:, 1], scores[:, 2], scores[:, 3]
     loose, medium, tight = wps["L"], wps["M"], wps["T"]
 
     category = params["category"]
@@ -482,7 +482,7 @@ def hh4b_btag_category_cuts(events, params, year, processor_params, **kwargs):
     elif category == "3T1L":
         mask = (s2 >= tight) & (s3 >= loose) & (s3 < medium)
     elif category == "3MnT":
-        mask = (s2 >= medium) & (s2 < tight)
+        mask = (s2 >= medium) & (s0 < tight)
     elif category == "2M":
         mask = (s1 >= medium) & (s2 < medium)
     elif category == "3M":

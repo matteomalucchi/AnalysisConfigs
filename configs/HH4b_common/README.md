@@ -260,8 +260,8 @@ them to `config_options_dict` while building the `Configurator`.
   | `SR3T1M`, `CR3T1M` | ≥ 3 T, 4th jet at least M | signal region; CR of the CR2M → CR3T1M background training |
   | `SR3T1L`, `CR3T1L` | exactly 3 T, 4th jet L but not M | second signal region; CR of its background training |
   | `CR2M`, `SR2M` | exactly 2 M | background training (CR2M) and derivation (SR2M, weights applied on data) |
-  | `SR3MnT` | ≥ 3 M, fewer than 3 T | validation, background training of SR3T1L |
-  | `SR3M`, `CR3M`, `SR4M`, `CR4M` | exactly 3 M, 4 M | 2024 only (empty in the other years) |
+  | `SR3MnT` | the 3 jets leading in b-tag score pass M but fail T | validation, background training of SR3T1L |
+  | `SR3M`, `CR3M`, `SR4M`, `CR4M` | exactly 3 M, 4 M | 2024 and 2025 only (empty in the other years) |
 
   With `bkg_morphing_dnn` the `SR2M_postW` and `CR2M_postW` categories get the morphing weights on data, with `blind` the `SR3T1M_blind` and `SR3T1L_blind` categories apply the blinding cut.
 
