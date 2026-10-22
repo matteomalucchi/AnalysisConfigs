@@ -100,9 +100,9 @@ created — if no model at all is given (and `boosted` is `False`), only the
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `trigger_sf` | `False` | Apply the `sf_trigger` weight of PocketCoffea: the product of the data/MC efficiency ratios of the single filters of the trigger path (plus the OR of the L1 seeds). It needs the parameters of `params/trigger_scale_factors.yaml` and the correctionlib file referenced there, which is **not** in the repository and has to be produced with `scripts/convert_trigger_sf_to_correctionlib.py` (see [Produce the trigger scale factors](#produce-the-trigger-scale-factors)). |
-| `trigger_sf_variations` | `False` | Store the `sf_triggerUp`/`sf_triggerDown` variations of the trigger scale factor. |
-| `trigger_object_matching` | `False` | Require the offline jets (`JetGood`) to be matched within $\Delta R < 0.5$ to the trigger objects firing each of the filters of the trigger, as configured in `params/trigger_object_filters.yaml`. The trigger efficiencies are derived filter-by-filter in this phase space, so this cut is part of the selection in which the scale factors are valid. |
+| `trigger_sf` | `False` | Apply the trigger scale factor weight (`SF_trigger`, name `sf_trigger_hh4b`): the product of the data/MC efficiency ratios of the single filters of the trigger path (plus the OR of the L1 seeds). Implemented entirely in this repository in `configs/HH4b_common/trigger_sf.py` (no PocketCoffea change needed). It needs the parameters of `params/trigger_scale_factors.yaml` and the correctionlib file referenced there, which is **not** in the repository and has to be produced with `scripts/convert_trigger_sf_to_correctionlib.py` (see [Produce the trigger scale factors](#produce-the-trigger-scale-factors)). |
+| `trigger_sf_variations` | `False` | Store the up/down variations of the trigger scale factor. |
+| `trigger_object_matching` | `False` | Require the offline jets (`JetGood`) to be matched within $\Delta R < 0.5$ to a trigger object (any object of `TrigObj`, no per-filter distinction). Implemented in `configs/HH4b_common/trigger_object_matching.py` (`get_trigger_object_matching`), also self-contained in this repository. |
 
 ### Truth matching (MC only)
 
@@ -733,9 +733,9 @@ The total scale factor applied to the events is the product over the filters of 
 them evaluated as a function of a different observable (Calo-HT for the L1 seeds, the pt of the N-th leading jet for the
 jet filters, the HT for the PFHT filters, the atanh of the average b-tagging score of the two most b-tagged jets for the
 b-tagging filters). These observables (`calojet_ht`, `jet_pt`, `alljet_ht`, `atanh_btag_mean`) are specific to this
-measurement of the HH4b jet trigger, not shipped by PocketCoffea: they are defined and registered with
-PocketCoffea's `register_trigger_sf_variable` in `configs/HH4b_common/trigger_sf_variables.py`, imported and registered
-with `cloudpickle` in `VBF_HH4b_config.py`.
+measurement of the HH4b jet trigger: they are defined and registered, together with the rest of the scale factor
+application (`register_trigger_sf_variable`, `sf_trigger`, the `SF_trigger` weight), entirely in
+`configs/HH4b_common/trigger_sf.py` — not PocketCoffea — and registered with `cloudpickle` in `VBF_HH4b_config.py`.
 
 The ROOT files are converted to a correctionlib file with, **one call per era**:
 
@@ -784,9 +784,10 @@ efficiency curve, which documents the observable actually used in the measuremen
       ...
 ```
 
-The filters of each trigger are taken from `configs/HH4b_common/params/trigger_object_filters.yaml` (the same file used
-for the trigger object matching); `--triggers` selects one or more of the triggers of the resolved NanoAOD version and
-`--filters` overrides the list completely.
+The filters of each trigger are taken from `configs/HH4b_common/params/trigger_object_filters.yaml` (used only by this
+conversion script, to name and assign an observable to each filter's correction — not by the event selection, see
+below); `--triggers` selects one or more of the triggers of the resolved NanoAOD version and `--filters` overrides the
+list completely.
 
 The scale factors are then applied by adding the options to the config file:
 
@@ -798,20 +799,21 @@ config_options_dict |= {
 }
 ```
 
-`trigger_object_matching` applies the `get_trigger_object_matching` cut of PocketCoffea, which is generic over any type
-of trigger object and any offline collection (both resolved per filter via PocketCoffea's `trigger_object_types`
-registry, see the "Trigger scale factors" recipe of its documentation) — HH4b only ever matches jets against `JetGood`,
-which is exactly `trigger_object_types`' own default for the `Jet` type, so no override is needed here. Since
-`params/trigger_object_filters.yaml` is keyed by NanoAOD version and 2022/2023 share v12 with different triggers, the
-config passes the year-specific trigger name(s) explicitly (`TRIGGER_OBJECT_MATCHING_TRIGGERS_BY_YEAR` at the top of
-`VBF_HH4b_config.py`) rather than relying on the cut's default (OR of every trigger of the resolved version).
+Everything needed for these three options is implemented in this repository, not PocketCoffea:
+
+- `trigger_sf`/`trigger_sf_variations` apply the `SF_trigger` weight (`configs/HH4b_common/trigger_sf.py`, weight name
+  `sf_trigger_hh4b`), a self-contained reimplementation of the filter-factorized scale factor computation described
+  above, together with the `jet_pt`/`alljet_ht`/`calojet_ht`/`atanh_btag_mean` observables it uses.
+- `trigger_object_matching` applies `get_trigger_object_matching` (`configs/HH4b_common/trigger_object_matching.py`): a
+  plain $\Delta R < 0.5$ matching of all the selected jets (`JetGood`) to any trigger object (`TrigObj`, no per-filter
+  bit distinction), i.e. the usual analysis-note recipe ("a trigger-object matching is performed using all selected
+  jets in the event with a $\Delta R$(trigger obj., jet) $ < 0.5$"). It is generic over the collection matched and the
+  `dr_max`/`require` ("all" or "any" object matched) options, reusable for other collections or triggers.
 
 The correction names, the observables and the (Tier-3) `file:` path of each era are listed in
 `configs/HH4b_common/params/trigger_scale_factors.yaml`; the `--dump-params` snippet of a given era's conversion (as in
 the example above) is what gets merged into that year's block, so it can be used to update the parameters whenever the
-filters or the file's storage location change. See the
-[Trigger scale factors](https://pocketcoffea.readthedocs.io/en/latest/recipes.html#trigger-scale-factors) recipe of the
-PocketCoffea documentation for the details of the implementation.
+filters or the file's storage location change.
 
 ## Example commands
 

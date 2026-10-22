@@ -1,21 +1,21 @@
-# Trigger filters of the HH4b triggers, used for
-#  - the trigger object matching (`get_trigger_object_matching` cut of PocketCoffea)
-#  - the conversion of the trigger efficiencies to a correctionlib file
-#    (scripts/convert_trigger_sf_to_correctionlib.py)
+# Trigger filters of the HH4b triggers, used by the conversion of the trigger
+# efficiencies to a correctionlib file (scripts/convert_trigger_sf_to_correctionlib.py)
+# to name and assign an observable to each filter's correction.
 #
-# Each filter is defined by the string `type:bit:n_objects:threshold:name`:
-#   type:      symbolic name of the trigger object, a key of PocketCoffea's
-#              `trigger_object_types` registry (`Jet`, `Electron`, `Muon`, `Tau`,
-#              `Photon`, `FatJet`, `BoostedTau`, or the non-matchable, event-level
-#              `HT`/`MHT`/`MET`) - see `parameters/trigger_object_types.yaml` in
-#              PocketCoffea. It resolves both the numeric `TrigObj.id` to require
-#              and, unless overridden with an optional 6th `:collection` field,
-#              the offline collection matched against this filter's trigger
-#              objects (`JetGood` for `Jet`, none for the non-matchable types).
+# N.B: the event-level selection no longer uses this file. `trigger_object_matching`
+# (see `configs/HH4b_common/trigger_object_matching.py`) is a plain DeltaR matching
+# of the selected jets to any trigger object, with no per-filter-bit configuration.
+#
+# Each filter is defined by the string `type:bit:n_objects:threshold:name`
+# (only `name` is read by the conversion script; the rest is kept for reference
+# and because the bit index of each filter is otherwise only documented in the
+# NanoAOD self-documentation of the corresponding campaign):
+#   type:      symbolic name of the trigger object (`Jet`, `Electron`, `Muon`,
+#              `Tau`, `Photon`, `FatJet`, `BoostedTau`, or the event-level
+#              `HT`/`MHT`/`MET`)
 #   bit:       index of the bit of `TrigObj_filterBits` for the specific filter
-#   n_objects: number of objects required to pass the filter (ignored for the
-#              non-matchable HT/MHT/MET types: firing the filter is by itself
-#              the requirement, regardless of n_objects)
+#   n_objects: number of objects required to pass the filter (not meaningful
+#              for the event-level HT/MHT/MET types)
 #   threshold: online threshold of the filter (bookkeeping only)
 #   name:      name of the filter (the same used to name the efficiency curves)
 #
@@ -23,15 +23,8 @@
 # NanoAOD versions (nor, generally, across data-taking eras sharing the same
 # version): always check the NanoAOD self-documentation of the version used in the
 # analysis at https://cms-xpog.docs.cern.ch/autoDoc/ . Because of this, the filters
-# below are keyed by **NanoAOD version** (`12`, `15`, ... matching
-# PocketCoffea's `parameters/nano_version.yaml`), not by data-taking year: 2022 and
-# 2023 share NanoAOD v12, 2024 and 2025 share v15.
-#
-# `get_trigger_object_matching(triggers=[...])` defaults to the OR of *all* the
-# triggers configured for the resolved NanoAOD version: since 2022 and 2023 share
-# v12 but ran different triggers, `configurator_tools.py::define_preselection`
-# passes an explicit, year-specific `triggers=[...]` list rather than relying on
-# that default (see the comment at its call site).
+# below are keyed by **NanoAOD version** (`12`, `15`, ...), not by data-taking
+# year: 2022 and 2023 share NanoAOD v12, 2024 and 2025 share v15.
 
 trigger_object_filters:
   12:

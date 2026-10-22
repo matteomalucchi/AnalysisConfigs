@@ -21,8 +21,8 @@ where err_i is the error taken from the confidence intervals of the fit.
 This script reads the curves with uproot, converts them to binned histograms and
 writes one correctionlib correction per filter, with the `systematic`
 (`nominal`, `up`, `down`) and the value of the observable as inputs.
-The resulting file is applied by the `sf_trigger` weight of PocketCoffea
-(see `pocket_coffea.lib.trigger_sf`).
+The resulting file is applied by the `SF_trigger` weight
+(see `configs/HH4b_common/trigger_sf.py`).
 
 Examples
 --------

@@ -1,6 +1,5 @@
-# Configuration of the trigger scale factors applied by the `sf_trigger` weight of
-# PocketCoffea (see `pocket_coffea.lib.trigger_sf` and the "Trigger scale factors"
-# recipe of the PocketCoffea documentation).
+# Configuration of the trigger scale factors applied by the `SF_trigger` weight
+# (name `sf_trigger_hh4b`), implemented in `configs/HH4b_common/trigger_sf.py`.
 #
 # The total scale factor is the product of the data/MC efficiency ratios of the
 # single filters of the trigger path (plus the OR of the L1 seeds), each of them

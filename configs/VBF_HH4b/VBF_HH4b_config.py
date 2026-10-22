@@ -11,7 +11,9 @@ from pocket_coffea.parameters.histograms import *
 from pocket_coffea.utils.configurator import Configurator
 
 import configs.HH4b_common.custom_cuts_common as cuts
-import configs.HH4b_common.trigger_sf_variables as trigger_sf_variables
+import configs.HH4b_common.trigger_object_matching as trigger_object_matching
+import configs.HH4b_common.trigger_sf as trigger_sf
+from configs.HH4b_common.trigger_sf import SF_trigger
 import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
@@ -47,7 +49,6 @@ parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
-    f"{localdir}/../HH4b_common/params/trigger_object_filters.yaml",
     f"{localdir}/../HH4b_common/params/trigger_scale_factors.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
@@ -75,27 +76,7 @@ variables_dict = get_variables_dict(
 # variables_dict = {}
 
 # Define the preselection to apply
-# `trigger_object_filters.yaml` is keyed by NanoAOD version (2022 and 2023 share
-# v12), so the trigger(s) to match are picked explicitly per year here rather than
-# relying on the OR of every v12 trigger (see the comment in `define_preselection`).
-TRIGGER_OBJECT_MATCHING_TRIGGERS_BY_YEAR = {
-    "2022_preEE": ["HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65"],
-    "2022_postEE": ["HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65"],
-    "2023_preBPix": [
-        "HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65",
-        "HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55",
-    ],
-    "2023_postBPix": [
-        "HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65",
-        "HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55",
-    ],
-    "2024": ["HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55"],
-    "2025": ["HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55"],
-}
-preselection = define_preselection(
-    config_options_dict,
-    trigger_object_matching_triggers=TRIGGER_OBJECT_MATCHING_TRIGGERS_BY_YEAR.get(year[0]),
-)
+preselection = define_preselection(config_options_dict)
 
 
 # Define the samples to process
@@ -271,12 +252,14 @@ for sample in sample_list:
 # Define the weights to apply
 # The trigger scale factor is applied only if requested: it needs the correctionlib
 # file with the per-filter efficiencies referenced in
-# `HH4b_common/params/trigger_scale_factors.yaml` (see the README).
+# `HH4b_common/params/trigger_scale_factors.yaml` (see the README). The weight is
+# implemented by `SF_trigger` in `configs.HH4b_common.trigger_sf` (name
+# "sf_trigger_hh4b"), self-contained in this repository.
 common_weights_list = ["genWeight", "lumi", "XS"] + (
-    ["sf_trigger"] if config_options_dict.get("trigger_sf", False) else []
+    [SF_trigger.name] if config_options_dict.get("trigger_sf", False) else []
 )
 common_weights_variations = (
-    ["sf_trigger"]
+    [SF_trigger.name]
     if config_options_dict.get("trigger_sf", False)
     and config_options_dict.get("trigger_sf_variations", False)
     else []
@@ -312,6 +295,7 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
+    + [SF_trigger]
     + ([bkg_morphing_dnn_weight] if not BASELINE else []),
     weights={
         "common": {
@@ -345,6 +329,10 @@ cfg = Configurator(
     },
 )
 cloudpickle.register_pickle_by_value(quantile_transformer)
-# Makes the `jet_pt`/`alljet_ht`/`calojet_ht`/`atanh_btag_mean` observables of
-# `trigger_scale_factors.yaml` (see `trigger_sf_variables.py`) available to the workers.
-cloudpickle.register_pickle_by_value(trigger_sf_variables)
+# Makes the `SF_trigger` weight and the `jet_pt`/`alljet_ht`/`calojet_ht`/
+# `atanh_btag_mean` observables of `trigger_scale_factors.yaml` (see `trigger_sf.py`)
+# available to the workers.
+cloudpickle.register_pickle_by_value(trigger_sf)
+# Makes the `get_trigger_object_matching` cut (see `trigger_object_matching.py`)
+# available to the workers.
+cloudpickle.register_pickle_by_value(trigger_object_matching)

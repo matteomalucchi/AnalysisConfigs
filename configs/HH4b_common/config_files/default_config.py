@@ -115,19 +115,20 @@ default_config_options_dict = {
     # ------------------------------------------------------------------
     # TRIGGER SCALE FACTORS
     # ------------------------------------------------------------------
-    # Apply the `sf_trigger` weight of PocketCoffea: the trigger scale factor is
-    # the product of the data/MC efficiency ratios of the single filters of the
+    # Apply the trigger scale factor weight (`SF_trigger` in
+    # `configs/HH4b_common/trigger_sf.py`, self-contained in this repository): the
+    # product of the data/MC efficiency ratios of the single filters of the
     # trigger path (plus the OR of the L1 seeds). It requires the parameters of
     # `params/trigger_scale_factors.yaml` and the correctionlib file referenced
     # there, produced from the ROOT files with the efficiency curves with
     # `scripts/convert_trigger_sf_to_correctionlib.py`.
     "trigger_sf": False,
-    # Add the `sf_trigger` up/down variations to the output.
+    # Add the trigger scale factor's up/down variations to the output.
     "trigger_sf_variations": False,
-    # Require the offline jets to be matched to the trigger objects firing each of
-    # the filters of the trigger (`params/trigger_object_filters.yaml`). The
-    # efficiencies are derived filter-by-filter, so this matching is part of the
-    # selection in which the trigger scale factors are valid.
+    # Require the offline jets (`JetGood`) to be matched, within DeltaR < 0.5, to
+    # a trigger object (`get_trigger_object_matching` in
+    # `configs/HH4b_common/trigger_object_matching.py`). The efficiencies used for
+    # the trigger scale factors are derived in this phase space.
     "trigger_object_matching": False,
 
     # ------------------------------------------------------------------
