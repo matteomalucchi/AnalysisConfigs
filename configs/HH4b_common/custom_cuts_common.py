@@ -133,6 +133,16 @@ def hh4b_presel_era_dependent(pt_type, tight_cuts):
     )
 
 
+# At least 4 JetGood jets (|eta| < 2.5, jet ID and the object preselection pt),
+# without any event-level pt threshold, b-tag requirement or lepton veto
+# (e.g. for the synchronization)
+hh4b_4jets_presel = Cut(
+    name="hh4b_4jets_presel",
+    params={"njet": 4},
+    function=cuts_f.mask_num_jets,
+)
+
+
 # Resolved preselection of the second approach, chosen per chunk from its year.
 # Jets: JetGood (|eta| < 2.5, tight ID, pt > 30 GeV, 25 GeV in 2023).
 # The two_leading_btag requirement mirrors the HLT b-tag cut of 2022-2023

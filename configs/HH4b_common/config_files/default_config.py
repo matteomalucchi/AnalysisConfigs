@@ -135,6 +135,11 @@ default_config_options_dict = {
     # contains "HH", "ZH" or "ZZ", so turning it on changes the yields of the
     # ggF/VBF signal too and breaks the comparison with older results.
     "xx4b_presel": False,
+    # Replace the resolved preselection with the only requirement of >= 4
+    # `JetGood` jets (|eta| < 2.5, jet ID and the object preselection pt), without
+    # event-level pt thresholds, b-tag requirements or lepton veto (e.g. for the
+    # synchronization). The jet veto map is still applied.
+    "only_4jets_presel": False,
 
     # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)
