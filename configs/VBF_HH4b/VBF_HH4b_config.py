@@ -11,6 +11,9 @@ from pocket_coffea.parameters.histograms import *
 from pocket_coffea.utils.configurator import Configurator
 
 import configs.HH4b_common.custom_cuts_common as cuts
+import configs.HH4b_common.trigger_object_matching as trigger_object_matching
+import configs.HH4b_common.trigger_sf as trigger_sf
+from configs.HH4b_common.trigger_sf import SF_trigger
 import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
@@ -51,6 +54,7 @@ parameters = defaults.merge_parameters_from_files(
     default_parameters,
     f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
+    f"{localdir}/../HH4b_common/params/trigger_scale_factors.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
@@ -309,6 +313,21 @@ for sample in sample_list:
         )
 
 # Define the weights to apply
+# The trigger scale factor is applied only if requested: it needs the correctionlib
+# file with the per-filter efficiencies referenced in
+# `HH4b_common/params/trigger_scale_factors.yaml` (see the README). The weight is
+# implemented by `SF_trigger` in `configs.HH4b_common.trigger_sf` (name
+# "sf_trigger_hh4b"), self-contained in this repository.
+common_weights_list = ["genWeight", "lumi", "XS"] + (
+    [SF_trigger.name] if config_options_dict.get("trigger_sf", False) else []
+)
+common_weights_variations = (
+    [SF_trigger.name]
+    if config_options_dict.get("trigger_sf", False)
+    and config_options_dict.get("trigger_sf_variations", False)
+    else []
+)
+
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
     if "DATA" in sample:
@@ -343,14 +362,11 @@ cfg = Configurator(
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights
+    + [SF_trigger]
     + ([bkg_morphing_dnn_weight] if not BASELINE else []),
     weights={
         "common": {
-            "inclusive": [
-                "genWeight",
-                "lumi",
-                "XS",
-            ],
+            "inclusive": common_weights_list,
             "bycategory": {},
         },
         "bysample": bysample_bycategory_weight_dict,
@@ -359,7 +375,7 @@ cfg = Configurator(
     variations={
         "weights": {
             "common": {
-                "inclusive": [],
+                "inclusive": common_weights_variations,
                 "bycategory": {},
             },
             "bysample": {},
@@ -380,3 +396,10 @@ cfg = Configurator(
     },
 )
 cloudpickle.register_pickle_by_value(quantile_transformer)
+# Makes the `SF_trigger` weight and the `jet_pt`/`alljet_ht`/`calojet_ht`/
+# `atanh_btag_mean` observables of `trigger_scale_factors.yaml` (see `trigger_sf.py`)
+# available to the workers.
+cloudpickle.register_pickle_by_value(trigger_sf)
+# Makes the `get_trigger_object_matching` cut (see `trigger_object_matching.py`)
+# available to the workers.
+cloudpickle.register_pickle_by_value(trigger_object_matching)

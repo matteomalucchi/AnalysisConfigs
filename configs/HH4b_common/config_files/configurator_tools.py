@@ -3,6 +3,7 @@ import copy
 
 from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.cuts import passthrough
+from configs.HH4b_common.trigger_object_matching import get_trigger_object_matching
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
 import configs.HH4b_common.custom_cuts_common as cuts
@@ -641,6 +642,15 @@ def define_preselection(options):
     # corrected pT after the Calibrators have run
     if not options["boosted_presel"] and not options["mixeddata"]:
         preselection.append(cuts.hh4b_JetVetoMap)
+
+    # Match the offline jets to the trigger objects: the trigger efficiencies
+    # (and therefore the scale factors) are derived in this phase space. This is
+    # a plain DeltaR matching of all the selected jets to any trigger object (no
+    # per-filter bit configuration), see `trigger_object_matching.py`.
+    if options.get("trigger_object_matching", False):
+        preselection.append(
+            get_trigger_object_matching(collection="JetGood", dr_max=0.5)
+        )
 
     # Optional gen-level cut selecting X(->bb)X(->bb) decays (X = H or Z).
     # Needed only by the private ZZ/ZH samples, which are inclusive in the

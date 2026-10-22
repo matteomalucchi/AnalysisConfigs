@@ -1,0 +1,59 @@
+# Trigger filters of the HH4b triggers, used by the conversion of the trigger
+# efficiencies to a correctionlib file (scripts/convert_trigger_sf_to_correctionlib.py)
+# to name and assign an observable to each filter's correction.
+#
+# N.B: the event-level selection no longer uses this file. `trigger_object_matching`
+# (see `configs/HH4b_common/trigger_object_matching.py`) is a plain DeltaR matching
+# of the selected jets to any trigger object, with no per-filter-bit configuration.
+#
+# Each filter is defined by the string `type:bit:n_objects:threshold:name`
+# (only `name` is read by the conversion script; the rest is kept for reference
+# and because the bit index of each filter is otherwise only documented in the
+# NanoAOD self-documentation of the corresponding campaign):
+#   type:      symbolic name of the trigger object (`Jet`, `Electron`, `Muon`,
+#              `Tau`, `Photon`, `FatJet`, `BoostedTau`, or the event-level
+#              `HT`/`MHT`/`MET`)
+#   bit:       index of the bit of `TrigObj_filterBits` for the specific filter
+#   n_objects: number of objects required to pass the filter (not meaningful
+#              for the event-level HT/MHT/MET types)
+#   threshold: online threshold of the filter (bookkeeping only)
+#   name:      name of the filter (the same used to name the efficiency curves)
+#
+# N.B: the meaning of the bits of `TrigObj_filterBits` is NOT consistent between
+# NanoAOD versions (nor, generally, across data-taking eras sharing the same
+# version): always check the NanoAOD self-documentation of the version used in the
+# analysis at https://cms-xpog.docs.cern.ch/autoDoc/ . Because of this, the filters
+# below are keyed by **NanoAOD version** (`12`, `15`, ...), not by data-taking
+# year: 2022 and 2023 share NanoAOD v12, 2024 and 2025 share v15.
+
+trigger_object_filters:
+  12:
+    # 2022 preEE/postEE (JetMET primary dataset)
+    HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65: &v12_quadjet_particlenet
+      - "Jet:0:4:20:4PixelOnlyPFCentralJetTightIDPt20"
+      - "Jet:1:3:30:3PixelOnlyPFCentralJetTightIDPt30"
+      - "Jet:6:2:40:2PixelOnlyPFCentralJetTightIDPt40"
+      - "Jet:22:1:60:1PixelOnlyPFCentralJetTightIDPt60"
+      - "Jet:4:4:35:4PFCentralJetTightIDPt35"
+      - "Jet:8:3:40:3PFCentralJetTightIDPt40"
+      - "Jet:21:2:50:2PFCentralJetTightIDPt50"
+      - "Jet:23:1:70:1PFCentralJetTightIDPt70"
+      - "Jet:26:2:0.65:BTagCentralJetPt35PFParticleNet2BTagSum0p65"
+
+    # 2023 preBPix/postBPix, JetMET primary dataset (same v12 bit layout as above,
+    # under the 2023-specific HLT path name)
+    HLT_QuadPFJet70_50_40_35_PNet2BTagMean0p65: *v12_quadjet_particlenet
+
+    # 2023 preBPix/postBPix, ParkingHH primary dataset
+    HLT_PFHT280_QuadPFJet30_PNet2BTagMean0p55:
+      - "Jet:0:4:20:4PixelOnlyPFCentralJetTightIDPt20"
+      - "Jet:3:4:30:4PFCentralJetTightIDPt30"
+      - "HT:5:0:280:PFHT280Jet30"
+      - "Jet:26:2:0.55:PFCentralJetPt30PNet2BTagMean0p55"
+
+  15:
+    # 2024/2025, ParkingHH primary dataset
+    HLT_PFHT250_QuadPFJet25_PNet2BTagMean0p55:
+      - "Jet:34:4:25:4PFCentralJetTightIDPt25"
+      # the PFHT250Jet25 filter is not stored in NanoAOD
+      - "Jet:35:2:0.55:PFCentralJetPt25PNet2BTagMean0p55"
