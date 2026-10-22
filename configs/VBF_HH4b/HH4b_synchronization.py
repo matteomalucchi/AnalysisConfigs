@@ -19,7 +19,7 @@ from pocket_coffea.parameters.histograms import *
 
 # from collections import defaultdict
 from pocket_coffea.utils.configurator import Configurator
-from configs.VBF_HH4b.workflow import VBFHH4bProcessor
+from configs.VBF_HH4b.workflow_synchronization import SyncHH4bProcessor
 
 import configs.HH4b_common.custom_cuts_common as cuts
 from configs.HH4b_common.config_files.configurator_tools import (
@@ -69,9 +69,6 @@ parameters.object_preselection.JetSync = {"pt": 15, "eta": 4.7, "jetId": 2}
 parameters.jets_calibration.forward_jets_mitigation.pt_cut_HE.apply = False
 
 
-# compute the variables of the synchronization tree in the workflow
-config_options_dict["synchronization"] = True
-
 if config_options_dict["save_chunk"]:
     config_options_dict["dump_columns_as_arrays_per_chunk"] = config_options_dict[
         "save_chunk"
@@ -82,8 +79,9 @@ if config_options_dict["save_chunk"]:
 variables_dict = {}
 
 ## Define the preselection to apply
-# synchronization: only >= 4 JetGood jets (|eta| < 2.5), nothing else (no pt
-# thresholds, b-tag requirements, lepton veto or jet veto map)
+# synchronization: only >= 4 jets of the full Jet collection with |eta| < 2.5,
+# nothing else (no pt thresholds, jet ID, b-tag requirements, lepton veto or
+# jet veto map)
 preselection = [cuts.hh4b_4jets_presel]
 
 sample_list = ["GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization"]
@@ -178,7 +176,7 @@ cfg = Configurator(
         },
         "subsamples": {},
     },
-    workflow=VBFHH4bProcessor,
+    workflow=SyncHH4bProcessor,
     workflow_options=config_options_dict,
     skim=cuts.skimming_cut_list(config_options_dict),
     preselections=preselection,
