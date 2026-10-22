@@ -1,0 +1,81 @@
+# Object preselection of the synchronization (configs/VBF_HH4b/HH4b_synchronization.py):
+# the second approach one (object_preselection_second_approach.yaml) with
+# - Jet (JetGood): pt > 15 GeV
+# - JetVBF: no pt threshold
+# - JetSync: the AK4 jets saved in the synchronization tree
+object_preselection:
+  ## Jet selection
+  # Jets considered for the HH reconstruction: AK4PFPuppi, Tight ID, |eta| < 2.5,
+  # pt > 15 GeV
+  Jet:
+    pt: 15
+    eta: 2.5
+    jetId: 2 # 2 tight, 6 tight with lepton veto
+  # AK4 jets saved in the synchronization tree: pt > 15 GeV, |eta| < 4.7, Tight ID
+  JetSync:
+    pt: 15
+    eta: 4.7
+    jetId: 2
+  FatJetLeading:
+    pt: 300
+    eta: 2.4
+    jetId: 2 # 6 with lepveto or 2 w/o lepveto
+    btagPNetBB: -2
+    msd: 50
+    mass_regr_min: 50
+    mass_regr_max: 200
+  FatJetSubLeading:
+    pt: 250
+    eta: 2.4
+    jetId: 2 # 6 with lepveto or 2 w/o lepveto
+    btagPNetBB: -2
+    msd: 50
+    mass_regr_min: 50
+    mass_regr_max: 200
+  
+  ## Lepton selection (event veto)
+  # the impact parameter cuts are |dz| < dz_lowEta, |dxy| < dxy_lowEta for
+  # |eta| < eta_threshold, and |dz| < dz_highEta, |dxy| < dxy_highEta above it
+  Electron:
+    pt: 15
+    eta: 2.5
+    id:
+      type: mvaIso_WP90
+      working_point: 1 # boolean ID: 1 = passing
+    iso: 0.15 # pfRelIso03_all
+    eta_threshold: 1.479
+    dz_lowEta: 0.1
+    dz_highEta: 0.2
+    dxy_lowEta: 0.05
+    dxy_highEta: 0.1
+
+  Muon:
+    pt: 10
+    eta: 2.4
+    id: looseId
+    iso:
+      type: pfRelIso04_all
+      max_value: 0.15
+    eta_threshold: 1.479
+    dz_lowEta: 0.1
+    dz_highEta: 0.2
+    dxy_lowEta: 0.05
+    dxy_highEta: 0.1
+
+  ## VBF jet selection
+  # VBF candidates: AK4PFPuppi, Tight ID, no pt threshold, |eta| < 4.7, not passing
+  # the medium b-tag WP of the year's algorithm (PNet 2022-2023, UParT 2024-2025).
+  # The pt_cut_HE forward jets mitigation is switched off in the synchronization
+  # config.
+  JetVBF:
+    pt: 0
+    eta: 4.7
+    jetId: 2 # 2 tight, 6 tight with lepton veto
+    max_btag_wp: M
+    delta_eta: 3.5
+    mjj: 400
+  JetVBF_generalSelection:
+    pt: 10
+    ptSemiTight: 25
+    eta: 4.7
+    jetId: 2 # 2 tight, 6 tight with lepton veto

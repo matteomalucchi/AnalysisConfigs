@@ -49,7 +49,8 @@ defaults.register_configuration_dir("config_dir", localdir)
 year = ["2024"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
-    f"{localdir}/../HH4b_common/params/object_preselection_{config_options_dict['approach']}_approach.yaml",
+    # object preselection of the synchronization (second approach with lower jet pt cuts)
+    f"{localdir}/../HH4b_common/params/object_preselection_synchronization.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
@@ -58,13 +59,6 @@ parameters = defaults.merge_parameters_from_files(
     update=True,
 )
 
-# Object preselection of the synchronization
-# - JetGood: pt > 15 GeV (|eta| < 2.5 and tight ID as in the second approach)
-# - JetVBF: no pt threshold (|eta|, tight ID and b-tag veto as in the second approach)
-# - JetSync: the saved AK4 jets, pt > 15 GeV, |eta| < 4.7, tight ID
-parameters.object_preselection.Jet.pt = 15
-parameters.object_preselection.JetVBF.pt = 0
-parameters.object_preselection.JetSync = {"pt": 15, "eta": 4.7, "jetId": 2}
 # no pt > 50 GeV cut for the jets in 2.5 < |eta| < 3.0
 parameters.jets_calibration.forward_jets_mitigation.pt_cut_HE.apply = False
 
