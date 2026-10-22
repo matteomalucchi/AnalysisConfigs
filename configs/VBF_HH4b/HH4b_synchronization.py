@@ -69,7 +69,6 @@ if config_options_dict["save_chunk"]:
     ]
 
 
-# score transform still in testing. So far hardcoded to be 2022_postEE...
 variables_dict = {}
 
 ## Define the preselection to apply
