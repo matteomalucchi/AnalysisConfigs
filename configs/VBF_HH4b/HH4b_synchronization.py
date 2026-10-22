@@ -178,7 +178,7 @@ cfg = Configurator(
     },
     workflow=SyncHH4bProcessor,
     workflow_options=config_options_dict,
-    skim=cuts.skimming_cut_list(config_options_dict),
+    skim=skimming_cut_list,
     preselections=preselection,
     categories=categories_dict,
     weights_classes=common_weights,  # + [bkg_morphing_dnn_weight, SF_btag_fixed_multiple_wp],
@@ -215,6 +215,3 @@ cfg = Configurator(
         },
     },
 )
-
-
-cloudpickle.register_pickle_by_value(quantile_transformer)
