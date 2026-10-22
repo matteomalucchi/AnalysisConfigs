@@ -1,0 +1,16 @@
+{
+    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization_2024": {
+        "metadata": {
+            "das_names": "['/GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM']",
+            "sample": "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization",
+            "year": "2024",
+            "isMC": "True",
+            "xsec": "0.01127",
+            "nevents": "1988270",
+            "size": "7559493451"
+        },
+        "files": [
+            "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/120000/0d50b0b1-9561-4557-8450-e6ae1ecb56ab.root"
+        ]
+    }
+}
