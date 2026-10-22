@@ -346,7 +346,14 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
     tie-break is on the pt in the HH rest frame; otherwise (default, kept for
     reproducibility) the candidates are taken in the pairing order and the
     tie-break is on the highest lab-frame pt.
+
+    The events with less than 4 jets (or with None jets) get None Higgs
+    candidates, delta_dhh and pairing indices, and 4 None jets.
     """
+
+    # pad to 4 jets: the events with less than 4 jets have no valid pairing
+    jet_collection = ak.pad_none(jet_collection, 4, axis=1, clip=True)
+    has_4_jets = ak.to_numpy(ak.count(jet_collection.pt, axis=1) == 4)
 
     # this index are referred to the index of the JetGoodHiggs not the index of the jets
     comb_idx = np.array([[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]])
@@ -358,6 +365,11 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
         higgs_candidates_unflatten,
         1.04,
     )
+
+    # dummy values for the events without a valid pairing, masked at the end, so
+    # that the index arithmetic below works
+    distance = ak.fill_none(distance, 0.0)
+    max_pt = ak.fill_none(max_pt, 0.0)
 
     # order by distance and find the index of the smallest distance
     dist_order_idx = ak.argsort(distance, axis=1, ascending=True)
@@ -380,7 +392,9 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
     )
 
     # get leadining and subleading higgs
-    higgs_leading_index = np.where(higgs_1.pt > higgs_2.pt, 0, 1)
+    higgs_leading_index = np.where(
+        ak.to_numpy(ak.fill_none(higgs_1.pt > higgs_2.pt, True)), 0, 1
+    )
     higgs_lead = ak.where(higgs_leading_index == 0, higgs_1, higgs_2)
     higgs_sub = ak.where(higgs_leading_index == 0, higgs_2, higgs_1)
 
@@ -418,12 +432,15 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
             jets_list.append(
                 ak.unflatten(
                     ak.where(
-                        jet_collection[
-                            np.arange(len(min_idx)), best_idx_expanded[:, i[0]]
-                        ].pt
-                        > jet_collection[
-                            np.arange(len(min_idx)), best_idx_expanded[:, i[1]]
-                        ].pt,
+                        ak.fill_none(
+                            jet_collection[
+                                np.arange(len(min_idx)), best_idx_expanded[:, i[0]]
+                            ].pt
+                            > jet_collection[
+                                np.arange(len(min_idx)), best_idx_expanded[:, i[1]]
+                            ].pt,
+                            True,
+                        ),
                         jet_collection[
                             np.arange(len(min_idx)), best_idx_expanded[:, j[0]]
                         ],
@@ -439,6 +456,17 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
         ak.concatenate(jets_list, axis=1),
         name="PtEtaPhiMLorentzVector",
     )
+
+    if not np.all(has_4_jets):
+        # no pairing for the events with less than 4 jets
+        best_idx_origshape = ak.mask(best_idx_origshape, has_4_jets)
+        delta_dhh = ak.mask(delta_dhh, has_4_jets)
+        higgs_lead = ak.mask(higgs_lead, has_4_jets)
+        higgs_sub = ak.mask(higgs_sub, has_4_jets)
+        # keep the 4 slots, with None jets
+        jets_ordered = ak.mask(
+            jets_ordered, ak.broadcast_arrays(has_4_jets, jets_ordered.pt)[0]
+        )
 
     return (
         best_idx_origshape,

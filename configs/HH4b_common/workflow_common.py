@@ -454,6 +454,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def generate_btag_delta_workingpoints(self, jets, num_wp):
         wp_array = jets[f"btagB_{num_wp}wp"]
         num_jets = ak.num(wp_array)
+        # pad to 4 jets so that the events with less than 4 jets do not crash;
+        # the padded entries are removed at the end
+        wp_array = ak.pad_none(wp_array, 4, axis=1)
         deltaWP = ak.where(
             # if 4 jets
             num_jets == 4,
@@ -481,6 +484,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 axis=1,
             ),
         )
+        # back to the number of jets of the collection
+        deltaWP = deltaWP[ak.local_index(deltaWP, axis=1) < num_jets]
         return ak.with_field(jets, deltaWP, f"btagB_delta{num_wp}wp")
 
     def define_quark_provenance(self, bquarks_first, genpart, higgs, z_boson, X_resonance):
@@ -865,7 +870,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
         jet2_sigma_conc = ak.concatenate((jet2_up_sigma, jet2_down_sigma), axis=1)
         sigma_hbbCand_B = ak.max(jet2_sigma_conc, axis=1)
 
-        return ak.flatten(np.sqrt(sigma_hbbCand_A**2 + sigma_hbbCand_B**2), axis=None)
+        # one value per event (None when a jet is missing)
+        return np.sqrt(sigma_hbbCand_A**2 + sigma_hbbCand_B**2)
 
     def get_jets_for_ht(self):
         """Jets entering HT: the JetGood jets (|eta| < 2.5), in the second
