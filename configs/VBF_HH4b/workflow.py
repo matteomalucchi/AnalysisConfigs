@@ -63,21 +63,30 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events.JetGoodClip, self.max_num_jets_good, clip=True
             )
 
-            # merge the 3 jet collections to feed to spanet training: the good
-            # jets, the VBF pair chosen with `spanet_vbf_candidates` and the
-            # additional VBF jets
-            self.events["JetTotalSPANetPadded"] = ak.concatenate(
-                [
-                    self.events["JetGoodPadded"],
-                    self.spanet_vbf_pair(),
-                    self.events["JetAdditionalGoodVBF"],
-                ],
-                axis=1,
+            # same fields as the VBF jets (add_fields drops the 3D fields, e.g.
+            # electronIdxG/muonIdxG), otherwise the concatenation is a UnionArray
+            padded = add_fields(self.events["JetGoodPadded"], "all")
+
+            # merge the 3 jet collections to feed to spanet training.
+            # The concatenation is done field by field: concatenating the records
+            # directly gives a UnionArray with broken indices (awkward 1.x)
+            jet_colls_total = [
+                padded,
+                self.spanet_vbf_pair(),
+                self.events["JetAdditionalGoodVBF"],
+            ]
+            self.events["JetTotalSPANetPadded"] = ak.zip(
+                {
+                    field: ak.concatenate(
+                        [coll[field] for coll in jet_colls_total], axis=1
+                    )
+                    for field in padded.fields
+                    if all(field in coll.fields for coll in jet_colls_total)
+                },
+                with_name="PtEtaPhiMLorentzVector",
             )
 
             # collections with provenance_higgs and provenance_vbf saved separately
-            padded = add_fields(self.events["JetGoodPadded"], "all")
-
             self.events["JetGoodProvHiggsPadded"] = ak.zip(
                 {field: padded[field] for field in padded.fields}
                 | {"provenance": padded.provenance_X},

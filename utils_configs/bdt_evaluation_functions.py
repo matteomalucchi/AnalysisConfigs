@@ -19,7 +19,7 @@ def disc_TXbb(txbb_array):
     return bin_indices
 
 
-def to_col(arr, handle_none=None):
+def to_col(arr, pad_value, handle_none=None):
     if handle_none == "inf":
         arr = ak.fill_none(arr, np.inf)
     if handle_none == "99999":
@@ -31,44 +31,44 @@ def to_col(arr, handle_none=None):
 
     col = ak.to_numpy(arr, allow_missing=True)
     if np.ma.isMaskedArray(col):
-        col.data[col.data == -999] = -99999
+        col.data[col.data == pad_value] = -99999
     else:
-        col = np.where(col == -999, -99999, col)
+        col = np.where(col == pad_value, -99999, col)
     return col
 
-def get_default_bdt_inputs(events):
+def get_default_bdt_inputs(events, pad_value):
     inputs = pd.DataFrame(
         {
             # dihiggs system
-            "HHPt": to_col(events.HH.pt),
-            "HHeta": to_col(events.HH.eta, handle_none="inf"),
-            "HHmass": to_col(events.HH.mass),
+            "HHPt": to_col(events.HH.pt, pad_value),
+            "HHeta": to_col(events.HH.eta, pad_value, handle_none="inf"),
+            "HHmass": to_col(events.HH.mass, pad_value),
             # met in the event
-            "MET": to_col(events.PuppiMET.pt),
+            "MET": to_col(events.PuppiMET.pt, pad_value),
             # key_map("MET_RAW"): met_raw_pt),
             # fatjet tau32
-            "H1T32": to_col(events.HiggsLeading.Tau3OverTau2, "99999"),
-            "H2T32": to_col(events.HiggsSubLeading.Tau3OverTau2, "99999"),
+            "H1T32": to_col(events.HiggsLeading.Tau3OverTau2, pad_value, "99999"),
+            "H2T32": to_col(events.HiggsSubLeading.Tau3OverTau2, pad_value, "99999"),
             # fatjet mass
-            "H1Mass": to_col(events.HiggsLeading.mass, "99999"),
+            "H1Mass": to_col(events.HiggsLeading.mass, pad_value, "99999"),
             # fatjet kinematics
-            "H1Pt": to_col(events.HiggsLeading.pt, "99999"),
-            "H2Pt": to_col(events.HiggsSubLeading.pt, "99999"),
-            "H1eta": to_col(events.HiggsLeading.eta, "99999"),
+            "H1Pt": to_col(events.HiggsLeading.pt, pad_value, "99999"),
+            "H2Pt": to_col(events.HiggsSubLeading.pt, pad_value, "99999"),
+            "H1eta": to_col(events.HiggsLeading.eta, pad_value, "99999"),
             # xbb
-            "H1Xbb": to_col(events.HiggsLeading.btagBBTXbb),
+            "H1Xbb": to_col(events.HiggsLeading.btagBBTXbb, pad_value),
             # ratios
-            "H1Pt_HHmass": to_col(events.HiggsLeading.divHHmass),
-            "H2Pt_HHmass": to_col(events.HiggsSubLeading.divHHmass),
-            "H1Pt/H2Pt": to_col(events.HiggsLeadingByHiggsSubLeadingPt, "99999"),
+            "H1Pt_HHmass": to_col(events.HiggsLeading.divHHmass, pad_value),
+            "H2Pt_HHmass": to_col(events.HiggsSubLeading.divHHmass, pad_value),
+            "H1Pt/H2Pt": to_col(events.HiggsLeadingByHiggsSubLeadingPt, pad_value, "99999"),
             # vbf mjj and eta_jj
-            "VBFjjMass": to_col(events.mjjJetGoodVBFEnergyOrdered, "NaN"),
-            "VBFjjDeltaEta": to_col(events.detaJetGoodVBFEnergyOrdered),
+            "VBFjjMass": to_col(events.mjjJetGoodVBFEnergyOrdered, pad_value, "NaN"),
+            "VBFjjDeltaEta": to_col(events.detaJetGoodVBFEnergyOrdered, pad_value),
             # AK4JetAway
-            "H1AK4JetAway1dR": to_col(events.HiggsLeading.dRclosestVBF, "0"),
-            "H2AK4JetAway2dR": to_col(events.HiggsSubLeading.dRclosestVBF, "0"),
-            "H1AK4JetAway1mass": to_col(events.HiggsLeading.massclosestVBF, "NaN"),
-            "H2AK4JetAway2mass": to_col(events.HiggsSubLeading.massclosestVBF, "NaN"),
+            "H1AK4JetAway1dR": to_col(events.HiggsLeading.dRclosestVBF, pad_value, "0"),
+            "H2AK4JetAway2dR": to_col(events.HiggsSubLeading.dRclosestVBF, pad_value, "0"),
+            "H1AK4JetAway1mass": to_col(events.HiggsLeading.massclosestVBF, pad_value, "NaN"),
+            "H2AK4JetAway2mass": to_col(events.HiggsSubLeading.massclosestVBF, pad_value, "NaN"),
         }
     )
     return inputs
