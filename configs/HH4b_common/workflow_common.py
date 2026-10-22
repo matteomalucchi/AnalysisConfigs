@@ -1842,7 +1842,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         # Extract the single weight values for each event:
-        extract_single_weights = False
+        extract_single_weights = True
         if extract_single_weights:
             for name, weight in self.weights_manager._weightsObj.items():
                 weight_vals = weight.compute(

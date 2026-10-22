@@ -12,6 +12,7 @@ from pocket_coffea.lib.calibrators.common.common import JetsCalibrator
 from pocket_coffea.lib.weights.common.common import common_weights
 
 from pocket_coffea.parameters.cuts import passthrough
+
 # rom pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters import defaults
 from pocket_coffea.parameters.histograms import *
@@ -59,25 +60,39 @@ parameters = defaults.merge_parameters_from_files(
 
 
 if config_options_dict["save_chunk"]:
-    config_options_dict["dump_columns_as_arrays_per_chunk"] = config_options_dict["save_chunk"]
+    config_options_dict["dump_columns_as_arrays_per_chunk"] = config_options_dict[
+        "save_chunk"
+    ]
 
 
 # score transform still in testing. So far hardcoded to be 2022_postEE...
 variables_dict = {}
 
 ## Define the preselection to apply
-preselection = define_preselection(config_options_dict)
+# preselection = define_preselection(config_options_dict)
+preselection = []
 
-sample_list = [
-    "GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization"
-    ]
+sample_list = ["GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization"]
 
 
 # Define the categories to save
 categories_dict = {"baseline": [passthrough]}
 
 total_input_variables = {}
-column_list = get_columns_list(SPANET_TRAINING_DEFAULT_COLUMNS_BTWP)
+column_list = get_columns_list(
+    {
+        "JetGood": [
+            "provenance",
+            "pt",
+            "eta",
+            "phi",
+            "mass",
+            "btagB_3wp",
+            "btagB_5wp",
+            "btagB",
+        ],
+    }
+)
 column_list += get_columns_list(
     {
         "events": [
@@ -88,7 +103,8 @@ column_list += get_columns_list(
         ]
     }
 )
-skimming_cut_list = cuts.skimming_cut_list
+# skimming_cut_list = cuts.skimming_cut_list
+skimming_cut_list = []
 
 cfg = Configurator(
     parameters=parameters,
@@ -108,14 +124,13 @@ cfg = Configurator(
     skim=cuts.skimming_cut_list(config_options_dict),
     preselections=preselection,
     categories=categories_dict,
-    weights_classes=common_weights, # + [bkg_morphing_dnn_weight, SF_btag_fixed_multiple_wp],
-    calibrators=[JetsCalibrator] if not config_options_dict['mixeddata'] else [],
+    weights_classes=common_weights,  # + [bkg_morphing_dnn_weight, SF_btag_fixed_multiple_wp],
+    calibrators=[JetsCalibrator] if not config_options_dict["mixeddata"] else [],
     weights={
         "common": {
             # "inclusive": ["genWeight", "lumi", "XS", "pileup", "sf_btag_fixed_multiple_wp"],
             "inclusive": ["genWeight", "lumi", "XS", "pileup"],
-            "bycategory": {
-            },
+            "bycategory": {},
         },
         # "bysample": bysample_bycategory_weight_dict,
     },
@@ -132,10 +147,10 @@ cfg = Configurator(
             "common": {
                 # "inclusive": ["jet_calibration"],
                 "inclusive": [],
-                },
-            }
+            },
+        },
     },
-    variables={},# variables_dict,
+    variables={},  # variables_dict,
     columns={
         "common": {
             "inclusive": column_list,

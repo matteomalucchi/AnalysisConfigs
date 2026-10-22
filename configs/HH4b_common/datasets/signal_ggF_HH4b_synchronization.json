@@ -7,10 +7,11 @@
             "isMC": "True",
             "xsec": "0.01127",
             "nevents": "1988270",
-            "size": "7559493451"
+            "size": "7559493451",
+            "description": "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/120000/0d50b0b1-9561-4557-8450-e6ae1ecb56ab.root"
         },
         "files": [
-            "root://xrootd-cms.infn.it///store/mc/RunIII2024Summer24NanoAODv15/GluGluHHto4B_Par-c2-0p00-kl-1p00-kt-1p00_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/PowhegBugFix_150X_mcRun3_2024_realistic_v2-v2/120000/0d50b0b1-9561-4557-8450-e6ae1ecb56ab.root"
+            "root://t3dcachedb03.psi.ch:1094///pnfs/psi.ch/cms/trivcat/store/user/mmalucch/HH4b/synchronization/0d50b0b1-9561-4557-8450-e6ae1ecb56ab.root"
         ]
     }
 }

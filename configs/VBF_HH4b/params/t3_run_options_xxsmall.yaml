@@ -1,7 +1,7 @@
 scaleout: 2
 adaptive: False
 cores-per-worker: 1
-mem-per-worker: "3GB"
+mem-per-worker: "6GB"
 disk-per-worker: "1GB"
 queue: "short"
 walltime: "00:20:00"
