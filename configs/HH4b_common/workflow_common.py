@@ -1820,7 +1820,13 @@ class HH4bCommonProcessor(BaseProcessorABC):
         )
 
     def define_synchronization_variables(self):
-        """Variables saved by the synchronization config (`synchronization`)."""
+        """Variables saved by the synchronization config
+        (configs/VBF_HH4b/HH4b_synchronization.py, which sets the
+        `synchronization` workflow option): `JetSync` (`JetSync` object
+        preselection), the standard-JEC raw pt/mass and JEC/JER factors of the
+        jets (`*_default` fields), `passJetVetoMap` and the indices (the `index`
+        field of the jets, -1 if missing) of the 4 jets of the HH pairing
+        (`ak4_h{1,2}b{1,2}_index`)."""
         if self.add_jet_spanet:
             raise ValueError(
                 "synchronization needs the Jet collection in the JetDefault order: "
@@ -2210,7 +2216,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 output_name_bkg_morphing_spread_dnn,
             )
 
-        if self.synchronization:
+        # only set by the synchronization config
+        if getattr(self, "synchronization", False):
             self.define_synchronization_variables()
 
         if self.sig_bkg_dnn:

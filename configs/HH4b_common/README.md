@@ -97,7 +97,6 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
 | `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
 | `only_4jets_presel` | `False` | Replace the resolved preselection with `hh4b_4jets_presel`: only ≥ 4 jets of the full `Jet` collection with \|η\| < 2.5, without pt thresholds, jet ID, b-tag requirements or lepton veto. The jet veto map is still applied. |
-| `synchronization` | `False` | Compute the variables saved by the synchronization config ([`HH4b_synchronization.py`](../VBF_HH4b/HH4b_synchronization.py)): `JetSync` (jets passing the `JetSync` object preselection), the standard-JEC `pt_raw_default`, `mass_raw_default`, `jec_factor_default`, `jer_factor_default` of the jets, `passJetVetoMap` and the indices of the 4 jets of the HH pairing `ak4_h{1,2}b{1,2}_index` (the `index` field of the jets, -1 if missing). |
 | `xx4b_presel` | `False` | Apply a gen-level cut selecting $X(\to b\bar{b})X(\to b\bar{b})$ decays (X = H or Z), adding `cuts.XX4b_presel` to the preselection. Needed for the private ZZ/ZH samples, which are inclusive in the decay channel. Off by default because it changes the yields of every sample whose name contains "HH", "ZH" or "ZZ". |
 
 ### Truth matching (MC only)

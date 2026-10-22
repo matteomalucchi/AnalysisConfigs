@@ -69,6 +69,9 @@ parameters.object_preselection.JetSync = {"pt": 15, "eta": 4.7, "jetId": 2}
 parameters.jets_calibration.forward_jets_mitigation.pt_cut_HE.apply = False
 
 
+# compute the variables of the synchronization tree in the workflow
+config_options_dict["synchronization"] = True
+
 if config_options_dict["save_chunk"]:
     config_options_dict["dump_columns_as_arrays_per_chunk"] = config_options_dict[
         "save_chunk"

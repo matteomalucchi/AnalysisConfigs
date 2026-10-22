@@ -139,12 +139,6 @@ default_config_options_dict = {
     # of the full `Jet` collection with |eta| < 2.5, without pt thresholds, jet
     # ID, b-tag requirements or lepton veto. The jet veto map is still applied.
     "only_4jets_presel": False,
-    # Compute the variables saved by the synchronization config
-    # (configs/VBF_HH4b/HH4b_synchronization.py): `JetSync` (`JetSync` object
-    # preselection), the standard-JEC raw pt/mass and JEC/JER factors of the jets
-    # (`*_default` fields), `passJetVetoMap` and the indices of the 4 jets of the HH
-    # pairing (`ak4_h{1,2}b{1,2}_index`, the `index` of the jets).
-    "synchronization": False,
 
     # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)
