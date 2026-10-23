@@ -55,12 +55,10 @@ parameters = defaults.merge_parameters_from_files(
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
     f"{localdir}/../HH4b_common/params/btagging_sampleGroups.yaml",
-    f"{localdir}/../HH4b_common/params/jets_calibration_regression_json.yaml",
+    f"{localdir}/params/jets_calibration_regression_json_synchronization.yaml",
     update=True,
 )
 
-# no pt > 50 GeV cut for the jets in 2.5 < |eta| < 3.0
-parameters.jets_calibration.forward_jets_mitigation.pt_cut_HE.apply = False
 
 
 if config_options_dict["save_chunk"]:
@@ -72,10 +70,11 @@ if config_options_dict["save_chunk"]:
 variables_dict = {}
 
 ## Define the preselection to apply
-# synchronization: only >= 4 jets of the full Jet collection with |eta| < 2.5,
-# nothing else (no pt thresholds, jet ID, b-tag requirements, lepton veto or
-# jet veto map)
-preselection = [cuts.hh4b_4jets_presel]
+# synchronization: only >= 4 JetGood jets (pt > 15 GeV, |eta| < 2.5, tight ID,
+# cleaned against the selected leptons), as the `at_least_4_jets` step of the
+# synchronization tree; nothing else (no pt thresholds on the leading jets,
+# b-tag requirements, lepton veto or jet veto map)
+preselection = [cuts.hh4b_4jetgood_presel]
 
 sample_list = ["GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization"]
 
@@ -86,9 +85,21 @@ categories_dict = {"baseline": [passthrough]}
 total_input_variables = {}
 
 
-# Synchronization "Events" tree: trigger bits, noise filters, jet veto maps, the
-# AK4 jets with pt > 15 GeV and tight ID, and the indices (the `index` field of
-# the jets) of the 4 jets of the HH pairing
+# Synchronization "Events" tree: run/lumi/event, generator weight, trigger and
+# L1 bits, noise filters, jet veto maps, MET (NanoAOD PuppiMET, not recomputed
+# with the corrected jets), true pileup, the AK4 jets with pt > 15 GeV, tight ID
+# and lepton cleaning, and the indices (the `index` field of the jets) of the 4
+# jets of the HH pairing
+sync_l1 = [
+    "HTT280er",
+    "HTT280er_QuadJet_70_55_40_35_er2p5",
+    "HTT320er",
+    "HTT320er_QuadJet_70_55_40_40_er2p5",
+    "HTT320er_QuadJet_80_60_er2p1_45_40_er2p3",
+    "HTT320er_QuadJet_80_60_er2p1_50_45_er2p3",
+    "HTT360er",
+    "Mu6_HTT240er",
+]
 sync_triggers = sorted(
     {t for y in year for trgs in parameters.HLT_triggers[y].values() for t in trgs}
 )
@@ -102,8 +113,14 @@ sync_flags = sorted(
 column_list = get_columns_list(
     {
         "HLT": sync_triggers,
+        "L1": sync_l1,
         "Flag": sync_flags,
+        "PuppiMET": ["pt", "phi"],
+        "Pileup": ["nTrueInt"],
         "events": [
+            "run",
+            "luminosityBlock",
+            "genWeight",
             "passJetVetoMap",
             "ak4_h1b1_index",
             "ak4_h1b2_index",
@@ -128,6 +145,32 @@ column_list = get_columns_list(
             "jer_factor",
             "UParTAK4RegPtRawCorr",
             "UParTAK4RegPtRawCorrNeutrino",
+            # resolution of the regressed pt
+            "pt_raw_res",
+            # b-tag: quark vs gluon score and number of WPs passed (0-5: L, M,
+            # T, XT, XXT of the year's algorithm)
+            "btagQvG",
+            "btagB_5wp",
+            # jet ID inputs and other NanoAOD variables
+            "area",
+            "nConstituents",
+            "nSVs",
+            "chHEF",
+            "neHEF",
+            "chEmEF",
+            "neEmEF",
+            "muEF",
+            "hfEmEF",
+            "hfHEF",
+            "chMultiplicity",
+            "neMultiplicity",
+            # per-jet jet veto map flag and jets given to the D_HH pairing
+            "passes_jetvetomap",
+            "used_in_dHH",
+            # MC truth: flavour and Higgs provenance (gen matching)
+            "hadronFlavour",
+            "partonFlavour",
+            "provenance_higgs",
         ],
     }
 )

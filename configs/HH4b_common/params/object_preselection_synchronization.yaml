@@ -3,35 +3,38 @@
 # - Jet (JetGood): pt > 15 GeV
 # - JetVBF: no pt threshold
 # - JetSync: the AK4 jets saved in the synchronization tree
+# - Jet, JetVBF, JetSync: cleaned against the selected leptons (DeltaR > 0.4), as
+#   in the synchronization tree
 object_preselection:
   ## Jet selection
   # Jets considered for the HH reconstruction: AK4PFPuppi, Tight ID, |eta| < 2.5,
-  # pt > 15 GeV
+  # pt > 15 GeV, DeltaR > 0.4 from the selected leptons
   Jet:
     pt: 15
     eta: 2.5
     jetId: 2 # 2 tight, 6 tight with lepton veto
-  # AK4 jets saved in the synchronization tree: pt > 15 GeV, |eta| < 4.7, Tight ID
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+  # AK4 jets saved in the synchronization tree: pt > 15 GeV, |eta| < 4.7, Tight ID,
+  # DeltaR > 0.4 from the selected leptons
   JetSync:
     pt: 15
     eta: 4.7
     jetId: 2
-  FatJetLeading:
-    pt: 300
-    eta: 2.4
-    jetId: 2 # 6 with lepveto or 2 w/o lepveto
-    btagPNetBB: -2
-    msd: 50
-    mass_regr_min: 50
-    mass_regr_max: 200
-  FatJetSubLeading:
-    pt: 250
-    eta: 2.4
-    jetId: 2 # 6 with lepveto or 2 w/o lepveto
-    btagPNetBB: -2
-    msd: 50
-    mass_regr_min: 50
-    mass_regr_max: 200
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+  JetCuts:
+    pt: 0
+    eta: 2.5
+    jetId: 2
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
   
   ## Lepton selection (event veto)
   # the impact parameter cuts are |dz| < dz_lowEta, |dxy| < dxy_lowEta for
@@ -72,10 +75,9 @@ object_preselection:
     eta: 4.7
     jetId: 2 # 2 tight, 6 tight with lepton veto
     max_btag_wp: M
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
     delta_eta: 3.5
     mjj: 400
-  JetVBF_generalSelection:
-    pt: 10
-    ptSemiTight: 25
-    eta: 4.7
-    jetId: 2 # 2 tight, 6 tight with lepton veto
