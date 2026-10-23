@@ -135,10 +135,10 @@ default_config_options_dict = {
     # contains "HH", "ZH" or "ZZ", so turning it on changes the yields of the
     # ggF/VBF signal too and breaks the comparison with older results.
     "xx4b_presel": False,
-    # Replace the resolved preselection with the only requirement of >= 4 jets
-    # of the full `Jet` collection with |eta| < 2.5, without pt thresholds, jet
-    # ID, b-tag requirements or lepton veto. The jet veto map is still applied.
-    "only_4jets_presel": False,
+    # Apply the jet veto map on the pt of the `Jet` collection, i.e. the regressed
+    # pt where the pt regression is applied (see `approach`), instead of the
+    # standard JEC pt (`pt_default`, default).
+    "jet_veto_map_regressed_pt": False,
 
     # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)

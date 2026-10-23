@@ -133,23 +133,6 @@ def hh4b_presel_era_dependent(pt_type, tight_cuts):
     )
 
 
-# At least 4 jets of the full Jet collection with |eta| < 2.5, without any pt
-# threshold, jet ID, b-tag requirement or lepton veto (e.g. for the
-# synchronization)
-hh4b_4jets_presel = Cut(
-    name="hh4b_4jets_presel",
-    params={"njet": 4, "jet_collection": "JetCuts", "eta_max": 2.5},
-    function=cuts_f.mask_num_jets_in_eta,
-)
-
-# >= 4 JetGood jets (object preselection: pt, |eta|, jet ID, lepton cleaning)
-hh4b_4jetgood_presel = Cut(
-    name="hh4b_4jetgood_presel",
-    params={"njet": 4, "jet_collection": "JetGood", "eta_max": 2.5},
-    function=cuts_f.mask_num_jets_in_eta,
-)
-
-
 # Resolved preselection of the second approach, chosen per chunk from its year.
 # Jets: JetGood (|eta| < 2.5, tight ID, pt > 30 GeV, 25 GeV in 2023).
 # The two_leading_btag requirement mirrors the HLT b-tag cut of 2022-2023
@@ -385,11 +368,23 @@ blinded = Cut(
     function=cuts_f.blinding_cuts,
 )
 
+# Jet veto map on the standard JEC pt (`pt_default`)
 hh4b_JetVetoMap = Cut(
     name="hh4b_JetVetoMap",
     params={
         "jet_type": "Jet",
         "pt_type": "pt_default",
+    },
+    function=get_custom_JetVetoMap_Mask,
+)
+
+# Jet veto map on the pt of the Jet collection, i.e. the regressed pt where the pt
+# regression is applied (`jet_veto_map_regressed_pt`)
+hh4b_JetVetoMap_regressed = Cut(
+    name="hh4b_JetVetoMap_regressed",
+    params={
+        "jet_type": "Jet",
+        "pt_type": "pt",
     },
     function=get_custom_JetVetoMap_Mask,
 )

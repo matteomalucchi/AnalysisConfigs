@@ -11,7 +11,22 @@ from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
 
 class SyncHH4bProcessor(VBFHH4bProcessor):
     """VBF HH4b workflow of the synchronization (HH4b_synchronization.py), which
-    also computes the variables of the synchronization tree."""
+    also builds the `JetCuts` collection used by the preselection and computes
+    the variables of the synchronization tree.
+
+    With the `jet_veto_map_regressed_pt` option the jet veto map variables use
+    the pt of the Jet collection (the regressed pt where the regression is
+    applied) instead of the standard JEC pt (`pt_default`)."""
+
+    @property
+    def jet_veto_map_pt(self):
+        """Jet pt field on which the jet veto map is evaluated."""
+        return "pt" if getattr(self, "jet_veto_map_regressed_pt", False) else "pt_default"
+
+    def apply_object_preselection(self, variation):
+        super().apply_object_preselection(variation=variation)
+        # jets of the preselection (`JetCuts` object preselection)
+        self.select_jets("JetCuts", "JetCuts")
 
     def process_extra_after_presel(self, variation):
         super().process_extra_after_presel(variation=variation)
@@ -19,10 +34,9 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
 
     def jets_pass_jet_veto_map(self, jets):
         """Per-jet version of the jet veto map event cut
-        (`get_JetVetoMap_Mask`, on the standard-JEC `pt_default`): False for
-        the jets that make the event fail the veto, i.e. the jets with tight
-        lepton veto ID, pt_default > 15 GeV, EM fraction < 0.9 inside a vetoed
-        region."""
+        (`get_JetVetoMap_Mask`, on the `jet_veto_map_pt` pt): False for the
+        jets that make the event fail the veto, i.e. the jets with tight lepton
+        veto ID, pt > 15 GeV, EM fraction < 0.9 inside a vetoed region."""
         # the jet ID is computed as AK4PFPuppi whatever the collection name
         params = copy.copy(self.params)
         params.jets_calibration.collection[self._year] = {"AK4PFPuppi": "Jet"}
@@ -31,7 +45,7 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         considered = (
             (jet_id >= 6)
             & (abs(jets.eta) < 5.19)
-            & (jets.pt_default > 15.0)
+            & (jets[self.jet_veto_map_pt] > 15.0)
             & ((jets.neEmEF + jets.chEmEF) < 0.9)
         )
         vetomap = self.params.jet_scale_factors.vetomaps[self._year]
@@ -88,7 +102,7 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         # jet veto maps
         self.events["passJetVetoMap"] = get_custom_JetVetoMap_Mask(
             self.events,
-            {"jet_type": "Jet", "pt_type": "pt_default"},
+            {"jet_type": "Jet", "pt_type": self.jet_veto_map_pt},
             self._year,
             self.params,
             sample=self._sample,

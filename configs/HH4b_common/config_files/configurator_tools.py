@@ -725,10 +725,7 @@ def define_preselection(options):
     # jet pt field on which the pt cuts of the resolved preselections are applied
     pt_type = options["preselection_pt_field"]
     no_btag = "no_btag" in options.keys() and options["no_btag"]
-    if options.get("only_4jets_presel", False):
-        # only >= 4 JetGood jets (|eta| < 2.5), no pt thresholds
-        preselection = [cuts.hh4b_4jets_presel]
-    elif options["approach"] == "second":
+    if options["approach"] == "second":
         # second approach: its own year-dependent preselection
         preselection = [cuts.hh4b_presel_second_approach(pt_type, no_btag=no_btag)]
     elif no_btag:
@@ -757,7 +754,11 @@ def define_preselection(options):
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
     if not options["boosted_presel"] and not options["mixeddata"]:
-        preselection.append(cuts.hh4b_JetVetoMap)
+        preselection.append(
+            cuts.hh4b_JetVetoMap_regressed
+            if options.get("jet_veto_map_regressed_pt", False)
+            else cuts.hh4b_JetVetoMap
+        )
 
     # Optional gen-level cut selecting X(->bb)X(->bb) decays (X = H or Z).
     # Needed only by the private ZZ/ZH samples, which are inclusive in the

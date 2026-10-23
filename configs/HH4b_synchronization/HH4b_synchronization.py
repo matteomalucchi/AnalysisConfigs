@@ -2,7 +2,7 @@ import os
 import cloudpickle
 import utils_configs.quantile_transformer as quantile_transformer
 
-from configs.HH4b_common.config_files.__config_file__ import (
+from configs.HH4b_synchronization.config_options import (
     config_options_dict,
     onnx_model_dict,
 )
@@ -19,9 +19,9 @@ from pocket_coffea.parameters.histograms import *
 
 # from collections import defaultdict
 from pocket_coffea.utils.configurator import Configurator
-from configs.VBF_HH4b.workflow_synchronization import SyncHH4bProcessor
+from configs.HH4b_synchronization.workflow import SyncHH4bProcessor
 
-import configs.HH4b_common.custom_cuts_common as cuts
+import configs.HH4b_synchronization.custom_cuts as sync_cuts
 from configs.HH4b_common.config_files.configurator_tools import (
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     DEFAULT_FATJET_COLUMNS,
@@ -50,7 +50,7 @@ year = ["2024"]  # , "2023_preBPix", "2023_postBPix"]
 parameters = defaults.merge_parameters_from_files(
     default_parameters,
     # object preselection of the synchronization (second approach with lower jet pt cuts)
-    f"{localdir}/../HH4b_common/params/object_preselection_synchronization.yaml",
+    f"{localdir}/params/object_preselection_synchronization.yaml",
     f"{localdir}/../HH4b_common/params/triggers.yaml",
     f"{localdir}/../HH4b_common/params/variations.yaml",
     f"{localdir}/../HH4b_common/params/btagging_multipleWP.yaml",
@@ -70,11 +70,11 @@ if config_options_dict["save_chunk"]:
 variables_dict = {}
 
 ## Define the preselection to apply
-# synchronization: only >= 4 JetGood jets (pt > 15 GeV, |eta| < 2.5, tight ID,
-# cleaned against the selected leptons), as the `at_least_4_jets` step of the
-# synchronization tree; nothing else (no pt thresholds on the leading jets,
-# b-tag requirements, lepton veto or jet veto map)
-preselection = [cuts.hh4b_4jetgood_presel]
+# synchronization: only >= 4 jets of the JetCuts collection (`JetCuts` object
+# preselection, built by the synchronization workflow) with |eta| < 2.5;
+# nothing else (no pt thresholds on the leading jets, b-tag requirements,
+# lepton veto or jet veto map)
+preselection = [sync_cuts.hh4b_4jets_presel]
 
 sample_list = ["GluGlutoHHto4B_kl-1p00_kt-1p00_c2-0p00_synchronization"]
 
@@ -184,14 +184,14 @@ column_list += get_columns_list(
         ]
     }
 )
-# skimming_cut_list = cuts.skimming_cut_list
+# skimming_cut_list = configs.HH4b_common.custom_cuts_common.skimming_cut_list
 skimming_cut_list = []
 
 cfg = Configurator(
     parameters=parameters,
     datasets={
         "jsons": [
-            f"{localdir}/../HH4b_common/datasets/signal_ggF_HH4b_synchronization.json",
+            f"{localdir}/datasets/signal_ggF_HH4b_synchronization.json",
         ],
         "filter": {
             "samples": sample_list,

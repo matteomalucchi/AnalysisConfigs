@@ -1,10 +1,12 @@
-# Object preselection of the synchronization (configs/VBF_HH4b/HH4b_synchronization.py):
-# the second approach one (object_preselection_second_approach.yaml) with
+# Object preselection of the synchronization (configs/HH4b_synchronization/HH4b_synchronization.py):
+# the second approach one (configs/HH4b_common/params/object_preselection_second_approach.yaml) with
 # - Jet (JetGood): pt > 15 GeV
 # - JetVBF: no pt threshold
-# - JetSync: the AK4 jets saved in the synchronization tree
-# - Jet, JetVBF, JetSync: cleaned against the selected leptons (DeltaR > 0.4), as
-#   in the synchronization tree
+# - JetCuts: the jets of the preselection (hh4b_4jets_presel)
+# - JetSync: the AK4 jets saved in the synchronization tree (only used for the
+#   saved variables)
+# - the `dr_lep` lines clean the jets against the selected leptons (DeltaR > 0.4),
+#   as in the synchronization tree (commented out)
 object_preselection:
   ## Jet selection
   # Jets considered for the HH reconstruction: AK4PFPuppi, Tight ID, |eta| < 2.5,
