@@ -245,6 +245,12 @@ default_config_options_dict = {
     # the rest. Set to False for the old behaviour (no split: +neutrino
     # regression wherever valid, else the standard JEC jets).
     "separate_regression_by_btag": True,
+    # MC only: smear the pT-regressed jets with the JER factor of the standard
+    # JEC jets (`JetDefault`) instead of their own one. The scaling method of
+    # the JER compares the jet pt with the GenJet pt, which does not include
+    # the neutrinos, so on the +neutrino regressed pt it smears the jets
+    # upwards. False keeps the old behaviour (own JER of the regressed jets).
+    "regressed_jets_default_jer": False,
   
     # ------------------------------------------------------------------
     # MODEL INPUTS AND PADDING

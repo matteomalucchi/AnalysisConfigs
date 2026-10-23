@@ -16,4 +16,6 @@ config_options_dict |= {
     "run2": True,
     "vbf_analysis": True,
     "max_num_jets_higgs_pairing": 4,
+    # JER of the regressed jets taken from the standard JEC jets
+    "regressed_jets_default_jer": True,
 } | onnx_model_dict

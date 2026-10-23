@@ -206,12 +206,43 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetPtRegressed"] = copy.copy(self.events["Jet"])
         self.events["JetPtRegressedPlusNeutrino"] = copy.copy(self.events["Jet"])
 
+    def apply_default_jer_to_regressed_jets(self, jets, variation):
+        """Replace the JER smearing of the regressed `jets` with the one of the
+        standard jets (`JetDefault`, same jet order).
+
+        The scaling method of the JER compares the jet pt with the GenJet pt,
+        which does not include the neutrinos: on the +neutrino regressed pt it
+        smears the jets upwards. The JEC (and the JES variations) of the
+        regressed jets are kept, only the JER factor (`jer_factor`, or the
+        up/down one for the JER variations) is swapped.
+        """
+        default = self.events.JetDefault
+        jer_reg, jer_default = jets.jer_factor, default.jer_factor
+        for direction in ("up", "down"):
+            pt_jer = f"pt_JER_{direction}"
+            if variation.endswith(f"JER{direction.capitalize()}") and pt_jer in jets.fields:
+                jer_reg = jets[pt_jer] / (jets.pt_raw * jets.jec_factor)
+                jer_default = default[pt_jer] / (default.pt_raw * default.jec_factor)
+        # jets without a valid regression (pt = 0) are left unchanged
+        ratio = ak.where(jer_reg > 0, jer_default / jer_reg, 1.0)
+        jets = ak.with_field(jets, jets.pt * ratio, "pt")
+        jets = ak.with_field(jets, jets.mass * ratio, "mass")
+        return ak.with_field(jets, jer_default, "jer_factor")
+
     def apply_object_preselection(self, variation):
         # new events: the cached model outputs do not apply to them any more.
         # This runs before `process_extra_after_presel` of every workflow, so a
         # subclass which evaluates a model early still gets a fresh output.
         self._spanet_output = None
         self._vbf_discriminator_output = None
+
+        if self._isMC and self.regressed_jets_default_jer:
+            # smear the regressed jets with the JER factor of the standard jets
+            for coll in ("JetPtRegressed", "JetPtRegressedPlusNeutrino"):
+                if coll in self.events.fields:
+                    self.events[coll] = self.apply_default_jer_to_regressed_jets(
+                        self.events[coll], variation
+                    )
 
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
@@ -309,8 +340,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         else:
             self.pt_cut_name = "pt"
 
-        self.select_jets("JetGood", "Jet")
-
+        # leptons first, so that the jet selection can be cleaned against them
+        # (`dr_lep` with `clean_ele_coll: ElectronGood`, `clean_mu_coll: MuonGood`
+        # in the object preselection)
         self.events["Electron"] = ak.with_field(
             self.events.Electron,
             self.events.Electron.eta + self.events.Electron.deltaEtaSC,
@@ -321,6 +353,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events, "Electron", self.params
         )
         self.events["MuonGood"] = lepton_selection(self.events, "Muon", self.params)
+
+        self.select_jets("JetGood", "Jet")
 
         # order jet by btag score
         self.events["JetGood"] = self.events.JetGood[
