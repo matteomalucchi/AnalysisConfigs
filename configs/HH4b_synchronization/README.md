@@ -7,7 +7,7 @@ approach of HIG-24-010, D_HH pairing, no models).
 | --- | --- |
 | `HH4b_synchronization.py` | Configuration: parameters, preselection, columns of the synchronization tree. |
 | `config_options.py` | Workflow options (`approach: "second"`, `run2`, `vbf_analysis`, ...), on top of `configs/HH4b_common/config_files/default_config.py`. |
-| `workflow.py` | `SyncHH4bProcessor`: the VBF HH4b workflow, which also builds the `JetCuts` collection used by the preselection and computes the variables of the synchronization tree (`JetSync`, `*_default` fields, `passes_jetvetomap`, `used_in_dHH`, `passJetVetoMap`, `ak4_h{1,2}b{1,2}_index`). |
+| `workflow.py` | `SyncHH4bProcessor`: the VBF HH4b workflow, which also builds the `JetCuts` collection used by the preselection and computes the variables of the synchronization tree (`*_default` fields, `passes_jetvetomap`, `used_in_dHH`, `passJetVetoMap`, `ak4_h{1,2}b{1,2}_index`). The saved jet collections `JetSync` and `JetCuts` (the jets of the preselection, without pt threshold) are ordered by pt and have the same columns (`SYNC_JET_COLUMNS` in `HH4b_synchronization.py`). |
 | `custom_cuts.py`, `custom_cut_functions.py` | Preselection: `hh4b_4jets_presel` (>= 4 `JetCuts` jets with \|η\| < 2.5) and `hh4b_4jetgood_presel` (>= 4 `JetGood` jets). |
 | `params/object_preselection_synchronization.yaml` | Object preselection: `Jet` (`JetGood`, pt > 15 GeV), `JetVBF` (no pt threshold), `JetCuts` (preselection jets), `JetSync` (saved jets). |
 | `params/jets_calibration_regression_json_synchronization.yaml` | Jet calibration. |

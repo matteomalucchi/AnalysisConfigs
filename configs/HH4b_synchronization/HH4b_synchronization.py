@@ -110,6 +110,51 @@ sync_flags = sorted(
         for f in list(parameters.event_flags[y]) + list(parameters.event_flags_data[y])
     }
 )
+# NOTE: the regression branches are the UParT ones (2024-2025)
+SYNC_JET_COLUMNS = [
+    "index",
+    "pt",
+    "pt_default",
+    "pt_regressed",
+    "pt_raw_default",
+    "mass",
+    "mass_raw_default",
+    "eta",
+    "phi",
+    "btagB",
+    "jec_factor_default",
+    "jer_factor_default",
+    "jec_factor",
+    "jer_factor",
+    "UParTAK4RegPtRawCorr",
+    "UParTAK4RegPtRawCorrNeutrino",
+    # resolution of the regressed pt
+    "pt_raw_res",
+    # b-tag: quark vs gluon score and number of WPs passed (0-5: L, M,
+    # T, XT, XXT of the year's algorithm)
+    "btagQvG",
+    "btagB_5wp",
+    # jet ID inputs and other NanoAOD variables
+    "area",
+    "nConstituents",
+    "nSVs",
+    "chHEF",
+    "neHEF",
+    "chEmEF",
+    "neEmEF",
+    "muEF",
+    "hfEmEF",
+    "hfHEF",
+    "chMultiplicity",
+    "neMultiplicity",
+    # per-jet jet veto map flag and jets given to the D_HH pairing
+    "passes_jetvetomap",
+    "used_in_dHH",
+    # MC truth: flavour and Higgs provenance (gen matching)
+    "hadronFlavour",
+    "partonFlavour",
+    "provenance_higgs",
+]
 column_list = get_columns_list(
     {
         "HLT": sync_triggers,
@@ -127,51 +172,10 @@ column_list = get_columns_list(
             "ak4_h2b1_index",
             "ak4_h2b2_index",
         ],
-        # NOTE: the regression branches are the UParT ones (2024-2025)
-        "JetSync": [
-            "index",
-            "pt",
-            "pt_default",
-            "pt_regressed",
-            "pt_raw_default",
-            "mass",
-            "mass_raw_default",
-            "eta",
-            "phi",
-            "btagB",
-            "jec_factor_default",
-            "jer_factor_default",
-            "jec_factor",
-            "jer_factor",
-            "UParTAK4RegPtRawCorr",
-            "UParTAK4RegPtRawCorrNeutrino",
-            # resolution of the regressed pt
-            "pt_raw_res",
-            # b-tag: quark vs gluon score and number of WPs passed (0-5: L, M,
-            # T, XT, XXT of the year's algorithm)
-            "btagQvG",
-            "btagB_5wp",
-            # jet ID inputs and other NanoAOD variables
-            "area",
-            "nConstituents",
-            "nSVs",
-            "chHEF",
-            "neHEF",
-            "chEmEF",
-            "neEmEF",
-            "muEF",
-            "hfEmEF",
-            "hfHEF",
-            "chMultiplicity",
-            "neMultiplicity",
-            # per-jet jet veto map flag and jets given to the D_HH pairing
-            "passes_jetvetomap",
-            "used_in_dHH",
-            # MC truth: flavour and Higgs provenance (gen matching)
-            "hadronFlavour",
-            "partonFlavour",
-            "provenance_higgs",
-        ],
+        # saved jets, ordered by pt: JetSync (pt > 15 GeV, |eta| < 4.7, tight ID) and
+        # JetCuts (the jets of the preselection: |eta| < 2.5, tight ID, no pt cut)
+        "JetSync": SYNC_JET_COLUMNS,
+        "JetCuts": SYNC_JET_COLUMNS,
     }
 )
 column_list += get_columns_list(

@@ -97,8 +97,11 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
             ak.fill_none(ak.any(pairs["0"] == pairs["1"], axis=2), False),
             "used_in_dHH",
         )
-        # AK4 jets of the `JetSync` object preselection
-        self.select_jets("JetSync", "JetSync")
+        # saved jet collections, ordered by pt and with the fields above:
+        # `JetSync` (`JetSync` object preselection) and `JetCuts` (the jets of
+        # the preselection, without pt threshold)
+        self.select_jets("JetSync", "JetSync", order_by="pt")
+        self.select_jets("JetCuts", "JetCuts", order_by="pt")
         # jet veto maps
         self.events["passJetVetoMap"] = get_custom_JetVetoMap_Mask(
             self.events,
