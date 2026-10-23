@@ -140,6 +140,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `old_wp_def` | `False` | Use the old b-tag working-point convention, where the WP index starts at `-1` (no WP passed) instead of `0`. It must match the convention used to train the SPANet/DNN models. |
 | `TXbb_order` | `False` | Boosted only: order the `FatJetGood` collection by `btagBBTXbb` instead of `btagBB`. |
 | `only5jetsbSF` | `False` | b-tag SF studies only (`configs/HH4b_btagging`): compute the b-tag scale factors using only the 5 leading jets instead of all the `JetGood`. |
+| `regressed_jets_default_jer` | `False` | MC only: smear the pT-regressed jets (`JetPtRegressed`, `JetPtRegressedPlusNeutrino`) with the JER factor of the standard JEC jets (`JetDefault`) instead of their own one (also for the JER up/down variations). The JER scaling method compares the jet pt with the GenJet pt, which has no neutrinos, so on the +neutrino regressed pt it smears the jets upwards. |
 
 ### Year-dependent jet algorithms
 
