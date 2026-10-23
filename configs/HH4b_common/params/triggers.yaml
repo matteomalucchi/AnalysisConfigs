@@ -20,6 +20,9 @@ HLT_triggers:
    "2024":
       ParkingHH:
          - PFHT250_QuadPFJet25_PNet2BTagMean0p55
+   "2025":
+      ParkingHH:
+         - PFHT250_QuadPFJet25_PNet2BTagMean0p55
 
 L1_triggers:
    "2022_preEE":

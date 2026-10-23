@@ -20,6 +20,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     define_categories,
     define_single_category,
     define_preselection,
+    VBF_SELECTED_PAIR_COLUMNS,
     get_columns_list,
     get_variables_dict,
     with_fw_momenta_columns,
@@ -159,6 +160,7 @@ categories_dict = define_categories(
     vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_discriminator=config_options_dict["vbf_discriminator"],
     ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
+    approach=config_options_dict["approach"],
 )
 categories_dict.pop("4b_region", None)
 
@@ -289,6 +291,12 @@ else:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
     if config_options_dict["vbf_discriminator"]:
         column_list += get_columns_list({"events": ["VBF_ggF_score"]})
+
+# Save the selected VBF pair (from SPANet or from the approach), ordered by pt
+if config_options_dict["vbf_analysis"]:
+    column_list += get_columns_list(
+        VBF_SELECTED_PAIR_COLUMNS, not config_options_dict["save_chunk"]
+    )
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:

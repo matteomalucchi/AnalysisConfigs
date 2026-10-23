@@ -1,9 +1,21 @@
 import copy
+from collections.abc import Mapping
+
 import awkward as ak
 import numpy as np
 
 from pocket_coffea.lib.cut_functions import get_JetVetoMap_Mask
 from pocket_coffea.lib.jets import jet_selection
+
+from utils_configs.jet_algorithms import get_btag_working_points
+
+
+def get_cut_value(cut, year):
+    """Value of an object preselection cut, which can be given per year as
+    {"default": value, <year>: value}."""
+    if isinstance(cut, Mapping):
+        return cut[year] if year in cut else cut["default"]
+    return cut
 
 
 def get_custom_JetVetoMap_Mask(events, params, year, processor_params, **kwargs):
@@ -76,7 +88,6 @@ def custom_jet_selection(
     jet_tagger="",
     pt_type="pt",
     pt_cut_name="pt",
-    forward_jet_veto=False,
 ):
     """
     Custom jet selection function to apply selection on different pt types.
@@ -89,6 +100,13 @@ def custom_jet_selection(
         jet_tagger: str, jet tagger to use
         pt_type: str, type of pt to apply the cut on (e.g. "pt", "pt_default", "pt_regressed")
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
+
+    The low-pt forward jet cuts and the rawFactor cut of PocketCoffea
+    (params.jets_calibration.forward_jets_mitigation) are applied on the pt_type pt
+    when they are switched on in the parameters.
+    The pt cut can be given per year as {"default": value, <year>: value}.
+    With `max_btag_wp` (e.g. "M") in the object preselection, the jets passing that
+    b-tag working point of the year's algorithm (generic `btagB` field) are rejected.
     """
     jet_type_default = "Jet" if not "FatJet" in jet_type else "FatJet"
 
@@ -101,8 +119,8 @@ def custom_jet_selection(
     params_copy.object_preselection[jet_type_default] = params_copy.object_preselection[
         jet_type_obj_presel
     ].copy()
-    params_copy.object_preselection[jet_type_default]["pt"] = (
-        params_copy.object_preselection[jet_type_obj_presel][pt_cut_name]
+    params_copy.object_preselection[jet_type_default]["pt"] = get_cut_value(
+        params_copy.object_preselection[jet_type_obj_presel][pt_cut_name], year
     )
     params_copy.jets_calibration.collection[year] = {"AK4PFPuppi": jet_type_default}
 
@@ -115,7 +133,7 @@ def custom_jet_selection(
         "pt",
     )
 
-    _, selection_mask = jet_selection(
+    _, mask = jet_selection(
         events_copy,
         jet_type_default,
         params_copy,
@@ -124,14 +142,10 @@ def custom_jet_selection(
         jet_tagger,
     )
 
-    if forward_jet_veto:
-        # Apply forward jet veto
-        _, forward_mask = get_forward_jet_veto(events, jet_type, pt_type)
-        mask = selection_mask & forward_mask
-    else:
-        mask = selection_mask
-
     obj_param = params_copy.object_preselection[jet_type_obj_presel]
+    if "max_btag_wp" in obj_param.keys():
+        btag_threshold = get_btag_working_points(params, year)[obj_param["max_btag_wp"]]
+        mask = mask & (events_copy[jet_type_default].btagB < btag_threshold)
     if "dr_jet" in obj_param.keys():
         clean_jet_coll = obj_param["clean_jet_coll"] if "clean_jet_coll" in obj_param.keys() else "FatJetGood"
         mask = mask & object_cleaning_mask(events_copy[jet_type_default], events_copy[clean_jet_coll], obj_param["dr_jet"], return_mask=True)
@@ -148,15 +162,5 @@ def custom_jet_selection(
     # remove copies
     del params_copy
     del events_copy
-
-    return events[jet_type][mask], mask
-
-
-def get_forward_jet_veto(events, jet_type, pt_type):
-    # jets rejected if pT < 50 GeV and  2.5 < |η| < 3
-    eta_range = (abs(events[jet_type].eta) < 2.5) | (abs(events[jet_type].eta) > 3.0)
-    pt_mask = events[jet_type][pt_type] > 50
-
-    mask = eta_range | pt_mask
 
     return events[jet_type][mask], mask
