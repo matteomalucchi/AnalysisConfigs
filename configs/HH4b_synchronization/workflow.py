@@ -82,6 +82,25 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         ceval_jer = get_jer_correction_set(
             jer_cfg.json_path, (jer_ptres_tag, jer_sf_tag)
         )
+        missing = [
+            tag
+            for tag in (jer_ptres_tag, jer_sf_tag)
+            if tag not in list(ceval_jer.keys())
+        ]
+        if missing:
+            available = sorted(
+                name
+                for name in load_correction_set(jer_cfg.json_path).keys()
+                if "PtResolution" in name or "ScaleFactor" in name
+            )
+            raise ValueError(
+                f"jer_override of {jet_type} ({self._year}): the JER corrections "
+                f"{missing} are not in {jer_cfg.json_path}. Set `jer` and "
+                f"`jer_jet_type` in jets_calibration.jer_override so that "
+                f"'<jer>_PtResolution_<jer_jet_type>' and "
+                f"'<jer>_ScaleFactor_<jer_jet_type>' are among the JER "
+                f"corrections of the file: {available}"
+            )
         eval_dict = {
             "JetPt": pt_jec,
             "JetEta": flat.eta,
