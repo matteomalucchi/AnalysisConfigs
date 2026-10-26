@@ -116,14 +116,14 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23Prompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23Prompt23_V4_MC
         jec_data: Summer23Prompt23_V4_DATA
-        jer: Summer23Prompt23_JRV3_MC
+        jer: Summer23Prompt23_RunCv1234_JRV3_MC
         level: L1L2L3Res
       
       2023_postBPix:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23BPixPrompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23BPixPrompt23_V4_MC
         jec_data: Summer23BPixPrompt23_V4_DATA
-        jer: Summer23BPixPrompt23_JRV3_MC
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         level: L1L2L3Res
 
       "2024":
@@ -163,14 +163,14 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23Prompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23Prompt23_V4_MC
         jec_data: Summer23Prompt23_V4_DATA
-        jer: Summer23Prompt23_JRV3_MC
+        jer: Summer23Prompt23_RunCv1234_JRV3_MC
         level: L1L2L3Res
       
       2023_postBPix:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23BPixPrompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23BPixPrompt23_V4_MC
         jec_data: Summer23BPixPrompt23_V4_DATA
-        jer: Summer23BPixPrompt23_JRV3_MC
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         level: L1L2L3Res
 
       "2024":
