@@ -141,6 +141,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `TXbb_order` | `False` | Boosted only: order the `FatJetGood` collection by `btagBBTXbb` instead of `btagBB`. |
 | `only5jetsbSF` | `False` | b-tag SF studies only (`configs/HH4b_btagging`): compute the b-tag scale factors using only the 5 leading jets instead of all the `JetGood`. |
 | `regressed_jets_default_jer` | `False` | MC only: smear the pT-regressed jets (`JetPtRegressed`, `JetPtRegressedPlusNeutrino`) with the JER factor of the standard JEC jets (`JetDefault`) instead of their own one (also for the JER up/down variations). The JER scaling method compares the jet pt with the GenJet pt, which has no neutrinos, so on the +neutrino regressed pt it smears the jets upwards. |
+| `regression_min_pt_raw` | `None` | Second approach only (ignored otherwise): apply the pT regression only to the jets with `pt_raw` (raw pt of `JetDefault`) above this value in GeV, e.g. `15`. The regressed pt of the other jets is set to None, so `merge_regressed_jets` takes the standard JEC jets for them. `None` applies the regression to every jet. |
 
 ### Year-dependent jet algorithms
 

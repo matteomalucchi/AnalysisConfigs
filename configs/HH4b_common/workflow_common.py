@@ -282,10 +282,23 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     ],
                 )
         elif self.approach == "second":
+            jets_regressed = self.events["JetPtRegressedPlusNeutrino"]
+            min_pt_raw = getattr(self, "regression_min_pt_raw", None)
+            if min_pt_raw is not None:
+                # no regression for the jets with a low raw pt: a None regressed
+                # pt makes merge_regressed_jets take the standard jets instead
+                jets_regressed = ak.with_field(
+                    jets_regressed,
+                    ak.mask(
+                        jets_regressed.pt,
+                        self.events["JetDefault"].pt_raw > min_pt_raw,
+                    ),
+                    "pt",
+                )
             # as "first", but high b-tag jets (loose WP) always use the regression
             self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=[
-                    self.events["JetPtRegressedPlusNeutrino"],
+                    jets_regressed,
                     self.events["JetDefault"],
                 ],
                 jets_low_btag=[
