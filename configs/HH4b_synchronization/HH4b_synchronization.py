@@ -172,9 +172,11 @@ column_list = get_columns_list(
             "ak4_h2b1_index",
             "ak4_h2b2_index",
         ],
-        # saved jets, ordered by pt: JetSync (pt > 15 GeV, |eta| < 4.7, tight ID) and
-        # JetCuts (the jets of the preselection: |eta| < 2.5, tight ID, no pt cut)
+        # saved jets, ordered by pt: JetSync (pt > 15 GeV, |eta| < 4.7, tight ID),
+        # JetSyncNoPt (as JetSync without pt cut) and JetCuts (the jets of the
+        # preselection: |eta| < 2.5, tight ID, no pt cut)
         "JetSync": SYNC_JET_COLUMNS,
+        "JetSyncNoPt": SYNC_JET_COLUMNS,
         "JetCuts": SYNC_JET_COLUMNS,
     }
 )
