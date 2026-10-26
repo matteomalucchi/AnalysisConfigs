@@ -17,8 +17,9 @@ approach of HIG-24-010, D_HH pairing, no models).
 `params/jets_calibration_regression_json_synchronization.yaml` gives, per year and
 jet type, the JER to use instead of the one of the year: for 2024 the 2023
 postBPix JER for the standard jets (`AK4PFPuppi`, `JetDefault`) and for the
-regressed jets (`AK4PFPuppiUParTRegression` and `...PlusNeutrino`, with the 2023
-postBPix PNet regression JER). The synchronization workflow
+UParT regressed jets (`AK4PFPuppiUParTRegression` and `...PlusNeutrino`, with
+their own JER from the 2023 postBPix regression file), all with the
+`Summer23BPixPrompt23_RunD_JRV3_MC` JER. The synchronization workflow
 (`SyncHH4bProcessor.apply_jer_override`, MC only) smears again these collections
 from their JEC-corrected pt (`pt_raw * jec_factor`, the 2024 JEC), with the same
 gen matching and `jer_genmatched_only` mitigation as the jet calibration, before

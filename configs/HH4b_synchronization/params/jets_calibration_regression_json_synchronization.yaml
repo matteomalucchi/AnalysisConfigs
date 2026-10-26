@@ -1049,22 +1049,23 @@ jets_calibration:
   # year, while the JER smearing is recomputed with the PtResolution and
   # ScaleFactor `jer` corrections of `json_path` for the jet type `jer_jet_type`
   # (MC only, nominal JER only).
-  # 2024: JER of 2023 postBPix for the standard jets and for the regressed jets
-  # (the 2023 postBPix regression is the PNet one)
+  # 2024: JER of 2023 postBPix (Summer23BPixPrompt23_RunD_JRV3_MC) for the standard
+  # jets and for the UParT regressed jets (the 2023 postBPix regression file has the
+  # JER of the UParT regressed jets too)
   jer_override:
     "2024":
       AK4PFPuppi:
         json_path: "${default_jets_calibration.factory_config_clib.AK4PFPuppi.2023_postBPix.json_path}"
-        jer: "${default_jets_calibration.factory_config_clib.AK4PFPuppi.2023_postBPix.jer}"
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         jer_jet_type: AK4PFPuppi
       AK4PFPuppiUParTRegression:
         json_path: "${default_jets_calibration.factory_config_clib.AK4PFPuppiPNetRegression.2023_postBPix.json_path}"
-        jer: "${default_jets_calibration.factory_config_clib.AK4PFPuppiPNetRegression.2023_postBPix.jer}"
-        jer_jet_type: AK4PFPuppiPNetRegression
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
+        jer_jet_type: AK4PFPuppiUParTRegression
       AK4PFPuppiUParTRegressionPlusNeutrino:
         json_path: "${default_jets_calibration.factory_config_clib.AK4PFPuppiPNetRegressionPlusNeutrino.2023_postBPix.json_path}"
-        jer: "${default_jets_calibration.factory_config_clib.AK4PFPuppiPNetRegressionPlusNeutrino.2023_postBPix.jer}"
-        jer_jet_type: AK4PFPuppiPNetRegressionPlusNeutrino
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
+        jer_jet_type: AK4PFPuppiUParTRegressionPlusNeutrino
 
 # path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/JERC_json/JERC_json_forPNetUParT_WithJER/"
 path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/tharte/JERC_json/JERC_json_forPNetUParT_WithJER/"
