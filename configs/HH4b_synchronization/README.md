@@ -24,6 +24,6 @@ run directly:
 
 ```bash
 pocket-coffea run --cfg configs/HH4b_synchronization/HH4b_synchronization.py \
-    --custom-run-options configs/VBF_HH4b/params/t3_run_options_xxsmall.yaml \
-    -o <output_dir> -e dask@T3_CH_PSI
+    --custom-run-options params/t3_run_options_xxsmall.yaml \
+    -o <output_dir> --test
 ```

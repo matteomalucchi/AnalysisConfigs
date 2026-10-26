@@ -20,5 +20,5 @@ config_options_dict |= {
     # JER of the regressed jets taken from the standard JEC jets
     "regressed_jets_default_jer": True,
     # jet veto map on the regressed pt (True) or on the standard JEC pt (False)
-    "jet_veto_map_regressed_pt": False,
+    "jet_veto_map_regressed_pt": True,
 } | onnx_model_dict
