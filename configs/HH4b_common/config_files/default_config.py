@@ -251,11 +251,12 @@ default_config_options_dict = {
     # the neutrinos, so on the +neutrino regressed pt it smears the jets
     # upwards. False keeps the old behaviour (own JER of the regressed jets).
     "regressed_jets_default_jer": False,
-    # Second approach only (`approach: "second"`, ignored otherwise): apply the
-    # pT regression only to the jets with a raw pt (`pt_raw` of `JetDefault`, the
-    # pt before any correction) above this value in GeV, e.g. 15. The regressed
-    # pt of the other jets is set to None, so `merge_regressed_jets` takes the
-    # standard JEC jets for them. None applies the regression to every jet.
+    # Apply the pT regression only to the jets with a raw pt (`pt_raw` of
+    # `JetDefault`, the pt before any correction) above this value in GeV, e.g.
+    # 15, for every `approach`. The regressed pt (`JetPtRegressed` and
+    # `JetPtRegressedPlusNeutrino`) of the other jets is set to -1 (failed
+    # regression, pt <= 0), so `merge_regressed_jets` takes the standard JEC
+    # jets for them. None applies the regression to every jet.
     "regression_min_pt_raw": None,
   
     # ------------------------------------------------------------------

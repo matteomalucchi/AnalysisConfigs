@@ -21,4 +21,6 @@ config_options_dict |= {
     "regressed_jets_default_jer": True,
     # jet veto map on the regressed pt (True) or on the standard JEC pt (False)
     "jet_veto_map_regressed_pt": True,
+    # pt regression only for the jets with a raw pt above 15 GeV
+    "regression_min_pt_raw": 15,
 } | onnx_model_dict
