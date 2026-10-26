@@ -3,7 +3,15 @@ import copy
 import awkward as ak
 import numpy as np
 from pocket_coffea.lib.correction_cache import load_correction_set
-from pocket_coffea.lib.jets import compute_jetId
+from omegaconf import OmegaConf
+from pocket_coffea.lib.jets import (
+    abs_eta_in_regions,
+    compute_jetId,
+    get_forward_jets_mitigation,
+    get_jer_correction_set,
+    get_jersmear_SFunc,
+    safe_jersmear,
+)
 
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
@@ -24,9 +32,98 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         return "pt" if getattr(self, "jet_veto_map_regressed_pt", False) else "pt_default"
 
     def apply_object_preselection(self, variation):
+        if self._isMC:
+            # JER of another period (`jets_calibration.jer_override`), before the
+            # regressed and standard jets are merged into Jet
+            self.apply_jer_override()
         super().apply_object_preselection(variation=variation)
         # jets of the preselection (`JetCuts` object preselection)
         self.select_jets("JetCuts", "JetCuts")
+
+    def apply_jer_override(self):
+        """Replace the JER smearing of the calibrated jet collections with the
+        JER of `jets_calibration.jer_override[year][jet_type]` (e.g. 2023
+        postBPix for 2024), keeping the JEC of the year.
+
+        For each jet type with an override, the collection it is calibrated into
+        (`jets_calibration.collection`) is smeared again from its JEC-corrected pt
+        (`pt_raw * jec_factor`), with the same gen matching (dR < R/2 in
+        `pt_gen`, |pt - pt_gen| < 3 sigma), random seed inputs and
+        `jer_genmatched_only` forward jets mitigation as the jet calibration.
+        Only the nominal JER is replaced.
+        """
+        overrides = OmegaConf.select(
+            self.params, f"jets_calibration.jer_override.{self._year}"
+        )
+        if not overrides:
+            return
+        collections = self.params.jets_calibration.collection[self._year]
+        mitigation_cfg = OmegaConf.select(
+            self.params, "jets_calibration.forward_jets_mitigation"
+        )
+        for jet_type, jer_cfg in overrides.items():
+            coll = collections.get(jet_type)
+            if coll is None or coll not in self.events.fields:
+                continue
+            self.events[coll] = self.smear_jets_with_jer(
+                self.events[coll], jet_type, jer_cfg, mitigation_cfg
+            )
+
+    def smear_jets_with_jer(self, jets, jet_type, jer_cfg, mitigation_cfg):
+        """Smear `jets` (calibrated with JEC, with `pt_raw`, `mass_raw`,
+        `jec_factor`, `pt_gen`, `event_rho`) with the JER of `jer_cfg`."""
+        counts = ak.num(jets)
+        flat = ak.flatten(jets)
+        pt_jec = flat.pt_raw * flat.jec_factor
+        mass_jec = flat.mass_raw * flat.jec_factor
+
+        jer_ptres_tag = f"{jer_cfg.jer}_PtResolution_{jer_cfg.jer_jet_type}"
+        jer_sf_tag = f"{jer_cfg.jer}_ScaleFactor_{jer_cfg.jer_jet_type}"
+        ceval_jer = get_jer_correction_set(
+            jer_cfg.json_path, (jer_ptres_tag, jer_sf_tag)
+        )
+        eval_dict = {
+            "JetPt": pt_jec,
+            "JetEta": flat.eta,
+            "Rho": flat.event_rho,
+            "GenPt": flat.pt_gen,
+            "EventID": ak.flatten(ak.broadcast_arrays(self.events.event, jets.pt)[0]),
+        }
+        eval_dict["JER"] = ceval_jer[jer_ptres_tag].evaluate(
+            *[eval_dict[inp.name] for inp in ceval_jer[jer_ptres_tag].inputs]
+        )
+        # the gen match is used (scaling method) only if |pt - pt_gen| < 3 sigma
+        eval_dict["GenPt"] = np.where(
+            np.abs(eval_dict["JetPt"] - eval_dict["GenPt"])
+            < 3 * eval_dict["JetPt"] * eval_dict["JER"],
+            eval_dict["GenPt"],
+            -1.0,
+        )
+        smear = safe_jersmear(get_jersmear_SFunc(eval_dict, ceval_jer, jer_sf_tag))
+
+        # forward jets mitigation: no stochastic smearing in the regions
+        genmatched_only = get_forward_jets_mitigation(
+            mitigation_cfg, "jer_genmatched_only", self._year, jet_type
+        )
+        if genmatched_only is not None:
+            no_smear = abs_eta_in_regions(
+                flat.eta, genmatched_only["eta_regions"][str(self._year)]
+            ) & (eval_dict["GenPt"] < 0)
+            smear = ak.where(no_smear, 1.0, smear)
+
+        new_fields = {
+            "pt": pt_jec * smear,
+            "mass": mass_jec * smear,
+            "jer_factor": smear,
+        }
+        new_fields["pt_jer"] = new_fields["pt"]
+        new_fields["mass_jer"] = new_fields["mass"]
+        new_fields["rawFactor"] = ak.where(
+            new_fields["pt"] != 0, 1 - flat.pt_raw / new_fields["pt"], 0
+        )
+        for field, values in new_fields.items():
+            flat = ak.with_field(flat, values, field)
+        return ak.unflatten(flat, counts)
 
     def process_extra_after_presel(self, variation):
         super().process_extra_after_presel(variation=variation)
