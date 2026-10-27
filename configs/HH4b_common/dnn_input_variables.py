@@ -1725,6 +1725,68 @@ ggf_vbf_input_variables_spanet_nobtag = OrderedDict(
     }
 )
 
+ggf_vbf_input_variables_spanet_nobtag_jetmass = OrderedDict(
+    {
+        "sequential": {
+            # higgs
+            "jethiggs_log_pt": ["JetGoodProvHiggsPadded", "pt", "log_norm"],
+            "jethiggs_log_mass": ["JetGoodProvHiggsPadded", "mass", "log_norm"],
+            "jethiggs_eta": ["JetGoodProvHiggsPadded", "eta", "norm"],
+            "jethiggs_phi": ["JetGoodProvHiggsPadded", "phi", "norm"],
+            # vbf
+            "jetvbf_log_pt": ["JetGoodVBFMergedProvVBFPadded", "pt", "log_norm"],
+            "jetvbf_log_mass": ["JetGoodVBFMergedProvVBFPadded", "mass", "log_norm"],
+            "jetvbf_eta": ["JetGoodVBFMergedProvVBFPadded", "eta", "norm"],
+            "jetvbf_phi": ["JetGoodVBFMergedProvVBFPadded", "phi", "norm"],
+            },
+        "global": {
+            # vbf
+            "centralityHiggsLeadingJetGoodVBFMergedProvVBFPadded": [
+                "events", "centralityHiggsLeadingJetGoodVBFMergedProvVBFPadded",
+            ],
+            "centralityHiggsSubLeadingJetGoodVBFMergedProvVBFPadded": [
+                "events", "centralityHiggsSubLeadingJetGoodVBFMergedProvVBFPadded",
+            ],
+            "detaJetGoodVBFMergedProvVBFPadded": [
+                "events", "detaJetGoodVBFMergedProvVBFPadded", "norm",
+            ],
+            "mjjJetGoodVBFMergedProvVBFPadded": [
+                "events", "mjjJetGoodVBFMergedProvVBFPadded", "norm",
+            ],
+            # higgs
+            "HT": ["events", "HT", "log_norm"],
+            "maxDeltaR_Higgjj": ["events", "dR_max"],
+            "minDeltaR_Higgjj": ["events", "dR_min"],
+            "sigma_over_higgs1_reco_mass": ["events", "sigma_over_higgs1_reco_mass"],
+            "sigma_over_higgs2_reco_mass": ["events", "sigma_over_higgs2_reco_mass"],
+            "higgs1_reco_DeltaEta": ["HiggsLeading", "dEta"],
+            "higgs1_reco_DeltaPhi": ["HiggsLeading", "dPhi"],
+            "higgs1_reco_dR": ["HiggsLeading", "dR"],
+            "higgs1_reco_eta": ["HiggsLeading", "eta"],
+            "higgs1_helicityCosTheta": ["HiggsLeading", "helicityCosTheta"],
+            "higgs1_reco_phi": ["HiggsLeading", "phi"],
+            "higgs1_reco_mass": ["HiggsLeading", "mass", "log_norm"],
+            "higgs1_reco_pt": ["HiggsLeading", "pt", "log_norm"],
+            "higgs2_reco_DeltaEta": ["HiggsSubLeading", "dEta"],
+            "higgs2_reco_DeltaPhi": ["HiggsSubLeading", "dPhi"],
+            "higgs2_reco_dR": ["HiggsSubLeading", "dR"],
+            "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
+            "higgs2_helicityCosTheta": ["HiggsSubLeading", "helicityCosTheta"],
+            "higgs2_reco_phi": ["HiggsSubLeading", "phi"],
+            "higgs2_reco_mass": ["HiggsSubLeading", "mass", "log_norm"],
+            "higgs2_reco_pt": ["HiggsSubLeading", "pt", "log_norm"],
+            "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS"],
+            "hh_vec_DeltaEta": ["HH", "dEta"],
+            "hh_vec_DeltaPhi": ["HH", "dPhi"],
+            "hh_vec_DeltaR": ["HH", "dR"],
+            "hh_vec_eta": ["HH", "eta", "norm"],
+            "hh_vec_mass": ["HH", "mass", "log_norm"],
+            "hh_vec_phi": ["HH", "phi"],
+            "hh_vec_pt": ["HH", "pt", "log_norm"],
+            }
+    }
+)
+
 
 if __name__ == "__main__":
     # print the difference between the two dictionaries
