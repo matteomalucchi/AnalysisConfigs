@@ -182,8 +182,8 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         """Variables of the synchronization tree: `JetSync` (`JetSync` object
         preselection), the standard-JEC raw pt/mass and JEC/JER factors of the
         jets (`*_default` fields), the per-jet jet veto map flag
-        (`passes_jetvetomap`), whether the jet is one of the 4 jets given to the
-        D_HH pairing (`used_in_dHH`), `passJetVetoMap` and the indices (the
+        (`passes_jetvetomap`), whether the jet is one of the 4 jets of the D_HH
+        pairing (`used_in_dHH`, from `JetGoodFromHiggsOrdered`),`passJetVetoMap` and the indices (the
         `index` field of the jets, -1 if missing) of the 4 jets of the HH
         pairing (`ak4_h{1,2}b{1,2}_index`)."""
         if self.add_jet_spanet:
@@ -204,14 +204,20 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
             self.jets_pass_jet_veto_map(self.events.Jet),
             "passes_jetvetomap",
         )
-        # jets given to the D_HH pairing (the 4 JetGood leading in b-tag score)
-        pairs = ak.cartesian(
-            [self.events.Jet.index, self.events.JetGoodHiggs.index], nested=True
-        )
+        # jets used in the D_HH (Run2) pairing (`JetGoodHiggs`)
+        if "JetGoodHiggs" in self.events.fields:
+            pairs = ak.cartesian(
+                [self.events.Jet.index, self.events.JetGoodHiggs.index],
+                nested=True,
+            )
+            print("pairs:", pairs)
+            used_in_dhh = ak.fill_none(ak.any(pairs["0"] == pairs["1"], axis=2), False)
+            print("used_in_dhh:", used_in_dhh)
+            breakpoint()
+        else:
+            used_in_dhh = ak.zeros_like(self.events.Jet.pt, dtype=bool)
         self.events["Jet"] = ak.with_field(
-            self.events.Jet,
-            ak.fill_none(ak.any(pairs["0"] == pairs["1"], axis=2), False),
-            "used_in_dHH",
+            self.events.Jet, used_in_dhh, "used_in_dHH"
         )
         # saved jet collections, ordered by pt and with the fields above:
         # `JetSync` (`JetSync` object preselection), `JetSyncNoPt` (the same

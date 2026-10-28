@@ -150,9 +150,11 @@ SYNC_JET_COLUMNS = [
     # per-jet jet veto map flag and jets given to the D_HH pairing
     "passes_jetvetomap",
     "used_in_dHH",
-    # MC truth: flavour and Higgs provenance (gen matching)
+    # MC truth: flavour, index of the matched GenJet (-1 if not matched) and
+    # Higgs provenance (gen matching)
     "hadronFlavour",
     "partonFlavour",
+    "genJetIdx",
     "provenance_higgs",
 ]
 column_list = get_columns_list(

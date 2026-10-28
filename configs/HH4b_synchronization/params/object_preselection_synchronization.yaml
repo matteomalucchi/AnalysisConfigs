@@ -11,7 +11,7 @@
 object_preselection:
   ## Jet selection
   # Jets considered for the HH reconstruction: AK4PFPuppi, Tight ID, |eta| < 2.5,
-  # pt > 15 GeV, DeltaR > 0.4 from the selected leptons
+  # pt > 15 GeV
   Jet:
     pt: 15
     eta: 2.5
