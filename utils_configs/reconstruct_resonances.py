@@ -214,8 +214,8 @@ def possible_higgs_reco(jets, comb_idx):
     comb_idx = [[(0, 1), (2, 3)], [(0, 2), (1, 3)], [(0, 3), (1, 2)]] This has to be the same always...
     """
     if len(jets) == 0:
-        higgs_candidates_unflatten_order = ak.Array([[[], []], [[], []], [[], []]])
-        return higgs_candidates_unflatten_order
+        higgs_candidates_unflatten = ak.Array([[[], []], [[], []], [[], []]])
+        return higgs_candidates_unflatten
 
     higgs = {}
     # First number indicates to which pairing option the higgs belongs
@@ -312,22 +312,13 @@ def get_lead_pt_opposite_eta_jet_pair(events, jet_coll):
     return add_fields(jet_pair, "all")
 
 
-def distance_pt_func(higgs_pair, k):
-    if len(higgs_pair[0, 0]) == 0:
-        return np.array([])
-    higgs1 = higgs_pair[:, :, 0]
-    higgs2 = higgs_pair[:, :, 1]
-    dist = abs(higgs1.mass - higgs2.mass * k) / sqrt(1 + k**2)
-    max_pt = np.maximum(higgs1.pt, higgs2.pt)
-    return dist, max_pt
+def distance_pt_func(higgs_pair, k, pt_in_hh_frame=False):
+    """D_HH distance and tie-break variable for each pairing.
 
-
-def distance_pt_hh_frame_func(higgs_pair, k):
-    """D_HH distance and tie-break variable as in HIG-20-005.
-
-    In each pairing the leading Higgs candidate is the one with the higher pt, and
-    the tie-break variable is the pt of the Higgs candidates in the HH rest frame
-    (the same for the two candidates, which are back-to-back there).
+    In each pairing the leading Higgs candidate is the one with the higher pt.
+    The tie-break variable is the highest lab-frame pt of the two candidates, or,
+    with `pt_in_hh_frame` (as in HIG-20-005), the pt of the Higgs candidates in the
+    HH rest frame (the same for the two candidates, which are back-to-back there).
     """
     if len(higgs_pair[0, 0]) == 0:
         return np.array([])
@@ -337,9 +328,12 @@ def distance_pt_hh_frame_func(higgs_pair, k):
     mass_lead = ak.where(lead_is_1, higgs1.mass, higgs2.mass)
     mass_sublead = ak.where(lead_is_1, higgs2.mass, higgs1.mass)
     dist = abs(mass_lead - mass_sublead * k) / sqrt(1 + k**2)
-    hh = higgs1 + higgs2
-    pt_hh_frame = higgs1.boost(-hh.boostvec).pt
-    return dist, pt_hh_frame
+    if pt_in_hh_frame:
+        hh = higgs1 + higgs2
+        tie_break_pt = higgs1.boost(-hh.boostvec).pt
+    else:
+        tie_break_pt = np.maximum(higgs1.pt, higgs2.pt)
+    return dist, tie_break_pt
 
 
 def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
@@ -365,11 +359,10 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
     comb_idx = np.array([[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]])
 
     higgs_candidates_unflatten = possible_higgs_reco(jet_collection, comb_idx)
-    distance, max_pt = (
-        distance_pt_hh_frame_func if pt_in_hh_frame else distance_pt_func
-    )(
+    distance, max_pt = distance_pt_func(
         higgs_candidates_unflatten,
         1.04,
+        pt_in_hh_frame=pt_in_hh_frame,
     )
 
     # dummy values for the events without a valid pairing, masked at the end, so
