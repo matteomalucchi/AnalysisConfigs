@@ -134,6 +134,9 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
             "pt": pt_jec * smear,
             "mass": mass_jec * smear,
             "jer_factor": smear,
+            # GenJet pt used by the JER scaling method: matched GenJet with
+            # dR < R/2 and |pt - pt_gen| < 3 sigma, -1 for the stochastic smearing
+            "jer_pt_gen": eval_dict["GenPt"],
         }
         new_fields["pt_jer"] = new_fields["pt"]
         new_fields["mass_jer"] = new_fields["mass"]
@@ -198,6 +201,28 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
                 self.events["Jet"] = ak.with_field(
                     self.events.Jet, self.events.JetDefault[field], f"{field}_default"
                 )
+        # JER gen matching (`jer_pt_gen`, set by the jer_override smearing): the
+        # one of the standard jets when the regressed jets take their JER
+        # (`regressed_jets_default_jer`), else the one of each jet
+        if self._isMC:
+            jer_jets = (
+                self.events.JetDefault
+                if self.regressed_jets_default_jer
+                else self.events.Jet
+            )
+            if "jer_pt_gen" not in jer_jets.fields:
+                raise ValueError(
+                    "jer_pt_gen (GenJet pt used by the JER) is set only by the "
+                    "jer_override smearing: define jets_calibration.jer_override "
+                    f"for {self._year} or remove jer_pt_gen/jer_gen_matched from "
+                    "the saved columns"
+                )
+            self.events["Jet"] = ak.with_field(
+                self.events.Jet, jer_jets.jer_pt_gen, "jer_pt_gen"
+            )
+            self.events["Jet"] = ak.with_field(
+                self.events.Jet, jer_jets.jer_pt_gen >= 0, "jer_gen_matched"
+            )
         # per-jet jet veto map flag
         self.events["Jet"] = ak.with_field(
             self.events.Jet,
@@ -210,10 +235,7 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
                 [self.events.Jet.index, self.events.JetGoodHiggs.index],
                 nested=True,
             )
-            print("pairs:", pairs)
             used_in_dhh = ak.fill_none(ak.any(pairs["0"] == pairs["1"], axis=2), False)
-            print("used_in_dhh:", used_in_dhh)
-            breakpoint()
         else:
             used_in_dhh = ak.zeros_like(self.events.Jet.pt, dtype=bool)
         self.events["Jet"] = ak.with_field(

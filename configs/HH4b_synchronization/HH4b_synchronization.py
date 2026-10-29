@@ -150,12 +150,15 @@ SYNC_JET_COLUMNS = [
     # per-jet jet veto map flag and jets given to the D_HH pairing
     "passes_jetvetomap",
     "used_in_dHH",
-    # MC truth: flavour, index of the matched GenJet (-1 if not matched) and
-    # Higgs provenance (gen matching)
+    # MC truth: flavour, Higgs provenance (gen matching) and the JER gen
+    # matching: `jer_pt_gen` is the GenJet pt used by the JER scaling method
+    # (dR < 0.2 and |pt - pt_gen| < 3 sigma), -1 for the stochastic smearing;
+    # `jer_gen_matched` = jer_pt_gen >= 0
     "hadronFlavour",
     "partonFlavour",
-    "genJetIdx",
     "provenance_higgs",
+    "jer_pt_gen",
+    "jer_gen_matched",
 ]
 column_list = get_columns_list(
     {
