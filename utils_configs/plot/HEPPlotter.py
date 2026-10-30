@@ -218,6 +218,9 @@ class HEPPlotter:
             series_dict : dict
                 Dictionary mapping names to {name:{"data": hist.Hist, "style": dict}}.
                 To plot the ratio plot, the reference histogram must include {"is_reference": True} inside the style dict.
+                Alternatively, a series can include {"ratio_reference": <name of another series>}
+                inside its style dict to plot its ratio w.r.t. that series only (several
+                independent ratios can be drawn in the same ratio panel this way).
         - For 2D histograms:
             series_dict : dict
                 {name:{"data": hist.Hist, "style": dict}}
@@ -629,13 +632,39 @@ class HEPPlotter:
         """Plot 1D histograms with optional ratio plot."""
 
         ratio_plot, ref_name = self._validate_inputs(self.series_dict)
-        ratio_plot = ratio_plot or self._ratio_hists
+        # per-series references: {"ratio_reference": <name>} in the style of a
+        # series plots its ratio w.r.t. the series <name> instead of the global
+        # reference, so several independent ratios can share the ratio panel
+        per_series_refs = {
+            name: props.get("style", {})["ratio_reference"]
+            for name, props in self.series_dict.items()
+            if props.get("style", {}).get("ratio_reference") is not None
+        }
+        for name, ref in per_series_refs.items():
+            if ref not in self.series_dict:
+                raise ValueError(
+                    f"ratio_reference '{ref}' of series '{name}' not found in series_dict."
+                )
+        referenced_names = set(per_series_refs.values())
+        ratio_plot = ratio_plot or bool(per_series_refs) or self._ratio_hists
 
         fig, ax, ax_ratio = self._create_figure(ratio_plot)
 
         ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
         if self.normalize_1d_histo and ref_hist is not None:
             ref_hist = self._normalize(ref_hist)
+
+        def _get_reference_hist(name):
+            """Reference histogram of a per-series ratio, normalized and rebinned
+            consistently with how the series itself is drawn."""
+            props = self.series_dict[name]
+            h = props["data"]
+            if self.normalize_1d_histo:
+                h = self._normalize(h)
+            edges = props.get("style", {}).get("bin_edges_plotting", None)
+            if edges is not None:
+                h = self._set_plotting_binning(h, edges)
+            return h
 
         for index, (name, props) in enumerate(self.series_dict.items()):
 
@@ -698,19 +727,35 @@ class HEPPlotter:
                 if isinstance(style[key], list):
                     style[key] = style[key][-1]
 
-            if self._plot_chi_square and ratio_plot and not is_ref:
-                self._apply_chi_square(ax, hist_1d, ref_hist, index, style)
+            # reference of the ratio of this series: the per-series one if
+            # given, the series itself if it is referenced by other series
+            # (drawn as the uncertainty band around 1), else the global one
+            if name in per_series_refs:
+                series_ref_hist = _get_reference_hist(per_series_refs[name])
+            elif name in referenced_names:
+                series_ref_hist = hist_1d
+                is_ref = True
+            else:
+                series_ref_hist = ref_hist
+
+            if (
+                self._plot_chi_square
+                and ratio_plot
+                and not is_ref
+                and series_ref_hist is not None
+            ):
+                self._apply_chi_square(ax, hist_1d, series_ref_hist, index, style)
 
             if self._plot_mean_std:
                 self._apply_mean_std(ax, hist_1d, name, style, index)
 
             # ratio
-            if ratio_plot and ax_ratio is not None:
+            if ratio_plot and ax_ratio is not None and series_ref_hist is not None:
                 if self.reference_to_den:
                     self._plot_ratio(
                         ax_ratio,
                         hist_1d,
-                        ref_hist,
+                        series_ref_hist,
                         legend_name_ratio,
                         is_ref,
                         style,
@@ -718,7 +763,7 @@ class HEPPlotter:
                 else:
                     self._plot_ratio(
                         ax_ratio,
-                        ref_hist,
+                        series_ref_hist,
                         hist_1d,
                         legend_name_ratio,
                         is_ref,

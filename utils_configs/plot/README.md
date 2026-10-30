@@ -421,6 +421,8 @@ series_dict = {
 * `"bin_edges_plotting"`: array of custom bin edges (for visual representation only)
 * `"legend_name"` / `"legend_name_ratio"`: custom labels
 * `"appear_in_legend"`: include/exclude from legend
+* `"is_reference"`: global reference of the ratio plot (only one series)
+* `"ratio_reference"`: name of another series used as the reference of the ratio of *this* series only. Allows several independent ratios in the same ratio panel (e.g. signal test/train and background test/train); the referenced series are drawn as uncertainty bands around 1. Can be combined with a global `"is_reference"` series.
 
 ---
 
