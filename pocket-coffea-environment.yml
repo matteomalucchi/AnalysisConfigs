@@ -18,6 +18,7 @@ dependencies:
   - lz4
   - h5py
   - tqdm
+  - numpy==1.23.5
   - pip
   - pip:
       - coffea==0.7.29
