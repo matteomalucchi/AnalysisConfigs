@@ -78,7 +78,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `approach` | `"first"` | Jet pt definition and object preselection. Selects the `params/object_preselection_<approach>_approach.yaml` file and how the `Jet` collection is built in `apply_object_preselection`. `"first"`: use the PNet+Neutrino regressed pt when available (HIG-24-010 first approach). `"second"`: use the regressed pt also when the jet passes the loose b-tag WP (HIG-24-010 second approach). `"boosted"`: skip the resolved jet-pt handling and the b-tag WP definition, and drop the HLT selection from the skim. |
+| `approach` | `"first"` | Jet pt definition and object preselection. Selects the `params/object_preselection_<approach>_approach.yaml` file and how the `Jet` collection is built in `apply_object_preselection`. `"first"`: use the PNet+Neutrino regressed pt when available (HIG-24-010 first approach). `"second"`: the second approach (HIG-24-010), see [Second approach](#second-approach): regressed pt for the jets passing the loose b-tag WP, its own object and event preselection, no L1 seeds in the skim. `"boosted"`: skip the resolved jet-pt handling and the b-tag WP definition, and drop the HLT selection from the skim. |
 | `boosted` | `False` | Run the boosted (AK8 / `FatJet`) analysis: builds the `FatJetGood` collection, the boosted categories, the boosted DNN variables and the `FatJetGood` columns. |
 | `run2` | `False` | Use the Run-2 $D_{HH}$ pairing algorithm instead of SPANet. Cannot be combined with `random_pt` (there is an explicit `assert` in the config templates). |
 | `vbf_analysis` | `False` | Run the VBF part of the analysis: builds the VBF jet collections (`JetGoodVBF*`, `JetAdditionalGoodVBF`, the merged `JetTotalSPANet*` collections), the VBF variables (`mjj`, `deta`, centrality) and the VBF categories. |
@@ -96,6 +96,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `no_btag` | `False` | Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`). Needed to measure the b-tag WP efficiencies, which has to be done in a region where no cut on the b-tag score is applied. The configs in `configs/HH4b_btagging` turn it on at the call site with `define_preselection(config_options_dict | {"no_btag": True})`. |
 | `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
 | `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
+| `jet_veto_map_regressed_pt` | `False` | Apply the jet veto map on the pt of the `Jet` collection, i.e. the regressed pt where the pt regression is applied (see `approach`), instead of the standard JEC pt `pt_default` (`hh4b_JetVetoMap_regressed` instead of `hh4b_JetVetoMap`). The jet veto map function of PocketCoffea is unchanged: the wrapper `get_custom_JetVetoMap_Mask` only replaces the pt of the jets. |
 | `xx4b_presel` | `False` | Apply a gen-level cut selecting $X(\to b\bar{b})X(\to b\bar{b})$ decays (X = H or Z), adding `cuts.XX4b_presel` to the preselection. Needed for the private ZZ/ZH samples, which are inclusive in the decay channel. Off by default because it changes the yields of every sample whose name contains "HH", "ZH" or "ZZ". |
 
 ### Truth matching (MC only)
@@ -111,8 +112,9 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | --- | --- | --- |
 | `vbf_parton_matching` | `False` | Run the gen-level matching of the VBF quarks to the jets (VBF MC only) and fill the `provenance_vbf` field. When `False`, a dummy (all-`None`) `provenance_vbf` is created. |
 | `which_vbf_quark` | `"with_mothers_children"` | How the VBF quarks are identified at gen level. `"with_mothers_children"`: hard-process quarks whose mother also has two Higgs children. `"with_status"`: outgoing (`status == 23`) non-b partons. |
-| `max_num_jets_add_vbf` | `2` | Number of *additional* VBF jet candidates (on top of the leading-$m_{jj}$ pair) kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections. |
+| `max_num_jets_add_vbf` | `2` | Number of *additional* VBF jet candidates (on top of the pair chosen with `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections. |
 | `jets_add_vbf_order` | `"energy"` | Field used to order the additional VBF jets, e.g. `"energy"` or `"pt"`. |
+| `spanet_vbf_candidates` | `"leading_mjj"` | VBF pair fed to SPANet (`JetTotalSPANetPadded`, `JetGoodVBFMergedProvVBFPadded`) before the additional VBF jets. `"leading_mjj"`: the pair leading in $m_{jj}$, as for the SPANet models trained so far. `"leading_pt_opposite_eta"`: the leading-pt jet and the leading-pt jet with $\eta_1 \eta_2 < 0$, as the VBF pair of the second approach. |
 | `vbf_matching_after_higgs_pairing` | `False` | Run the SPANet Higgs pairing first and define the VBF candidates from the jets left over by the pairing, instead of from the b-tag-ordered `JetGoodClip` collection. Requires `spanet`. |
 | `vbf_pairing_from_vbf_discriminator` | `False` | Take the VBF pair (`JetGoodVBFEnergyOrdered`) from the SPANet model given in `vbf_discriminator` instead of using the leading-mjj pair. Requires a standalone model (different file from `spanet`) predicting the VBF jet assignment (2 jets) on top of the ggF/VBF classification, with its sequential inputs read from the VBF candidate collection. The model is run only once and also provides `VBF_ggF_score`. |
 | `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to split the pass/fail VBF categories. Only relevant if `vbf_discriminator` is set. |
@@ -138,6 +140,8 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `old_wp_def` | `False` | Use the old b-tag working-point convention, where the WP index starts at `-1` (no WP passed) instead of `0`. It must match the convention used to train the SPANet/DNN models. |
 | `TXbb_order` | `False` | Boosted only: order the `FatJetGood` collection by `btagBBTXbb` instead of `btagBB`. |
 | `only5jetsbSF` | `False` | b-tag SF studies only (`configs/HH4b_btagging`): compute the b-tag scale factors using only the 5 leading jets instead of all the `JetGood`. |
+| `regressed_jets_default_jer` | `False` | MC only: smear the pT-regressed jets (`JetPtRegressed`, `JetPtRegressedPlusNeutrino`) with the JER factor of the standard JEC jets (`JetDefault`) instead of their own one (also for the JER up/down variations). The JER scaling method compares the jet pt with the GenJet pt, which has no neutrinos, so on the +neutrino regressed pt it smears the jets upwards. |
+| `regression_min_pt_raw` | `None` | Apply the pT regression only to the jets with `pt_raw` (raw pt of `JetDefault`) above this value in GeV, e.g. `15`, for every `approach`. The regressed pt (`JetPtRegressed`, `JetPtRegressedPlusNeutrino`) of the other jets is set to -1 (failed regression, pt <= 0), so `merge_regressed_jets` takes the standard JEC jets for them. `None` applies the regression to every jet. |
 
 ### Year-dependent jet algorithms
 
@@ -223,6 +227,49 @@ them to `config_options_dict` while building the `Configurator`.
 | --- | --- | --- |
 | `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. |
 | `num_bins` | [`config_compute_befficiency_HH4b.py`](../HH4b_btagging/config_compute_befficiency_HH4b.py) | Leftover of the b-tag efficiency studies; currently not read anywhere. |
+
+### VBF jet candidates
+
+| Collection | Content |
+| --- | --- |
+| `JetGoodVBFCandidates` | Jets passing the `JetVBF` object preselection which are not among the `max_num_jets_good` jets leading in b-tag score (or, for the final pair, not taken by the Higgs pairing), ordered by pt. |
+| `JetGoodVBFLeadingMjj` | Pair of candidates leading in $m_{jj}$, ordered by energy. |
+| `JetGoodVBFLeadingPtOppositeEta` | Leading-pt candidate and leading-pt candidate with $\eta_1 \eta_2 < 0$ (padded with `None`), ordered by pt. |
+| `JetAdditionalGoodVBF` | Candidates left over by the pair chosen with `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to `max_num_jets_add_vbf`. |
+| `JetGoodVBFMergedProvVBFPadded` | That pair followed by `JetAdditionalGoodVBF`, with `provenance = provenance_vbf`. |
+| `JetTotalSPANetPadded` | `JetGoodPadded` (the `max_num_jets_good` jets leading in b-tag score), followed by the pair chosen with `spanet_vbf_candidates` and by `JetAdditionalGoodVBF`: the SPANet input. |
+| `JetGoodVBFEnergyOrdered` | VBF pair used by the VBF categories, ordered by energy: the one predicted by SPANet when the model predicts the VBF jets; otherwise, out of the candidates left over by the Higgs pairing, the one predicted by the VBF pairing model (`vbf_pairing_from_vbf_discriminator`) or, without it, `leading_pt_opposite_eta` in the second approach and `leading_mjj` otherwise. |
+| `JetGoodVBFSelectedPair` | Resolved analysis: the same pair ordered by pt, saved in the output of the VBF configs (`VBF_SELECTED_PAIR_COLUMNS`). |
+
+### Second approach
+
+`approach = "second"` implements the selection of the HIG-24-010 second approach:
+
+- **Jets** (`params/object_preselection_second_approach.yaml`): AK4PFPuppi, tight ID. `JetGood` (HH reconstruction and event preselection): \|η\| < 2.5, pt > 30 GeV (25 GeV in 2023, the `pt` cut can be given per year as `{default: ..., <year>: ...}`). HT is the sum of the `JetGood` pt above 30 GeV (`SECOND_APPROACH_HT_MIN_PT` in `workflow_common.py`; in the other approaches HT sums all the `JetGood` jets).
+- **pt regression**: the +neutrino regression (PNet in 2022-2023, UParT in 2024-2025) is applied to the jets passing the loose b-tag WP; the other jets keep the standard JEC.
+- **Lepton veto**: muons pt > 10 GeV, \|η\| < 2.4, `pfRelIso04_all` < 0.15, `looseId`; electrons pt > 15 GeV, \|η\| < 2.5, `pfRelIso03_all` < 0.15, `mvaIso_WP90`; both with \|dz\| < 0.1, \|dxy\| < 0.05 for \|η\| < 1.479 and \|dz\| < 0.2, \|dxy\| < 0.1 above.
+- **Skim**: noise filters, golden JSON, ≥ 1 good PV and the HLT paths of `params/triggers.yaml` (2022: `QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65`; 2023 preBPix: `QuadPFJet70_50_40_35_PNet2BTagMean0p65` (JetMET) or `PFHT280_QuadPFJet30_PNet2BTagMean0p55` (ParkingHH); 2023 postBPix: `PFHT280_QuadPFJet30_PNet2BTagMean0p55`; 2024-2025: `PFHT250_QuadPFJet25_PNet2BTagMean0p55`). No L1 seed requirement.
+- **Event preselection** (`hh4b_presel_second_approach`): lepton veto, ≥ 4 `JetGood` with pt > 70, 50, 40, 35 GeV (2022) or 30 GeV (2023-2025), ≥ 2 `JetGood` with pt > 30 GeV passing the medium WP of the year's tagger, the mean of the 2 highest b-tag scores > 0.65 (2022) / 0.55 (2023) (no cut in 2024-2025), and the jet veto maps.
+- **HH reconstruction** without SPANet (`run2 = True`): D_HH on the 4 `JetGood` leading in b-tag score, with the leading Higgs candidate of each pairing taken as the one with the higher pt, and the tie-break (ΔD_HH < 30 GeV) on the pt of the Higgs candidates in the HH rest frame. With SPANet the Higgs and VBF jets are the ones of the model.
+- **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` forward jets mitigation, extended to 2025 in `params/jets_calibration_regression_json.yaml`). VBF pair: leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$.
+
+- **Regions** (`define_second_approach_categories`, used by `define_categories` when `approach = "second"`). In the ($M_{H1}$, $M_{H2}$) plane, with
+  $X_{HH} = \sqrt{(M_{H1}-125)^2 + (M_{H2}-120)^2}$ and $X_{ab} = \sqrt{((M_{H1}-m_a)/(0.1 M_{H1}))^2 + ((M_{H2}-m_b)/(0.1 M_{H2}))^2}$ with $m_H = 125$ (H1) / 120 (H2), $m_Z = 91$ (H1) / 89 (H2):
+  SR = $X_{HH}$ < 30 GeV ∪ $X_{ZZ}$ < 2.6 ∪ $X_{ZH}$ < 1.9 ∪ $X_{HZ}$ < 1.9; CR = (52 < $M_{H1}$ < 180 GeV) ∩ (50 < $M_{H2}$ < 173 GeV), outside the SR (`SECOND_APPROACH_MASS_PLANE` in `custom_cuts_common.py`).
+  b-tag categories of the 4 HH jets (`JetGoodFromHiggsOrdered`, WPs of the year's tagger):
+
+  | Category | b-tag requirement | Use |
+  | --- | --- | --- |
+  | `SR3T1M`, `CR3T1M` | ≥ 3 T, 4th jet at least M | signal region; CR of the CR2M → CR3T1M background training |
+  | `SR3T1L`, `CR3T1L` | exactly 3 T, 4th jet L but not M | second signal region; CR of its background training |
+  | `CR2M`, `SR2M` | exactly 2 M | background training (CR2M) and derivation (SR2M, weights applied on data) |
+  | `SR3MnT` | the 3 jets leading in b-tag score pass M but fail T | validation, background training of SR3T1L |
+  | `SR3M`, `CR3M`, `SR4M`, `CR4M` | exactly 3 M, 4 M | 2024 and 2025 only (empty in the other years) |
+
+  With `bkg_morphing_dnn` the `SR2M_postW` and `CR2M_postW` categories get the morphing weights on data, with `blind` the `SR3T1M_blind` and `SR3T1L_blind` categories apply the blinding cut.
+- **VBF regions** (`define_second_approach_vbf_categories`, with `vbf_analysis`): two VBF jets (`JetGoodVBFEnergyOrdered`) with $m_{jj}$ > 400 GeV and $\Delta\eta$ > 3.5, plus the ggF/VBF score above `ggf_vbf_threshold` when a `vbf_discriminator` is set, in the SR and CR of the mass plane of the high b-tag categories, which depend on the year (`SECOND_APPROACH_VBF_BTAG_CATEGORIES`): `vbf_SR3T1M`, `vbf_CR3T1M`, `vbf_SR3T1L`, `vbf_CR3T1L` (2022-2023) and `vbf_SR4M`, `vbf_CR4M` (2024-2025), empty in the other years. `vbf_SR2M`, `vbf_CR2M` (and their `_postW` versions with `bkg_morphing_dnn`) are the corresponding 2M regions for the background estimate.
+
+Not implemented: the offline-online trigger object matching (2022-2023), the JER smearing factor derived from the standard-JEC jets and applied on top of the regressed jets (the regressed collections are smeared with their own JER) and the b-tag SFs of the second approach.
 
 ## Full analysis workflow
 

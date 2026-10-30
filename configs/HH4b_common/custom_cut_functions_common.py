@@ -159,6 +159,60 @@ def hh4b_presel_era_dependent_cuts(
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def hh4b_presel_second_approach_cuts(
+    events, params, year, processor_params, **kwargs
+):
+    """Resolved preselection of the second approach, chosen from the year.
+
+    `params["presel_by_year"]` holds the cuts of each year ("2022", "2023",
+    "2024", "2025"). Each one requires, on the `JetGood` jets (|eta| < 2.5,
+    tight ID, see the object preselection):
+      - no leptons and >= 4 jets with pt above `pt_jets` (pt ordered)
+      - >= `nbtag` jets with pt > `btag_min_pt` passing the `btag_wp` working point
+        of the year's b-tag algorithm (generic `btagB` field: PNet in 2022-2023,
+        UParT in 2024-2025)
+      - if `two_leading_btag` is given, the mean (`op: mean`) or the sum
+        (`op: sum`) of the scores of the 2 jets leading in b-tag score above
+        `threshold`
+    With `params["no_btag"]` the b-tag requirements are dropped.
+    """
+    presel = params["presel_by_year"][year.split("_")[0]]
+    pt_type = params["pt_type"]
+
+    at_least_four_jets = mask_num_jets(events, params, **kwargs)
+    lepton_veto_mask = lepton_veto(events, params, **kwargs)
+    mask_4jet_nolep = at_least_four_jets & lepton_veto_mask
+    # convert false to None
+    mask_4jet_nolep_none = ak.mask(mask_4jet_nolep, mask_4jet_nolep)
+
+    jets = copy.copy(events[mask_4jet_nolep_none].JetGood)
+    jets_pt_order = jets[ak.argsort(jets[pt_type], axis=1, ascending=False)]
+
+    mask = ak.ones_like(mask_4jet_nolep_none)
+    for i, pt_cut in enumerate(presel["pt_jets"]):
+        mask = mask & (jets_pt_order[pt_type][:, i] > pt_cut)
+
+    if not params["no_btag"]:
+        threshold = get_btag_working_points(processor_params, year)[presel["btag_wp"]]
+        n_tagged = ak.sum(
+            (jets.btagB > threshold) & (jets[pt_type] > presel["btag_min_pt"]), axis=1
+        )
+        mask = mask & (n_tagged >= presel["nbtag"])
+
+        two_leading = presel.get("two_leading_btag")
+        if two_leading:
+            btag_scores = ak.sort(jets.btagB, axis=1, ascending=False)
+            score = btag_scores[:, 0] + btag_scores[:, 1]
+            if two_leading["op"] == "mean":
+                score = score / 2
+            elif two_leading["op"] != "sum":
+                raise ValueError(f"Unknown two_leading_btag op {two_leading['op']}.")
+            mask = mask & (score > two_leading["threshold"])
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
 def hh4b_boosted_presel_cuts(events, params, **kwargs):
     # selection is already performed in the object preselection, 
     # here I just need to count the fat jets
@@ -343,6 +397,105 @@ def hh4b_Rhh_cuts(events, params, **kwargs):
         )
 
     mask = (Rhh >= params["radius_min"]) & (Rhh < params["radius_max"])
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def mass_plane_distances(higgs_lead_mass, higgs_sublead_mass):
+    """Distances of (M_H1, M_H2) from the HH, HZ, ZH and ZZ hypotheses
+    (second approach, HH/ZZ/ZH signal region)."""
+    m1, m2 = higgs_lead_mass, higgs_sublead_mass
+
+    def relative(center1, center2):
+        return np.sqrt(
+            ((m1 - center1) / (0.1 * m1)) ** 2 + ((m2 - center2) / (0.1 * m2)) ** 2
+        )
+
+    return {
+        "HH": np.sqrt((m1 - 125) ** 2 + (m2 - 120) ** 2),
+        "HZ": relative(125, 89),
+        "ZH": relative(91, 120),
+        "ZZ": relative(91, 89),
+    }
+
+
+def hh4b_mass_plane_cuts(events, params, **kwargs):
+    """Signal or control region in the (M_H1, M_H2) plane of the second approach.
+
+    SR: X_HH < sr_max["HH"] or X_ZZ < sr_max["ZZ"] or X_ZH < sr_max["ZH"] or
+    X_HZ < sr_max["HZ"] (see `mass_plane_distances`).
+    CR: inside the square cr_m1 x cr_m2 and outside the SR.
+    """
+    m1 = events.HiggsLeading.mass
+    m2 = events.HiggsSubLeading.mass
+    distances = mass_plane_distances(m1, m2)
+    mask_sr = ak.zeros_like(m1, dtype=bool)
+    for hypothesis, max_distance in params["sr_max"].items():
+        mask_sr = mask_sr | (distances[hypothesis] < max_distance)
+
+    if params["region"] == "signal":
+        mask = mask_sr
+    elif params["region"] == "control":
+        mask = (
+            (m1 > params["cr_m1"][0])
+            & (m1 < params["cr_m1"][1])
+            & (m2 > params["cr_m2"][0])
+            & (m2 < params["cr_m2"][1])
+            & ~mask_sr
+        )
+    else:
+        raise ValueError(f"Unknown mass plane region {params['region']}.")
+
+    # Pad None values with False
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+def hh4b_btag_category_cuts(events, params, year, processor_params, **kwargs):
+    """b-tag category of the 4 jets of the HH reconstruction (JetGoodFromHiggsOrdered),
+    with the working points of the year's tagger (generic `btagB` field).
+
+    With s0 >= s1 >= s2 >= s3 the b-tag scores of the 4 jets:
+      - "3T1M": >= 3 T and the 4th jet at least M (s2 >= T, s3 >= M)
+      - "3T1L": exactly 3 T and the 4th jet L but not M (s2 >= T, L <= s3 < M)
+      - "3MnT": the 3 jets leading in b-tag score pass M but fail T (M <= s2, s0 < T)
+      - "2M": exactly 2 M (s1 >= M, s2 < M)
+      - "3M": exactly 3 M (s2 >= M, s3 < M)
+      - "4M": 4 M (s3 >= M)
+    If `years` is given (full year names or just the year, e.g. "2022"), the
+    events of the other years fail the cut.
+    """
+    if (
+        params.get("years")
+        and year not in params["years"]
+        and year.split("_")[0] not in params["years"]
+    ):
+        return ak.zeros_like(events.event, dtype=bool)
+
+    wps = get_btag_working_points(processor_params, year)
+    scores = ak.sort(
+        ak.fill_none(ak.pad_none(events.JetGoodFromHiggsOrdered.btagB, 4), -np.inf),
+        axis=1,
+        ascending=False,
+    )
+    s0, s1, s2, s3 = scores[:, 0], scores[:, 1], scores[:, 2], scores[:, 3]
+    loose, medium, tight = wps["L"], wps["M"], wps["T"]
+
+    category = params["category"]
+    if category == "3T1M":
+        mask = (s2 >= tight) & (s3 >= medium)
+    elif category == "3T1L":
+        mask = (s2 >= tight) & (s3 >= loose) & (s3 < medium)
+    elif category == "3MnT":
+        mask = (s2 >= medium) & (s0 < tight)
+    elif category == "2M":
+        mask = (s1 >= medium) & (s2 < medium)
+    elif category == "3M":
+        mask = (s2 >= medium) & (s3 < medium)
+    elif category == "4M":
+        mask = s3 >= medium
+    else:
+        raise ValueError(f"Unknown b-tag category {category}.")
 
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)

@@ -116,14 +116,14 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23Prompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23Prompt23_V4_MC
         jec_data: Summer23Prompt23_V4_DATA
-        jer: Summer23Prompt23_JRV3_MC
+        jer: Summer23Prompt23_RunCv1234_JRV3_MC
         level: L1L2L3Res
       
       2023_postBPix:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23BPixPrompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23BPixPrompt23_V4_MC
         jec_data: Summer23BPixPrompt23_V4_DATA
-        jer: Summer23BPixPrompt23_JRV3_MC
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         level: L1L2L3Res
 
       "2024":
@@ -163,14 +163,14 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23Prompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23Prompt23_V4_MC
         jec_data: Summer23Prompt23_V4_DATA
-        jer: Summer23Prompt23_JRV3_MC
+        jer: Summer23Prompt23_RunCv1234_JRV3_MC
         level: L1L2L3Res
       
       2023_postBPix:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23BPixPrompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23BPixPrompt23_V4_MC
         jec_data: Summer23BPixPrompt23_V4_DATA
-        jer: Summer23BPixPrompt23_JRV3_MC
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         level: L1L2L3Res
 
       "2024":
@@ -1024,6 +1024,25 @@ jets_calibration:
   # setup `jets_calibration.variations == "${default_jets_calibration.variations.full_variations}"` to use all variations
   # variations: "${default_jets_calibration.variations.full_variations}"
   variations: "${default_jets_calibration.variations.total_variation}"
+
+  # Run3 forward jets mitigations of PocketCoffea, each one switched on separately
+  # (see pocket_coffea/parameters/jets_calibration.yaml). pt_cut_HE rejects the jets with
+  # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in every jet selection (only the
+  # VBF jets reach |eta| > 2.5).
+  forward_jets_mitigation:
+    pt_cut_HF:
+      apply: False
+    pt_cut_HE:
+      apply: True
+      # pt > 50 GeV in 2.5 < |eta| < 3.0 also in 2025 (PocketCoffea default: 2022-2024)
+      eta_regions:
+        "2025": [[2.5, 3.0]]
+    jer_genmatched_only:
+      apply: True
+    residual_pt_floor:
+      apply: False
+    raw_factor_cut:
+      apply: True
 
 # path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/JERC_json/JERC_json_forPNetUParT_WithJER/"
 path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/tharte/JERC_json/JERC_json_forPNetUParT_WithJER/"

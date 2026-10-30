@@ -1,0 +1,95 @@
+# Object preselection of the synchronization (configs/HH4b_synchronization/HH4b_synchronization.py):
+# the second approach one (configs/HH4b_common/params/object_preselection_second_approach.yaml) with
+# - Jet (JetGood): pt > 15 GeV
+# - JetVBF: no pt threshold
+# - JetCuts: the jets of the preselection (hh4b_4jets_presel)
+# - JetSync: the AK4 jets saved in the synchronization tree (only used for the
+#   saved variables)
+# - JetSyncNoPt: as JetSync without pt threshold (only saved)
+# - the `dr_lep` lines clean the jets against the selected leptons (DeltaR > 0.4),
+#   as in the synchronization tree (commented out)
+object_preselection:
+  ## Jet selection
+  # Jets considered for the HH reconstruction: AK4PFPuppi, Tight ID, |eta| < 2.5,
+  # pt > 15 GeV
+  Jet:
+    pt: 15
+    eta: 2.5
+    jetId: 2 # 2 tight, 6 tight with lepton veto
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+  # AK4 jets saved in the synchronization tree: pt > 15 GeV, |eta| < 4.7, Tight ID,
+  # DeltaR > 0.4 from the selected leptons
+  JetSync:
+    pt: 15
+    eta: 4.7
+    jetId: 2
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+  # same as JetSync, without pt threshold (saved in the synchronization tree)
+  JetSyncNoPt:
+    pt: 0
+    eta: 4.7
+    jetId: 2
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+  JetCuts:
+    pt: 0
+    eta: 2.5
+    jetId: 2
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+  
+  ## Lepton selection (event veto)
+  # the impact parameter cuts are |dz| < dz_lowEta, |dxy| < dxy_lowEta for
+  # |eta| < eta_threshold, and |dz| < dz_highEta, |dxy| < dxy_highEta above it
+  Electron:
+    pt: 15
+    eta: 2.5
+    id:
+      type: mvaIso_WP90
+      working_point: 1 # boolean ID: 1 = passing
+    iso: 0.15 # pfRelIso03_all
+    eta_threshold: 1.479
+    dz_lowEta: 0.1
+    dz_highEta: 0.2
+    dxy_lowEta: 0.05
+    dxy_highEta: 0.1
+
+  Muon:
+    pt: 10
+    eta: 2.4
+    id: looseId
+    iso:
+      type: pfRelIso04_all
+      max_value: 0.15
+    eta_threshold: 1.479
+    dz_lowEta: 0.1
+    dz_highEta: 0.2
+    dxy_lowEta: 0.05
+    dxy_highEta: 0.1
+
+  ## VBF jet selection
+  # VBF candidates: AK4PFPuppi, Tight ID, no pt threshold, |eta| < 4.7, not passing
+  # the medium b-tag WP of the year's algorithm (PNet 2022-2023, UParT 2024-2025).
+  # The pt_cut_HE forward jets mitigation is switched off in the synchronization
+  # config.
+  JetVBF:
+    pt: 0
+    eta: 4.7
+    jetId: 2 # 2 tight, 6 tight with lepton veto
+    max_btag_wp: M
+    # cleaning against the selected leptons (ElectronGood, MuonGood)
+    # dr_lep: 0.4
+    # clean_ele_coll: ElectronGood
+    # clean_mu_coll: MuonGood
+    delta_eta: 3.5
+    mjj: 400

@@ -72,7 +72,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             # directly gives a UnionArray with broken indices (awkward 1.x)
             jet_colls_total = [
                 padded,
-                self.events["JetGoodVBFLeadingMjj"],
+                self.spanet_vbf_pair(),
                 self.events["JetAdditionalGoodVBF"],
             ]
             self.events["JetTotalSPANetPadded"] = ak.zip(
@@ -84,15 +84,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     if all(field in coll.fields for coll in jet_colls_total)
                 },
                 with_name="PtEtaPhiMLorentzVector",
-            )
-
-            # create a new collection which is similar to the one of the AN
-            self.events["JetGoodHiggsPlusVBF1mjjAN"] = ak.concatenate(
-                [
-                    self.events["JetGoodHiggs"],
-                    self.events["JetGoodVBFLeadingMjjAN"],
-                ],
-                axis=1,
             )
 
             # collections with provenance_higgs and provenance_vbf saved separately
@@ -175,7 +166,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events["HiggsLeading"],
                     self.events["HiggsSubLeading"],
                     self.events["JetGoodFromHiggsOrdered"],
-                ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
+                ) = run2_matching_algorithm(
+                    self.events["JetGoodHiggs"],
+                    pt_in_hh_frame=self.approach == "second",
+                )
 
             # Define mjj, delta eta and centrality of leading mjj vbf jet candidates
             if self._isMC and self.random_pt:
