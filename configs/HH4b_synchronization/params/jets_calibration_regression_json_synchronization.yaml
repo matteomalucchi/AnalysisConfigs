@@ -1026,31 +1026,37 @@ jets_calibration:
   variations: "${default_jets_calibration.variations.total_variation}"
 
   # Run3 jets mitigations of PocketCoffea, each one switched on separately
-  # (see pocket_coffea/parameters/jets_calibration.yaml). pt_cut_HE rejects the jets with
-  # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in every AK4 jet selection (only the
-  # VBF jets reach |eta| > 2.5).
+  # (see pocket_coffea/parameters/jets_calibration.yaml).
   jets_mitigation:
-    # every AK4 jet used in the analysis: the standard AK4PFPuppi jets (also the
-    # CorrT1METJet ones, aliased to AK4PFPuppi) and the pt-regressed ones
+    ## Selection mitigations: every AK4 jet selection (never the FatJets), on the
+    ## pt_type pt of custom_jet_selection.
+
+    # pt > 50 GeV in 2.5 < |eta| < 3 (2022-2024, and 2025 here): only the VBF jets reach
+    # |eta| > 2.5
+    # (switched off in the synchronization)
+    pt_cut_HE:
+      apply: False
+      eta_regions:
+        "2025": [[2.5, 3.0]]
+    pt_cut_HF:
+      apply: False
+    raw_factor_cut:
+      apply: True
+
+    ## Calibration mitigations: only the jet types of jet_types.
+
+    # every AK4 jet type calibrated in the analysis: the standard AK4PFPuppi jets (also
+    # the CorrT1METJet ones, aliased to AK4PFPuppi) and the pt-regressed ones
     jet_types:
       - AK4PFPuppi
       - AK4PFPuppiPNetRegression
       - AK4PFPuppiPNetRegressionPlusNeutrino
       - AK4PFPuppiUParTRegression
       - AK4PFPuppiUParTRegressionPlusNeutrino
-    pt_cut_HF:
-      apply: False
-    pt_cut_HE:
-      apply: False
-      # pt > 50 GeV in 2.5 < |eta| < 3.0 also in 2025 (PocketCoffea default: 2022-2024)
-      eta_regions:
-        "2025": [[2.5, 3.0]]
     jer_genmatched_only:
       apply: True
     residual_pt_floor:
       apply: False
-    raw_factor_cut:
-      apply: True
 
   # Synchronization only (configs/HH4b_synchronization/workflow.py): JER of another
   # period for the jets of a year. For each jet type the JEC stays the one of the

@@ -244,15 +244,17 @@ them to `config_options_dict` while building the `Configurator`.
 ### Jets mitigations
 
 `params/jets_calibration_regression_json.yaml` switches on the PocketCoffea Run3 jets
-mitigations (`jets_calibration.jets_mitigation`): `pt_cut_HE` (pt > 50 GeV in
-2.5 < \|η\| < 3.0, also in 2025), `jer_genmatched_only` and `raw_factor_cut`. They are applied to
-every AK4 jet of the analysis: `jet_types` lists `AK4PFPuppi` (also the `CorrT1METJet` jets,
-aliased to it) and the pt-regressed jet types (`AK4PFPuppiPNetRegression[PlusNeutrino]`,
-`AK4PFPuppiUParTRegression[PlusNeutrino]`), so the JER mitigation acts in the calibration of
-`JetDefault`, `JetPtRegressed` and `JetPtRegressedPlusNeutrino`, and the selection ones in every
-AK4 selection made with `custom_jet_selection` (which selects the collection as `AK4PFPuppi`).
-The `FatJet` selections never get them. The synchronization config uses its own copy of the
-file, with `pt_cut_HE` switched off.
+mitigations (`jets_calibration.jets_mitigation`):
+
+- selection mitigations, applied by PocketCoffea to every AK4 jet selection (also the ones made
+  with `custom_jet_selection`, on its `pt_type` pt), never to the FatJets: `pt_cut_HE`
+  (pt > 50 GeV in 2.5 < \|η\| < 3.0, also in 2025) and `raw_factor_cut`;
+- calibration mitigation `jer_genmatched_only`, applied to the jet types of `jet_types`:
+  `AK4PFPuppi` (also the `CorrT1METJet` jets, aliased to it) and the pt-regressed jet types
+  (`AK4PFPuppiPNetRegression[PlusNeutrino]`, `AK4PFPuppiUParTRegression[PlusNeutrino]`), i.e.
+  the calibration of `JetDefault`, `JetPtRegressed` and `JetPtRegressedPlusNeutrino`.
+
+The synchronization config uses its own copy of the file, with `pt_cut_HE` switched off.
 
 ### Second approach
 
