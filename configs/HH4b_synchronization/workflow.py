@@ -8,7 +8,6 @@ from pocket_coffea.lib.jets import (
     abs_eta_in_regions,
     compute_jetId,
     get_jets_mitigation,
-    jets_mitigation_config,
     get_jer_correction_set,
     get_jersmear_SFunc,
     safe_jersmear,
@@ -59,7 +58,9 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         if not overrides:
             return
         collections = self.params.jets_calibration.collection[self._year]
-        mitigation_cfg = jets_mitigation_config(self.params.jets_calibration)
+        mitigation_cfg = OmegaConf.select(
+            self.params, "jets_calibration.jets_mitigation"
+        )
         for jet_type, jer_cfg in overrides.items():
             coll = collections.get(jet_type)
             if coll is None or coll not in self.events.fields:
