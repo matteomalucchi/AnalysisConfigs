@@ -101,11 +101,11 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events["FatJet"].mass_raw * self.events["FatJet"].globalParT3_massCorrGeneric,  # Check, if we should use globalParT3_massCorrGeneric
                     "mass"
                 )
-                # self.events["FatJet"] = ak.with_field(
-                #     self.events["FatJet"],
-                #     self.events["FatJet"].pt_raw * self.events["FatJet"].globalParT3_massCorrGeneric,
-                #     "pt_regr"
-                # )
+                self.events["FatJet"] = ak.with_field(
+                    self.events["FatJet"],
+                    self.events["FatJet"].mass_raw * self.events["FatJet"].globalParT3_massCorrX2p,  # Check, if we should use globalParT3_massCorrGeneric
+                    "mass_x2p"
+                )
             else:
                 self.events["FatJet"] = ak.with_field(self.events["FatJet"], self.events["FatJet"]["mass"], "mass_orig")
                 self.events["FatJet"] = ak.with_field(

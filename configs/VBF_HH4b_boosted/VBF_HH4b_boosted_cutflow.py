@@ -273,8 +273,8 @@ column_list = get_columns_list(
         "Jet": ["pt", "eta", "phi", "mass", "pt_raw", "mass_raw"],
         "FatJet": ["pt", "eta", "phi", "msoftdrop", "mass_orig", "mass", "btagBBTXbb", "pt_raw", "mass_raw", "msoftdrop_raw"],
         "JetGood": ["pt", "eta", "phi", "mass", "pt_raw", "mass_raw"],
-        "FatJetGood": ["pt", "eta", "phi", "msoftdrop", "mass_orig", "mass", "btagBBTXbb", "pt_raw", "mass_raw", "msoftdrop_raw"],
-        "events": ["HT_jetJetGood", "nJetGood", "HT_jetJet", "nJet", "nFatJet", "nFatJetGood", "event"],
+        "FatJetGood": ["pt", "eta", "phi", "msoftdrop", "mass_orig", "mass", "mass_x2p", "btagBBTXbb", "pt_raw", "mass_raw", "msoftdrop_raw"],
+        "events": ["HT_jetJetGood", "nJetGood", "HT_jetJet", "nJet", "nFatJet", "nFatJetGood", "event", "luminosityBlock"],
         # "events": ["HT_jetJetGoodVBF", "HT_jetJetGood", "nJetGood", "nFatJetGoodSelected", "event", "boosted_bdt_score", "boosted_bdt_vbf_score", "mjjJetGoodVBFGood", "mjjJetGoodVBF", "mjjJetGoodVBF", "detaJetGoodVBF", "detaJetGoodVBFGood", "HiggsLeadingByHiggsSubLeadingPt"],
         # "JetGoodVBFNearHiggsLeading": ["pt", "eta", "phi", "mass"],
         # "JetGoodVBFNearHiggsSubLeading": ["pt", "eta", "phi", "mass"],
@@ -294,6 +294,11 @@ mc_only_column_list = get_columns_list(
         "FatJetGood": ["pt_gen"],
     }
 )
+yield_column_list = get_columns_list(
+    {
+        "events": ["event", "luminosityBlock"],
+    }
+)
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
@@ -302,6 +307,14 @@ for sample in sample_list:
         "bycategory": {
             "passthrough": column_list
             + (mc_only_column_list if "DATA" not in sample else []),
+            "MET_filter": yield_column_list,
+            "Jet_Veto_map":  yield_column_list,
+            "Jet_Veto_map+MET_filters":  yield_column_list,
+            "2AK8Jets":  yield_column_list,
+            "2AK8Jets+Jet_Veto_map+MET_filters":  yield_column_list,
+            "0lep":  yield_column_list,
+            "ak8bbcut":  yield_column_list,
+
         },
     }
 
@@ -335,9 +348,10 @@ cfg = Configurator(
     categories={
         "passthrough": [passthrough],
         "MET_filter": [eventFlags],
-        "Jet_Veto_map": [eventFlags, cuts.hh4b_JetVetoMap],
-        "2AK8Jetsonly": [cuts.hh4b_boosted_2fatjets],
-        "2AK8Jets": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets],
+        "Jet_Veto_map": [cuts.hh4b_JetVetoMap],
+        "Jet_Veto_map+MET_filters": [eventFlags, cuts.hh4b_JetVetoMap],
+        "2AK8Jets": [cuts.hh4b_boosted_2fatjets],
+        "2AK8Jets+Jet_Veto_map+MET_filters": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets],
         "0lep": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets, cuts.hh4b_boosted_lepton_veto],
         "ak8bbcut": [eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets, cuts.hh4b_boosted_lepton_veto, cuts.hh4b_boosted_baseline(config_options_dict["region_setting"])],
         },
