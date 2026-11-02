@@ -102,8 +102,10 @@ def custom_jet_selection(
         pt_cut_name: str, name of the pt cut in the params (e.g. "pt", "pt_tight")
 
     The low-pt forward jet cuts and the rawFactor cut of PocketCoffea
-    (params.jets_calibration.forward_jets_mitigation) are applied on the pt_type pt
-    when they are switched on in the parameters.
+    (params.jets_calibration.jets_mitigation) are applied on the pt_type pt
+    when they are switched on in the parameters: to every AK4 collection (selected
+    as AK4PFPuppi, which has to be in jets_mitigation.jet_types), never to the
+    FatJet ones.
     The pt cut can be given per year as {"default": value, <year>: value}.
     With `max_btag_wp` (e.g. "M") in the object preselection, the jets passing that
     b-tag working point of the year's algorithm (generic `btagB` field) are rejected.
@@ -123,6 +125,10 @@ def custom_jet_selection(
         params_copy.object_preselection[jet_type_obj_presel][pt_cut_name], year
     )
     params_copy.jets_calibration.collection[year] = {"AK4PFPuppi": jet_type_default}
+    if jet_type_default == "FatJet" and "jets_mitigation" in params_copy.jets_calibration:
+        # the jets mitigations are for the AK4 jets only: the FatJet collection is
+        # mapped to AK4PFPuppi above only for the jetId
+        params_copy.jets_calibration.jets_mitigation.jet_types = []
 
     # create a copy of events to avoid modifying the original one
     # replace the jet_type_default collection with the jet_type one

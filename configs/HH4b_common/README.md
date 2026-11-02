@@ -241,6 +241,19 @@ them to `config_options_dict` while building the `Configurator`.
 | `JetGoodVBFEnergyOrdered` | VBF pair used by the VBF categories, ordered by energy: the one predicted by SPANet when the model predicts the VBF jets; otherwise, out of the candidates left over by the Higgs pairing, the one predicted by the VBF pairing model (`vbf_pairing_from_vbf_discriminator`) or, without it, `leading_pt_opposite_eta` in the second approach and `leading_mjj` otherwise. |
 | `JetGoodVBFSelectedPair` | Resolved analysis: the same pair ordered by pt, saved in the output of the VBF configs (`VBF_SELECTED_PAIR_COLUMNS`). |
 
+### Jets mitigations
+
+`params/jets_calibration_regression_json.yaml` switches on the PocketCoffea Run3 jets
+mitigations (`jets_calibration.jets_mitigation`): `pt_cut_HE` (pt > 50 GeV in
+2.5 < \|η\| < 3.0, also in 2025), `jer_genmatched_only` and `raw_factor_cut`. They are applied to
+every AK4 jet of the analysis: `jet_types` lists `AK4PFPuppi` (also the `CorrT1METJet` jets,
+aliased to it) and the pt-regressed jet types (`AK4PFPuppiPNetRegression[PlusNeutrino]`,
+`AK4PFPuppiUParTRegression[PlusNeutrino]`), so the JER mitigation acts in the calibration of
+`JetDefault`, `JetPtRegressed` and `JetPtRegressedPlusNeutrino`, and the selection ones in every
+AK4 selection made with `custom_jet_selection` (which selects the collection as `AK4PFPuppi`).
+The `FatJet` selections never get them. The synchronization config uses its own copy of the
+file, with `pt_cut_HE` switched off.
+
 ### Second approach
 
 `approach = "second"` implements the selection of the HIG-24-010 second approach:
@@ -251,7 +264,7 @@ them to `config_options_dict` while building the `Configurator`.
 - **Skim**: noise filters, golden JSON, ≥ 1 good PV and the HLT paths of `params/triggers.yaml` (2022: `QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65`; 2023 preBPix: `QuadPFJet70_50_40_35_PNet2BTagMean0p65` (JetMET) or `PFHT280_QuadPFJet30_PNet2BTagMean0p55` (ParkingHH); 2023 postBPix: `PFHT280_QuadPFJet30_PNet2BTagMean0p55`; 2024-2025: `PFHT250_QuadPFJet25_PNet2BTagMean0p55`). No L1 seed requirement.
 - **Event preselection** (`hh4b_presel_second_approach`): lepton veto, ≥ 4 `JetGood` with pt > 70, 50, 40, 35 GeV (2022) or 30 GeV (2023-2025), ≥ 2 `JetGood` with pt > 30 GeV passing the medium WP of the year's tagger, the mean of the 2 highest b-tag scores > 0.65 (2022) / 0.55 (2023) (no cut in 2024-2025), and the jet veto maps.
 - **HH reconstruction** without SPANet (`run2 = True`): D_HH on the 4 `JetGood` leading in b-tag score, with the leading Higgs candidate of each pairing taken as the one with the higher pt, and the tie-break (ΔD_HH < 30 GeV) on the pt of the Higgs candidates in the HH rest frame. With SPANet the Higgs and VBF jets are the ones of the model.
-- **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` forward jets mitigation, extended to 2025 in `params/jets_calibration_regression_json.yaml`). VBF pair: leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$.
+- **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` jets mitigation, extended to 2025 in `params/jets_calibration_regression_json.yaml`). VBF pair: leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$.
 
 - **Regions** (`define_second_approach_categories`, used by `define_categories` when `approach = "second"`). In the ($M_{H1}$, $M_{H2}$) plane, with
   $X_{HH} = \sqrt{(M_{H1}-125)^2 + (M_{H2}-120)^2}$ and $X_{ab} = \sqrt{((M_{H1}-m_a)/(0.1 M_{H1}))^2 + ((M_{H2}-m_b)/(0.1 M_{H2}))^2}$ with $m_H = 125$ (H1) / 120 (H2), $m_Z = 91$ (H1) / 89 (H2):

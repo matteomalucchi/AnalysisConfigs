@@ -80,7 +80,7 @@ object_preselection:
   ## VBF jet selection
   # VBF candidates: AK4PFPuppi, Tight ID, no pt threshold, |eta| < 4.7, not passing
   # the medium b-tag WP of the year's algorithm (PNet 2022-2023, UParT 2024-2025).
-  # The pt_cut_HE forward jets mitigation is switched off in the synchronization
+  # The pt_cut_HE jets mitigation is switched off in the synchronization
   # config.
   JetVBF:
     pt: 0

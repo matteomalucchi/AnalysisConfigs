@@ -7,7 +7,8 @@ from omegaconf import OmegaConf
 from pocket_coffea.lib.jets import (
     abs_eta_in_regions,
     compute_jetId,
-    get_forward_jets_mitigation,
+    get_jets_mitigation,
+    jets_mitigation_config,
     get_jer_correction_set,
     get_jersmear_SFunc,
     safe_jersmear,
@@ -49,7 +50,7 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         (`jets_calibration.collection`) is smeared again from its JEC-corrected pt
         (`pt_raw * jec_factor`), with the same gen matching (dR < R/2 in
         `pt_gen`, |pt - pt_gen| < 3 sigma), random seed inputs and
-        `jer_genmatched_only` forward jets mitigation as the jet calibration.
+        `jer_genmatched_only` jets mitigation as the jet calibration.
         Only the nominal JER is replaced.
         """
         overrides = OmegaConf.select(
@@ -58,9 +59,7 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         if not overrides:
             return
         collections = self.params.jets_calibration.collection[self._year]
-        mitigation_cfg = OmegaConf.select(
-            self.params, "jets_calibration.forward_jets_mitigation"
-        )
+        mitigation_cfg = jets_mitigation_config(self.params.jets_calibration)
         for jet_type, jer_cfg in overrides.items():
             coll = collections.get(jet_type)
             if coll is None or coll not in self.events.fields:
@@ -120,8 +119,8 @@ class SyncHH4bProcessor(VBFHH4bProcessor):
         )
         smear = safe_jersmear(get_jersmear_SFunc(eval_dict, ceval_jer, jer_sf_tag))
 
-        # forward jets mitigation: no stochastic smearing in the regions
-        genmatched_only = get_forward_jets_mitigation(
+        # jets mitigation: no stochastic smearing in the regions
+        genmatched_only = get_jets_mitigation(
             mitigation_cfg, "jer_genmatched_only", self._year, jet_type
         )
         if genmatched_only is not None:

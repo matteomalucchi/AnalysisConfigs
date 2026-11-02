@@ -1025,11 +1025,19 @@ jets_calibration:
   # variations: "${default_jets_calibration.variations.full_variations}"
   variations: "${default_jets_calibration.variations.total_variation}"
 
-  # Run3 forward jets mitigations of PocketCoffea, each one switched on separately
+  # Run3 jets mitigations of PocketCoffea, each one switched on separately
   # (see pocket_coffea/parameters/jets_calibration.yaml). pt_cut_HE rejects the jets with
-  # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in every jet selection (only the
+  # pt < 50 GeV in 2.5 < |eta| < 3 (2022-2024) in every AK4 jet selection (only the
   # VBF jets reach |eta| > 2.5).
-  forward_jets_mitigation:
+  jets_mitigation:
+    # every AK4 jet used in the analysis: the standard AK4PFPuppi jets (also the
+    # CorrT1METJet ones, aliased to AK4PFPuppi) and the pt-regressed ones
+    jet_types:
+      - AK4PFPuppi
+      - AK4PFPuppiPNetRegression
+      - AK4PFPuppiPNetRegressionPlusNeutrino
+      - AK4PFPuppiUParTRegression
+      - AK4PFPuppiUParTRegressionPlusNeutrino
     pt_cut_HF:
       apply: False
     pt_cut_HE:
