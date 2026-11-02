@@ -282,7 +282,7 @@ file, with `pt_cut_HE` switched off.
   With `bkg_morphing_dnn` the `SR2M_postW` and `CR2M_postW` categories get the morphing weights on data, with `blind` the `SR3T1M_blind` and `SR3T1L_blind` categories apply the blinding cut.
 - **VBF regions** (`define_second_approach_vbf_categories`, with `vbf_analysis`): two VBF jets (`JetGoodVBFEnergyOrdered`) with $m_{jj}$ > 400 GeV and $\Delta\eta$ > 3.5, plus the ggF/VBF score above `ggf_vbf_threshold` when a `vbf_discriminator` is set, in the SR and CR of the mass plane of the high b-tag categories, which depend on the year (`SECOND_APPROACH_VBF_BTAG_CATEGORIES`): `vbf_SR3T1M`, `vbf_CR3T1M`, `vbf_SR3T1L`, `vbf_CR3T1L` (2022-2023) and `vbf_SR4M`, `vbf_CR4M` (2024-2025), empty in the other years. `vbf_SR2M`, `vbf_CR2M` (and their `_postW` versions with `bkg_morphing_dnn`) are the corresponding 2M regions for the background estimate.
 
-Not implemented: the offline-online trigger object matching (2022-2023), the JER smearing factor derived from the standard-JEC jets and applied on top of the regressed jets (the regressed collections are smeared with their own JER) and the b-tag SFs of the second approach.
+Not implemented: the offline-online trigger object matching (2022-2023) and the b-tag SFs of the second approach. The JER smearing factor of the standard-JEC jets applied on top of the regressed jets is the `regressed_jets_default_jer` option (off by default: the regressed collections are then smeared with their own JER).
 
 ## Full analysis workflow
 
