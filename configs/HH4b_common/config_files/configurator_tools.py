@@ -378,6 +378,16 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
                 )
             else:
                 raise ValueError("Unrecognized region name")
+    # ggF region: complement of the full VBF selection, i.e. events failing any
+    # of: >= 2 VBF jets, mjj and deta cuts, ggF vs VBF discriminator cut (only
+    # if a `ggf_vbf_threshold` is given)
+    if "ggf" in category_name:
+        cut_list.append(
+            cuts.hh4b_vbf_selection_region(
+                ggf_vbf_threshold if ggf_vbf_threshold not in (False, None) else None,
+                pass_vbf=False,
+            )
+        )
     if "high_score" in category_name:
         cut_list.append(cuts.hh4b_sig_bkg_score_cut(0.5))
 
@@ -447,23 +457,57 @@ SECOND_APPROACH_VBF_BTAG_CATEGORIES = {
 }
 
 
+def define_vbf_ggf_categories(
+    inclusive_categories,
+    vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,
+    vbf_kin_cuts=True,
+):
+    """VBF and ggF categories, defined in the same way in every approach.
+
+    For each inclusive category `<name>` (b-tag and mass-plane cuts, which
+    depend on the approach) two categories are defined:
+      - `vbf_<name>`: VBF selection, i.e. >= 2 VBF jets
+        (`JetGoodVBFEnergyOrdered`, whose definition depends on the approach),
+        with mjj > 400 GeV and deta > 3.5 if `vbf_kin_cuts` and, with a
+        `vbf_discriminator`, the ggF/VBF score >= `ggf_vbf_threshold`
+      - `ggf_<name>`: events failing any of the cuts of the VBF selection
+    so that `vbf_<name>` and `ggf_<name>` are orthogonal and cover `<name>`.
+    """
+    vbf_cut_list = [cuts.hh4b_vbf_2_jets]
+    if vbf_kin_cuts:
+        vbf_cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
+    if vbf_discriminator:
+        vbf_cut_list.append(
+            cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold)
+        )
+    # complement of the full VBF selection
+    ggf_cut = cuts.hh4b_vbf_selection_region(
+        ggf_vbf_threshold if vbf_discriminator else None,
+        pass_vbf=False,
+        kin_cuts=vbf_kin_cuts,
+    )
+    categories_dict = {}
+    for name, cut_list in inclusive_categories.items():
+        categories_dict[f"vbf_{name}"] = cut_list + vbf_cut_list
+        categories_dict[f"ggf_{name}"] = cut_list + [ggf_cut]
+    return categories_dict
+
+
 def define_second_approach_vbf_categories(
     bkg_morphing_dnn=False, vbf_discriminator=False, ggf_vbf_threshold=0.95
 ):
-    """VBF regions of the second approach.
-
-    VBF selection: two VBF jets with mjj > 400 GeV and deta > 3.5 (and, with a
-    `vbf_discriminator`, the ggF/VBF score above `ggf_vbf_threshold`), in the
-    SR and CR of the mass plane of:
+    """VBF and ggF regions of the second approach (`define_vbf_ggf_categories`
+    without the mjj and deta cuts: the VBF selection is only the presence of
+    the 2 VBF jets and the ggF/VBF score cut), in the SR and CR of the mass
+    plane of:
       - the high b-tag categories of `SECOND_APPROACH_VBF_BTAG_CATEGORIES`
         (3T1M and 3T1L in 2022-2023, 4M in 2024-2025; empty in the other years):
         vbf_SR3T1M, vbf_CR3T1M, vbf_SR3T1L, vbf_CR3T1L, vbf_SR4M, vbf_CR4M
       - the 2M category for the background estimate: vbf_SR2M, vbf_CR2M
         (and vbf_SR2M_postW, vbf_CR2M_postW with `bkg_morphing_dnn`)
+    and the corresponding ggF regions (ggf_SR3T1M, ..., ggf_CR2M_postW).
     """
-    vbf_cuts = [cuts.hh4b_vbf_2_jets, cuts.hh4b_vbf_best_candidates_6_jets_region]
-    if vbf_discriminator:
-        vbf_cuts.append(cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold))
     regions = {
         "SR": cuts.hh4b_mass_plane_region("signal"),
         "CR": cuts.hh4b_mass_plane_region("control"),
@@ -474,18 +518,46 @@ def define_second_approach_vbf_categories(
     }
     btag_categories["2M"] = cuts.hh4b_btag_category("2M")
 
-    categories_dict = {}
+    inclusive_categories = {}
     for category, btag_cut in btag_categories.items():
         for region, region_cut in regions.items():
-            categories_dict[f"vbf_{region}{category}"] = [
-                region_cut,
-                btag_cut,
-                *vbf_cuts,
-            ]
+            inclusive_categories[f"{region}{category}"] = [region_cut, btag_cut]
     if bkg_morphing_dnn:
-        for name in ("vbf_SR2M", "vbf_CR2M"):
-            categories_dict[f"{name}_postW"] = categories_dict[name]
-    return categories_dict
+        for name in ("SR2M", "CR2M"):
+            inclusive_categories[f"{name}_postW"] = inclusive_categories[name]
+    return define_vbf_ggf_categories(
+        inclusive_categories, vbf_discriminator, ggf_vbf_threshold, vbf_kin_cuts=False
+    )
+
+
+def define_first_approach_vbf_categories(
+    bkg_morphing_dnn=False,
+    vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,
+    mixeddata=False,
+    expandCR=False,
+):
+    """VBF and ggF regions of the first approach (`define_vbf_ggf_categories`),
+    in the signal and control regions of:
+      - the 4b category: vbf_4b_signal_region, vbf_4b_control_region
+      - the 2b category (4b with `mixeddata`) with the morphing weights, for
+        the background estimate (only with `bkg_morphing_dnn`):
+        vbf_2b_signal_region_postW, vbf_2b_control_region_postW
+    and the corresponding ggF regions (ggf_4b_signal_region, ...,
+    ggf_2b_control_region_postW).
+    """
+    inclusive_categories = {}
+    inclusive_categories |= define_single_category("4b_signal_region")
+    inclusive_categories |= define_single_category("4b_control_region")
+    if bkg_morphing_dnn:
+        n_b = "4b" if mixeddata else "2b"
+        inclusive_categories |= define_single_category(f"{n_b}_signal_region_postW")
+        inclusive_categories |= define_single_category(
+            f"{n_b}_control_region_postW", expandCR
+        )
+    return define_vbf_ggf_categories(
+        inclusive_categories, vbf_discriminator, ggf_vbf_threshold
+    )
 
 
 def define_categories(
@@ -656,40 +728,15 @@ def define_categories(
                         f"4b_signal_region_postW_high_score"
                     )
         if vbf_analysis:
-            # NOTE: this region requires at least 6 jets
-            categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_4b_region"
-            )
-            # NOTE: this region requires at least 6 jets
-            categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_nokincut_4b_region"
-            )
-
             if vbf_discriminator:
-                # NOTE: these regions require the VBF preselection (deta and
-                # mjj of the VBF jets) and the vbf vs ggf score above (pass)
-                # or below (fail) the threshold
-                for n_b in ["4b", "2b"]:
-                    # for discr in ["pass", "fail"]:
-                    for discr in ["pass"]:
-                        # for region in ["region", "signal_region", "control_region"]:
-                        for region in ["signal_region", "control_region"]:
-                            if n_b == "2b":
-                                if bkg_morphing_dnn:
-                                    categories_dict |= define_single_category(
-                                        f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_postW_{region}",
-                                        ggf_vbf_threshold=ggf_vbf_threshold,
-                                    )
-                                
-                                categories_dict |= define_single_category(
-                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_preW_{region}",
-                                    ggf_vbf_threshold=ggf_vbf_threshold,
-                                )
-                            else:
-                                categories_dict |= define_single_category(
-                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_{region}",
-                                    ggf_vbf_threshold=ggf_vbf_threshold,
-                                )
+                categories_dict = {}
+            categories_dict |= define_first_approach_vbf_categories(
+                bkg_morphing_dnn,
+                vbf_discriminator,
+                ggf_vbf_threshold,
+                mixeddata,
+                expandCR,
+            )
     else:
         categories_dict |= define_single_category(f"4b_VR1_control_region")
         categories_dict |= define_single_category(

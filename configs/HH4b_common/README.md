@@ -117,7 +117,7 @@ created — if no model at all is given (and `boosted` is `False`), only the
 | `spanet_vbf_candidates` | `"leading_mjj"` | VBF pair fed to SPANet (`JetTotalSPANetPadded`, `JetGoodVBFMergedProvVBFPadded`) before the additional VBF jets. `"leading_mjj"`: the pair leading in $m_{jj}$, as for the SPANet models trained so far. `"leading_pt_opposite_eta"`: the leading-pt jet and the leading-pt jet with $\eta_1 \eta_2 < 0$, as the VBF pair of the second approach. |
 | `vbf_matching_after_higgs_pairing` | `False` | Run the SPANet Higgs pairing first and define the VBF candidates from the jets left over by the pairing, instead of from the b-tag-ordered `JetGoodClip` collection. Requires `spanet`. |
 | `vbf_pairing_from_vbf_discriminator` | `False` | Take the VBF pair (`JetGoodVBFEnergyOrdered`) from the SPANet model given in `vbf_discriminator` instead of using the leading-mjj pair. Requires a standalone model (different file from `spanet`) predicting the VBF jet assignment (2 jets) on top of the ggF/VBF classification, with its sequential inputs read from the VBF candidate collection. The model is run only once and also provides `VBF_ggF_score`. |
-| `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to split the pass/fail VBF categories. Only relevant if `vbf_discriminator` is set. |
+| `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used in the VBF categories. Only relevant if `vbf_discriminator` is set. See [VBF and ggF categories](#vbf-and-ggf-categories). |
 | `vbf_selection` | `None` | Boosted VBF only: overrides `vbf_analysis` when the categories are defined in [`VBF_HH4b_boosted_config.py`](../VBF_HH4b_boosted/VBF_HH4b_boosted_config.py), so that the VBF regions can be built without switching on the full VBF jet reconstruction in the workflow. `None` means "not set", i.e. `vbf_analysis` is used instead. |
 
 ### Fox-Wolfram momenta
@@ -241,6 +241,40 @@ them to `config_options_dict` while building the `Configurator`.
 | `JetGoodVBFEnergyOrdered` | VBF pair used by the VBF categories, ordered by energy: the one predicted by SPANet when the model predicts the VBF jets; otherwise, out of the candidates left over by the Higgs pairing, the one predicted by the VBF pairing model (`vbf_pairing_from_vbf_discriminator`) or, without it, `leading_pt_opposite_eta` in the second approach and `leading_mjj` otherwise. |
 | `JetGoodVBFSelectedPair` | Resolved analysis: the same pair ordered by pt, saved in the output of the VBF configs (`VBF_SELECTED_PAIR_COLUMNS`). |
 
+### VBF and ggF categories
+
+With `vbf_analysis`, the VBF and ggF categories are built in the same way in the
+first and in the second approach (`define_vbf_ggf_categories` in
+[`configurator_tools.py`](./config_files/configurator_tools.py)): for each
+inclusive category `<name>`, defined by the b-tag and mass-plane cuts of the
+approach, two orthogonal categories covering `<name>` are created:
+
+| Category | Selection |
+| --- | --- |
+| `vbf_<name>` | ≥ 2 VBF jets (`JetGoodVBFEnergyOrdered`), with $m_{jj}$ > 400 GeV and $\Delta\eta$ > 3.5 in the first approach only (`vbf_kin_cuts`), and, when a `vbf_discriminator` is set, `VBF_ggF_score` ≥ `ggf_vbf_threshold` |
+| `ggf_<name>` | events failing any of the cuts of `vbf_<name>` (`hh4b_vbf_selection_region(..., pass_vbf=False)`) |
+
+The VBF pair `JetGoodVBFEnergyOrdered` is the one predicted by SPANet when the
+model predicts the VBF jets (the ggF/VBF discriminator with
+`vbf_pairing_from_vbf_discriminator`, or the Higgs pairing model). Otherwise it
+is chosen among the jets left over by the Higgs pairing: in the first approach
+the pair leading in $m_{jj}$; in the second approach the leading-pt jet and,
+if present, the leading-pt jet with opposite $\eta$ ($\eta_1 \eta_2 < 0$).
+
+The approaches differ only in the definition of the jets (VBF candidates and
+pair, see [VBF jet candidates](#vbf-jet-candidates) and
+[Second approach](#second-approach)), in the $m_{jj}$/$\Delta\eta$ cuts
+(first approach only) and in the inclusive b-tag/mass-plane categories `<name>`:
+
+| Approach | Function | $m_{jj}$, $\Delta\eta$ cuts | `<name>` |
+| --- | --- | --- | --- |
+| `first` | `define_first_approach_vbf_categories` | yes | `4b_signal_region`, `4b_control_region`; with `bkg_morphing_dnn` also `2b_signal_region_postW`, `2b_control_region_postW` (`4b_*_postW` with `mixeddata`) |
+| `second` | `define_second_approach_vbf_categories` | no | `SR3T1M`, `CR3T1M`, `SR3T1L`, `CR3T1L` (2022-2023), `SR4M`, `CR4M` (2024-2025), `SR2M`, `CR2M`; with `bkg_morphing_dnn` also `SR2M_postW`, `CR2M_postW` |
+
+e.g. `vbf_4b_signal_region` / `ggf_4b_signal_region` (first) and `vbf_SR3T1M` /
+`ggf_SR3T1M` (second). In the first approach, when a `vbf_discriminator` is set,
+only the VBF and ggF categories are defined (the inclusive ones are dropped).
+
 ### Jets mitigations
 
 `params/jets_calibration_regression_json.yaml` switches on the PocketCoffea Run3 jets
@@ -266,7 +300,7 @@ The synchronization config uses its own copy of the file, with `pt_cut_HE` switc
 - **Skim**: noise filters, golden JSON, ≥ 1 good PV and the HLT paths of `params/triggers.yaml` (2022: `QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65`; 2023 preBPix: `QuadPFJet70_50_40_35_PNet2BTagMean0p65` (JetMET) or `PFHT280_QuadPFJet30_PNet2BTagMean0p55` (ParkingHH); 2023 postBPix: `PFHT280_QuadPFJet30_PNet2BTagMean0p55`; 2024-2025: `PFHT250_QuadPFJet25_PNet2BTagMean0p55`). No L1 seed requirement.
 - **Event preselection** (`hh4b_presel_second_approach`): lepton veto, ≥ 4 `JetGood` with pt > 70, 50, 40, 35 GeV (2022) or 30 GeV (2023-2025), ≥ 2 `JetGood` with pt > 30 GeV passing the medium WP of the year's tagger, the mean of the 2 highest b-tag scores > 0.65 (2022) / 0.55 (2023) (no cut in 2024-2025), and the jet veto maps.
 - **HH reconstruction** without SPANet (`run2 = True`): D_HH on the 4 `JetGood` leading in b-tag score, with the leading Higgs candidate of each pairing taken as the one with the higher pt, and the tie-break (ΔD_HH < 30 GeV) on the pt of the Higgs candidates in the HH rest frame. With SPANet the Higgs and VBF jets are the ones of the model.
-- **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` jets mitigation, extended to 2025 in `params/jets_calibration_regression_json.yaml`). VBF pair: leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$.
+- **VBF candidates**: pt > 30 GeV, \|η\| < 4.7, tight ID, not passing the medium WP; pt > 50 GeV in 2.5 < \|η\| < 3.0 (PocketCoffea `pt_cut_HE` jets mitigation, extended to 2025 in `params/jets_calibration_regression_json.yaml`). VBF pair (without a SPANet VBF prediction): leading-pt jet and leading-pt jet with $\eta_1 \eta_2 < 0$, if present. No $m_{jj}$/$\Delta\eta$ cut in the VBF categories.
 
 - **Regions** (`define_second_approach_categories`, used by `define_categories` when `approach = "second"`). In the ($M_{H1}$, $M_{H2}$) plane, with
   $X_{HH} = \sqrt{(M_{H1}-125)^2 + (M_{H2}-120)^2}$ and $X_{ab} = \sqrt{((M_{H1}-m_a)/(0.1 M_{H1}))^2 + ((M_{H2}-m_b)/(0.1 M_{H2}))^2}$ with $m_H = 125$ (H1) / 120 (H2), $m_Z = 91$ (H1) / 89 (H2):
@@ -282,7 +316,7 @@ The synchronization config uses its own copy of the file, with `pt_cut_HE` switc
   | `SR3M`, `CR3M`, `SR4M`, `CR4M` | exactly 3 M, 4 M | 2024 and 2025 only (empty in the other years) |
 
   With `bkg_morphing_dnn` the `SR2M_postW` and `CR2M_postW` categories get the morphing weights on data, with `blind` the `SR3T1M_blind` and `SR3T1L_blind` categories apply the blinding cut.
-- **VBF regions** (`define_second_approach_vbf_categories`, with `vbf_analysis`): two VBF jets (`JetGoodVBFEnergyOrdered`) with $m_{jj}$ > 400 GeV and $\Delta\eta$ > 3.5, plus the ggF/VBF score above `ggf_vbf_threshold` when a `vbf_discriminator` is set, in the SR and CR of the mass plane of the high b-tag categories, which depend on the year (`SECOND_APPROACH_VBF_BTAG_CATEGORIES`): `vbf_SR3T1M`, `vbf_CR3T1M`, `vbf_SR3T1L`, `vbf_CR3T1L` (2022-2023) and `vbf_SR4M`, `vbf_CR4M` (2024-2025), empty in the other years. `vbf_SR2M`, `vbf_CR2M` (and their `_postW` versions with `bkg_morphing_dnn`) are the corresponding 2M regions for the background estimate.
+- **VBF and ggF regions** (`define_second_approach_vbf_categories`, with `vbf_analysis`): the common VBF/ggF split of [VBF and ggF categories](#vbf-and-ggf-categories), applied to the SR and CR of the mass plane of the high b-tag categories, which depend on the year (`SECOND_APPROACH_VBF_BTAG_CATEGORIES`): `vbf_SR3T1M`, `vbf_CR3T1M`, `vbf_SR3T1L`, `vbf_CR3T1L` (2022-2023) and `vbf_SR4M`, `vbf_CR4M` (2024-2025), empty in the other years; and of the 2M category for the background estimate: `vbf_SR2M`, `vbf_CR2M` (and `vbf_SR2M_postW`, `vbf_CR2M_postW` with `bkg_morphing_dnn`). Each has its `ggf_` counterpart (`ggf_SR3T1M`, ..., `ggf_CR2M_postW`).
 
 Not implemented: the offline-online trigger object matching (2022-2023) and the b-tag SFs of the second approach. The JER smearing factor of the standard-JEC jets applied on top of the regressed jets is the `regressed_jets_default_jer` option (off by default: the regressed collections are then smeared with their own JER).
 

@@ -441,6 +441,25 @@ def hh4b_vbf_fail_discriminator_region(thresh):
         function=cuts_f.hh4b_vbf_discriminator_cuts,
     )
 
+def hh4b_vbf_selection_region(thresh=None, pass_vbf=True, kin_cuts=True):
+    """Full VBF selection (>= 2 VBF jets, mjj > 400 GeV and deta > 3.5 if
+    `kin_cuts`, and VBF_ggF_score >= `thresh` if `thresh` is not None).
+    With `pass_vbf=False` the events failing any of these cuts (ggF events)."""
+    return Cut(
+        name=f"hh4b_vbf_selection{'' if kin_cuts else '_nokincut'}"
+        f"_{'pass' if pass_vbf else 'fail'}_region",
+        params={
+            # mjj and deta are >= 0: -1 means no cut
+            "min_mjj": 400 if kin_cuts else -1,
+            "min_deta": 3.5 if kin_cuts else -1,
+            "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+            "discriminator": "VBF_ggF_score",
+            "threshold": thresh,
+            "pass": pass_vbf,
+        },
+        function=cuts_f.hh4b_vbf_selection_cuts,
+    )
+
 hh4b_vbf_2_jets = Cut(
     name="hh4b_vbf_2_jets",
     params={

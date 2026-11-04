@@ -1902,22 +1902,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return ~ak.all(btag_lead_used, axis=-1)
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
-        # Extract the single weight values for each event:
-        extract_single_weights = True
-        if extract_single_weights:
-            for name, weight in self.weights_manager._weightsObj.items():
-                weight_vals = weight.compute(
-                    self.events, self.nEvents_after_presel, "nominal"
-                ).nominal
-                logger.debug(f"Loading weight {name}")
-                logger.debug(weight_vals)
-                self.events = ak.with_field(
-                    self.events,
-                    weight_vals,
-                    f"weight_single_{name}",
-                )
-                logger.debug(f"Saving weight component: weight_single_{name}")
-
         if not self.boosted:
             # Define the Delta WP
             self.events["JetGood"] = self.generate_btag_delta_workingpoints(
@@ -2294,3 +2278,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 input_name_SIG_BKG_DNN,
                 output_name_SIG_BKG_DNN,
             )
+
+        # Extract the single weight values for each event. Done at the end, since
+        # some weights read fields defined above (e.g. `bkg_morphing_dnn_weight`)
+        extract_single_weights = False
+        if extract_single_weights:
+            for name, weight in self.weights_manager._weightsObj.items():
+                weight_vals = weight.compute(
+                    self.events, self.nEvents_after_presel, "nominal"
+                ).nominal
+                logger.debug(f"Loading weight {name}")
+                logger.debug(weight_vals)
+                self.events = ak.with_field(
+                    self.events,
+                    weight_vals,
+                    f"weight_single_{name}",
+                )
+                logger.debug(f"Saving weight component: weight_single_{name}")

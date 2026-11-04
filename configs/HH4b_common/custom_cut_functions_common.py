@@ -555,6 +555,18 @@ def hh4b_vbf_2_jets(events, params, **kwargs):
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def hh4b_vbf_selection_cuts(events, params, **kwargs):
+    """Full VBF selection: >= 2 VBF jets, mjj and deta cuts and, if
+    `threshold` is not None, the ggF/VBF discriminator above `threshold`.
+    With `pass` False, return the complement (events failing any of the cuts),
+    i.e. the ggF events."""
+    mask = hh4b_vbf_eta_mjj_cuts(events, params)
+    if params["threshold"] is not None:
+        mask = mask & hh4b_vbf_discriminator_cuts(
+            events, {**params, "pass": True}
+        )
+    return mask if params["pass"] else ~mask
+
 def dhh_cuts(events, params, **kwargs):
 
     mask = events.delta_dhh > params["delta_dhh_cut"]
