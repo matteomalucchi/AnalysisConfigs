@@ -113,7 +113,7 @@ default_config_options_dict = {
     #     the 2 highest-score jets > 0.65
     #   B (2023 preBPix ParkingHH data and MC, 2023 postBPix): jet pt >
     #     35,35,35,30, mean PNet of the 2 highest-score jets > 0.55
-    #   C (2024): jet pt > 30,30,30,30, >= 2 jets passing the UParT M WP
+    #   C (2024, 2025): jet pt > 30,30,30,30, >= 2 jets passing the UParT M WP
     # The config files written before this option existed set it to False to
     # keep their old preselection (`hh4b_presel`, i.e. A for all the years).
     "era_dependent_presel": True,

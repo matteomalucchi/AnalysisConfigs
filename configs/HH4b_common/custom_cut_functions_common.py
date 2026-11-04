@@ -74,10 +74,10 @@ def get_hh4b_presel_era(year, sample, isMC):
     The preselection depends on the data-taking period and, for the 2023
     preBPix data, on the primary dataset (JetMET or ParkingHH):
 
-    |      | 2022 | 2023 preBPix JetMET | 2023 preBPix ParkingHH | 2023 postBPix | 2024 |
-    | ---- | ---- | ------------------- | ---------------------- | ------------- | ---- |
-    | MC   | A    | /                   | B                      | B             | C    |
-    | DATA | A    | A                   | B                      | B             | C    |
+    |      | 2022 | 2023 preBPix JetMET | 2023 preBPix ParkingHH | 2023 postBPix | 2024, 2025 |
+    | ---- | ---- | ------------------- | ---------------------- | ------------- | ---------- |
+    | MC   | A    | /                   | B                      | B             | C          |
+    | DATA | A    | A                   | B                      | B             | C          |
 
     The primary dataset is read from the sample name: data samples whose name
     contains "ParkingHH" are ParkingHH, all the other data samples are JetMET.
@@ -90,7 +90,7 @@ def get_hh4b_presel_era(year, sample, isMC):
         return "B"
     if year == "2023_postBPix":
         return "B"
-    if year == "2024":
+    if year in ["2024", "2025"]:
         return "C"
     raise ValueError(f"No resolved preselection is defined for year {year}.")
 

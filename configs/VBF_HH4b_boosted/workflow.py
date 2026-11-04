@@ -42,7 +42,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             # here we propagate the btagging scores to the FatJetGood collection as is done in the pocket coffea jet_selection
             # if we're interested in other taggers, we need to add them here or swap to the mass correlated ones ("particleNetWithMass_HbbvsQCD", "particleNetWithMass_HccvsQCD")
 
-            if self._year == "2024":
+            if self._year in ["2024", "2025"]:
                 self.events["FatJetGood"] = ak.with_field(
                     self.events["FatJetGood"],
                     (self.events["FatJetGood"]["globalParT3_Xbb"] / (self.events["FatJetGood"]["globalParT3_Xbb"] + self.events["FatJetGood"]["globalParT3_QCD"])),

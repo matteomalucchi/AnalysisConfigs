@@ -58,3 +58,8 @@ L1_triggers:
          - HTT280er
          - Mu6_HTT240er
          # - HTT320er_QuadJet_70_55_40_35_er2p5
+   "2025":
+      ParkingHH:
+         - HTT280er
+         - Mu6_HTT240er
+         # - HTT320er_QuadJet_70_55_40_35_er2p5
