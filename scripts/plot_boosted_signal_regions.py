@@ -32,7 +32,7 @@ parser.add_argument("-i", "--input-dir", type=str, required=True, help="Director
 parser.add_argument("-o", "--output", type=str, default="plots_boosted_SR", help="Output directory")
 parser.add_argument("-c", "--categories", type=str, nargs="+", default=["catvbf", "cat1", "cat2", "cat3", FULL_SR],
                     help=f"Signal-region categories to plot ('{FULL_SR}' = inclusive signal region D)")
-parser.add_argument("-u", "--unblind", type=str, nargs="*", default=["cat3"], help="Categories in which data is shown")
+parser.add_argument("-u", "--unblind", type=str, nargs="*", default=["cat3", "full"], help="Categories in which data is shown")
 parser.add_argument("-w", "--workers", type=int, default=8, help="Number of workers")
 parser.add_argument("-l", "--linear", action="store_true", help="Linear y scale", default=False)
 parser.add_argument("-ov", "--only-vars", type=str, nargs="+", default=None, help="Only plot columns containing one of these substrings")
