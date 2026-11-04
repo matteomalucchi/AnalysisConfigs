@@ -513,7 +513,9 @@ def blinding_cuts(events, params, **kwargs):
 
 
 def hh4b_vbf_eta_mjj_cuts(events, params, **kwargs):
-    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
+    # the VBF pair is made of the first two jets of the collection, which can
+    # also hold the additional VBF jets (`JetGoodVBFMergedProvVBFPadded`)
+    jet_vbf = copy.copy(events[params["jet_vbf_coll"]][:, :2])
     # do not count the None values
     mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
     mask_num_vbf_jets_none = ak.mask(mask_num_vbf_jets, mask_num_vbf_jets)
@@ -547,7 +549,8 @@ def hh4b_vbf_discriminator_cuts(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 def hh4b_vbf_2_jets(events, params, **kwargs):
-    jet_vbf = copy.copy(events[params["jet_vbf_coll"]])
+    # the VBF pair is made of the first two jets of the collection
+    jet_vbf = copy.copy(events[params["jet_vbf_coll"]][:, :2])
     # do not count the None values
     mask_num_vbf_jets = ak.count(jet_vbf.pt, axis=1) >= 2
     mask = mask_num_vbf_jets

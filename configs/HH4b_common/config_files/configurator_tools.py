@@ -6,6 +6,11 @@ from pocket_coffea.parameters.cuts import passthrough
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
 import configs.HH4b_common.custom_cuts_common as cuts
+from configs.HH4b_common.vbf_jet_collections import (
+    VBF_BOOSTED_PAIR_COLL,
+    VBF_SELECTED_PAIR_COLL,
+    get_vbf_jet_collection,
+)
 import configs.VBF_HH4b.custom_cuts as vbf_cuts
 from configs.HH4b_common.config_files.variables_dict import (
     variables_dict_jets,
@@ -85,15 +90,25 @@ def get_variables_dict(
     return variables_dict
 
 
-# VBF pair selected by SPANet or by the approach, ordered by pt
+# VBF pair assigned when a pairing (SPANet or Run 2) is applied, ordered by pt,
+# with its mjj, deta and centrality: the VBF jets to use outside the workflow.
+# When creating the SPANet training inputs the VBF jets are instead the first two
+# of `JetGoodVBFMergedProvVBFPadded` (`SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP`)
 VBF_SELECTED_PAIR_COLUMNS = {
-    "JetGoodVBFSelectedPair": [
+    VBF_SELECTED_PAIR_COLL: [
         "provenance_vbf",
         "pt",
         "eta",
         "phi",
         "mass",
         "btagB",
+        "index",
+    ],
+    "events": [
+        f"mjj{VBF_SELECTED_PAIR_COLL}",
+        f"deta{VBF_SELECTED_PAIR_COLL}",
+        f"centralityHiggsLeading{VBF_SELECTED_PAIR_COLL}",
+        f"centralityHiggsSubLeading{VBF_SELECTED_PAIR_COLL}",
     ],
 }
 
@@ -137,10 +152,6 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "JetGoodProvHiggsPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodVBFMergedProvVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodVBFMergedProvVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    # merged collections with provenance_higgs and provenance_vbf saved separately
-    # "JetTotalSPANetSeparateProvHiggsVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    # "JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    # "JetTotalSPANetSeparateProvHiggsVBFPtFlattenOnlyHiggsPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     # global collections
     "events": [
         "random_pt_weights",
@@ -293,13 +304,27 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     return column_list
 
 
-def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False):
+def define_single_category(
+    category_name, wide_cr=False, ggf_vbf_threshold=False, vbf_jet_coll=None
+):
     """
     Define a single category for the analysis.
 
     If `vbf_discriminator` is defined, we MUST have a `ggf_vbf_threshold`. Otherwise the scan will crash.
     But the workflow should be designed in a way, that we never call this function without a threshold if one is needed.
+
+    The resolved VBF and ggF categories need `vbf_jet_coll`, the VBF jet
+    collection given by `get_vbf_jet_collection` (the boosted ones always use
+    `JetGoodVBFEnergyOrdered`).
     """
+    resolved_vbf_category = "boosted" not in category_name and (
+        "vbf" in category_name or "ggf" in category_name
+    )
+    if resolved_vbf_category and vbf_jet_coll is None:
+        raise ValueError(
+            f"The category {category_name} requires the VBF jet collection "
+            "`vbf_jet_coll` (see `get_vbf_jet_collection`)"
+        )
     cut_list = []
     # number of b jets
     if "4b" in category_name:
@@ -328,7 +353,7 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
             else:
                 cut_list.append(cuts.hh4b_boosted_qcd_control_region)
         if "vbf" in category_name:
-            cut_list.append(cuts.hh4b_vbf_2_jets)
+            cut_list.append(cuts.hh4b_vbf_2_jets(VBF_BOOSTED_PAIR_COLL))
             cut_list.append(cuts.hh4b_boosted_vbf_region)
     # mass cuts
     elif "VR1" not in category_name:
@@ -350,17 +375,21 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
         cut_list.append(cuts.blinded)
 
     if "vbf" in category_name and "boosted" not in category_name:
-        cut_list.append(cuts.hh4b_vbf_2_jets)
+        cut_list.append(cuts.hh4b_vbf_2_jets(vbf_jet_coll))
         if "best_candidates" not in category_name and "discriminator" not in category_name:
             raise ValueError("Unrecognized region name")
         # VBF preselection on the deta and mjj of the VBF jets
         if "best_candidates" in category_name:
             if "nokincut" in category_name:
                 cut_list.append(
-                    cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region
+                    cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region(
+                        vbf_jet_coll
+                    )
                 )
             else:
-                cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
+                cut_list.append(
+                    cuts.hh4b_vbf_best_candidates_6_jets_region(vbf_jet_coll)
+                )
         # ggF vs VBF discriminator cut, which can be combined with the VBF
         # preselection
         if "discriminator" in category_name:
@@ -381,9 +410,10 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     # ggF region: complement of the full VBF selection, i.e. events failing any
     # of: >= 2 VBF jets, mjj and deta cuts, ggF vs VBF discriminator cut (only
     # if a `ggf_vbf_threshold` is given)
-    if "ggf" in category_name:
+    if "ggf" in category_name and "boosted" not in category_name:
         cut_list.append(
             cuts.hh4b_vbf_selection_region(
+                vbf_jet_coll,
                 ggf_vbf_threshold if ggf_vbf_threshold not in (False, None) else None,
                 pass_vbf=False,
             )
@@ -459,6 +489,7 @@ SECOND_APPROACH_VBF_BTAG_CATEGORIES = {
 
 def define_vbf_ggf_categories(
     inclusive_categories,
+    vbf_jet_coll,
     vbf_discriminator=False,
     ggf_vbf_threshold=0.95,
     vbf_kin_cuts=True,
@@ -467,22 +498,24 @@ def define_vbf_ggf_categories(
 
     For each inclusive category `<name>` (b-tag and mass-plane cuts, which
     depend on the approach) two categories are defined:
-      - `vbf_<name>`: VBF selection, i.e. >= 2 VBF jets
-        (`JetGoodVBFEnergyOrdered`, whose definition depends on the approach),
+      - `vbf_<name>`: VBF selection, i.e. >= 2 VBF jets in the first two jets
+        of `vbf_jet_coll` (`JetGoodVBFSelectedPair` when a pairing is applied,
+        `JetGoodVBFMergedProvVBFPadded` when creating the SPANet inputs),
         with mjj > 400 GeV and deta > 3.5 if `vbf_kin_cuts` and, with a
         `vbf_discriminator`, the ggF/VBF score >= `ggf_vbf_threshold`
       - `ggf_<name>`: events failing any of the cuts of the VBF selection
     so that `vbf_<name>` and `ggf_<name>` are orthogonal and cover `<name>`.
     """
-    vbf_cut_list = [cuts.hh4b_vbf_2_jets]
+    vbf_cut_list = [cuts.hh4b_vbf_2_jets(vbf_jet_coll)]
     if vbf_kin_cuts:
-        vbf_cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
+        vbf_cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region(vbf_jet_coll))
     if vbf_discriminator:
         vbf_cut_list.append(
             cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold)
         )
     # complement of the full VBF selection
     ggf_cut = cuts.hh4b_vbf_selection_region(
+        vbf_jet_coll,
         ggf_vbf_threshold if vbf_discriminator else None,
         pass_vbf=False,
         kin_cuts=vbf_kin_cuts,
@@ -495,7 +528,10 @@ def define_vbf_ggf_categories(
 
 
 def define_second_approach_vbf_categories(
-    bkg_morphing_dnn=False, vbf_discriminator=False, ggf_vbf_threshold=0.95
+    vbf_jet_coll,
+    bkg_morphing_dnn=False,
+    vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,
 ):
     """VBF and ggF regions of the second approach (`define_vbf_ggf_categories`
     without the mjj and deta cuts: the VBF selection is only the presence of
@@ -526,11 +562,16 @@ def define_second_approach_vbf_categories(
         for name in ("SR2M", "CR2M"):
             inclusive_categories[f"{name}_postW"] = inclusive_categories[name]
     return define_vbf_ggf_categories(
-        inclusive_categories, vbf_discriminator, ggf_vbf_threshold, vbf_kin_cuts=False
+        inclusive_categories,
+        vbf_jet_coll,
+        vbf_discriminator,
+        ggf_vbf_threshold,
+        vbf_kin_cuts=False,
     )
 
 
 def define_first_approach_vbf_categories(
+    vbf_jet_coll,
     bkg_morphing_dnn=False,
     vbf_discriminator=False,
     ggf_vbf_threshold=0.95,
@@ -556,7 +597,7 @@ def define_first_approach_vbf_categories(
             f"{n_b}_control_region_postW", expandCR
         )
     return define_vbf_ggf_categories(
-        inclusive_categories, vbf_discriminator, ggf_vbf_threshold
+        inclusive_categories, vbf_jet_coll, vbf_discriminator, ggf_vbf_threshold
     )
 
 
@@ -578,14 +619,21 @@ def define_categories(
     high_score_reg=False,
     approach="first",
 ):
-    """Define the categories for the analysis."""
+    """Define the categories for the analysis.
+
+    The resolved VBF and ggF categories cut on the VBF jet collection given by
+    `get_vbf_jet_collection`: `JetGoodVBFSelectedPair` when a pairing (`spanet`
+    or `run2`) is applied, `JetGoodVBFMergedProvVBFPadded` when creating the
+    SPANet training inputs.
+    """
     categories_dict = {}
+    vbf_jet_coll = get_vbf_jet_collection(spanet, run2)
 
     if approach == "second" and not boosted:
         categories_dict |= define_second_approach_categories(bkg_morphing_dnn, blind)
         if vbf_analysis:
             categories_dict |= define_second_approach_vbf_categories(
-                bkg_morphing_dnn, vbf_discriminator, ggf_vbf_threshold
+                vbf_jet_coll, bkg_morphing_dnn, vbf_discriminator, ggf_vbf_threshold
             )
         return categories_dict
 
@@ -731,6 +779,7 @@ def define_categories(
             if vbf_discriminator:
                 categories_dict = {}
             categories_dict |= define_first_approach_vbf_categories(
+                vbf_jet_coll,
                 bkg_morphing_dnn,
                 vbf_discriminator,
                 ggf_vbf_threshold,

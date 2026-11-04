@@ -81,22 +81,32 @@ jets above 30 GeV in the second approach, `SECOND_APPROACH_HT_MIN_PT`), `Rhh` (d
 
 ## VBF jet collections
 
-Built with `vbf_analysis`:
+Built with `vbf_analysis`. Which collection holds "the" VBF jets (used by the
+VBF categories, saved in the output and to be used in any study outside the
+workflow) depends on what the workflow does (`get_vbf_jet_collection` in
+`configs/HH4b_common/vbf_jet_collections.py`):
+
+| Mode | VBF jets |
+| --- | --- |
+| Creating the SPANet training inputs (no `spanet`, no `run2`) | the first two jets of `JetGoodVBFMergedProvVBFPadded` (with `mjjJetGoodVBFMergedProvVBFPadded`, ...) |
+| Applying a pairing (`spanet` or `run2`) | `JetGoodVBFSelectedPair` (with `mjjJetGoodVBFSelectedPair`, ...) |
+| Boosted analysis | `JetGoodVBFEnergyOrdered` |
 
 | Collection | Content |
 | --- | --- |
 | `JetGoodClip`, `JetGoodPadded` | The `max_num_jets_good` jets of `JetGood` leading in b-tag score (`JetGoodPadded`: padded to that number). |
-| `JetGoodVBFCandidates` | Jets passing the `JetVBF` object preselection which are not among the `max_num_jets_good` jets leading in b-tag score (or, for the final pair, not taken by the Higgs pairing), ordered by pt. |
+| `JetGoodVBFCandidates` | Jets passing the `JetVBF` object preselection which are not among the `max_num_jets_good` jets leading in b-tag score (or, when a pairing is applied, not taken by the Higgs pairing), ordered by pt. |
 | `JetGoodVBFLeadingMjj` | Pair of candidates leading in $m_{jj}$, ordered by energy. |
 | `JetGoodVBFLeadingPtOppositeEta` | Leading-pt candidate and leading-pt candidate with $\eta_1 \eta_2 < 0$ (padded with `None`), ordered by pt. |
 | `JetAdditionalGoodVBF` | Candidates left over by the pair chosen with `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to `max_num_jets_add_vbf`. |
-| `JetGoodVBFMergedProvVBFPadded` | That pair followed by `JetAdditionalGoodVBF`, with `provenance = provenance_vbf`. |
+| `JetGoodVBFMergedProvVBFPadded` | That pair followed by `JetAdditionalGoodVBF`, with `provenance = provenance_vbf`: the VBF part of the SPANet inputs and of the ggF/VBF discriminator inputs. When a pairing is applied it is rebuilt out of the candidates left over by the Higgs pairing. |
+| `JetGoodProvHiggsPadded` | The Higgs jets with `provenance = provenance_X` (the `max_num_jets_good` jets leading in b-tag score, or the jets of the Higgs pairing when one is applied). |
 | `JetTotalSPANetPadded` | `JetGoodPadded` (the `max_num_jets_good` jets leading in b-tag score), followed by the pair chosen with `spanet_vbf_candidates` and by `JetAdditionalGoodVBF`: the SPANet input. |
-| `JetGoodVBFEnergyOrdered` | VBF pair used by the VBF categories, ordered by energy: the one predicted by SPANet when the model predicts the VBF jets; otherwise, out of the candidates left over by the Higgs pairing, the one predicted by the VBF pairing model (`vbf_pairing_from_vbf_discriminator`) or, without it, `leading_pt_opposite_eta` in the second approach and `leading_mjj` otherwise. |
-| `JetGoodVBFSelectedPair` | Resolved analysis: the same pair ordered by pt, saved in the output of the VBF configs (`VBF_SELECTED_PAIR_COLUMNS`). |
+| `JetGoodVBFSelectedPair` | Only when a pairing (`spanet` or `run2`) is applied: the VBF pair, ordered by pt. It is the one predicted by the ggF/VBF discriminator when it predicts the VBF jets (`vbf_pairing_from_vbf_discriminator`), otherwise the one predicted by the Higgs pairing model when it predicts the VBF jets, otherwise, out of the candidates left over by the Higgs pairing, `leading_pt_opposite_eta` in the second approach and `leading_mjj` in the first one. Saved with `VBF_SELECTED_PAIR_COLUMNS`. |
+| `JetGoodVBFEnergyOrdered` | Boosted analysis only: the pair of candidates leading in $m_{jj}$, ordered by energy. |
 
-The VBF variables (`mjj`, `deta`, centrality of the Higgs candidates) are computed on
-`JetGoodVBFEnergyOrdered`.
+The VBF variables (`mjj`, `deta`, centrality of the Higgs candidates) are computed on the VBF
+jets of the mode (`mjj<collection>`, `deta<collection>`, `centralityHiggs{Leading,SubLeading}<collection>`).
 
 ## Jets mitigations
 

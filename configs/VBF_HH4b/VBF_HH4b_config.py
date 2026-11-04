@@ -28,6 +28,10 @@ from configs.HH4b_common.config_files.configurator_tools import (
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
 )
+from configs.HH4b_common.vbf_jet_collections import (
+    applies_pairing,
+    get_vbf_jet_collection,
+)
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
@@ -173,18 +177,25 @@ if SPANET_TRAINING:
     if SIGNAL_REGION:
         categories_dict |= define_single_category("4b_signal_region")
     if VBF_REGIONS:
-        categories_dict |= define_single_category(
-            "vbf_best_candidates_6_jets_nokincut_4b_region"
+        # VBF jets of the SPANet inputs (or the selected pair with a pairing)
+        vbf_jet_coll = get_vbf_jet_collection(
+            config_options_dict["spanet"], config_options_dict["run2"]
         )
         categories_dict |= define_single_category(
-            "vbf_best_candidates_6_jets_4b_region"
+            "vbf_best_candidates_6_jets_nokincut_4b_region",
+            vbf_jet_coll=vbf_jet_coll,
+        )
+        categories_dict |= define_single_category(
+            "vbf_best_candidates_6_jets_4b_region", vbf_jet_coll=vbf_jet_coll
         )
         if SIGNAL_REGION:
             categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_nokincut_4b_signal_region"
+                "vbf_best_candidates_6_jets_nokincut_4b_signal_region",
+                vbf_jet_coll=vbf_jet_coll,
             )
             categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_4b_signal_region"
+                "vbf_best_candidates_6_jets_4b_signal_region",
+                vbf_jet_coll=vbf_jet_coll,
             )
 if TRAIN_BKG_MORPHING:
     categories_dict = define_single_category("4b_control_region")
@@ -266,20 +277,6 @@ else:
         )
     else:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
-    if config_options_dict["vbf_analysis"]:
-        # VBF jets assigned by the pairing, used by the VBF categories
-        total_input_columns |= {
-            f"JetGoodVBFEnergyOrdered_{x}": ["JetGoodVBFEnergyOrdered", x]
-            for x in ["pt", "eta", "phi", "mass", "index"]
-        } | {
-            x: ["events", x]
-            for x in [
-                "mjjJetGoodVBFEnergyOrdered",
-                "detaJetGoodVBFEnergyOrdered",
-                "centralityHiggsLeadingJetGoodVBFEnergyOrdered",
-                "centralityHiggsSubLeadingJetGoodVBFEnergyOrdered",
-            ]
-        }
     if BASELINE:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
@@ -292,8 +289,13 @@ else:
     if config_options_dict["vbf_discriminator"]:
         column_list += get_columns_list({"events": ["VBF_ggF_score"]})
 
-# Save the selected VBF pair (from SPANet or from the approach), ordered by pt
-if config_options_dict["vbf_analysis"]:
+# Save the VBF pair assigned after the pairing (SPANet or Run 2), ordered by pt,
+# with its mjj, deta and centrality: the one used by the VBF categories. When
+# creating the SPANet training inputs the VBF jets are instead the first two of
+# `JetGoodVBFMergedProvVBFPadded`, saved with the training columns above
+if config_options_dict["vbf_analysis"] and applies_pairing(
+    config_options_dict["spanet"], config_options_dict["run2"]
+):
     column_list += get_columns_list(
         VBF_SELECTED_PAIR_COLUMNS, not config_options_dict["save_chunk"]
     )

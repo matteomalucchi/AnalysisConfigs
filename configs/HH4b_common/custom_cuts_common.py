@@ -9,6 +9,8 @@ from pocket_coffea.lib.cut_functions import (
 )
 from utils_configs.custom_cut_functions import get_custom_JetVetoMap_Mask
 
+from .vbf_jet_collections import VBF_BOOSTED_PAIR_COLL
+
 def hh4b_presel(pt_type):
     return Cut(
         name="hh4b_presel",
@@ -389,25 +391,36 @@ hh4b_JetVetoMap_regressed = Cut(
     function=get_custom_JetVetoMap_Mask,
 )
 
-hh4b_vbf_best_candidates_6_jets_region = Cut(
-    name="hh4b_vbf_best_candidates_6_jets_region",
-    params={
-        "min_mjj": 400,
-        "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
-    },
-    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
-)
+# The VBF cuts take the VBF jet collection (`jet_vbf_coll`), chosen with
+# `get_vbf_jet_collection` (see configs/HH4b_common/vbf_jet_collections.py):
+# `JetGoodVBFMergedProvVBFPadded` when creating the SPANet training inputs,
+# `JetGoodVBFSelectedPair` when a pairing is applied, `JetGoodVBFEnergyOrdered`
+# in the boosted analysis. Only the first two jets of the collection (the VBF
+# pair) are used.
 
-hh4b_vbf_best_candidates_6_jets_nokincut_region = Cut(
-    name="hh4b_vbf_best_candidates_6_jets_nokincut_region",
-    params={
-        "min_mjj": 0,
-        "min_deta": 0,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
-    },
-    function=cuts_f.hh4b_vbf_eta_mjj_cuts,
-)
+
+def hh4b_vbf_best_candidates_6_jets_region(jet_vbf_coll):
+    return Cut(
+        name="hh4b_vbf_best_candidates_6_jets_region",
+        params={
+            "min_mjj": 400,
+            "min_deta": 3.5,
+            "jet_vbf_coll": jet_vbf_coll,
+        },
+        function=cuts_f.hh4b_vbf_eta_mjj_cuts,
+    )
+
+
+def hh4b_vbf_best_candidates_6_jets_nokincut_region(jet_vbf_coll):
+    return Cut(
+        name="hh4b_vbf_best_candidates_6_jets_nokincut_region",
+        params={
+            "min_mjj": 0,
+            "min_deta": 0,
+            "jet_vbf_coll": jet_vbf_coll,
+        },
+        function=cuts_f.hh4b_vbf_eta_mjj_cuts,
+    )
 def hh4b_sig_bkg_score_cut(thresh):
     return Cut(
     name="hh4b_sig_bkg_score_cut",
@@ -441,7 +454,7 @@ def hh4b_vbf_fail_discriminator_region(thresh):
         function=cuts_f.hh4b_vbf_discriminator_cuts,
     )
 
-def hh4b_vbf_selection_region(thresh=None, pass_vbf=True, kin_cuts=True):
+def hh4b_vbf_selection_region(jet_vbf_coll, thresh=None, pass_vbf=True, kin_cuts=True):
     """Full VBF selection (>= 2 VBF jets, mjj > 400 GeV and deta > 3.5 if
     `kin_cuts`, and VBF_ggF_score >= `thresh` if `thresh` is not None).
     With `pass_vbf=False` the events failing any of these cuts (ggF events)."""
@@ -452,7 +465,7 @@ def hh4b_vbf_selection_region(thresh=None, pass_vbf=True, kin_cuts=True):
             # mjj and deta are >= 0: -1 means no cut
             "min_mjj": 400 if kin_cuts else -1,
             "min_deta": 3.5 if kin_cuts else -1,
-            "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+            "jet_vbf_coll": jet_vbf_coll,
             "discriminator": "VBF_ggF_score",
             "threshold": thresh,
             "pass": pass_vbf,
@@ -460,20 +473,21 @@ def hh4b_vbf_selection_region(thresh=None, pass_vbf=True, kin_cuts=True):
         function=cuts_f.hh4b_vbf_selection_cuts,
     )
 
-hh4b_vbf_2_jets = Cut(
-    name="hh4b_vbf_2_jets",
-    params={
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
-    },
-    function=cuts_f.hh4b_vbf_2_jets,
-)
+def hh4b_vbf_2_jets(jet_vbf_coll):
+    return Cut(
+        name="hh4b_vbf_2_jets",
+        params={
+            "jet_vbf_coll": jet_vbf_coll,
+        },
+        function=cuts_f.hh4b_vbf_2_jets,
+    )
 
 hh4b_boosted_vbf_region = Cut(
     name="hh4b_boosted_vbf_region",
     params={
         "min_mjj": 300,
         "min_deta": 3.5,
-        "jet_vbf_coll": "JetGoodVBFEnergyOrdered",
+        "jet_vbf_coll": VBF_BOOSTED_PAIR_COLL,
     },
     function=cuts_f.hh4b_vbf_eta_mjj_cuts,
 )

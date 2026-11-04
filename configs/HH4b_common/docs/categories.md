@@ -89,10 +89,21 @@ approach, two orthogonal categories covering `<name>` are created:
 
 | Category | Selection |
 | --- | --- |
-| `vbf_<name>` | ≥ 2 VBF jets (`JetGoodVBFEnergyOrdered`), with $m_{jj}$ > 400 GeV and $\Delta\eta$ > 3.5 in the first approach only (`vbf_kin_cuts`), and, when a `vbf_discriminator` is set, `VBF_ggF_score` ≥ `ggf_vbf_threshold` |
+| `vbf_<name>` | ≥ 2 VBF jets (first two jets of the VBF jet collection, see below), with $m_{jj}$ > 400 GeV and $\Delta\eta$ > 3.5 in the first approach only (`vbf_kin_cuts`), and, when a `vbf_discriminator` is set, `VBF_ggF_score` ≥ `ggf_vbf_threshold` |
 | `ggf_<name>` | events failing any of the cuts of `vbf_<name>` (`hh4b_vbf_selection_region(..., pass_vbf=False)`) |
 
-The VBF pair `JetGoodVBFEnergyOrdered` is the one predicted by SPANet when the
+The VBF jet collection the cuts are applied on (`get_vbf_jet_collection` in
+`configs/HH4b_common/vbf_jet_collections.py`) depends on what the workflow does:
+
+- when creating the SPANet training inputs (no `spanet` and no `run2`):
+  `JetGoodVBFMergedProvVBFPadded`, whose first two jets are the pair fed to
+  SPANet (`spanet_vbf_candidates`);
+- when a pairing is applied (`spanet` or `run2`): `JetGoodVBFSelectedPair`, the
+  VBF pair assigned after the Higgs pairing, ordered by pt;
+- boosted analysis: `JetGoodVBFEnergyOrdered` (pair leading in $m_{jj}$).
+
+The same collection is the one saved in the output and the one to use for any
+VBF study outside the workflow. `JetGoodVBFSelectedPair` is the one predicted by SPANet when the
 model predicts the VBF jets (the ggF/VBF discriminator with
 `vbf_pairing_from_vbf_discriminator`, or the Higgs pairing model). Otherwise it
 is chosen among the jets left over by the Higgs pairing: in the first approach

@@ -43,6 +43,7 @@ from utils_configs.spanet_evaluation_functions import (
 )
 
 from .custom_object_preselection_common import lepton_selection
+from .vbf_jet_collections import VBF_SELECTED_PAIR_COLL, applies_pairing
 
 vector.register_awkward()
 
@@ -448,8 +449,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def flatten_pt(self, rand_type, jet_collection):
         # The smearing factor is a property of the event, not of the jet
         # collection: several collections of the same chunk are flattened one
-        # after the other and then concatenated together (e.g. in
-        # JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded), and the factor is
+        # after the other and then fed together to SPANet (e.g.
+        # JetGoodProvHiggsPtFlattenPadded and
+        # JetGoodVBFMergedProvVBFPtFlattenPadded), and the factor is
         # stored only once per event as `random_pt_weights`. So it is drawn once
         # per chunk and reused by every following call, otherwise the two halves
         # of an event would be scaled differently and the stored column would
@@ -1806,15 +1808,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
             add_fields(jet_vbf_pair, "all"),
             add_fields(self.events["JetAdditionalGoodVBF"], "all"),
         ]
-        self.events["JetGoodVBFMergedPadded"] = ak.zip(
-            {
-                field: ak.concatenate([coll[field] for coll in jet_colls], axis=1)
-                for field in jet_colls[0].fields
-                if field in jet_colls[1].fields
-            },
-            with_name="PtEtaPhiMLorentzVector",
+        padded = add_fields(
+            ak.zip(
+                {
+                    field: ak.concatenate([coll[field] for coll in jet_colls], axis=1)
+                    for field in jet_colls[0].fields
+                    if field in jet_colls[1].fields
+                },
+                with_name="PtEtaPhiMLorentzVector",
+            ),
+            "all",
         )
-        padded = add_fields(self.events["JetGoodVBFMergedPadded"], "all")
         self.events["JetGoodVBFMergedProvVBFPadded"] = ak.zip(
             {field: padded[field] for field in padded.fields}
             | {
@@ -1833,7 +1837,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
     def define_vbf_jet_pair(self, jet_vbf_higgs_model):
         """
-        VBF jet pair used by the VBF categories.
+        VBF jet pair used by the VBF categories, ordered by energy (the caller
+        stores it, ordered by pt, in `JetGoodVBFSelectedPair`). Only called
+        when a pairing (SPANet or Run 2) is applied.
 
         The VBF candidates are the jets left over by the Higgs pairing. The
         inputs of the ggF/VBF discriminator are built out of them (the pair
@@ -1855,10 +1861,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             order_by="pt",
         )
 
-        if self.spanet or self.run2:
-            # the VBF discriminator inputs (Higgs jets, VBF candidates and their
-            # kinematics) are built out of the Higgs pairing, as in the training
-            self.define_vbf_collections_after_pairing()
+        # the VBF discriminator inputs (Higgs jets, VBF candidates and their
+        # kinematics) are built out of the Higgs pairing, as in the training
+        self.define_vbf_collections_after_pairing()
 
         jet_vbf = self.eval_vbf_pairing()
         if jet_vbf is not None:
@@ -2024,18 +2029,19 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
 
             # ======= VBF PARAMETERS ============
-            if self.vbf_analysis:
-                self.events["JetGoodVBFEnergyOrdered"] = self.define_vbf_jet_pair(
-                    jet_vbf
-                )
-                # the selected VBF pair (SPANet, or the definition of the
-                # approach) ordered by pt, saved in the output
-                self.events["JetGoodVBFSelectedPair"] = order_jet_pair_by_pt(
-                    self.events["JetGoodVBFEnergyOrdered"]
+            # the VBF pair is assigned only when a pairing is applied: when the
+            # SPANet training inputs are created the VBF jets are the ones of
+            # `VBF_TRAINING_JET_COLL` (see `get_vbf_jet_collection`)
+            if self.vbf_analysis and applies_pairing(self.spanet, self.run2):
+                # the selected VBF pair (VBF pairing model, Higgs pairing model
+                # or definition of the approach) ordered by pt: the only VBF
+                # pair used by the categories and saved in the output
+                self.events[VBF_SELECTED_PAIR_COLL] = order_jet_pair_by_pt(
+                    self.define_vbf_jet_pair(jet_vbf)
                 )
                 # mjj, deta and centrality of the VBF pair actually assigned,
                 # which are saved and propagated forward
-                self.define_vbf_kinematics(["JetGoodVBFEnergyOrdered"], [0])
+                self.define_vbf_kinematics([VBF_SELECTED_PAIR_COLL], [0])
 
             if (
                 self._isMC
@@ -2062,7 +2068,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 jet_idx_from_pairings = matched_jet_higgs_idx_not_none
                 jet_vbf_idx_not_none = None
                 if self.vbf_analysis:
-                    jet_vbf_idx_not_none = self.events.JetGoodVBFEnergyOrdered.index
+                    jet_vbf_idx_not_none = self.events[VBF_SELECTED_PAIR_COLL].index
                     jet_idx_from_pairings = ak.concatenate(
                         [jet_idx_from_pairings, jet_vbf_idx_not_none], axis=1
                     )

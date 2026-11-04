@@ -93,15 +93,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 with_name="PtEtaPhiMLorentzVector",
             )
 
-            # create a combined jet collection with the provenance separate for higgs and vbf
-            self.events["JetTotalSPANetSeparateProvHiggsVBFPadded"] = ak.concatenate(
-                [
-                    self.events["JetGoodProvHiggsPadded"],
-                    self.events["JetGoodVBFMergedProvVBFPadded"],
-                ],
-                axis=1,
-            )
-
             if (self._isMC and self.random_pt):
                 # flatten pt for all jets to train spanet
                 for jet_coll in [
@@ -134,30 +125,6 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     self.events["JetTotalSPANetPtFlattenPadded"],
                 )
 
-                # create a combined jet collection with the provenance separate for higgs and vbf
-                # with flattened pt for all jets
-                self.events["JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded"] = (
-                    ak.concatenate(
-                        [
-                            self.events["JetGoodProvHiggsPtFlattenPadded"],
-                            self.events["JetGoodVBFMergedProvVBFPtFlattenPadded"],
-                        ],
-                        axis=1,
-                    )
-                )
-
-                # create a combined jet collection with the provenance separate for higgs and vbf
-                # with flattened pt only for jets used for Higgs matching
-                self.events[
-                    "JetTotalSPANetSeparateProvHiggsVBFPtFlattenOnlyHiggsPadded"
-                ] = ak.concatenate(
-                    [
-                        self.events["JetGoodProvHiggsPtFlattenPadded"],
-                        self.events["JetGoodVBFMergedProvVBFPadded"],
-                    ],
-                    axis=1,
-                )
-
             if not (self.spanet and self.vbf_matching_after_higgs_pairing):
                 # Compute the Run 2 pairing to compute the centrality
                 (
@@ -179,19 +146,13 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     "JetGoodVBFMergedProvVBFPadded",
                     "JetGoodVBFMergedProvVBFPtFlattenPadded",
                 ]
-                mjj_jet_idxs = [
-                    self.max_num_jets_good,
-                    self.max_num_jets_good,
-                    0,
-                    0,
-                    0,
-                ]
+                mjj_jet_idxs = [self.max_num_jets_good, self.max_num_jets_good, 0, 0]
             else:
                 mjj_jet_colls = [
                     "JetTotalSPANetPadded",
                     "JetGoodVBFMergedProvVBFPadded",
                 ]
-                mjj_jet_idxs = [self.max_num_jets_good, 0, 0]
+                mjj_jet_idxs = [self.max_num_jets_good, 0]
 
             self.define_vbf_kinematics(mjj_jet_colls, mjj_jet_idxs)
 
