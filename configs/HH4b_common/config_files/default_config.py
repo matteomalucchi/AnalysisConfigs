@@ -169,11 +169,16 @@ default_config_options_dict = {
     "max_num_jets_add_vbf": 2,
     # Field used to order the additional VBF jets, e.g. "energy" or "pt".
     "jets_add_vbf_order": "energy",
-    # VBF pair fed to SPANet (`JetTotalSPANetPadded`) before the additional VBF jets:
-    #   "leading_mjj"             : the pair leading in mjj (SPANet models so far)
+    # VBF pair fed to SPANet (`JetTotalSPANetPadded`) and to the ggF/VBF
+    # discriminator (`JetGoodVBFMergedProvVBFPadded`) before the additional VBF
+    # jets, also used as the VBF pair of the categories when no model predicts it:
+    #   None                      : automatic, "leading_pt_opposite_eta" in the
+    #                               second approach, "leading_mjj" otherwise
+    #   "leading_mjj"             : the pair leading in mjj
     #   "leading_pt_opposite_eta" : the leading-pt jet and the leading-pt jet with
-    #                               eta1 * eta2 < 0 (second approach VBF pair)
-    "spanet_vbf_candidates": "leading_mjj",
+    #                               eta1 * eta2 < 0
+    # Set it explicitly only to apply a model trained with the other definition.
+    "spanet_vbf_candidates": None,
     # Run the SPANet Higgs pairing first and define the VBF candidates from the
     # jets left over by the pairing, instead of using the b-tag ordered
     # `JetGoodClip` collection. Requires `spanet`.

@@ -106,10 +106,11 @@ The same collection is the one saved in the output and the one to use for any
 VBF study outside the workflow. `JetGoodVBFSelectedPair` is the one predicted by SPANet when the
 model predicts the VBF jets (the ggF/VBF discriminator with
 `vbf_pairing_from_vbf_discriminator`, or the Higgs pairing model). Otherwise it
-is chosen among the jets left over by the Higgs pairing: in the first approach
-the pair leading in $m_{jj}$; in the second approach the leading-pt jet and,
-if present, the leading-pt jet with opposite $\eta$ ($\eta_1 \eta_2 < 0$)
-(see [jets.md](jets.md#vbf-jet-collections)).
+is chosen among the jets left over by the Higgs pairing with the same
+definition as the pair fed to the models (`spanet_vbf_candidates`, automatic by
+default): in the first approach the pair leading in $m_{jj}$; in the second
+approach the leading-pt jet and, if present, the leading-pt jet with opposite
+$\eta$ ($\eta_1 \eta_2 < 0$) (see [jets.md](jets.md#vbf-jet-collections)).
 
 The approaches differ in the definition of the VBF jets, in the $m_{jj}$/$\Delta\eta$ cuts
 (first approach only) and in the inclusive categories `<name>`:

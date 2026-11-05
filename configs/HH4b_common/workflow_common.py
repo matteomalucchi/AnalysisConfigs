@@ -1716,16 +1716,33 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events.JetGoodVBFMergedProvVBFPadded.pt, axis=1
         )
 
-    def spanet_vbf_pair(self):
-        """VBF pair fed to SPANet together with the additional VBF jets, chosen
-        with the `spanet_vbf_candidates` option ("leading_mjj", as the SPANet
-        models trained so far, or "leading_pt_opposite_eta")."""
-        if self.spanet_vbf_candidates not in VBF_PAIR_DEFINITIONS:
-            raise ValueError(
-                f"Unknown spanet_vbf_candidates '{self.spanet_vbf_candidates}'. "
-                f"Choose one of {list(VBF_PAIR_DEFINITIONS)}."
+    def vbf_pair_definition(self):
+        """Definition of the VBF pair among the VBF candidates, used both for the
+        pair fed to the models (SPANet and ggF/VBF discriminator inputs) and for
+        the fallback VBF pair of the categories, so that the two always agree.
+
+        With `spanet_vbf_candidates` = None (default) it follows the approach:
+        "leading_pt_opposite_eta" in the second approach, "leading_mjj"
+        otherwise. An explicit value overrides it (e.g. to apply a model trained
+        with the other definition)."""
+        definition = self.spanet_vbf_candidates
+        if definition is None:
+            definition = (
+                "leading_pt_opposite_eta"
+                if self.approach == "second"
+                else "leading_mjj"
             )
-        return self.events[VBF_PAIR_DEFINITIONS[self.spanet_vbf_candidates][0]]
+        if definition not in VBF_PAIR_DEFINITIONS:
+            raise ValueError(
+                f"Unknown spanet_vbf_candidates '{definition}'. "
+                f"Choose one of {list(VBF_PAIR_DEFINITIONS)} or None (automatic)."
+            )
+        return definition
+
+    def spanet_vbf_pair(self):
+        """VBF pair fed to SPANet together with the additional VBF jets, with the
+        definition of `vbf_pair_definition`."""
+        return self.events[VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()][0]]
 
     def define_vbf_kinematics(self, jet_colls, jet_idxs, centrality=True):
         """
@@ -1881,12 +1898,11 @@ class HH4bCommonProcessor(BaseProcessorABC):
         if jet_vbf_higgs_model is not None:
             return jet_vbf_higgs_model
 
-        # leading-pt / opposite-eta pair in the second approach, leading mjj otherwise
-        pair_definition = (
-            "leading_pt_opposite_eta" if self.approach == "second" else "leading_mjj"
-        )
+        # same definition as the pair fed to the models (`vbf_pair_definition`):
+        # leading-pt / opposite-eta pair in the second approach, leading mjj
+        # otherwise
         return order_jet_pair_by_energy(
-            VBF_PAIR_DEFINITIONS[pair_definition][1](
+            VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()][1](
                 self.events, "JetGoodVBFCandidates"
             )
         )
