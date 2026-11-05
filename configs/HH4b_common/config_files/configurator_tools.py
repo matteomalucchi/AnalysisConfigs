@@ -144,9 +144,9 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     # merged collections with combined provenance
-    "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     # collections with provenance_higgs and provenance_vbf saved separately
     "JetGoodProvHiggsPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodProvHiggsPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
@@ -156,15 +156,15 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     "events": [
         "random_pt_weights",
         # merged collections with combined provenance
-        "mjjJetTotalSPANetPadded",
-        "detaJetTotalSPANetPadded",
-        "centralityHiggsLeadingJetTotalSPANetPadded",
-        "centralityHiggsSubLeadingJetTotalSPANetPadded",
+        # "mjjJetTotalSPANetPadded",
+        # "detaJetTotalSPANetPadded",
+        # "centralityHiggsLeadingJetTotalSPANetPadded",
+        # "centralityHiggsSubLeadingJetTotalSPANetPadded",
         ## pt flatten
-        "mjjJetTotalSPANetPtFlattenPadded",
-        "detaJetTotalSPANetPtFlattenPadded",
-        "centralityHiggsLeadingJetTotalSPANetPtFlattenPadded",
-        "centralityHiggsSubLeadingJetTotalSPANetPtFlattenPadded",
+        # "mjjJetTotalSPANetPtFlattenPadded",
+        # "detaJetTotalSPANetPtFlattenPadded",
+        # "centralityHiggsLeadingJetTotalSPANetPtFlattenPadded",
+        # "centralityHiggsSubLeadingJetTotalSPANetPtFlattenPadded",
         # collections with provenance_vbf saved separately
         "mjjJetGoodVBFMergedProvVBFPadded",
         "detaJetGoodVBFMergedProvVBFPadded",

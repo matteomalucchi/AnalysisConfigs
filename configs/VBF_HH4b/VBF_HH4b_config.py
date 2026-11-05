@@ -35,7 +35,7 @@ from configs.HH4b_common.vbf_jet_collections import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
-SPANET_TRAINING = False
+SPANET_TRAINING = True
 VBF_REGIONS = False
 SIGNAL_REGION = False
 TRAIN_BKG_MORPHING = False
@@ -147,11 +147,11 @@ sample_data_parkinghh_list = ["DATA_ParkingHH"]
 sample_list = (
     []
     # + sample_spanet_ggF_list
-    # + sample_official_ggF_list
-    # + sample_VBF_list
-    # + sample_ZZ_ZH_list
+    + sample_official_ggF_list
+    + sample_VBF_list
+    + sample_ZZ_ZH_list
     # + sample_data_jme_list
-    + sample_data_parkinghh_list
+    # + sample_data_parkinghh_list
 )
 
 
@@ -186,9 +186,9 @@ if SPANET_TRAINING:
             "vbf_best_candidates_6_jets_nokincut_4b_region",
             vbf_jet_coll=vbf_jet_coll,
         )
-        categories_dict |= define_single_category(
-            "vbf_best_candidates_6_jets_4b_region", vbf_jet_coll=vbf_jet_coll
-        )
+        # categories_dict |= define_single_category(
+        #     "vbf_best_candidates_6_jets_4b_region", vbf_jet_coll=vbf_jet_coll
+        # )
         if SIGNAL_REGION:
             categories_dict |= define_single_category(
                 "vbf_best_candidates_6_jets_nokincut_4b_signal_region",
@@ -198,6 +198,7 @@ if SPANET_TRAINING:
                 "vbf_best_candidates_6_jets_4b_signal_region",
                 vbf_jet_coll=vbf_jet_coll,
             )
+
 if TRAIN_BKG_MORPHING:
     categories_dict = define_single_category("4b_control_region")
     categories_dict |= define_single_category("2b_control_region_preW")
