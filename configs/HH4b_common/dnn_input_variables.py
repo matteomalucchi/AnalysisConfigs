@@ -364,6 +364,77 @@ bkg_morphing_dnn_PaddedArctanhDeltaProb_input_variables = OrderedDict(
     }
 )
 
+bkg_morphing_dnn_vbf_input_variables = OrderedDict(
+    {
+        # Event-level global variables
+        "centrality_higgs_leading_vbf": [
+            "events",
+            "centralityHiggsLeadingJetGoodVBFMergedProvVBFPadded",
+        ],
+        "centrality_higgs_subleading_vbf": [
+            "events",
+            "centralityHiggsSubLeadingJetGoodVBFMergedProvVBFPadded",
+        ],
+        "deta_vbf_jets": ["events", "detaJetGoodVBFMergedProvVBFPadded"],
+        "mjj_vbf_jets": ["events", "mjjJetGoodVBFMergedProvVBFPadded"],
+        "HT": ["events", "HT"],
+        "maxDeltaR_Higgjj": ["events", "dR_max"],
+        "minDeltaR_Higgjj": ["events", "dR_min"],
+        "sigma_over_higgs1_reco_mass": ["events", "sigma_over_higgs1_reco_mass"],
+        "sigma_over_higgs2_reco_mass": ["events", "sigma_over_higgs2_reco_mass"],
+        # HH system
+        "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS"],
+        "hh_vec_DeltaEta": ["HH", "dEta"],
+        "hh_vec_DeltaPhi": ["HH", "dPhi"],
+        "hh_vec_DeltaR": ["HH", "dR"],
+        "hh_vec_eta": ["HH", "eta"],
+        "hh_vec_mass": ["HH", "mass"],
+        "hh_vec_phi": ["HH", "phi"],
+        "hh_vec_pt": ["HH", "pt"],
+        # Leading Higgs
+        "higgs1_DeltaEtajj": ["HiggsLeading", "dEta"],
+        "higgs1_DeltaPhijj": ["HiggsLeading", "dPhi"],
+        "higgs1_dR": ["HiggsLeading", "dR"],
+        "higgs1_reco_eta": ["HiggsLeading", "eta"],
+        "higgs1_helicityCosTheta": ["HiggsLeading", "helicityCosTheta"],
+        "higgs1_reco_phi": ["HiggsLeading", "phi"],
+        "higgs1_reco_mass": ["HiggsLeading", "mass"],
+        "higgs1_reco_pt": ["HiggsLeading", "pt"],
+        # SubLeading Higgs
+        "higgs2_DeltaEtajj": ["HiggsSubLeading", "dEta"],
+        "higgs2_DeltaPhijj": ["HiggsSubLeading", "dPhi"],
+        "higgs2_dR": ["HiggsSubLeading", "dR"],
+        "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
+        "higgs2_helicityCosTheta": ["HiggsSubLeading", "helicityCosTheta"],
+        "higgs2_reco_phi": ["HiggsSubLeading", "phi"],
+        "higgs2_reco_mass": ["HiggsSubLeading", "mass"],
+        "higgs2_reco_pt": ["HiggsSubLeading", "pt"],
+        # Higgs jets
+        "higgs1_reco_jet1_pt": ["JetGoodProvHiggsPadded:0", "pt"],
+        "higgs1_reco_jet1_eta": ["JetGoodProvHiggsPadded:0", "eta"],
+        "higgs1_reco_jet1_phi": ["JetGoodProvHiggsPadded:0", "phi"],
+        "higgs1_reco_jet2_pt": ["JetGoodProvHiggsPadded:1", "pt"],
+        "higgs1_reco_jet2_eta": ["JetGoodProvHiggsPadded:1", "eta"],
+        "higgs1_reco_jet2_phi": ["JetGoodProvHiggsPadded:1", "phi"],
+        "higgs2_reco_jet1_pt": ["JetGoodProvHiggsPadded:2", "pt"],
+        "higgs2_reco_jet1_eta": ["JetGoodProvHiggsPadded:2", "eta"],
+        "higgs2_reco_jet1_phi": ["JetGoodProvHiggsPadded:2", "phi"],
+        "higgs2_reco_jet2_pt": ["JetGoodProvHiggsPadded:3", "pt"],
+        "higgs2_reco_jet2_eta": ["JetGoodProvHiggsPadded:3", "eta"],
+        "higgs2_reco_jet2_phi": ["JetGoodProvHiggsPadded:3", "phi"],
+        # VBF jets
+        # number of VBF jets (if not saved in the parquet files, it is created
+        # when loading the data by counting the non-padded VBF jets)
+        "n_vbf_jets": ["events", "nJetGoodVBFMergedProvVBFPadded"],
+        "vbf_jet1_pt": ["JetGoodVBFMergedProvVBFPadded:0", "pt"],
+        "vbf_jet1_eta": ["JetGoodVBFMergedProvVBFPadded:0", "eta"],
+        "vbf_jet1_phi": ["JetGoodVBFMergedProvVBFPadded:0", "phi"],
+        "vbf_jet2_pt": ["JetGoodVBFMergedProvVBFPadded:1", "pt"],
+        "vbf_jet2_eta": ["JetGoodVBFMergedProvVBFPadded:1", "eta"],
+        "vbf_jet2_phi": ["JetGoodVBFMergedProvVBFPadded:1", "phi"],
+    }
+)
+
 bkg_morphing_dnn_input_variables_altOrder = OrderedDict(
     {
         "era": ["events", "era"],

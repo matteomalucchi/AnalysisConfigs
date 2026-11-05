@@ -1630,8 +1630,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # the prediction is kept also for the events with less than two VBF
         # candidates: a jet predicted on a padded position is dropped, so that
         # the VBF pair can have a single jet
+        # only the best assignment is needed: skip the loop over all of them
         pairing_predictions, *_ = get_best_pairings(
-            [np.copy(prob) for prob in assignment_prob]
+            [np.copy(prob) for prob in assignment_prob], best_only=True
         )
 
         # the VBF pair is the last resonance predicted by the model
@@ -1709,6 +1710,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
             {field: padded[field] for field in padded.fields}
             | {"provenance": padded.provenance_vbf},
             with_name="PtEtaPhiMLorentzVector",
+        )
+        # count only the non-None (non-padded) jets
+        self.events["nJetGoodVBFMergedProvVBFPadded"] = ak.count(
+            self.events.JetGoodVBFMergedProvVBFPadded.pt, axis=1
         )
 
     def spanet_vbf_pair(self):
@@ -1829,6 +1834,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
             },
             with_name="PtEtaPhiMLorentzVector",
+        )
+        # count only the non-None (non-padded) jets
+        self.events["nJetGoodVBFMergedProvVBFPadded"] = ak.count(
+            self.events.JetGoodVBFMergedProvVBFPadded.pt, axis=1
         )
 
         # mjj, deta and centrality of the pair leading in mjj, with the Higgs

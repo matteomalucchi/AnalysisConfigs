@@ -196,7 +196,7 @@ def get_pairing_information(
     return outputs
 
 
-def get_best_pairings(assignment_prob):
+def get_best_pairings(assignment_prob, best_only=False):
     """
     Extract the best jet assignment of every resonance from the predicted
     assignment probabilities.
@@ -209,6 +209,10 @@ def get_best_pairings(assignment_prob):
     Returns the predicted indices, with shape (n_events, n_resonances, 2), and
     the sum over the resonances of the probability of the best, of the second
     best and of the worst assignment.
+
+    If `best_only` is True, only the best assignment is extracted and the second
+    best and worst probabilities are returned as None: this avoids looping over
+    all the assignments of the probability matrices when they are not needed.
     """
     assignment_probability = np.stack(tuple(assignment_prob), axis=0)
 
@@ -240,6 +244,9 @@ def get_best_pairings(assignment_prob):
             axis=0,
         )
         pairing_probabilities_sum_list.append(np.sum(pairing_probabilities, axis=0))
+
+        if best_only:
+            return prediction_list[0], pairing_probabilities_sum_list[0], None, None
 
         # set to zero the probabilities of the chosen jet assignment, of its
         # symmetrization and of the same jet assignment on the other resonances

@@ -38,7 +38,8 @@ BASELINE = False
 SPANET_TRAINING = False
 VBF_REGIONS = False
 SIGNAL_REGION = False
-TRAIN_BKG_MORPHING = True
+TRAIN_BKG_MORPHING = False
+APPLY_BKG_MORPHING = False
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -200,6 +201,12 @@ if SPANET_TRAINING:
 if TRAIN_BKG_MORPHING:
     categories_dict = define_single_category("4b_control_region")
     categories_dict |= define_single_category("2b_control_region_preW")
+
+if APPLY_BKG_MORPHING:
+    categories_dict = {}
+    categories_dict |= define_single_category("2b_control_region_postW")
+    categories_dict = define_single_category("4b_signal_region")
+    categories_dict |= define_single_category("2b_signal_region_postW")
 
 column_list = []
 
