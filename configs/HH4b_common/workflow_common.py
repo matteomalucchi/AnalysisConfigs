@@ -1671,9 +1671,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
         VBF candidates from `JetGoodVBFCandidates`, shared by the resolved and the
         boosted VBF workflows:
 
-        - `JetGoodVBFLeadingMjj`: the pair leading in mjj, ordered by energy
-        - `JetGoodVBFLeadingPtOppositeEta`: the leading-pt jet and the leading-pt
-          jet in the opposite eta hemisphere (eta1 * eta2 < 0), ordered by pt
+        - the VBF pair of `vbf_pair_definition`, i.e. only one of
+          `JetGoodVBFLeadingMjj` (the pair leading in mjj, ordered by energy) or
+          `JetGoodVBFLeadingPtOppositeEta` (the leading-pt jet and the leading-pt
+          jet in the opposite eta hemisphere, eta1 * eta2 < 0, ordered by pt)
         - `JetAdditionalGoodVBF`: the candidates left over by the pair chosen with
           `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to
           `max_num_jets_add_vbf`
@@ -1681,8 +1682,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
           jets, with `provenance` = `provenance_vbf`, i.e. the VBF jets fed to
           SPANet (see `spanet_vbf_pair`)
         """
-        for name, pair_function in VBF_PAIR_DEFINITIONS.values():
-            self.events[name] = pair_function(self.events, "JetGoodVBFCandidates")
+        # only the pair of `vbf_pair_definition` is used: build only that one
+        name, pair_function = VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()]
+        self.events[name] = pair_function(self.events, "JetGoodVBFCandidates")
 
         spanet_vbf_pair = self.spanet_vbf_pair()
         pair_idx = spanet_vbf_pair.index[~ak.is_none(spanet_vbf_pair.pt, axis=1)]
@@ -1792,10 +1794,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
         """
         jet_higgs = self.events.JetGoodFromHiggsOrdered
 
-        # VBF candidate pairs out of the jets left over by the Higgs pairing; the
-        # one fed to the model is chosen with `spanet_vbf_candidates`
-        for name, pair_function in VBF_PAIR_DEFINITIONS.values():
-            self.events[name] = pair_function(self.events, "JetGoodVBFCandidates")
+        # VBF pair out of the jets left over by the Higgs pairing, with the
+        # definition of `vbf_pair_definition` (the only one used)
+        name, pair_function = VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()]
+        self.events[name] = pair_function(self.events, "JetGoodVBFCandidates")
         jet_vbf_pair = self.spanet_vbf_pair()
 
         # Higgs jets with the provenance of the Higgs

@@ -96,8 +96,8 @@ workflow) depends on what the workflow does (`get_vbf_jet_collection` in
 | --- | --- |
 | `JetGoodClip`, `JetGoodPadded` | The `max_num_jets_good` jets of `JetGood` leading in b-tag score (`JetGoodPadded`: padded to that number). |
 | `JetGoodVBFCandidates` | Jets passing the `JetVBF` object preselection which are not among the `max_num_jets_good` jets leading in b-tag score (or, when a pairing is applied, not taken by the Higgs pairing), ordered by pt. |
-| `JetGoodVBFLeadingMjj` | Pair of candidates leading in $m_{jj}$, ordered by energy. |
-| `JetGoodVBFLeadingPtOppositeEta` | Leading-pt candidate and leading-pt candidate with $\eta_1 \eta_2 < 0$ (padded with `None`), ordered by pt. |
+| `JetGoodVBFLeadingMjj` | Pair of candidates leading in $m_{jj}$, ordered by energy. Built only when it is the pair of `spanet_vbf_candidates` (automatic: first approach). |
+| `JetGoodVBFLeadingPtOppositeEta` | Leading-pt candidate and leading-pt candidate with $\eta_1 \eta_2 < 0$ (padded with `None`), ordered by pt. Built only when it is the pair of `spanet_vbf_candidates` (automatic: second approach). |
 | `JetAdditionalGoodVBF` | Candidates left over by the pair chosen with `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to `max_num_jets_add_vbf`. |
 | `JetGoodVBFMergedProvVBFPadded` | That pair followed by `JetAdditionalGoodVBF`, with `provenance = provenance_vbf`: the VBF part of the SPANet inputs and of the ggF/VBF discriminator inputs. When a pairing is applied it is rebuilt out of the candidates left over by the Higgs pairing. |
 | `JetGoodProvHiggsPadded` | The Higgs jets with `provenance = provenance_X` (the `max_num_jets_good` jets leading in b-tag score, or the jets of the Higgs pairing when one is applied). |

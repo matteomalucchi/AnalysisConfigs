@@ -248,7 +248,9 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
     def count_objects(self, variation):
         super().count_objects(variation=variation)
-        if self.vbf_analysis:
+        # JetGoodCloseToFatJet and JetGoodVBFEnergyOrdered are built only in the
+        # boosted analysis
+        if self.vbf_analysis and self.boosted:
             self.events["nJetGoodCloseToFatJet"] = ak.num(self.events.JetGoodCloseToFatJet, axis=1)
             self.events["nJetGoodVBFEnergyOrdered"] = ak.num(self.events.JetGoodVBFEnergyOrdered, axis=1)
 
@@ -265,6 +267,10 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             )
 
         super().process_extra_after_presel(variation=variation)
+        if not self.boosted:
+            # the variables below need the FatJets (tau3/tau2, closest AK4 jet)
+            return
+
         self.events["HiggsLeading"] = ak.with_field(
             self.events["HiggsLeading"],
             ak.fill_none(self.events.HiggsLeading.tau3 / self.events.HiggsLeading.tau2, self.pad_value),
