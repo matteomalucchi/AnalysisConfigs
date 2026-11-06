@@ -30,6 +30,11 @@ run_pocket_coffea <config_name> <config_file> <run_options> <output_dir>
 run_pocket_coffea spanet_ptflat HH4b_parton_matching_config.py params/t3_run_options.yaml /work/out_hh4b/test
 ```
 
+`run_pocket_coffea` creates temporary copies of the config (`__<N>_<config_file>`) and of the ONNX
+executor (`__onnx_executor_<N>__.py`) and removes them when the run ends, also when it is stopped
+with Ctrl+C, `kill` or by closing the terminal (pocket-coffea is stopped first). Only `kill -9`
+leaves them behind.
+
 See [`docs/config_options.md`](./docs/config_options.md) for the details and every option. The
 main choices are:
 

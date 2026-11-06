@@ -6,7 +6,19 @@ cleanup() {
     [ -f "$onnx_exec" ] && rm -f "$onnx_exec"
 }
 
-trap 'cleanup; kill -- "$pid"; exit 1' SIGINT SIGTERM
+# On Ctrl+C / kill / terminal closed: stop pocket-coffea, wait for it to exit,
+# then remove the temporary files
+on_signal() {
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+        echo "Stopping pocket-coffea (pid $pid)..."
+        kill -TERM "$pid" 2>/dev/null
+        wait "$pid" 2>/dev/null
+    fi
+    cleanup
+    exit 1
+}
+
+trap on_signal SIGINT SIGTERM SIGHUP
 
 # Required args
 config_options=${1%.py}
@@ -130,9 +142,11 @@ fi
 ###################################
 # NORMAL MODE → run in background
 ###################################
+# Run in background + wait so that the trap fires immediately on a signal.
+# NB: a background job in a non-interactive shell ignores SIGINT, so on Ctrl+C
+# the trap stops pocket-coffea with SIGTERM.
 "${cmd[@]}" &
 pid=$!
-
 wait $pid
 status=$?
 
