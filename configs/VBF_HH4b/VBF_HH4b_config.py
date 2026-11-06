@@ -1,3 +1,4 @@
+import dataclasses
 import os
 
 import cloudpickle
@@ -151,7 +152,7 @@ sample_list = (
     + sample_VBF_list
     + sample_ZZ_ZH_list
     # + sample_data_jme_list
-    # + sample_data_parkinghh_list
+    + sample_data_parkinghh_list
 )
 
 
@@ -308,6 +309,26 @@ if config_options_dict["vbf_analysis"] and applies_pairing(
         VBF_SELECTED_PAIR_COLUMNS, not config_options_dict["save_chunk"]
     )
 
+# Columns that only exist for MC (pt-flattening weights and pt-flattened
+# collections), removed for data samples to avoid crashing
+MC_ONLY_COLUMN_PATTERNS = ["PtFlatten", "random_pt_weights"]
+
+
+def remove_mc_only_columns(columns):
+    filtered_columns = []
+    for col in columns:
+        if any(pattern in col.collection for pattern in MC_ONLY_COLUMN_PATTERNS):
+            continue
+        kept = [
+            c
+            for c in col.columns
+            if not any(pattern in c for pattern in MC_ONLY_COLUMN_PATTERNS)
+        ]
+        if kept:
+            filtered_columns.append(dataclasses.replace(col, columns=kept))
+    return filtered_columns
+
+
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
     bysample_bycategory_column_dict[sample] = {
@@ -316,7 +337,7 @@ for sample in sample_list:
     }
     for category in categories_dict.keys():
         bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-            column_list
+            (remove_mc_only_columns(column_list) if "DATA" in sample else column_list)
             + (
                 get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
                 if "DATA" in sample
@@ -325,7 +346,8 @@ for sample in sample_list:
                 else []
             )
         )
-
+print(bysample_bycategory_column_dict)
+breakpoint()
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
