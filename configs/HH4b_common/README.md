@@ -377,6 +377,9 @@ run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
 > If the columns are saved as `parquet` in a different folder (using the `save_chunks` setting), the path to the files is stored in the `config.json`.
 > If one of the scripts using the columns does not find the columns, the problem could be, that this file was overwritten/is missing.
 
+> [!TIP]
+> When the columns are saved as `parquet` chunks, add `--merge-parquet` (or `--merge-parquet-update-config`) to the `run_pocket_coffea` command to merge them at the end of the run into one file per dataset/region/variation, which makes the loading much faster. See [Merge the parquet chunks](#merge-the-parquet-chunks).
+
 ### Train DNN model for background morphing
 
 > [!TIP]
@@ -572,6 +575,38 @@ run_pocket_coffea <config_name> <config_file> <run_options> <output_dir> <--test
 # e.g.
 run_pocket_coffea spanet_ptflat_rerun_matteo_transform VBF_HH4b_config.py params/t3_run_options_spanet_predict_10Gb.yaml /work/mmalucch/out_hh4b/out_transformed_DNN_score
 ```
+
+Additional options of `run_pocket_coffea` (anywhere after the 4 required arguments; all the other options are passed to `pocket-coffea run`):
+
+| Option | Description |
+| --- | --- |
+| `--test` | Run locally on a small number of files (no executor). |
+| `--debug` | Only print the `pocket-coffea run` command. |
+| `--copy-to <dir>` | At the end, copy the output directory to `<dir>` with `rsync`, verify it with checksums and remove the original. |
+| `--merge-parquet` | At the end (before `--copy-to`), merge the `parquet` chunks with [`utils_configs/merge_parquet.py`](../../utils_configs/merge_parquet.py), see [Merge the parquet chunks](#merge-the-parquet-chunks). |
+| `--merge-parquet-update-config` | Same as `--merge-parquet`, and also overwrite the `parquet` path in the `config.json` of the output with the path of the merged files (`--update-config`). |
+| `--merge-parquet-args "<args>"` | Extra arguments for `merge_parquet.py` (implies `--merge-parquet`), e.g. `--merge-parquet-args "-j 16 -o <dir>"`. |
+
+### Merge the parquet chunks
+
+With `save_chunk`, PocketCoffea saves the columns as thousands of small `parquet` chunks. Reading them (especially from dCache, `/pnfs`) is dominated by the per-file latency (~1-2 min per dataset/region even for few MB). [`utils_configs/merge_parquet.py`](../../utils_configs/merge_parquet.py) (`merge_parquet` once `AnalysisConfigs` is installed with `pip install -e .`) merges them into a single `merged.parquet` per leaf directory (e.g. `<dataset>/<region>/nominal`), keeping the directory structure and the events order, so the merged directory can be used in place of the original one (e.g. by [ML_pytorch](https://github.com/matteomalucchi/ML_pytorch) or [`get_columns_from_files.py`](../../utils_configs/plot/get_columns_from_files.py)).
+
+It can be run automatically at the end of `run_pocket_coffea` with `--merge-parquet`, or by hand:
+
+```bash
+# -i: PocketCoffea output dir (the parquet location is read from its config.json) or the parquet files dir
+python utils_configs/merge_parquet.py -i <output_dir> [-o <merged_dir>] [--tmp-dir <tmp_dir>] [-j 32] [--files-per-step 256] [--overwrite] [--update-config]
+
+# e.g. merge into <...>/merged_parquet_files next to <...>/parquet_files and point the config.json to the merged files
+python utils_configs/merge_parquet.py -i /work/$USER/out_hh4b/<name> --update-config
+```
+
+* `-o/--output`: directory of the merged files. By default, a directory called `merged_parquet_files` next to the original `parquet` directory (e.g. `<...>/parquet_files` &rarr; `<...>/merged_parquet_files`)
+* `--tmp-dir`: merge each file here first, then copy it to the output directory, check the copy (size, adler32 checksum, number of events) and remove it (and the directories left empty) from here. If the check fails the copy is removed, the merged file is kept and the script stops; a rerun reuses it. Needed when the output is on `/pnfs`, where the files cannot be written directly: in that case it defaults to `<output_dir>/merged_parquet_files_tmp` when `-i` is the PocketCoffea output directory
+* `--update-config`: overwrite `dump_columns_as_arrays_per_chunk` and `save_chunk` in the `workflow_options` of the `config.json` with the path of the merged files (keeping the same `root://` redirector, if any), so that the scripts reading the columns through the `config.json` use the merged files directly (in ML_pytorch, no `parquet_dir` is needed). The original paths are kept as `dump_columns_as_arrays_per_chunk_unmerged` and `save_chunk_unmerged`, and are used as input if the merging is run again
+* `-j/--threads`: number of threads reading the files in parallel (default 32)
+* `--files-per-step`: number of files kept in memory at the same time (default 256)
+* `--overwrite`: re-merge directories already merged (skipped by default)
 
 ### Run ggF HH4b analysis
 

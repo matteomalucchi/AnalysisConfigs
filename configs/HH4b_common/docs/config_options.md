@@ -42,6 +42,8 @@ run_pocket_coffea spanet_ptflat HH4b_parton_matching_config.py params/t3_run_opt
 The wrapper replaces the `__config_file__` placeholder in the config template
 (`configs/HH4b/HH4b_parton_matching_config.py`, `configs/VBF_HH4b/VBF_HH4b_config.py`, ...)
 with `<config_name>`, so the same template can be run with many different option sets.
+Its additional options (`--test`, `--copy-to`, `--merge-parquet`, `--merge-parquet-update-config`, ...)
+are listed in the [README](../README.md#run-analysis).
 
 `config_options_dict` is passed to the PocketCoffea `Configurator` as
 `workflow_options`. `HH4bCommonProcessor.__init__` turns every key into an
@@ -188,7 +190,7 @@ The categories built from these options are described in [categories.md](categor
 | Option | Default | Description |
 | --- | --- | --- |
 | `dnn_variables` | `True` | Compute and save the DNN input variables (Higgs and HH kinematics, additional jet, `sigma_over_higgs*_reco_mass`, ...). If `False`, only the SPANet training columns (or the default jet columns) are saved. |
-| `save_chunk` | `False` | Dump the columns as `parquet` files per chunk instead of accumulating them in the coffea output (it sets `dump_columns_as_arrays_per_chunk` and disables the flattening of the columns). The output path is stored in the `config.json` of the run. |
+| `save_chunk` | `False` | Dump the columns as `parquet` files per chunk instead of accumulating them in the coffea output (it sets `dump_columns_as_arrays_per_chunk` and disables the flattening of the columns). The output path is stored in the `config.json` of the run. The chunks can be merged into one file per dataset/region/variation with `run_pocket_coffea ... --merge-parquet` (see [Merge the parquet chunks](../README.md#merge-the-parquet-chunks)). |
 | `donotscale_sumgenweights` | `False` | Do not normalise the MC by the sum of the generator weights. Kept for backward compatibility with the PocketCoffea `Configurator` option; it is currently not forwarded by any of the config templates. |
 
 ## Boosted BDT
@@ -204,5 +206,5 @@ them to `config_options_dict` while building the `Configurator`.
 
 | Key | Added by | Description |
 | --- | --- | --- |
-| `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. |
+| `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. In the `config.json` of the output it is overwritten (together with `save_chunk`) with the path of the merged files by `merge_parquet.py --update-config` (`run_pocket_coffea ... --merge-parquet-update-config`), the original being kept as `dump_columns_as_arrays_per_chunk_unmerged`. |
 | `num_bins` | [`config_compute_befficiency_HH4b.py`](../../HH4b_btagging/config_compute_befficiency_HH4b.py) | Leftover of the b-tag efficiency studies; currently not read anywhere. |
