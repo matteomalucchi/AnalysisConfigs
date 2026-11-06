@@ -29,6 +29,9 @@ from utils_configs.parton_matching_function import get_parton_last_copy
 from utils_configs.reconstruct_resonances import (
     get_jets_idx_not_from_idx,
     get_lead_mjj_jet_pair,
+    get_lead_pt_opposite_eta_jet_pair,
+    order_jet_pair_by_energy,
+    order_jet_pair_by_pt,
     reconstruct_higgs_from_provenance,
     reconstruct_resonances_from_idx,
     reconstruct_vbf_jets_from_idx,
@@ -40,6 +43,7 @@ from utils_configs.spanet_evaluation_functions import (
 )
 
 from .custom_object_preselection_common import lepton_selection
+from .vbf_jet_collections import VBF_SELECTED_PAIR_COLL, applies_pairing
 
 vector.register_awkward()
 
@@ -54,6 +58,18 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger()
+
+# second approach: HT is the sum of the pt of the jets with pt > 30 GeV, |eta| < 2.5
+SECOND_APPROACH_HT_MIN_PT = 30
+
+# VBF jet pair definitions: option value -> (collection name, function building it)
+VBF_PAIR_DEFINITIONS = {
+    "leading_mjj": ("JetGoodVBFLeadingMjj", get_lead_mjj_jet_pair),
+    "leading_pt_opposite_eta": (
+        "JetGoodVBFLeadingPtOppositeEta",
+        get_lead_pt_opposite_eta_jet_pair,
+    ),
+}
 
 era_dict = {
     "2022_preEE_C": 0,
@@ -76,6 +92,12 @@ era_dict = {
     "2024_G": 17,
     "2024_H": 18,
     "2024_I": 19,
+    "2025_B": 20,
+    "2025_C": 21,
+    "2025_D": 22,
+    "2025_E": 23,
+    "2025_F": 24,
+    "2025_G": 25,
     "2022_preEE_MC": -1,
     "2022_postEE_MC": -2,
     "2023_preBPix_MC": -3,
@@ -86,6 +108,8 @@ era_dict = {
     "2023_postBPix_MIX": -8,
     "2024_MC": -9,
     "2024_MIX": -10,
+    "2025_MC": -11,
+    "2025_MIX": -12,
 }
 
 year_dict = {
@@ -94,6 +118,7 @@ year_dict = {
     "2023_preBPix": 2,
     "2023_postBPix": 3,
     "2024": 4,
+    "2025": 5,
 }
 
 
@@ -182,12 +207,62 @@ class HH4bCommonProcessor(BaseProcessorABC):
         self.events["JetPtRegressed"] = copy.copy(self.events["Jet"])
         self.events["JetPtRegressedPlusNeutrino"] = copy.copy(self.events["Jet"])
 
+    def regressed_jets_for_merging(self, coll):
+        """Regressed jet collection `coll` as passed to merge_regressed_jets.
+
+        With `regression_min_pt_raw` set, the regressed pt of the jets with a raw
+        pt (`JetDefault.pt_raw`) not above it is set to -1: merge_regressed_jets
+        treats a pt <= 0 as a failed regression and takes the next collection of
+        the chain (the standard jets) for them. `self.events[coll]` itself is
+        left unchanged (e.g. for `pt_regressed`).
+        """
+        jets = self.events[coll]
+        min_pt_raw = getattr(self, "regression_min_pt_raw", None)
+        if min_pt_raw is None:
+            return jets
+        return ak.with_field(
+            jets,
+            ak.where(self.events["JetDefault"].pt_raw > min_pt_raw, jets.pt, -1.0),
+            "pt",
+        )
+
+    def apply_default_jer_to_regressed_jets(self, jets, variation):
+        """Replace the JER smearing of the regressed `jets` with the one of the
+        standard jets (`JetDefault`, same jet order).
+
+        The scaling method of the JER compares the jet pt with the GenJet pt,
+        which does not include the neutrinos: on the +neutrino regressed pt it
+        smears the jets upwards. The JEC (and the JES variations) of the
+        regressed jets are kept, only the JER factor (`jer_factor`, or the
+        up/down one for the JER variations) is swapped.
+        """
+        default = self.events.JetDefault
+        jer_reg, jer_default = jets.jer_factor, default.jer_factor
+        for direction in ("up", "down"):
+            pt_jer = f"pt_JER_{direction}"
+            if variation.endswith(f"JER{direction.capitalize()}") and pt_jer in jets.fields:
+                jer_reg = jets[pt_jer] / (jets.pt_raw * jets.jec_factor)
+                jer_default = default[pt_jer] / (default.pt_raw * default.jec_factor)
+        # jets without a valid regression (pt = 0) are left unchanged
+        ratio = ak.where(jer_reg > 0, jer_default / jer_reg, 1.0)
+        jets = ak.with_field(jets, jets.pt * ratio, "pt")
+        jets = ak.with_field(jets, jets.mass * ratio, "mass")
+        return ak.with_field(jets, jer_default, "jer_factor")
+
     def apply_object_preselection(self, variation):
         # new events: the cached model outputs do not apply to them any more.
         # This runs before `process_extra_after_presel` of every workflow, so a
         # subclass which evaluates a model early still gets a fresh output.
         self._spanet_output = None
         self._vbf_discriminator_output = None
+
+        if self._isMC and self.regressed_jets_default_jer:
+            # smear the regressed jets with the JER factor of the standard jets
+            for coll in ("JetPtRegressed", "JetPtRegressedPlusNeutrino"):
+                if coll in self.events.fields:
+                    self.events[coll] = self.apply_default_jer_to_regressed_jets(
+                        self.events[coll], variation
+                    )
 
         # Build "Jet" from the regressed/standard collections. Taking a whole
         # collection (not just pt) keeps every pt-dependent field consistent.
@@ -201,17 +276,19 @@ class HH4bCommonProcessor(BaseProcessorABC):
                         "regresses the pt into 'JetPtRegressed' and "
                         "'JetPtRegressedPlusNeutrino'."
                     )
+            jets_reg = self.regressed_jets_for_merging("JetPtRegressed")
+            jets_reg_nu = self.regressed_jets_for_merging("JetPtRegressedPlusNeutrino")
             if self.separate_regression_by_btag:
                 # Default: split the pt regression by b-tag: +neutrino regression
                 # for high-b-tag jets (above the loose WP), plain regression for
                 # the rest, each falling back to the standard JEC jets.
                 self.events["Jet"] = merge_regressed_jets(
                     jets_high_btag=[
-                        self.events["JetPtRegressedPlusNeutrino"],
+                        jets_reg_nu,
                         self.events["JetDefault"],
                     ],
                     jets_low_btag=[
-                        self.events["JetPtRegressed"],
+                        jets_reg,
                         self.events["JetDefault"],
                     ],
                     params=self.params,
@@ -222,7 +299,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 # valid, else the standard JEC jets.
                 self.events["Jet"] = merge_regressed_jets(
                     [
-                        self.events["JetPtRegressedPlusNeutrino"],
+                        jets_reg_nu,
                         self.events["JetDefault"],
                     ],
                 )
@@ -230,7 +307,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
             # as "first", but high b-tag jets (loose WP) always use the regression
             self.events["Jet"] = merge_regressed_jets(
                 jets_high_btag=[
-                    self.events["JetPtRegressedPlusNeutrino"],
+                    self.regressed_jets_for_merging("JetPtRegressedPlusNeutrino"),
                     self.events["JetDefault"],
                 ],
                 jets_low_btag=[
@@ -285,8 +362,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         else:
             self.pt_cut_name = "pt"
 
-        self.select_jets("JetGood", "Jet")
-
+        # leptons first, so that the jet selection can be cleaned against them
+        # (`dr_lep` with `clean_ele_coll: ElectronGood`, `clean_mu_coll: MuonGood`
+        # in the object preselection)
         self.events["Electron"] = ak.with_field(
             self.events.Electron,
             self.events.Electron.eta + self.events.Electron.deltaEtaSC,
@@ -297,6 +375,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             self.events, "Electron", self.params
         )
         self.events["MuonGood"] = lepton_selection(self.events, "Muon", self.params)
+
+        self.select_jets("JetGood", "Jet")
 
         # order jet by btag score
         self.events["JetGood"] = self.events.JetGood[
@@ -369,8 +449,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def flatten_pt(self, rand_type, jet_collection):
         # The smearing factor is a property of the event, not of the jet
         # collection: several collections of the same chunk are flattened one
-        # after the other and then concatenated together (e.g. in
-        # JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded), and the factor is
+        # after the other and then fed together to SPANet (e.g.
+        # JetGoodProvHiggsPtFlattenPadded and
+        # JetGoodVBFMergedProvVBFPtFlattenPadded), and the factor is
         # stored only once per event as `random_pt_weights`. So it is drawn once
         # per chunk and reused by every following call, otherwise the two halves
         # of an event would be scaled differently and the stored column would
@@ -430,6 +511,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
     def generate_btag_delta_workingpoints(self, jets, num_wp):
         wp_array = jets[f"btagB_{num_wp}wp"]
         num_jets = ak.num(wp_array)
+        # pad to 4 jets so that the events with less than 4 jets do not crash;
+        # the padded entries are removed at the end
+        wp_array = ak.pad_none(wp_array, 4, axis=1)
         deltaWP = ak.where(
             # if 4 jets
             num_jets == 4,
@@ -457,6 +541,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 axis=1,
             ),
         )
+        # back to the number of jets of the collection
+        deltaWP = deltaWP[ak.local_index(deltaWP, axis=1) < num_jets]
         return ak.with_field(jets, deltaWP, f"btagB_delta{num_wp}wp")
 
     def define_quark_provenance(self, bquarks_first, genpart, higgs, z_boson, X_resonance):
@@ -841,7 +927,16 @@ class HH4bCommonProcessor(BaseProcessorABC):
         jet2_sigma_conc = ak.concatenate((jet2_up_sigma, jet2_down_sigma), axis=1)
         sigma_hbbCand_B = ak.max(jet2_sigma_conc, axis=1)
 
-        return ak.flatten(np.sqrt(sigma_hbbCand_A**2 + sigma_hbbCand_B**2), axis=None)
+        # one value per event (None when a jet is missing)
+        return np.sqrt(sigma_hbbCand_A**2 + sigma_hbbCand_B**2)
+
+    def get_jets_for_ht(self):
+        """Jets entering HT: the JetGood jets (|eta| < 2.5), in the second
+        approach only the ones with pt > 30 GeV (on `preselection_pt_field`)."""
+        jets = self.events.JetGood
+        if self.approach == "second":
+            jets = jets[jets[self.preselection_pt_field] > SECOND_APPROACH_HT_MIN_PT]
+        return jets
 
     def get_jets_not_from_idx(self, jet_idx_to_remove_per_event):
         jet_offsets = np.concatenate(
@@ -883,7 +978,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         name,
         jet_type_obj_presel,
         from_collection="Jet",
-        forward_jet_veto=False,
         order_by=None,
         add_all_fields=False,
     ):
@@ -903,7 +997,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             year=self._year,
             pt_type=self.preselection_pt_field,
             pt_cut_name=self.pt_cut_name,
-            forward_jet_veto=forward_jet_veto,
         )
 
         if add_all_fields:
@@ -923,7 +1016,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         name,
         jet_idx_to_remove,
         jet_type_obj_presel="JetVBF",
-        forward_jet_veto=True,
         order_by=None,
         add_all_fields=True,
     ):
@@ -939,7 +1031,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             name,
             jet_type_obj_presel,
             from_collection=name,
-            forward_jet_veto=forward_jet_veto,
             order_by=order_by,
             add_all_fields=add_all_fields,
         )
@@ -962,8 +1053,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # ADDITIONAL VARIABLES #
         ########################
 
-        # HT : scalar sum of all jets with pT > 25 GeV inside | η | < 2.5
-        self.events["HT"] = ak.sum(self.events.JetGood.pt, axis=1)
+        # HT : scalar sum of the pt of the JetGood jets (|eta| < 2.5), above
+        # 30 GeV in the second approach
+        self.events["HT"] = ak.sum(self.get_jets_for_ht().pt, axis=1)
 
         self.events["era"] = ak.full_like(
             self.events.HT, era_dict[f"{self._year}_{self._era}"]
@@ -1121,7 +1213,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
             "JetNotFromHiggs",
             jet_idx_from_pairings,
             jet_type_obj_presel="Jet",
-            forward_jet_veto=False,
             add_all_fields=False,
         )
 
@@ -1193,8 +1284,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return add_jet1pt
 
     def define_boosted_dnn_variables(self, higgs1, higgs2, cleaned_jets, vbf_variables):
-        # HT : scalar sum of all jets with pT > 25 GeV inside | η | < 2.5
-        self.events["HT"] = ak.sum(self.events.JetGood.pt, axis=1)
+        # HT : scalar sum of the pt of the JetGood jets (|eta| < 2.5), above
+        # 30 GeV in the second approach
+        self.events["HT"] = ak.sum(self.get_jets_for_ht().pt, axis=1)
 
         self.events["era"] = ak.full_like(
             self.events.HT, era_dict[f"{self._year}_{self._era}"]
@@ -1538,8 +1630,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         # the prediction is kept also for the events with less than two VBF
         # candidates: a jet predicted on a padded position is dropped, so that
         # the VBF pair can have a single jet
+        # only the best assignment is needed: skip the loop over all of them
         pairing_predictions, *_ = get_best_pairings(
-            [np.copy(prob) for prob in assignment_prob]
+            [np.copy(prob) for prob in assignment_prob], best_only=True
         )
 
         # the VBF pair is the last resonance predicted by the model
@@ -1552,8 +1645,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         VBF jet collections built right after the object preselection, shared by
         the resolved and the boosted VBF workflows.
 
-        `JetGoodVBFCandidates` leaves out the `max_num_jets_good` jets leading in
-        b-tag score, `JetGoodVBFAN` only the 4 Higgs candidates, as in the AN.
+        `JetGoodVBFCandidates` are the jets passing the `JetVBF` selection which
+        are not among the `max_num_jets_good` jets leading in b-tag score
+        (`JetGoodClip`), ordered by pt.
         """
         # get idx of good jets after preselection
         self.events["JetGoodClip"] = copy.copy(
@@ -1565,65 +1659,40 @@ class HH4bCommonProcessor(BaseProcessorABC):
             "JetGoodVBFCandidates", self.events.JetGoodClip.index, order_by="pt"
         )
 
-        # Define VBF jets but removing only 4 JetGoodHiggs (like in the AN)
-        self.select_jets_not_from_idx(
-            "JetGoodVBFAN", self.events.JetGoodHiggs.index, add_all_fields=False
+        # provenance of the Higgs candidates
+        self.events["JetGoodHiggs"] = ak.with_field(
+            self.events["JetGoodHiggs"],
+            self.events["JetGoodHiggs"].provenance_X,
+            "provenance",
         )
-
-        # create the provenance field separate for higgs and vbf
-        for jet_coll, provenance in [
-            ("JetGoodHiggs", "provenance_X"),
-            ("JetGoodVBFAN", "provenance_vbf"),
-        ]:
-            self.events[jet_coll] = ak.with_field(
-                self.events[jet_coll],
-                self.events[jet_coll][provenance],
-                "provenance",
-            )
 
     def define_vbf_pair_collections(self):
         """
-        VBF jet pairs and additional VBF jets, shared by the resolved and the
-        boosted VBF workflows.
+        VBF candidates from `JetGoodVBFCandidates`, shared by the resolved and the
+        boosted VBF workflows:
+
+        - the VBF pair of `vbf_pair_definition`, i.e. only one of
+          `JetGoodVBFLeadingMjj` (the pair leading in mjj, ordered by energy) or
+          `JetGoodVBFLeadingPtOppositeEta` (the leading-pt jet and the leading-pt
+          jet in the opposite eta hemisphere, eta1 * eta2 < 0, ordered by pt)
+        - `JetAdditionalGoodVBF`: the candidates left over by the pair chosen with
+          `spanet_vbf_candidates`, ordered by `jets_add_vbf_order` and padded to
+          `max_num_jets_add_vbf`
+        - `JetGoodVBFMergedProvVBFPadded`: that pair followed by the additional
+          jets, with `provenance` = `provenance_vbf`, i.e. the VBF jets fed to
+          SPANet (see `spanet_vbf_pair`)
         """
-        # choose vbf jets as the two jets with the highest pt that are not from higgs decay
-        self.events["JetVBFLeadingPtNotFromHiggs"] = self.events.JetGoodVBFCandidates[
-            :, :2
-        ]
+        # only the pair of `vbf_pair_definition` is used: build only that one
+        name, pair_function = VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()]
+        self.events[name] = pair_function(self.events, "JetGoodVBFCandidates")
 
-        # choose vbf jet candidates as the ones with the highest mjj that are not from higgs decay
-        self.events["JetGoodVBFLeadingMjj"] = get_lead_mjj_jet_pair(
-            self.events, "JetGoodVBFCandidates"
-        )
-        # same, with the VBF candidates defined as in the AN
-        self.events["JetGoodVBFLeadingMjjAN"] = get_lead_mjj_jet_pair(
-            self.events, "JetGoodVBFAN"
-        )
-
-        # Get additional VBF jets
-        mask_jet_vbf_lead_mjj_not_none = ak.values_astype(
-            ~ak.is_none(self.events.JetGoodVBFLeadingMjj.pt, axis=1), "bool"
-        )
-
-        # this mask doesn't change the number of events
-        # but the elements from the array if they are None values
-        jet_vbf_leading_mjj_idx_not_none = self.events["JetGoodVBFLeadingMjj"].index[
-            mask_jet_vbf_lead_mjj_not_none
-        ]
-
-        # Get the total idx to remove
-        jet_good_vbf_leading_mjj_idx_not_none = ak.concatenate(
-            [
-                self.events.JetGoodClip.index,
-                jet_vbf_leading_mjj_idx_not_none,
-            ],
-            axis=1,
-        )
+        spanet_vbf_pair = self.spanet_vbf_pair()
+        pair_idx = spanet_vbf_pair.index[~ak.is_none(spanet_vbf_pair.pt, axis=1)]
 
         # get additional good VBF jets, ordered and padded
         self.select_jets_not_from_idx(
             "JetAdditionalGoodVBF",
-            jet_good_vbf_leading_mjj_idx_not_none,
+            ak.concatenate([self.events.JetGoodClip.index, pair_idx], axis=1),
             order_by=self.jets_add_vbf_order,
         )
         self.events["JetAdditionalGoodVBF"] = ak.pad_none(
@@ -1633,21 +1702,49 @@ class HH4bCommonProcessor(BaseProcessorABC):
             clip=True,
         )
 
-        # save the merged good VBF jets for convenience
-        self.events["JetGoodVBFMergedPadded"] = ak.concatenate(
-            [
-                self.events["JetGoodVBFLeadingMjj"],
-                self.events["JetAdditionalGoodVBF"],
-            ],
-            axis=1,
+        padded = add_fields(
+            ak.concatenate(
+                [spanet_vbf_pair, self.events["JetAdditionalGoodVBF"]], axis=1
+            ),
+            "all",
         )
-
-        padded = add_fields(self.events["JetGoodVBFMergedPadded"], "all")
         self.events["JetGoodVBFMergedProvVBFPadded"] = ak.zip(
             {field: padded[field] for field in padded.fields}
             | {"provenance": padded.provenance_vbf},
             with_name="PtEtaPhiMLorentzVector",
         )
+        # count only the non-None (non-padded) jets
+        self.events["nJetGoodVBFMergedProvVBFPadded"] = ak.count(
+            self.events.JetGoodVBFMergedProvVBFPadded.pt, axis=1
+        )
+
+    def vbf_pair_definition(self):
+        """Definition of the VBF pair among the VBF candidates, used both for the
+        pair fed to the models (SPANet and ggF/VBF discriminator inputs) and for
+        the fallback VBF pair of the categories, so that the two always agree.
+
+        With `spanet_vbf_candidates` = None (default) it follows the approach:
+        "leading_pt_opposite_eta" in the second approach, "leading_mjj"
+        otherwise. An explicit value overrides it (e.g. to apply a model trained
+        with the other definition)."""
+        definition = self.spanet_vbf_candidates
+        if definition is None:
+            definition = (
+                "leading_pt_opposite_eta"
+                if self.approach == "second"
+                else "leading_mjj"
+            )
+        if definition not in VBF_PAIR_DEFINITIONS:
+            raise ValueError(
+                f"Unknown spanet_vbf_candidates '{definition}'. "
+                f"Choose one of {list(VBF_PAIR_DEFINITIONS)} or None (automatic)."
+            )
+        return definition
+
+    def spanet_vbf_pair(self):
+        """VBF pair fed to SPANet together with the additional VBF jets, with the
+        definition of `vbf_pair_definition`."""
+        return self.events[VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()][0]]
 
     def define_vbf_kinematics(self, jet_colls, jet_idxs, centrality=True):
         """
@@ -1696,8 +1793,12 @@ class HH4bCommonProcessor(BaseProcessorABC):
         `max_num_jets_add_vbf`, together with its mjj, deta and centrality.
         """
         jet_higgs = self.events.JetGoodFromHiggsOrdered
-        jet_vbf_pair = get_lead_mjj_jet_pair(self.events, "JetGoodVBFCandidates")
-        self.events["JetGoodVBFLeadingMjj"] = jet_vbf_pair
+
+        # VBF pair out of the jets left over by the Higgs pairing, with the
+        # definition of `vbf_pair_definition` (the only one used)
+        name, pair_function = VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()]
+        self.events[name] = pair_function(self.events, "JetGoodVBFCandidates")
+        jet_vbf_pair = self.spanet_vbf_pair()
 
         # Higgs jets with the provenance of the Higgs
         padded_higgs = add_fields(
@@ -1731,15 +1832,17 @@ class HH4bCommonProcessor(BaseProcessorABC):
             add_fields(jet_vbf_pair, "all"),
             add_fields(self.events["JetAdditionalGoodVBF"], "all"),
         ]
-        self.events["JetGoodVBFMergedPadded"] = ak.zip(
-            {
-                field: ak.concatenate([coll[field] for coll in jet_colls], axis=1)
-                for field in jet_colls[0].fields
-                if field in jet_colls[1].fields
-            },
-            with_name="PtEtaPhiMLorentzVector",
+        padded = add_fields(
+            ak.zip(
+                {
+                    field: ak.concatenate([coll[field] for coll in jet_colls], axis=1)
+                    for field in jet_colls[0].fields
+                    if field in jet_colls[1].fields
+                },
+                with_name="PtEtaPhiMLorentzVector",
+            ),
+            "all",
         )
-        padded = add_fields(self.events["JetGoodVBFMergedPadded"], "all")
         self.events["JetGoodVBFMergedProvVBFPadded"] = ak.zip(
             {field: padded[field] for field in padded.fields}
             | {
@@ -1751,6 +1854,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
             },
             with_name="PtEtaPhiMLorentzVector",
         )
+        # count only the non-None (non-padded) jets
+        self.events["nJetGoodVBFMergedProvVBFPadded"] = ak.count(
+            self.events.JetGoodVBFMergedProvVBFPadded.pt, axis=1
+        )
 
         # mjj, deta and centrality of the pair leading in mjj, with the Higgs
         # candidates of the pairing
@@ -1758,7 +1865,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
     def define_vbf_jet_pair(self, jet_vbf_higgs_model):
         """
-        VBF jet pair used by the VBF categories.
+        VBF jet pair used by the VBF categories, ordered by energy (the caller
+        stores it, ordered by pt, in `JetGoodVBFSelectedPair`). Only called
+        when a pairing (SPANet or Run 2) is applied.
 
         The VBF candidates are the jets left over by the Higgs pairing. The
         inputs of the ggF/VBF discriminator are built out of them (the pair
@@ -1767,7 +1876,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
         - the pair predicted by the ggF/VBF discriminator, when it predicts one
         - `jet_vbf_higgs_model`, the pair given by the Higgs pairing model, when
           it predicts the VBF jets as well
-        - the pair leading in mjj among the VBF candidates
+        - among the VBF candidates, the leading-pt jet and the leading-pt jet in
+          the opposite eta hemisphere in the second approach, the pair leading
+          in mjj otherwise (ordered by energy)
         """
         # NOTE: the VBF workflows already built `JetGoodVBFCandidates` out of the
         # jets leading in b-tag score; rebuild it here out of the jets the
@@ -1778,10 +1889,9 @@ class HH4bCommonProcessor(BaseProcessorABC):
             order_by="pt",
         )
 
-        if self.spanet or self.run2:
-            # the VBF discriminator inputs (Higgs jets, VBF candidates and their
-            # kinematics) are built out of the Higgs pairing, as in the training
-            self.define_vbf_collections_after_pairing()
+        # the VBF discriminator inputs (Higgs jets, VBF candidates and their
+        # kinematics) are built out of the Higgs pairing, as in the training
+        self.define_vbf_collections_after_pairing()
 
         jet_vbf = self.eval_vbf_pairing()
         if jet_vbf is not None:
@@ -1790,8 +1900,14 @@ class HH4bCommonProcessor(BaseProcessorABC):
         if jet_vbf_higgs_model is not None:
             return jet_vbf_higgs_model
 
-        # get the vbf candidates as the leading in mjj
-        return get_lead_mjj_jet_pair(self.events, "JetGoodVBFCandidates")
+        # same definition as the pair fed to the models (`vbf_pair_definition`):
+        # leading-pt / opposite-eta pair in the second approach, leading mjj
+        # otherwise
+        return order_jet_pair_by_energy(
+            VBF_PAIR_DEFINITIONS[self.vbf_pair_definition()][1](
+                self.events, "JetGoodVBFCandidates"
+            )
+        )
 
     def get_btag_order_add_jet(self, jet_idx_from_pairings):
         """
@@ -1818,22 +1934,6 @@ class HH4bCommonProcessor(BaseProcessorABC):
         return ~ak.all(btag_lead_used, axis=-1)
 
     def process_extra_after_presel(self, variation):  # -> ak.Array:
-        # Extract the single weight values for each event:
-        extract_single_weights = False
-        if extract_single_weights:
-            for name, weight in self.weights_manager._weightsObj.items():
-                weight_vals = weight.compute(
-                    self.events, self.nEvents_after_presel, "nominal"
-                ).nominal
-                logger.debug(f"Loading weight {name}")
-                logger.debug(weight_vals)
-                self.events = ak.with_field(
-                    self.events,
-                    weight_vals,
-                    f"weight_single_{name}",
-                )
-                logger.debug(f"Saving weight component: weight_single_{name}")
-
         if not self.boosted:
             # Define the Delta WP
             self.events["JetGood"] = self.generate_btag_delta_workingpoints(
@@ -1931,7 +2031,10 @@ class HH4bCommonProcessor(BaseProcessorABC):
                     self.events["HiggsLeading"],
                     self.events["HiggsSubLeading"],
                     self.events["JetGoodFromHiggsOrdered"],
-                ) = run2_matching_algorithm(self.events["JetGoodHiggs"])
+                ) = run2_matching_algorithm(
+                    self.events["JetGoodHiggs"],
+                    pt_in_hh_frame=self.approach == "second",
+                )
 
                 jet_vbf = None
 
@@ -1953,13 +2056,19 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 )
 
             # ======= VBF PARAMETERS ============
-            if self.vbf_analysis:
-                self.events["JetGoodVBFEnergyOrdered"] = self.define_vbf_jet_pair(
-                    jet_vbf
+            # the VBF pair is assigned only when a pairing is applied: when the
+            # SPANet training inputs are created the VBF jets are the ones of
+            # `VBF_TRAINING_JET_COLL` (see `get_vbf_jet_collection`)
+            if self.vbf_analysis and applies_pairing(self.spanet, self.run2):
+                # the selected VBF pair (VBF pairing model, Higgs pairing model
+                # or definition of the approach) ordered by pt: the only VBF
+                # pair used by the categories and saved in the output
+                self.events[VBF_SELECTED_PAIR_COLL] = order_jet_pair_by_pt(
+                    self.define_vbf_jet_pair(jet_vbf)
                 )
                 # mjj, deta and centrality of the VBF pair actually assigned,
                 # which are saved and propagated forward
-                self.define_vbf_kinematics(["JetGoodVBFEnergyOrdered"], [0])
+                self.define_vbf_kinematics([VBF_SELECTED_PAIR_COLL], [0])
 
             if (
                 self._isMC
@@ -1986,7 +2095,7 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 jet_idx_from_pairings = matched_jet_higgs_idx_not_none
                 jet_vbf_idx_not_none = None
                 if self.vbf_analysis:
-                    jet_vbf_idx_not_none = self.events.JetGoodVBFEnergyOrdered.index
+                    jet_vbf_idx_not_none = self.events[VBF_SELECTED_PAIR_COLL].index
                     jet_idx_from_pairings = ak.concatenate(
                         [jet_idx_from_pairings, jet_vbf_idx_not_none], axis=1
                     )
@@ -2202,3 +2311,20 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 input_name_SIG_BKG_DNN,
                 output_name_SIG_BKG_DNN,
             )
+
+        # Extract the single weight values for each event. Done at the end, since
+        # some weights read fields defined above (e.g. `bkg_morphing_dnn_weight`)
+        extract_single_weights = False
+        if extract_single_weights:
+            for name, weight in self.weights_manager._weightsObj.items():
+                weight_vals = weight.compute(
+                    self.events, self.nEvents_after_presel, "nominal"
+                ).nominal
+                logger.debug(f"Loading weight {name}")
+                logger.debug(weight_vals)
+                self.events = ak.with_field(
+                    self.events,
+                    weight_vals,
+                    f"weight_single_{name}",
+                )
+                logger.debug(f"Saving weight component: weight_single_{name}")

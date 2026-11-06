@@ -6,7 +6,19 @@ cleanup() {
     [ -f "$onnx_exec" ] && rm -f "$onnx_exec"
 }
 
-trap 'cleanup; kill -- "$pid"; exit 1' SIGINT SIGTERM
+# On Ctrl+C / kill / terminal closed: stop pocket-coffea, wait for it to exit,
+# then remove the temporary files
+on_signal() {
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+        echo "Stopping pocket-coffea (pid $pid)..."
+        kill -TERM "$pid" 2>/dev/null
+        wait "$pid" 2>/dev/null
+    fi
+    cleanup
+    exit 1
+}
+
+trap on_signal SIGINT SIGTERM SIGHUP
 
 # Required args
 config_options=${1%.py}
@@ -18,11 +30,14 @@ shift 4
 # All extra args initially
 raw_extra_args=("$@")
 
-# Detect and remove --test, --debug, and parse --copy-to
+# Detect and remove --test, --debug, --merge-parquet* and parse --copy-to
 is_test=false
 is_debug=false
 copy_destination=""
 expect_copy_path=false
+merge_parquet=false
+merge_parquet_args=()
+expect_merge_args=false
 extra_args=()
 
 for arg in "${raw_extra_args[@]}"; do
@@ -36,10 +51,26 @@ for arg in "${raw_extra_args[@]}"; do
         --copy-to)
             expect_copy_path=true
             ;;
+        --merge-parquet)
+            merge_parquet=true
+            ;;
+        --merge-parquet-update-config)
+            merge_parquet=true
+            merge_parquet_args+=( --update-config )
+            ;;
+        --merge-parquet-args)
+            merge_parquet=true
+            expect_merge_args=true
+            ;;
         *)
             if [[ "$expect_copy_path" == true ]]; then
                 copy_destination="$arg"
                 expect_copy_path=false
+            elif [[ "$expect_merge_args" == true ]]; then
+                # e.g. --merge-parquet-args "-j 16 -o <dir>"
+                read -r -a _margs <<< "$arg"
+                merge_parquet_args+=( "${_margs[@]}" )
+                expect_merge_args=false
             else
                 extra_args+=("$arg")
             fi
@@ -130,12 +161,35 @@ fi
 ###################################
 # NORMAL MODE → run in background
 ###################################
+# Run in background + wait so that the trap fires immediately on a signal.
+# NB: a background job in a non-interactive shell ignores SIGINT, so on Ctrl+C
+# the trap stops pocket-coffea with SIGTERM.
 "${cmd[@]}" &
 pid=$!
-
 wait $pid
 status=$?
 
+###################################
+# OPTIONAL: MERGE THE PARQUET FILES
+###################################
+# Done before the copy of the output directory, so that the copied
+# config.json already points to the merged files (--merge-parquet-update-config)
+if $merge_parquet; then
+    if [[ $status -ne 0 ]]; then
+        echo "WARNING: PocketCoffea failed (status $status), not merging the parquet files."
+    else
+        merge_cmd=( python "${SCRIPT_DIR}/../../../utils_configs/merge_parquet.py"
+                    -i "$output" "${merge_parquet_args[@]}" )
+        echo "${merge_cmd[@]}"
+        "${merge_cmd[@]}"
+        merge_status=$?
+        if [[ $merge_status -ne 0 ]]; then
+            echo "ERROR: merging of the parquet files failed. Not copying the output."
+            cleanup
+            exit 1
+        fi
+    fi
+fi
 
 ###################################
 # OPTIONAL: COPY OUTPUT DIRECTORY

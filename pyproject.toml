@@ -55,3 +55,4 @@ pocket_coffea = ["configs/*.txt",
 
 [project.scripts]
 run_pocket_coffea = "configs.HH4b_common.config_files.run_pocket_coffea_wrapper:main"
+merge_parquet = "utils_configs.merge_parquet:main"

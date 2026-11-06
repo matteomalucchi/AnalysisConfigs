@@ -6,6 +6,11 @@ from pocket_coffea.parameters.cuts import passthrough
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
 import configs.HH4b_common.custom_cuts_common as cuts
+from configs.HH4b_common.vbf_jet_collections import (
+    VBF_BOOSTED_PAIR_COLL,
+    VBF_SELECTED_PAIR_COLL,
+    get_vbf_jet_collection,
+)
 import configs.VBF_HH4b.custom_cuts as vbf_cuts
 from configs.HH4b_common.config_files.variables_dict import (
     variables_dict_jets,
@@ -85,6 +90,28 @@ def get_variables_dict(
     return variables_dict
 
 
+# VBF pair assigned when a pairing (SPANet or Run 2) is applied, ordered by pt,
+# with its mjj, deta and centrality: the VBF jets to use outside the workflow.
+# When creating the SPANet training inputs the VBF jets are instead the first two
+# of `JetGoodVBFMergedProvVBFPadded` (`SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP`)
+VBF_SELECTED_PAIR_COLUMNS = {
+    VBF_SELECTED_PAIR_COLL: [
+        "provenance_vbf",
+        "pt",
+        "eta",
+        "phi",
+        "mass",
+        "btagB",
+        "index",
+    ],
+    "events": [
+        f"mjj{VBF_SELECTED_PAIR_COLL}",
+        f"deta{VBF_SELECTED_PAIR_COLL}",
+        f"centralityHiggsLeading{VBF_SELECTED_PAIR_COLL}",
+        f"centralityHiggsSubLeading{VBF_SELECTED_PAIR_COLL}",
+    ],
+}
+
 SPANET_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
     "provenance",
     "pt",
@@ -117,31 +144,27 @@ SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP = [
 
 SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP = {
     # merged collections with combined provenance
-    "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetTotalSPANetPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetTotalSPANetPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
+    # "JetTotalSPANetPtFlattenHiggsMatchedPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     # collections with provenance_higgs and provenance_vbf saved separately
     "JetGoodProvHiggsPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodProvHiggsPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodVBFMergedProvVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     "JetGoodVBFMergedProvVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    # merged collections with provenance_higgs and provenance_vbf saved separately
-    # "JetTotalSPANetSeparateProvHiggsVBFPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    # "JetTotalSPANetSeparateProvHiggsVBFPtFlattenPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
-    # "JetTotalSPANetSeparateProvHiggsVBFPtFlattenOnlyHiggsPadded": SPANET_VBF_TRAINING_DEFAULT_COLUMN_PARAMS_BTWP,
     # global collections
     "events": [
         "random_pt_weights",
         # merged collections with combined provenance
-        "mjjJetTotalSPANetPadded",
-        "detaJetTotalSPANetPadded",
-        "centralityHiggsLeadingJetTotalSPANetPadded",
-        "centralityHiggsSubLeadingJetTotalSPANetPadded",
+        # "mjjJetTotalSPANetPadded",
+        # "detaJetTotalSPANetPadded",
+        # "centralityHiggsLeadingJetTotalSPANetPadded",
+        # "centralityHiggsSubLeadingJetTotalSPANetPadded",
         ## pt flatten
-        "mjjJetTotalSPANetPtFlattenPadded",
-        "detaJetTotalSPANetPtFlattenPadded",
-        "centralityHiggsLeadingJetTotalSPANetPtFlattenPadded",
-        "centralityHiggsSubLeadingJetTotalSPANetPtFlattenPadded",
+        # "mjjJetTotalSPANetPtFlattenPadded",
+        # "detaJetTotalSPANetPtFlattenPadded",
+        # "centralityHiggsLeadingJetTotalSPANetPtFlattenPadded",
+        # "centralityHiggsSubLeadingJetTotalSPANetPtFlattenPadded",
         # collections with provenance_vbf saved separately
         "mjjJetGoodVBFMergedProvVBFPadded",
         "detaJetGoodVBFMergedProvVBFPadded",
@@ -281,13 +304,27 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     return column_list
 
 
-def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False):
+def define_single_category(
+    category_name, wide_cr=False, ggf_vbf_threshold=False, vbf_jet_coll=None
+):
     """
     Define a single category for the analysis.
 
     If `vbf_discriminator` is defined, we MUST have a `ggf_vbf_threshold`. Otherwise the scan will crash.
     But the workflow should be designed in a way, that we never call this function without a threshold if one is needed.
+
+    The resolved VBF and ggF categories need `vbf_jet_coll`, the VBF jet
+    collection given by `get_vbf_jet_collection` (the boosted ones always use
+    `JetGoodVBFEnergyOrdered`).
     """
+    resolved_vbf_category = "boosted" not in category_name and (
+        "vbf" in category_name or "ggf" in category_name
+    )
+    if resolved_vbf_category and vbf_jet_coll is None:
+        raise ValueError(
+            f"The category {category_name} requires the VBF jet collection "
+            "`vbf_jet_coll` (see `get_vbf_jet_collection`)"
+        )
     cut_list = []
     # number of b jets
     if "4b" in category_name:
@@ -316,7 +353,7 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
             else:
                 cut_list.append(cuts.hh4b_boosted_qcd_control_region)
         if "vbf" in category_name:
-            cut_list.append(cuts.hh4b_vbf_2_jets)
+            cut_list.append(cuts.hh4b_vbf_2_jets(VBF_BOOSTED_PAIR_COLL))
             cut_list.append(cuts.hh4b_boosted_vbf_region)
     # mass cuts
     elif "VR1" not in category_name:
@@ -338,17 +375,21 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
         cut_list.append(cuts.blinded)
 
     if "vbf" in category_name and "boosted" not in category_name:
-        cut_list.append(cuts.hh4b_vbf_2_jets)
+        cut_list.append(cuts.hh4b_vbf_2_jets(vbf_jet_coll))
         if "best_candidates" not in category_name and "discriminator" not in category_name:
             raise ValueError("Unrecognized region name")
         # VBF preselection on the deta and mjj of the VBF jets
         if "best_candidates" in category_name:
             if "nokincut" in category_name:
                 cut_list.append(
-                    cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region
+                    cuts.hh4b_vbf_best_candidates_6_jets_nokincut_region(
+                        vbf_jet_coll
+                    )
                 )
             else:
-                cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region)
+                cut_list.append(
+                    cuts.hh4b_vbf_best_candidates_6_jets_region(vbf_jet_coll)
+                )
         # ggF vs VBF discriminator cut, which can be combined with the VBF
         # preselection
         if "discriminator" in category_name:
@@ -366,6 +407,17 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
                 )
             else:
                 raise ValueError("Unrecognized region name")
+    # ggF region: complement of the full VBF selection, i.e. events failing any
+    # of: >= 2 VBF jets, mjj and deta cuts, ggF vs VBF discriminator cut (only
+    # if a `ggf_vbf_threshold` is given)
+    if "ggf" in category_name and "boosted" not in category_name:
+        cut_list.append(
+            cuts.hh4b_vbf_selection_region(
+                vbf_jet_coll,
+                ggf_vbf_threshold if ggf_vbf_threshold not in (False, None) else None,
+                pass_vbf=False,
+            )
+        )
     if "high_score" in category_name:
         cut_list.append(cuts.hh4b_sig_bkg_score_cut(0.5))
 
@@ -375,6 +427,178 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
     category_item = {category_name: cut_list}
 
     return category_item
+
+
+def define_second_approach_categories(
+    bkg_morphing_dnn=False, blind=False, btag_wp_category_years=("2024", "2025")
+):
+    """Regions of the second approach.
+
+    Mass plane (`hh4b_mass_plane_region`, H1/H2 = HiggsLeading/HiggsSubLeading):
+    SR = X_HH < 30 GeV or X_ZZ < 2.6 or X_ZH < 1.9 or X_HZ < 1.9, CR = inside
+    52 < M_H1 < 180 GeV, 50 < M_H2 < 173 GeV and outside the SR.
+    b-tag categories (`hh4b_btag_category`) of the 4 HH jets:
+      - SR3T1M, CR3T1M: >= 3 T, 4th jet at least M
+      - SR3T1L, CR3T1L: exactly 3 T, 4th jet L but not M
+      - SR2M, CR2M: exactly 2 M (CR2M -> CR3T1M background training, weights
+        applied in SR2M)
+      - SR3MnT: the 3 jets leading in b-tag score pass M but fail T (validation,
+        training for SR3T1L)
+      - SR3M, CR3M, SR4M, CR4M: exactly 3 M, 4 M, only in `btag_wp_category_years`
+    With `bkg_morphing_dnn`, SR2M_postW and CR2M_postW get the morphing weights on
+    data; with `blind`, SR3T1M_blind and SR3T1L_blind apply the blinding cut.
+    """
+    signal = cuts.hh4b_mass_plane_region("signal")
+    control = cuts.hh4b_mass_plane_region("control")
+    regions = {"SR": signal, "CR": control}
+    categories = {
+        "SR3T1M": ["SR", "3T1M"],
+        "SR3T1L": ["SR", "3T1L"],
+        "CR3T1M": ["CR", "3T1M"],
+        "CR3T1L": ["CR", "3T1L"],
+        "SR2M": ["SR", "2M"],
+        "CR2M": ["CR", "2M"],
+        "SR3MnT": ["SR", "3MnT"],
+    }
+    categories_dict = {
+        name: [regions[region], cuts.hh4b_btag_category(category)]
+        for name, (region, category) in categories.items()
+    }
+    for category in ("3M", "4M"):
+        for region, cut in regions.items():
+            categories_dict[f"{region}{category}"] = [
+                cut,
+                cuts.hh4b_btag_category(category, years=list(btag_wp_category_years)),
+            ]
+    if bkg_morphing_dnn:
+        for name in ("SR2M", "CR2M"):
+            categories_dict[f"{name}_postW"] = categories_dict[name]
+    if blind:
+        for name in ("SR3T1M", "SR3T1L"):
+            categories_dict[f"{name}_blind"] = categories_dict[name] + [cuts.blinded]
+    return categories_dict
+
+
+# b-tag categories of the high b-tag VBF regions of the second approach, by year
+SECOND_APPROACH_VBF_BTAG_CATEGORIES = {
+    "3T1M": ["2022", "2023"],
+    "3T1L": ["2022", "2023"],
+    "4M": ["2024", "2025"],
+}
+
+
+def define_vbf_ggf_categories(
+    inclusive_categories,
+    vbf_jet_coll,
+    vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,
+    vbf_kin_cuts=True,
+):
+    """VBF and ggF categories, defined in the same way in every approach.
+
+    For each inclusive category `<name>` (b-tag and mass-plane cuts, which
+    depend on the approach) two categories are defined:
+      - `vbf_<name>`: VBF selection, i.e. >= 2 VBF jets in the first two jets
+        of `vbf_jet_coll` (`JetGoodVBFSelectedPair` when a pairing is applied,
+        `JetGoodVBFMergedProvVBFPadded` when creating the SPANet inputs),
+        with mjj > 400 GeV and deta > 3.5 if `vbf_kin_cuts` and, with a
+        `vbf_discriminator`, the ggF/VBF score >= `ggf_vbf_threshold`
+      - `ggf_<name>`: events failing any of the cuts of the VBF selection
+    so that `vbf_<name>` and `ggf_<name>` are orthogonal and cover `<name>`.
+    """
+    vbf_cut_list = [cuts.hh4b_vbf_2_jets(vbf_jet_coll)]
+    if vbf_kin_cuts:
+        vbf_cut_list.append(cuts.hh4b_vbf_best_candidates_6_jets_region(vbf_jet_coll))
+    if vbf_discriminator:
+        vbf_cut_list.append(
+            cuts.hh4b_vbf_pass_discriminator_region(ggf_vbf_threshold)
+        )
+    # complement of the full VBF selection
+    ggf_cut = cuts.hh4b_vbf_selection_region(
+        vbf_jet_coll,
+        ggf_vbf_threshold if vbf_discriminator else None,
+        pass_vbf=False,
+        kin_cuts=vbf_kin_cuts,
+    )
+    categories_dict = {}
+    for name, cut_list in inclusive_categories.items():
+        categories_dict[f"vbf_{name}"] = cut_list + vbf_cut_list
+        categories_dict[f"ggf_{name}"] = cut_list + [ggf_cut]
+    return categories_dict
+
+
+def define_second_approach_vbf_categories(
+    vbf_jet_coll,
+    bkg_morphing_dnn=False,
+    vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,
+):
+    """VBF and ggF regions of the second approach (`define_vbf_ggf_categories`
+    without the mjj and deta cuts: the VBF selection is only the presence of
+    the 2 VBF jets and the ggF/VBF score cut), in the SR and CR of the mass
+    plane of:
+      - the high b-tag categories of `SECOND_APPROACH_VBF_BTAG_CATEGORIES`
+        (3T1M and 3T1L in 2022-2023, 4M in 2024-2025; empty in the other years):
+        vbf_SR3T1M, vbf_CR3T1M, vbf_SR3T1L, vbf_CR3T1L, vbf_SR4M, vbf_CR4M
+      - the 2M category for the background estimate: vbf_SR2M, vbf_CR2M
+        (and vbf_SR2M_postW, vbf_CR2M_postW with `bkg_morphing_dnn`)
+    and the corresponding ggF regions (ggf_SR3T1M, ..., ggf_CR2M_postW).
+    """
+    regions = {
+        "SR": cuts.hh4b_mass_plane_region("signal"),
+        "CR": cuts.hh4b_mass_plane_region("control"),
+    }
+    btag_categories = {
+        category: cuts.hh4b_btag_category(category, years=years)
+        for category, years in SECOND_APPROACH_VBF_BTAG_CATEGORIES.items()
+    }
+    btag_categories["2M"] = cuts.hh4b_btag_category("2M")
+
+    inclusive_categories = {}
+    for category, btag_cut in btag_categories.items():
+        for region, region_cut in regions.items():
+            inclusive_categories[f"{region}{category}"] = [region_cut, btag_cut]
+    if bkg_morphing_dnn:
+        for name in ("SR2M", "CR2M"):
+            inclusive_categories[f"{name}_postW"] = inclusive_categories[name]
+    return define_vbf_ggf_categories(
+        inclusive_categories,
+        vbf_jet_coll,
+        vbf_discriminator,
+        ggf_vbf_threshold,
+        vbf_kin_cuts=False,
+    )
+
+
+def define_first_approach_vbf_categories(
+    vbf_jet_coll,
+    bkg_morphing_dnn=False,
+    vbf_discriminator=False,
+    ggf_vbf_threshold=0.95,
+    mixeddata=False,
+    expandCR=False,
+):
+    """VBF and ggF regions of the first approach (`define_vbf_ggf_categories`),
+    in the signal and control regions of:
+      - the 4b category: vbf_4b_signal_region, vbf_4b_control_region
+      - the 2b category (4b with `mixeddata`) with the morphing weights, for
+        the background estimate (only with `bkg_morphing_dnn`):
+        vbf_2b_signal_region_postW, vbf_2b_control_region_postW
+    and the corresponding ggF regions (ggf_4b_signal_region, ...,
+    ggf_2b_control_region_postW).
+    """
+    inclusive_categories = {}
+    inclusive_categories |= define_single_category("4b_signal_region")
+    inclusive_categories |= define_single_category("4b_control_region")
+    if bkg_morphing_dnn:
+        n_b = "4b" if mixeddata else "2b"
+        inclusive_categories |= define_single_category(f"{n_b}_signal_region_postW")
+        inclusive_categories |= define_single_category(
+            f"{n_b}_control_region_postW", expandCR
+        )
+    return define_vbf_ggf_categories(
+        inclusive_categories, vbf_jet_coll, vbf_discriminator, ggf_vbf_threshold
+    )
 
 
 def define_categories(
@@ -392,10 +616,26 @@ def define_categories(
     vbf_analysis=False,
     vbf_discriminator=False,
     ggf_vbf_threshold=0.95,  # Only needed if using a vbf_discriminator
-    high_score_reg=False
+    high_score_reg=False,
+    approach="first",
 ):
-    """Define the categories for the analysis."""
+    """Define the categories for the analysis.
+
+    The resolved VBF and ggF categories cut on the VBF jet collection given by
+    `get_vbf_jet_collection`: `JetGoodVBFSelectedPair` when a pairing (`spanet`
+    or `run2`) is applied, `JetGoodVBFMergedProvVBFPadded` when creating the
+    SPANet training inputs.
+    """
     categories_dict = {}
+    vbf_jet_coll = get_vbf_jet_collection(spanet, run2)
+
+    if approach == "second" and not boosted:
+        categories_dict |= define_second_approach_categories(bkg_morphing_dnn, blind)
+        if vbf_analysis:
+            categories_dict |= define_second_approach_vbf_categories(
+                vbf_jet_coll, bkg_morphing_dnn, vbf_discriminator, ggf_vbf_threshold
+            )
+        return categories_dict
 
     if boosted:
         if vbf_analysis:
@@ -536,50 +776,16 @@ def define_categories(
                         f"4b_signal_region_postW_high_score"
                     )
         if vbf_analysis:
-            # NOTE: this region requires at least 6 jets
-            # categories_dict |= define_single_category(
-            #     "vbf_best_candidates_6_jets_4b_region"
-            # )
-            # NOTE: this region requires at least 6 jets
-            # categories_dict |= define_single_category(
-            #     "vbf_best_candidates_6_jets_nokincut_4b_region"
-            # )
-
             if vbf_discriminator:
-                # NOTE: this region requires at least 6 jets and that the vbf vs ggf score is above/below the threshold
-                # categories_dict |= define_single_category(
-                #     "vbf_pass_discriminator_4b_region",
-                #     ggf_vbf_threshold=ggf_vbf_threshold,
-                # )
-                # categories_dict |= define_single_category(
-                #     "vbf_fail_discriminator_4b_region",
-                #     ggf_vbf_threshold=ggf_vbf_threshold,
-                # )
-                # NOTE: these regions require the VBF preselection (deta and
-                # mjj of the VBF jets) and the vbf vs ggf score above (pass)
-                # or below (fail) the threshold
-                
-                for n_b in ["4b", "2b"]:
-                    # for discr in ["pass", "fail"]:
-                    for discr in ["pass"]:
-                        # for region in ["region", "signal_region", "control_region"]:
-                        for region in ["signal_region", "control_region"]:
-                            if n_b == "2b":
-                                if bkg_morphing_dnn:
-                                    categories_dict |= define_single_category(
-                                        f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_postW_{region}",
-                                        ggf_vbf_threshold=ggf_vbf_threshold,
-                                    )
-                                
-                                categories_dict |= define_single_category(
-                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_preW_{region}",
-                                    ggf_vbf_threshold=ggf_vbf_threshold,
-                                )
-                            else:
-                                categories_dict |= define_single_category(
-                                    f"vbf_best_candidates_6_jets_{discr}_discriminator_{n_b}_{region}",
-                                    ggf_vbf_threshold=ggf_vbf_threshold,
-                                )
+                categories_dict = {}
+            categories_dict |= define_first_approach_vbf_categories(
+                vbf_jet_coll,
+                bkg_morphing_dnn,
+                vbf_discriminator,
+                ggf_vbf_threshold,
+                mixeddata,
+                expandCR,
+            )
     else:
         categories_dict |= define_single_category(f"4b_VR1_control_region")
         categories_dict |= define_single_category(
@@ -614,7 +820,11 @@ def define_preselection(options):
     ## Define the preselection to apply
     # jet pt field on which the pt cuts of the resolved preselections are applied
     pt_type = options["preselection_pt_field"]
-    if "no_btag" in options.keys() and options["no_btag"]:
+    no_btag = "no_btag" in options.keys() and options["no_btag"]
+    if options["approach"] == "second":
+        # second approach: its own year-dependent preselection
+        preselection = [cuts.hh4b_presel_second_approach(pt_type, no_btag=no_btag)]
+    elif no_btag:
         preselection = [cuts.hh4b_presel_nobtag(pt_type)]
     else:
         if options["vbf_presel"]:
@@ -640,7 +850,11 @@ def define_preselection(options):
     # Do this in the preselection to select jets based on
     # corrected pT after the Calibrators have run
     if not options["boosted_presel"] and not options["mixeddata"]:
-        preselection.append(cuts.hh4b_JetVetoMap)
+        preselection.append(
+            cuts.hh4b_JetVetoMap_regressed
+            if options.get("jet_veto_map_regressed_pt", False)
+            else cuts.hh4b_JetVetoMap
+        )
 
     # Optional gen-level cut selecting X(->bb)X(->bb) decays (X = H or Z).
     # Needed only by the private ZZ/ZH samples, which are inclusive in the

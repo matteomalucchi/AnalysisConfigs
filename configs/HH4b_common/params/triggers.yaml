@@ -20,6 +20,9 @@ HLT_triggers:
    "2024":
       ParkingHH:
          - PFHT250_QuadPFJet25_PNet2BTagMean0p55
+   "2025":
+      ParkingHH:
+         - PFHT250_QuadPFJet25_PNet2BTagMean0p55
 
 L1_triggers:
    "2022_preEE":
@@ -51,6 +54,11 @@ L1_triggers:
          - Mu6_HTT240er
          - HTT320er_QuadJet_70_55_40_35_er2p5
    "2024":
+      ParkingHH:
+         - HTT280er
+         - Mu6_HTT240er
+         # - HTT320er_QuadJet_70_55_40_35_er2p5
+   "2025":
       ParkingHH:
          - HTT280er
          - Mu6_HTT240er

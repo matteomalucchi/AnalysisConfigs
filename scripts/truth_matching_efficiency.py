@@ -43,7 +43,6 @@ JETS_ORDER = [
     "JetGood",
     "JetGoodVBFMerged",
     "JetTotalSPANet",
-    "JetGoodHiggsPlusVBF1mjjAN",
 ]
 CATEGORIES_ORDER = ["4b_region", "vbf_4b_region"]
 

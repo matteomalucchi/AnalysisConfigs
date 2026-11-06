@@ -154,6 +154,7 @@ test*
 *onnx
 *profiling*
 load.ipynb
+*.parquet
 
 # Ignoring tempfile for running scans
 configs/HH4b_common/config_files/__config_file__.py

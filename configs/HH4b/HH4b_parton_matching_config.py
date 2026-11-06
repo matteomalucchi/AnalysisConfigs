@@ -163,11 +163,17 @@ categories_dict = define_categories(
     boosted=config_options_dict["boosted"],
     expandCR=config_options_dict["expandCR"],
     mixeddata=config_options_dict["mixeddata"],
-    high_score_reg=high_score_region
+    high_score_reg=high_score_region,
+    approach=config_options_dict["approach"],
 )
 # AKA if no model is applied
 # print(onnx_model_dict)
-if all([model == "" for model in onnx_model_dict.values()]) and not (config_options_dict["boosted"]):
+if (
+    all([model == "" for model in onnx_model_dict.values()])
+    and not config_options_dict["boosted"]
+    # the second approach with the D_HH pairing keeps its regions
+    and not (config_options_dict["approach"] == "second" and config_options_dict["run2"])
+):
     print("Didn't find any onnx model and not running boosted analysis. Will choose region for SPANet training")
     categories_dict = define_single_category("4b_region")
 

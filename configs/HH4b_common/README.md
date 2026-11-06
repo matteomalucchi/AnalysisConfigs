@@ -5,40 +5,24 @@
 
 This folder contains the configuration files and customization code for the HH4b analysis.
 
-## Configuration options
+## Documentation
 
-The analysis is steered by two dictionaries, `onnx_model_dict` and
-`config_options_dict`, defined in a small config file inside
-[`config_files/`](./config_files/) (e.g. [`spanet_ptflat.py`](./config_files/spanet_ptflat.py)).
-Every such file starts from the defaults in
-[`config_files/default_config.py`](./config_files/default_config.py) and overrides
-only the entries it needs:
+The details are in the [`docs/`](./docs/) subdirectory:
 
-```python
-import configs.HH4b_common.dnn_input_variables as dnn_vars
-from configs.HH4b_common.config_files.default_config import (
-    default_onnx_model_dict as onnx_model_dict,
-    default_config_options_dict as config_options_dict,
-)
+| File | Content |
+| --- | --- |
+| [`docs/config_options.md`](./docs/config_options.md) | How the analysis is configured (`onnx_model_dict`, `config_options_dict`, `run_pocket_coffea`) and all the configuration options of [`config_files/default_config.py`](./config_files/default_config.py). |
+| [`docs/jets.md`](./docs/jets.md) | The jets and the other physics objects: how `Jet` is built from the standard and the pT-regressed jets, the year-dependent b-tagging and regression algorithms, the selected jets and Higgs candidates, the VBF jet collections, the jets mitigations, the jet veto maps and the FatJets. |
+| [`docs/categories.md`](./docs/categories.md) | All the categories: first approach (4b/2b, mass-plane regions, `preW`/`postW`, blinded, high-score, VR1), second approach (SR/CR and b-tag categories), VBF and ggF, boosted, and the ones set by the config templates. |
+| [`docs/approaches.md`](./docs/approaches.md) | The first and second approaches of HIG-24-010: their common points and their differences (object and event preselection, skim, pT regression, pairing, VBF selection, regions, background estimate). |
 
-onnx_model_dict |= {
-    "spanet": "/path/to/spanet_model.onnx",
-    "bkg_morphing_dnn": "/path/to/morphing_model.onnx",
-}
+## Configuration in short
 
-config_options_dict |= {
-    "run2": False,
-    "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
-    # ...
-} | onnx_model_dict          # <-- always re-merge the models at the end
-```
-
-> [!IMPORTANT]
-> The `| onnx_model_dict` at the end is mandatory: the model paths are part of
-> `config_options_dict` and are read by the workflow as `self.spanet`,
-> `self.bkg_morphing_dnn`, etc.
-
-The name of the config file is the first argument of `run_pocket_coffea`:
+The analysis is steered by two dictionaries, `onnx_model_dict` (the ONNX models to run) and
+`config_options_dict` (all the other options), defined in a small config file inside
+[`config_files/`](./config_files/), which starts from the defaults of
+[`config_files/default_config.py`](./config_files/default_config.py) and overrides only the
+entries it needs. The name of that file is the first argument of `run_pocket_coffea`:
 
 ```bash
 run_pocket_coffea <config_name> <config_file> <run_options> <output_dir>
@@ -46,183 +30,21 @@ run_pocket_coffea <config_name> <config_file> <run_options> <output_dir>
 run_pocket_coffea spanet_ptflat HH4b_parton_matching_config.py params/t3_run_options.yaml /work/out_hh4b/test
 ```
 
-The wrapper replaces the `__config_file__` placeholder in the config template
-(`configs/HH4b/HH4b_parton_matching_config.py`, `configs/VBF_HH4b/VBF_HH4b_config.py`, ...)
-with `<config_name>`, so the same template can be run with many different option sets.
+`run_pocket_coffea` creates temporary copies of the config (`__<N>_<config_file>`) and of the ONNX
+executor (`__onnx_executor_<N>__.py`) and removes them when the run ends, also when it is stopped
+with Ctrl+C, `kill` or by closing the terminal (pocket-coffea is stopped first). Only `kill -9`
+leaves them behind.
 
-`config_options_dict` is passed to the PocketCoffea `Configurator` as
-`workflow_options`. `HH4bCommonProcessor.__init__` turns every key into an
-attribute of the processor, so an option `"foo"` is read inside the workflows as
-`self.foo`. The same dictionary is also read directly by the config templates to
-build the categories, the columns, the skim and the preselection.
+See [`docs/config_options.md`](./docs/config_options.md) for the details and every option. The
+main choices are:
 
-The tables below describe all the options available in
-[`default_config.py`](./config_files/default_config.py).
-
-### ONNX models (`onnx_model_dict`)
-
-All models are optional: an empty string means "do not run this model".
-The presence or absence of a model also drives which categories and columns are
-created — if no model at all is given (and `boosted` is `False`), only the
-`4b_region` used to produce the SPANet training samples is defined.
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `spanet` | `""` | Jet-to-Higgs pairing model. If set, the pairing comes from SPANet instead of the Run-2 $D_{HH}$ algorithm or the gen-level truth matching. It also fills the pairing-probability variables (`Delta_pairing_probabilities`, `Arctanh_Delta_pairing_probabilities`, ...). |
-| `vbf_discriminator` | `""` | ggF vs VBF classifier, producing `VBF_ggF_score`. It can be the *same file* as `spanet` (the class-probability output of the pairing model is used) or a standalone model, in which case `vbf_discriminator_input_variables` and `max_num_jets_vbf_discriminator` must also be set. Requires `vbf_analysis=True`. |
-| `bkg_morphing_dnn` | `""` | DNN reweighting the 2b (or mixed) data to the 4b data. Produces the per-event `bkg_morphing_dnn_weight`, applied as a weight in the `*_postW` categories, and enables the creation of those categories. |
-| `sig_bkg_dnn` | `""` | Signal vs background classifier, producing `sig_bkg_dnn_score`. It enables the score histograms, the `high_score` categories and the blinding cut. |
-| `bkg_morphing_spread_dnn` | `""` | Ensemble of morphing models used to estimate the spread (systematic uncertainty) of the morphing weights. Saves `bkg_morphing_spread_dnn_weights` for data in the `postW` categories. Not implemented for the boosted analysis. |
-
-### Analysis flavour
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `approach` | `"first"` | Jet pt definition and object preselection. Selects the `params/object_preselection_<approach>_approach.yaml` file and how the `Jet` collection is built in `apply_object_preselection`. `"first"`: use the PNet+Neutrino regressed pt when available (HIG-24-010 first approach). `"second"`: use the regressed pt also when the jet passes the loose b-tag WP (HIG-24-010 second approach). `"boosted"`: skip the resolved jet-pt handling and the b-tag WP definition, and drop the HLT selection from the skim. |
-| `boosted` | `False` | Run the boosted (AK8 / `FatJet`) analysis: builds the `FatJetGood` collection, the boosted categories, the boosted DNN variables and the `FatJetGood` columns. |
-| `run2` | `False` | Use the Run-2 $D_{HH}$ pairing algorithm instead of SPANet. Cannot be combined with `random_pt` (there is an explicit `assert` in the config templates). |
-| `vbf_analysis` | `False` | Run the VBF part of the analysis: builds the VBF jet collections (`JetGoodVBF*`, `JetAdditionalGoodVBF`, the merged `JetTotalSPANet*` collections), the VBF variables (`mjj`, `deta`, centrality) and the VBF categories. |
-| `mixeddata` | `False` | Run on the mixed-data samples (data-driven background model) instead of the 2b data. The `2b_*_preW`/`postW` categories become `4b_*_preW`/`postW`, and the HLT/L1 skim cuts and the jet calibration are switched off. |
-
-### Skim and preselection
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `tight_cuts` | `False` | Apply the tight jet pt cuts (`pt_tight` in the object preselection) and require the pt preselection on the 4 b-tag-ordered Higgs candidate jets (`JetGoodHiggs`) instead of all `JetGood`. |
-| `vbf_presel` | `False` | Use the VBF preselection. **Not supported anymore**: `define_preselection` raises a `ValueError` if this is `True`, because the cut acts on the wrong jet collection. |
-| `boosted_presel` | `False` | Use the boosted preselection (at least 2 FatJets) instead of the resolved one. It also disables the jet veto map cut. |
-| `preselection_pt_field` | `"pt"` | Jet pt field used by the jet object preselection (`select_jets`) and by the jet pt cuts of the resolved event preselection. `"pt"` is the pt of the `Jet` collection, i.e. the regressed pt when the pt regression is applied (see `approach`); `"pt_default"` is the standard JEC pt without regression. The config files written before this option existed set it to `"pt_default"` to keep their old selection. The jet veto map always uses `"pt_default"`. |
-| `era_dependent_presel` | `True` | Choose the resolved preselection (`hh4b_presel_era_dependent`) per chunk from its year and primary dataset, so that several years can be processed in one go. **A** (2022 MC and data, 2023 preBPix JetMET data): jet $p_T$ > 80, 60, 45, 35 GeV and mean PNet score of the 2 highest-score jets > 0.65. **B** (2023 preBPix ParkingHH data and MC, 2023 postBPix MC and data): jet $p_T$ > 35, 35, 35, 30 GeV and mean PNet score > 0.55. **C** (2024 MC and data): jet $p_T$ > 30, 30, 30, 30 GeV and at least 2 jets passing the UParT medium WP. Data samples are treated as ParkingHH when their name contains `ParkingHH`, as JetMET otherwise. The $\|\eta\|$ < 2.5 cut is in the object preselection. Ignored if `no_btag` or `boosted_presel` is set. The config files written before this option existed set it to `False`, so they keep the old preselection (`hh4b_presel`, i.e. A for all the years) and stay reproducible. |
-| `no_btag` | `False` | Drop the b-tag requirement from the preselection (`hh4b_presel_nobtag`). Needed to measure the b-tag WP efficiencies, which has to be done in a region where no cut on the b-tag score is applied. The configs in `configs/HH4b_btagging` turn it on at the call site with `define_preselection(config_options_dict | {"no_btag": True})`. |
-| `semi_tight_vbf` | `True` | Legacy flag for the semi-tight VBF jet selection. It is only accepted as an argument of `jet_selection_nopu` and is currently not used by any workflow. |
-| `noL1` | `False` | Drop the L1 seed requirement (`get_L1sel`) from the skim. Needed for the samples/eras for which the L1 emulation is not available. |
-| `xx4b_presel` | `False` | Apply a gen-level cut selecting $X(\to b\bar{b})X(\to b\bar{b})$ decays (X = H or Z), adding `cuts.XX4b_presel` to the preselection. Needed for the private ZZ/ZH samples, which are inclusive in the decay channel. Off by default because it changes the yields of every sample whose name contains "HH", "ZH" or "ZZ". |
-
-### Truth matching (MC only)
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `which_bquark` | `"last"` | Which copy of the b-quarks from $H\to b\bar{b}$ is matched to the jets. `"first"`: the direct children of the Higgs. `"last"`: the last copy, found by walking up the decay chain. `"last_numba"`: the last copy, found with the numba helper `get_parton_last_copy`. `"last_numba_with_status"`: same, but the b-quarks are selected requiring `status == 23`. |
-| `parton_jet_min_dR` | `0.4` | Maximum $\Delta R$ between a parton and a jet for the matching to succeed, both for the Higgs b-quarks and for the VBF quarks. |
-
-### VBF
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `vbf_parton_matching` | `False` | Run the gen-level matching of the VBF quarks to the jets (VBF MC only) and fill the `provenance_vbf` field. When `False`, a dummy (all-`None`) `provenance_vbf` is created. |
-| `which_vbf_quark` | `"with_mothers_children"` | How the VBF quarks are identified at gen level. `"with_mothers_children"`: hard-process quarks whose mother also has two Higgs children. `"with_status"`: outgoing (`status == 23`) non-b partons. |
-| `max_num_jets_add_vbf` | `2` | Number of *additional* VBF jet candidates (on top of the leading-$m_{jj}$ pair) kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections. |
-| `jets_add_vbf_order` | `"energy"` | Field used to order the additional VBF jets, e.g. `"energy"` or `"pt"`. |
-| `vbf_matching_after_higgs_pairing` | `False` | Run the SPANet Higgs pairing first and define the VBF candidates from the jets left over by the pairing, instead of from the b-tag-ordered `JetGoodClip` collection. Requires `spanet`. |
-| `vbf_pairing_from_vbf_discriminator` | `False` | Take the VBF pair (`JetGoodVBFEnergyOrdered`) from the SPANet model given in `vbf_discriminator` instead of using the leading-mjj pair. Requires a standalone model (different file from `spanet`) predicting the VBF jet assignment (2 jets) on top of the ggF/VBF classification, with its sequential inputs read from the VBF candidate collection. The model is run only once and also provides `VBF_ggF_score`. |
-| `ggf_vbf_threshold` | `0.95` | Threshold on the ggF-vs-VBF discriminator score (`VBF_ggF_score`) used to split the pass/fail VBF categories. Only relevant if `vbf_discriminator` is set. |
-| `vbf_selection` | `None` | Boosted VBF only: overrides `vbf_analysis` when the categories are defined in [`VBF_HH4b_boosted_config.py`](../VBF_HH4b_boosted/VBF_HH4b_boosted_config.py), so that the VBF regions can be built without switching on the full VBF jet reconstruction in the workflow. `None` means "not set", i.e. `vbf_analysis` is used instead. |
-
-### Fox-Wolfram momenta
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `max_order_FW` | `0` | Maximum order $l$ of the Fox-Wolfram moments computed on `JetGood`. `0` disables the computation; otherwise the columns `FW_H{i}_{norm}` and `FW_R{i}_{norm}` are added to `events` for `i in range(max_order_FW)`. |
-| `FW_momenta_norms` | `["W_T"]` | List of normalisation schemes used for the Fox-Wolfram moments. One set of columns is produced per scheme. |
-
-### Jet collections and pairing
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `max_num_jets_good` | `5` | Number of `JetGood` jets kept for the VBF analysis (`JetGoodClip`/`JetGoodPadded`). It is also the offset at which the VBF pair starts inside the merged SPANet collections. |
-| `max_num_jets_higgs_pairing` | `5` | Number of jets given to the SPANet pairing model. The true pairing is truncated to this number when computing the pairing efficiency. |
-| `max_num_jets_vbf_discriminator` | `None` | Number of jets given to a standalone ggF/VBF discriminator model. `None` means "use all the jets of the input collection". |
-| `max_num_jets_spanet_class` | `4` | Number of jets given to a SPANet-format signal-vs-background classifier. Only used when `sig_bkg_dnn` is a SPANet-format model. |
-| `fifth_jet` | `"pt"` | Ordering of the jets beyond the 4 Higgs candidates. `"pt"` re-sorts the 5th and following jets by pt (the first 4 stay b-tag ordered); any other value keeps the pure b-tag ordering. |
-| `add_jet_spanet` | `False` | Sort the `Jet` collection by regressed pt before the good-jet selection, and order the additional jet collection (`JetNotFromHiggs`) by b-tag score or pt depending on whether the Higgs pairing (and, when `vbf_analysis` is on, the VBF pairing) took all the 4 jets leading in b-tag score. |
-| `old_wp_def` | `False` | Use the old b-tag working-point convention, where the WP index starts at `-1` (no WP passed) instead of `0`. It must match the convention used to train the SPANet/DNN models. |
-| `TXbb_order` | `False` | Boosted only: order the `FatJetGood` collection by `btagBBTXbb` instead of `btagBB`. |
-| `only5jetsbSF` | `False` | b-tag SF studies only (`configs/HH4b_btagging`): compute the b-tag scale factors using only the 5 leading jets instead of all the `JetGood`. |
-
-### Year-dependent jet algorithms
-
-The b-tagging and the pT-regression algorithms are not the same in every year
-(ParticleNet up to 2023, UParTAK4 from 2024), so the workflows never read a
-NanoAOD branch of a specific algorithm. They read which algorithm the year uses
-from the parameters and copy its discriminants onto algorithm-independent
-fields, defined in `utils_configs/jet_algorithms.py`:
-
-| Field | Content |
-| --- | --- |
-| `btagB` | b-tag discriminant of `btagging.working_point.<year>.btagging_algorithm`, the algorithm used to order the jets, to build the working points (`btagB_3wp`, `btagB_5wp`, `btagB_delta5wp`) and to split the pT regression |
-| `btagCvL`, `btagCvB`, `btagQvG` | the other discriminants of the same algorithm, when the input has them |
-| `pt_raw_res` | pT resolution estimated by the regression that calibrates `JetPtRegressed` in that year |
-
-These are the names to use in the columns and in the model inputs: the same
-configuration then runs on every year, and the working points are read from
-`btagging.working_point.<year>.btagging_WP` instead of being hardcoded.
-
-The pT-regressed collections are `JetPtRegressed` and
-`JetPtRegressedPlusNeutrino`, filled by the jet calibration of the year
-(`AK4PFPuppiPNetRegression*` up to 2023, `AK4PFPuppiUParTRegression*` from
-2024 on). `Jet` is rebuilt from them and from `JetDefault` in
-`apply_object_preselection`.
-
-### Model inputs and padding
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `spanet_input_name` | `dnn_vars.pairing_spanet_btag` | Input features of the SPANet pairing model, as an `OrderedDict` with a `"sequential"` (per-jet) and a `"global"` (per-event) block. It must match the event file used for the SPANet training. The available sets are defined in [`dnn_input_variables.py`](./dnn_input_variables.py) (`pairing_spanet_nobtag`, `pairing_spanet_btag`, `pairing_spanet_btagWP5`, `pairing_spanet_btagWP3`, `pairing_spanet_btagDeltaWP5`, `pairing_spanet_vbf_JetVBF_DNNVars_JetHiggsGlobal`, ...). The first entry of the `"sequential"` block also defines the jet collection used for the pairing. |
-| `spanet_input_name_list` | `None` | Flat list of the SPANet sequential input names. Only its last entry is inspected by the config templates, to decide whether the b-tag working-point columns have to be saved for the SPANet training. `None` means "derive it from `spanet_input_name`", which is what the templates do; set it explicitly only to override that. |
-| `sig_bkg_dnn_input_variables` | `dnn_vars.sig_bkg_dnn_input_variables` | Input features of the signal-vs-background DNN. It is also used, together with the morphing variables, to build the list of columns saved when `dnn_variables` is `True`. |
-| `bkg_morphing_dnn_input_variables` | `dnn_vars.bkg_morphing_dnn_input_variables` | Input features of the background morphing DNN (and of the spread model). |
-| `vbf_discriminator_input_variables` | `None` | Input features of a standalone ggF/VBF discriminator model. Only needed when `vbf_discriminator` is a different file from `spanet`. |
-| `pad_value` | `-999.0` | Value used to fill the missing entries (padding, unmatched jets, ...) of the DNN inputs, and to replace the out-of-range values in `Padded_Arctanh_Delta_pairing_probabilities`. |
-| `pad_value_spanet` | `9999.0` | Value used to pad the jet arrays fed to the SPANet models. It is kept separate from `pad_value` because SPANet was trained with a different padding convention. |
-
-### Pairing probability variables (SPANet only)
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `arctanh_delta_prob_bin_edge` | `2.44` | Bin edge used to build `Binned_Arctanh_Delta_pairing_probabilities`, the binned version of $\mathrm{arctanh}(p_\mathrm{best} - p_\mathrm{second\,best})$. |
-| `arctanh_delta_prob_pad_limit` | `2.0` | Upper limit above which `Arctanh_Delta_pairing_probabilities` is replaced by `pad_value` in `Padded_Arctanh_Delta_pairing_probabilities`. |
-
-### Categories and regions
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `vr1` | `False` | Use the VR1 validation regions (Higgs mass planes centred at $(185, 180)$ GeV) instead of the nominal signal/control regions. |
-| `expandCR` | `False` | Use the wide control region ($30 < R_{HH} < 80$ instead of $30 < R_{HH} < 55$) for the morphing `preW`/`postW` categories. |
-| `blind` | `False` | Add the blinded copies of the signal regions, keeping only the events with `sig_bkg_dnn_score` below the blinding threshold (0.9). |
-| `split_qcd` | `True` | Boosted only: split the QCD control region into the `qcd_A`/`qcd_B`/`qcd_C` sub-regions instead of defining a single `qcd` region. Ignored when `boosted` is `False`. |
-| `qt_postEE` | `None` | Path to the pickled quantile transformer used to define variable-width bins of `sig_bkg_dnn_score` (constant SM signal yield per bin) for the 2022_postEE datacards. `None` (or `""`) falls back to the uniform binning. See [Quantile transformer to obtain constant signal binning](#quantile-transformer-to-obtain-constant-signal-binning). |
-| `qt_preEE` | `None` | Same as `qt_postEE`, for the 2022_preEE datacards. |
-
-### SPANet training sample production
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `random_pt` | `False` | Randomly scale the jet pt (and mass) to flatten the pt spectrum of the SPANet training sample. It saves the `*PtFlatten*` jet collections and the `random_pt_weights` column. Cannot be combined with `run2`. |
-| `rand_type` | `0.3` | Range of the random pt scale factor applied by `random_pt`: `0.5` → $[0.5, 1.5]$, `0.3` → $[0.3, 1.7]$, `0.1` → $[0.1, 10.0]$. Any other value raises a `ValueError`. |
-
-### Output
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `dnn_variables` | `True` | Compute and save the DNN input variables (Higgs and HH kinematics, additional jet, `sigma_over_higgs*_reco_mass`, ...). If `False`, only the SPANet training columns (or the default jet columns) are saved. |
-| `save_chunk` | `False` | Dump the columns as `parquet` files per chunk instead of accumulating them in the coffea output (it sets `dump_columns_as_arrays_per_chunk` and disables the flattening of the columns). The output path is stored in the `config.json` of the run. |
-| `donotscale_sumgenweights` | `False` | Do not normalise the MC by the sum of the generator weights. Kept for backward compatibility with the PocketCoffea `Configurator` option; it is currently not forwarded by any of the config templates. |
-
-### Boosted BDT
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `bdt_model` | `""` | Path to the XGBoost model of the other-group boosted analysis. It produces `boosted_bdt_score` and `boosted_bdt_vbf_score`. An empty string disables it. |
-
-### Keys added by the config templates
-
-These keys are not meant to be set by hand in a config file: the templates add
-them to `config_options_dict` while building the `Configurator`.
-
-| Key | Added by | Description |
-| --- | --- | --- |
-| `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. |
-| `num_bins` | [`config_compute_befficiency_HH4b.py`](../HH4b_btagging/config_compute_befficiency_HH4b.py) | Leftover of the b-tag efficiency studies; currently not read anywhere. |
+- `approach`: the selection of the first (default) or the second approach of HIG-24-010, see
+  [`docs/approaches.md`](./docs/approaches.md);
+- the Higgs pairing: SPANet (`spanet` model) or the Run-2 $D_{HH}$ algorithm (`run2`), see
+  [`docs/jets.md`](./docs/jets.md#selected-jets-and-higgs-candidates);
+- `vbf_analysis` and `boosted`: the VBF and the boosted analyses;
+- the models (`bkg_morphing_dnn`, `sig_bkg_dnn`, `vbf_discriminator`) and the related options,
+  which also decide the categories, see [`docs/categories.md`](./docs/categories.md).
 
 ## Full analysis workflow
 
@@ -555,6 +377,9 @@ run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
 > If the columns are saved as `parquet` in a different folder (using the `save_chunks` setting), the path to the files is stored in the `config.json`.
 > If one of the scripts using the columns does not find the columns, the problem could be, that this file was overwritten/is missing.
 
+> [!TIP]
+> When the columns are saved as `parquet` chunks, add `--merge-parquet` (or `--merge-parquet-update-config`) to the `run_pocket_coffea` command to merge them at the end of the run into one file per dataset/region/variation, which makes the loading much faster. See [Merge the parquet chunks](#merge-the-parquet-chunks).
+
 ### Train DNN model for background morphing
 
 > [!TIP]
@@ -750,6 +575,38 @@ run_pocket_coffea <config_name> <config_file> <run_options> <output_dir> <--test
 # e.g.
 run_pocket_coffea spanet_ptflat_rerun_matteo_transform VBF_HH4b_config.py params/t3_run_options_spanet_predict_10Gb.yaml /work/mmalucch/out_hh4b/out_transformed_DNN_score
 ```
+
+Additional options of `run_pocket_coffea` (anywhere after the 4 required arguments; all the other options are passed to `pocket-coffea run`):
+
+| Option | Description |
+| --- | --- |
+| `--test` | Run locally on a small number of files (no executor). |
+| `--debug` | Only print the `pocket-coffea run` command. |
+| `--copy-to <dir>` | At the end, copy the output directory to `<dir>` with `rsync`, verify it with checksums and remove the original. |
+| `--merge-parquet` | At the end (before `--copy-to`), merge the `parquet` chunks with [`utils_configs/merge_parquet.py`](../../utils_configs/merge_parquet.py), see [Merge the parquet chunks](#merge-the-parquet-chunks). |
+| `--merge-parquet-update-config` | Same as `--merge-parquet`, and also overwrite the `parquet` path in the `config.json` of the output with the path of the merged files (`--update-config`). |
+| `--merge-parquet-args "<args>"` | Extra arguments for `merge_parquet.py` (implies `--merge-parquet`), e.g. `--merge-parquet-args "-j 16 -o <dir>"`. |
+
+### Merge the parquet chunks
+
+With `save_chunk`, PocketCoffea saves the columns as thousands of small `parquet` chunks. Reading them (especially from dCache, `/pnfs`) is dominated by the per-file latency (~1-2 min per dataset/region even for few MB). [`utils_configs/merge_parquet.py`](../../utils_configs/merge_parquet.py) (`merge_parquet` once `AnalysisConfigs` is installed with `pip install -e .`) merges them into a single `merged.parquet` per leaf directory (e.g. `<dataset>/<region>/nominal`), keeping the directory structure and the events order, so the merged directory can be used in place of the original one (e.g. by [ML_pytorch](https://github.com/matteomalucchi/ML_pytorch) or [`get_columns_from_files.py`](../../utils_configs/plot/get_columns_from_files.py)).
+
+It can be run automatically at the end of `run_pocket_coffea` with `--merge-parquet`, or by hand:
+
+```bash
+# -i: PocketCoffea output dir (the parquet location is read from its config.json) or the parquet files dir
+python utils_configs/merge_parquet.py -i <output_dir> [-o <merged_dir>] [--tmp-dir <tmp_dir>] [-j 32] [--files-per-step 256] [--overwrite] [--update-config]
+
+# e.g. merge into <...>/merged_parquet_files next to <...>/parquet_files and point the config.json to the merged files
+python utils_configs/merge_parquet.py -i /work/$USER/out_hh4b/<name> --update-config
+```
+
+* `-o/--output`: directory of the merged files. By default, a directory called `merged_parquet_files` next to the original `parquet` directory (e.g. `<...>/parquet_files` &rarr; `<...>/merged_parquet_files`)
+* `--tmp-dir`: merge each file here first, then copy it to the output directory, check the copy (size, adler32 checksum, number of events) and remove it (and the directories left empty) from here. If the check fails the copy is removed, the merged file is kept and the script stops; a rerun reuses it. Needed when the output is on `/pnfs`, where the files cannot be written directly: in that case it defaults to `<output_dir>/merged_parquet_files_tmp` when `-i` is the PocketCoffea output directory
+* `--update-config`: overwrite `dump_columns_as_arrays_per_chunk` and `save_chunk` in the `workflow_options` of the `config.json` with the path of the merged files (keeping the same `root://` redirector, if any), so that the scripts reading the columns through the `config.json` use the merged files directly (in ML_pytorch, no `parquet_dir` is needed). The original paths are kept as `dump_columns_as_arrays_per_chunk_unmerged` and `save_chunk_unmerged`, and are used as input if the merging is run again
+* `-j/--threads`: number of threads reading the files in parallel (default 32)
+* `--files-per-step`: number of files kept in memory at the same time (default 256)
+* `--overwrite`: re-merge directories already merged (skipped by default)
 
 ### Run ggF HH4b analysis
 
