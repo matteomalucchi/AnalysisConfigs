@@ -346,8 +346,8 @@ for sample in sample_list:
                 else []
             )
         )
-print(bysample_bycategory_column_dict)
-breakpoint()
+
+
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}
 for sample in sample_list:
