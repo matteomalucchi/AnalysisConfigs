@@ -8,6 +8,14 @@ with the BDT scores replaced by a ggF and a VBF discriminant:
     cat2   : !cat1 & !catvbf & ( (txbb_c2a < txbb < txbb_c1 & D_ggF > bdt_ggf_c1) | (txbb > txbb_c1 & bdt_ggf_c2b < D_ggF < bdt_ggf_c1) )
     cat3   : !cat1 & !catvbf & !cat2 & txbb > txbb_c2a & D_ggF > bdt_ggf_bkg
 
+With --no-txbb-cut all TXbb cuts are set to NO_TXBB_CUT (-1, always passed) and only the score cuts are optimised:
+    cat1   : D_ggF > bdt_ggf_c1
+    catvbf : !cat1 & D_VBF > bdt_vbf
+    cat2   : !cat1 & !catvbf & bdt_ggf_c2b < D_ggF < bdt_ggf_c1
+    cat3   : !cat1 & !catvbf & !cat2 & D_ggF > bdt_ggf_bkg
+The existing category functions give exactly these categories with txbb_c1 = txbb_vbf = txbb_c2a = -1, so the output
+cuts can be used in the config as they are.
+
 Processes:
     - ggF / VBF signal and ttbar: MC in boosted_signal_region_D (TXbb not morphed)
     - QCD: data in boosted_control_region_B_postW (morphed TXbb, morphing weights), normalised with
@@ -73,7 +81,11 @@ parser.add_argument("--txbb-wps", action="store_true", default=False,
 parser.add_argument("--txbb-scan", action="store_true", default=False,
                     help="Scan all TXbb cut combinations on the grid (score cuts re-optimised for each) and plot the figure of merit "
                          "as a heatmap. Only sensible for a coarse TXbb grid, e.g. with --txbb-wps")
-parser.add_argument("--scan-cat3", action="store_true", default=False, help="Also optimise the loose ggF cut of cat3 (otherwise fixed to the loosest grid point)")
+parser.add_argument("--no-txbb-cut", action="store_true", default=False,
+                    help="Do not cut on the subleading TXbb in the signal-region categories: all TXbb cuts are set to -1 "
+                         "(always passed) and only the DNN/BDT score cuts are optimised")
+parser.add_argument("--scan-cat3", action=argparse.BooleanOptionalAction, default=True,
+                    help="Also optimise the loose ggF cut of cat3 (with --no-scan-cat3 it is fixed to the loosest grid point)")
 parser.add_argument("--max-iter", type=int, default=10, help="Maximum number of coordinate-descent iterations")
 parser.add_argument("--holdout", action="store_true", default=False, help="Optimise on even event numbers, report on odd ones (weights x2) to check for overtuning")
 parser.add_argument("--cache", type=str, default=None, help="npz file with the loaded events: read if it exists, else written after loading (delete it when the inputs change)")
@@ -94,6 +106,16 @@ parser.add_argument("--profile-txbb-grid", type=float, nargs=3, default=[0.65, 0
 parser.add_argument("--profile-2d-step", type=float, default=0.01, help="TXbb step of the 2D map")
 args = parser.parse_args()
 TXBB_WPS = [0.8, 0.95, 0.975, 0.99]
+# TXbb cut value meaning "no cut": below the range of the (morphed) TXbb score, so `txbb > NO_TXBB_CUT` always holds
+NO_TXBB_CUT = -1.0
+if args.no_txbb_cut:
+    incompatible = [opt for opt, on in [("--txbb-wps", args.txbb_wps), ("--txbb-values", args.txbb_values is not None),
+                                        ("--txbb-scan", args.txbb_scan), ("--profile", args.profile),
+                                        ("--profile-2d", args.profile_2d)] if on]
+    if incompatible:
+        parser.error(f"--no-txbb-cut cannot be combined with {', '.join(incompatible)}")
+    # A single TXbb grid point at NO_TXBB_CUT: every TXbb cut is snapped to it and stays there
+    args.txbb_values = [NO_TXBB_CUT]
 if args.txbb_wps:
     if args.txbb_values is not None:
         parser.error("--txbb-wps and --txbb-values are mutually exclusive")
@@ -444,6 +466,9 @@ def initial_cuts(grids, processes):
             from configs.HH4b_common.custom_cuts_common import _get_params
             logger.info(f"No BDT cuts found in config.json of the input ({e!r}), starting from _get_params({args.region_setting})")
             params = _get_params(args.region_setting)
+        params = dict(params)
+        if args.no_txbb_cut:
+            params.update({p: NO_TXBB_CUT for p in TXBB_PARAMS})
         return {p: params[p] for p in PARAMS}
 
     def at_eff(axis, signal, eff):
@@ -469,9 +494,15 @@ def valid(indices):
 
 def optimise(binned, grids, start, fixed=(), verbose=True):
     """Coordinate descent over parameter pairs. Parameters in `fixed` keep their start value."""
-    pairs = [("txbb_c1", "bdt_ggf_c1"), ("txbb_vbf", "bdt_vbf"), ("txbb_c2a", "bdt_ggf_c2b")]
-    if args.scan_cat3:
-        pairs.append(("bdt_ggf_bkg",))
+    if args.no_txbb_cut:
+        # No TXbb axis to scan: pair the score cuts with each other instead, since they compete for the same events
+        pairs = [("bdt_ggf_c1", "bdt_vbf"), ("bdt_ggf_c1", "bdt_ggf_c2b"), ("bdt_vbf", "bdt_ggf_c2b")]
+        if args.scan_cat3:
+            pairs.append(("bdt_ggf_c2b", "bdt_ggf_bkg"))
+    else:
+        pairs = [("txbb_c1", "bdt_ggf_c1"), ("txbb_vbf", "bdt_vbf"), ("txbb_c2a", "bdt_ggf_c2b")]
+        if args.scan_cat3:
+            pairs.append(("bdt_ggf_bkg",))
     pairs = [tuple(p for p in pair if p not in fixed) for pair in pairs]
     pairs = [pair for pair in pairs if pair]
     best = dict(start)
@@ -918,7 +949,10 @@ if __name__ == "__main__":
         results["start_test"] = report("Start, held-out half", processes_test, start_cuts, mass_edges)
 
     os.makedirs(args.output, exist_ok=True)
-    suffix = "_txbbwps" if args.txbb_wps else ("_txbbvalues" if args.txbb_values is not None else "")
+    if args.no_txbb_cut:
+        suffix = "_notxbb"
+    else:
+        suffix = "_txbbwps" if args.txbb_wps else ("_txbbvalues" if args.txbb_values is not None else "")
     if args.txbb_scan:
         scan = scan_txbb(binned, grids, best, processes_all, mass_edges)
         results["txbb_scan"] = scan
