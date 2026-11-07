@@ -83,7 +83,9 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events["FatJet"]["particleNet_XccVsQCD"],
                 "btagCC",
             )
+            # Creating btag working points for both the nominal and the morphed/scaled btag values
             self.events["FatJet"] = self.generate_btag_workingpoints(self.events["FatJet"], 5, "btagBBTXbb_morph")
+            self.events["FatJet"] = self.generate_btag_workingpoints(self.events["FatJet"], 5, "btagBBTXbb")
             # jet ordered in btagging score
             if not self.TXbb_order:
                 self.events["FatJet"] = self.events["FatJet"][

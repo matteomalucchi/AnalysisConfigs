@@ -39,12 +39,16 @@ class SF_TXbb_fixed_multiple_wp(WeightWrapper):
         # NaN (Xbb+QCD == 0) would land in the last bin (VHP) -> treat as NVLP
         btag_score = np.nan_to_num(ak.to_numpy(ak.flatten(fatjets["btagBBTXbb"])), nan=0.0)
         wp_index = np.digitize(btag_score, wp_thresholds, right=True)
+        # The XbbVsQCD_b SF is derived (mutag-calib) for the "b" process, which merges the
+        # b (hadronFlavour == 5, nBHadrons < 2) and bb (hadronFlavour == 5, nBHadrons >= 2)
+        # subsamples -> apply only to truth b/bb jets (hadronFlavour == 5), SF = 1 otherwise.
+        is_b_or_bb = ak.to_numpy(ak.flatten(fatjets["hadronFlavour"])) == 5
         sf_nom = np.ones_like(jetpt, dtype=np.float64)
         sf_up = np.ones_like(jetpt, dtype=np.float64)
         sf_down = np.ones_like(jetpt, dtype=np.float64)
 
         for i, wp in enumerate(self.WP_NAMES):
-            mask = wp_index == i
+            mask = (wp_index == i) & is_b_or_bb
             if not mask.any() or wp == "NVLP":
                 continue
             sf_nom[mask] = corr.evaluate("central", wp, jetpt[mask])
