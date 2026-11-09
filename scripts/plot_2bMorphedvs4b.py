@@ -29,7 +29,7 @@ NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
 ARCTANH_BINS = False
-VARIABLES_TEST = ["score", "weight", "prob"]
+VARIABLES_TEST = ["score", "weight", ]
 DEBUG = args.test
 
 input_dir = os.path.dirname(args.input_data[0])
@@ -89,6 +89,25 @@ elif args.boosted:
             ]
         ]
     }
+elif args.vbf:
+    # VBF analysis: vbf_ and ggf_ regions (if preW regions are missing they are built from postW with weight=1)
+    for prefix in ["vbf", "ggf"]:
+        cat_dict |= {
+            f"{prefix}_CR{args.region_suffix}": [
+                [
+                    f"{prefix}_4b{args.region_suffix}_control_region",
+                    f"{prefix}_2b{args.region_suffix}_control_region_postW",
+                    f"{prefix}_2b{args.region_suffix}_control_region_preW",
+                ]
+            ],
+            f"{prefix}_SR{args.region_suffix}": [
+                [
+                    f"{prefix}_4b{args.region_suffix}_signal_region",
+                    f"{prefix}_2b{args.region_suffix}_signal_region_postW",
+                    f"{prefix}_2b{args.region_suffix}_signal_region_preW",
+                ]
+            ],
+        }
 elif args.mixed:
     cat_dict |= {
         f"CR{args.region_suffix}": [
@@ -181,22 +200,22 @@ if args.comparison:
         ],
     }
 
-if args.test:
-    cat_dict = {
-        f"CR": [
-            [
-                f"4b_control_region",
-                f"2b_control_region_postW",
-                f"2b_control_region_preW",
-            ]
-        ],
-        f"SR{args.region_suffix}_SPREAD": [
-            [
-                f"2b{args.region_suffix}_signal_region_postW",
-                f"2b{args.region_suffix}_signal_region_postW_SPREAD",
-            ]
-        ],
-    }
+# if args.test:
+#     cat_dict = {
+#         f"CR": [
+#             [
+#                 f"4b_control_region",
+#                 f"2b_control_region_postW",
+#                 f"2b_control_region_preW",
+#             ]
+#         ],
+#         f"SR{args.region_suffix}_SPREAD": [
+#             [
+#                 f"2b{args.region_suffix}_signal_region_postW",
+#                 f"2b{args.region_suffix}_signal_region_postW_SPREAD",
+#             ]
+#         ],
+#     }
 
 
 color_list_orig = [[("black",), ("blue", "dodgerblue"), ("red",)]]
@@ -235,8 +254,28 @@ else:
         if file.endswith(".coffea") and ("DATA" in file or "Mixed" in file)
     ]
 
+# only read from parquet the categories used in cat_dict (saves memory);
+# float64 columns (except weights) are stored as float32
+needed_categories = {
+    cat.replace("_MC", "").replace("_SPREAD", "")
+    for cat_lists in cat_dict.values()
+    for cat_list in cat_lists
+    for cat in cat_list
+}
 filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed)
+cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories, float32=True)
+
+# If a preW category is missing in the files, build it from the corresponding
+# postW category: same columns, but with the weight set to 1 (i.e. no morphing)
+for cat in needed_categories:
+    if "preW" not in cat or cat in cat_col_data:
+        continue
+    cat_postW = cat.replace("preW", "postW")
+    if cat_postW not in cat_col_data:
+        continue
+    print(f"WARNING: {cat} not found in the files, using {cat_postW} with weight=1")
+    cat_col_data[cat] = dict(cat_col_data[cat_postW])
+    cat_col_data[cat]["weight"] = np.ones_like(cat_col_data[cat_postW]["weight"])
 
 cat_col_mc = None
 if args.input_mc:
@@ -250,12 +289,20 @@ if args.input_mc:
             if file.endswith(".coffea") and "DATA" not in file
         ]
 
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed)
+    sig_mc_category = (
+        f"4b{args.region_suffix}_signal_regionRun2" if args.run2
+        else f"boosted_signal_{args.region_suffix}_region" if args.boosted
+        else f"vbf_4b{args.region_suffix}_signal_region" if args.vbf
+        else f"4b{args.region_suffix}_signal_region"
+    )
+    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories | {sig_mc_category}, float32=True)
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
     elif args.boosted:
         cols_sig_mc = cat_col_mc[f"boosted_signal_{args.region_suffix}_region"]
+    elif args.vbf:
+        cols_sig_mc = cat_col_mc[f"vbf_4b{args.region_suffix}_signal_region"]
     else:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_region"]
 

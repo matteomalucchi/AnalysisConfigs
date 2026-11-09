@@ -2,13 +2,17 @@ import json
 import logging
 import os
 import numpy as np
-import pyarrow.dataset as ds
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
 from coffea.util import load
 import glob
 import gc
 from collections import defaultdict
 
 PAD_VALUE = -999
+# number of rows read at once from parquet (bounds the Arrow memory per thread)
+BATCH_SIZE = 65_536
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
@@ -20,11 +24,18 @@ logger = logging.getLogger()
 
 def get_columns_from_files(
     inputfiles, sel_var="nominal", filter_lambda=None, debug=False, novars=False, max_num_parquet_files=None, filter_mixed=False,
+    categories=None, float32=False,
 ):
+    """
+    categories: optional iterable of category names to load from parquet
+        (None = all). Skipping unused categories saves memory.
+    float32: if True, float64 parquet columns (except weights) are converted
+        to float32 to halve their memory.
+    """
     if not debug:
         logger.setLevel(level=logging.INFO)
     if novars:
-        return get_columns_from_files_novars(inputfiles, filter_lambda, debug, max_num_parquet_files, filter_mixed)
+        return get_columns_from_files_novars(inputfiles, filter_lambda, debug, max_num_parquet_files, filter_mixed, categories, float32)
     logger.info(f"Loading variations: {sel_var}")
     cat_col = {}
     total_datasets_list = []
@@ -34,7 +45,7 @@ def get_columns_from_files(
         samples = list(accumulator["columns"].keys())
         if accumulator["columns"] == {}:
             logger.info("Empty columns, trying to read from parquet files")
-            return get_columns_from_parquet(inputfiles, sel_var, filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed)
+            return get_columns_from_parquet(inputfiles, sel_var, filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed, categories=categories, float32=float32)
         if debug:
             logger.debug(f"inputfile {inputfile}")
         for sample in samples:
@@ -209,10 +220,18 @@ def get_columns_from_parquet(
     max_num_parquet_files=None,
     num_workers=4,
     filter_mixed=False,
+    categories=None,
+    float32=False,
 ):
     """
-    Fast Parquet loader using Arrow's to_table() (no batching overhead) and
+    Parquet loader reading in batches of BATCH_SIZE rows, with
     ThreadPoolExecutor for parallel variation loading.
+
+    Memory: only the requested `categories` are read, each Arrow batch is
+    converted to numpy and released right away, list columns are converted
+    to 2D arrays without passing through numpy object arrays, and the
+    per-dataset arrays are concatenated once at the end. With float32=True, float64
+    columns (except weights) are stored as float32.
 
     Returns:
         cat_col[category][(variation)][column]  -> numpy array   (sel_var="all")
@@ -258,6 +277,9 @@ def get_columns_from_parquet(
                 category_path = os.path.join(dataset_path, category)
                 if not os.path.isdir(category_path):
                     continue
+                if categories is not None and category not in categories:
+                    logger.debug(f"skipping category {category} (not requested)")
+                    continue
                 if filter_mixed and "Mixed" in dataset and category not in ["4b_control_region_preW", "4b_control_region_postW", "4b_signal_region_preW", "4b_signal_region_postW"]:
                     logger.debug(f"skipping category {category} for dataset {dataset} due to MixedData skipping")
                     continue
@@ -283,43 +305,45 @@ def get_columns_from_parquet(
 
     logger.info(f"Found {len(work_units)} (dataset, category, variation) units to load.")
 
-    def _split_if_multidim(column: str, arr) -> dict:
+    def _split_if_multidim(column: str, arr: np.ndarray) -> dict:
         """
-        Handles three cases:
-          1. Plain 1D array -> {column: arr}
-          2. Plain 2D array (n_events, n_objects) -> {column_0: ..., column_1: ...}
-          3. Object-dtype array of variable-length lists (ragged) -> pad to fixed N
-             using PAD_VALUE, then split, OR raise if ragged and no padding strategy.
+        1D array -> {column: arr}
+        2D array (n_events, n_objects) -> {column_0: ..., column_1: ...}
+        The 2D array is transposed once so that every split column is a
+        contiguous view of the same buffer (no extra copy).
         """
-        arr = np.asarray(arr)
-
-        if arr.ndim == 1 and arr.dtype != object:
+        if arr.ndim == 1:
             return {column: arr}
-
         if arr.ndim == 2:
-            n_objects = arr.shape[1]
-            return {f"{column}_{idx}": arr[:, idx] for idx in range(n_objects)}
-
-        if arr.dtype == object:
-            # Ragged array of lists/arrays per event
-            lengths = {len(row) for row in arr}
-            if len(lengths) != 1:
-                logger.warning(
-                    f"Column {column} is ragged with varying lengths {lengths}; "
-                    f"padding to max length with PAD_VALUE"
-                )
-                n_objects = max(lengths)
-                padded = np.full((len(arr), n_objects), PAD_VALUE, dtype=np.float64)
-                for row_idx, row in enumerate(arr):
-                    padded[row_idx, : len(row)] = row
-                arr2d = padded
-            else:
-                n_objects = lengths.pop()
-                arr2d = np.stack([np.asarray(row, dtype=np.float64) for row in arr])
-
-            return {f"{column}_{idx}": arr2d[:, idx] for idx in range(n_objects)}
-
+            arr_t = np.ascontiguousarray(arr.T)
+            return {f"{column}_{idx}": arr_t[idx] for idx in range(arr_t.shape[0])}
         raise ValueError(f"Column {column} has unsupported ndim={arr.ndim}, dtype={arr.dtype}")
+
+    def _arrow_to_numpy(column: str, chunked) -> np.ndarray:
+        """
+        Convert an Arrow ChunkedArray to numpy. List columns are flattened in
+        Arrow and reshaped to (n_events, n_objects), avoiding numpy object
+        arrays (one Python object per event). Ragged lists are padded with
+        PAD_VALUE.
+        """
+        typ = chunked.type
+        if not (pa.types.is_list(typ) or pa.types.is_large_list(typ) or pa.types.is_fixed_size_list(typ)):
+            return chunked.to_numpy()
+
+        lengths = pc.fill_null(pc.list_value_length(chunked), 0).to_numpy()
+        values = pc.list_flatten(chunked).to_numpy()
+        n_events = len(lengths)
+        n_objects = int(lengths.max()) if n_events else 0
+        if n_events == 0 or (lengths == n_objects).all():
+            return values.reshape(n_events, n_objects)
+
+        logger.warning(
+            f"Column {column} is ragged with lengths {np.unique(lengths)}; "
+            f"padding to max length with PAD_VALUE"
+        )
+        padded = np.full((n_events, n_objects), PAD_VALUE, dtype=np.result_type(values.dtype, np.float64))
+        padded[np.arange(n_objects) < lengths[:, None]] = values
+        return padded
 
     # ------------------------------------------------------------------
     # Worker: load one variation_path -> returns column dict
@@ -335,28 +359,51 @@ def get_columns_from_parquet(
 
         logger.debug(f"Loading {len(files)} files from {variation_path}")
 
-        arrow_ds = ds.dataset(files, format="parquet")
-
         # Push column filter into Arrow — skips unneeded columns at file level
+        schema_names = pq.read_schema(files[0]).names
         if filter_lambda is not None:
-            schema_cols = [c for c in arrow_ds.schema.names if filter_lambda(c)]
+            schema_cols = [c for c in schema_names if filter_lambda(c)]
         else:
-            schema_cols = None  # read all
+            schema_cols = schema_names
 
-        # Load everything in one shot — no batching overhead
-        table = arrow_ds.to_table(columns=schema_cols)
+        # Read batch by batch (no pre-buffering) and convert each batch to
+        # numpy right away, so that only one small Arrow batch is in memory at
+        # a time (reading the full table at once more than doubles the peak)
+        batches_dict = {c: [] for c in schema_cols}
+        for file in files:
+            parquet_file = pq.ParquetFile(file, pre_buffer=False)
+            for batch in parquet_file.iter_batches(batch_size=BATCH_SIZE, columns=schema_cols):
+                for column in schema_cols:
+                    arr = _arrow_to_numpy(column, batch.column(column))
+                    if float32 and arr.dtype == np.float64 and "weight" not in column:
+                        arr = arr.astype(np.float32)
+                    batches_dict[column].append(arr)
+                del batch
+            del parquet_file
 
         coldict = {}
-        for column in table.schema.names:
-            # Zero-copy where Arrow buffer is already C-contiguous, else a single copy
-            arr = table.column(column).combine_chunks().to_numpy(zero_copy_only=False)
+        for column in schema_cols:
+            arrays = batches_dict.pop(column)
+            if not arrays:
+                continue
+            # pad 2D arrays if the number of objects changes between batches
+            if arrays[0].ndim == 2:
+                n_objects = max(a.shape[1] for a in arrays)
+                arrays = [
+                    a if a.shape[1] == n_objects
+                    else np.pad(a, ((0, 0), (0, n_objects - a.shape[1])), constant_values=PAD_VALUE)
+                    for a in arrays
+                ]
+            arr = arrays[0] if len(arrays) == 1 else np.concatenate(arrays)
+            del arrays
             arr = _apply_genweight(column, arr, dataset, sum_genweights)
 
             for split_column, split_arr in _split_if_multidim(column, arr).items():
                 coldict[split_column] = split_arr
+            del arr
 
-        del table, arrow_ds
         gc.collect()
+        pa.default_memory_pool().release_unused()
 
         return dataset, category, variation, coldict
 
@@ -365,6 +412,9 @@ def get_columns_from_parquet(
     # ------------------------------------------------------------------
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
+    # Arrays of the different datasets are collected in lists and concatenated
+    # once at the end (repeated np.concatenate re-allocates the growing array)
+    parts: dict = {}
     with ThreadPoolExecutor(max_workers=num_workers) as pool:
         futures = {
             pool.submit(load_variation, *unit): unit
@@ -373,20 +423,27 @@ def get_columns_from_parquet(
 
         for future in as_completed(futures):
             dataset, category, variation, coldict = future.result()
+            del futures[future]
             if not coldict:
                 continue
 
-            cat_col.setdefault(category, {})
-
             # sel_var="all"  ->  cat_col[category][variation][column]
             # sel_var=specific or "" -> cat_col[category][column]
-            if load_all:
-                target = cat_col[category].setdefault(variation, {})
-            else:
-                target = cat_col[category]
-
+            key = (category, variation if load_all else None)
+            target = parts.setdefault(key, {})
             for column, arr in coldict.items():
-                _merge_into(target, column, arr)
+                target.setdefault(column, []).append(arr)
+            del coldict
+
+    for (category, variation), columns in parts.items():
+        cat_col.setdefault(category, {})
+        target = cat_col[category].setdefault(variation, {}) if load_all else cat_col[category]
+        for column in list(columns):
+            arrays = columns.pop(column)
+            target[column] = arrays[0] if len(arrays) == 1 else np.concatenate(arrays)
+            del arrays
+    del parts
+    gc.collect()
 
     logger.info("Parquet loading complete.")
     return cat_col, total_datasets_list
@@ -399,14 +456,6 @@ def _apply_genweight(column: str, arr: np.ndarray, dataset: str, sum_genweights:
         if denom != 0:
             return arr / denom
     return arr
-
-
-def _merge_into(coldict: dict, column: str, arr: np.ndarray) -> None:
-    """Concatenate arr into coldict[column], creating the key if absent."""
-    if column not in coldict:
-        coldict[column] = arr
-    else:
-        coldict[column] = np.concatenate((coldict[column], arr))
 
 
 def get_parquet_save_directory(input_parquet):
@@ -431,7 +480,7 @@ def get_parquet_save_directory(input_parquet):
     return col_dir, dataset
 
 
-def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None, filter_mixed=False):
+def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None, filter_mixed=False, categories=None, float32=False):
     cat_col = {}
     total_datasets_list = []
     # get the columns
@@ -443,7 +492,8 @@ def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, m
         if accumulator["columns"] == {}:
             logger.info("Empty columns, trying to read from parquet files")
             return get_columns_from_parquet(
-                inputfiles, "", filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed
+                inputfiles, "", filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed,
+                categories=categories, float32=float32,
             )
         for sample in samples:
             if debug:
