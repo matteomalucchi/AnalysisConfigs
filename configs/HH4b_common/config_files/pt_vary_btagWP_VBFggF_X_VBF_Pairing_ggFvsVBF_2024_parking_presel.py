@@ -26,7 +26,6 @@ config_options_dict |= {
     "preselection_pt_field": "pt_default",
     "vbf_parton_matching": True,
     "vbf_presel": False,
-    "vbf_analysis": True,
     "which_vbf_quark":"with_mothers_children",
     "max_num_jets_add_vbf": 3,
 }| onnx_model_dict
