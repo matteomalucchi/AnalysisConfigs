@@ -15,6 +15,7 @@ The details are in the [`docs/`](./docs/) subdirectory:
 | [`docs/jets.md`](./docs/jets.md) | The jets and the other physics objects: how `Jet` is built from the standard and the pT-regressed jets, the year-dependent b-tagging and regression algorithms, the selected jets and Higgs candidates, the VBF jet collections, the jets mitigations, the jet veto maps and the FatJets. |
 | [`docs/categories.md`](./docs/categories.md) | All the categories: first approach (4b/2b, mass-plane regions, `preW`/`postW`, blinded, high-score, VR1), second approach (SR/CR and b-tag categories), VBF and ggF, boosted, and the ones set by the config templates. |
 | [`docs/approaches.md`](./docs/approaches.md) | The first and second approaches of HIG-24-010: their common points and their differences (object and event preselection, skim, pT regression, pairing, VBF selection, regions, background estimate). |
+| [`docs/apply_onnx_models.md`](./docs/apply_onnx_models.md) | How to apply ONNX models (DNN or SPANet) to the columns (coffea or parquet) of an existing output with `scripts/apply_onnx_models.py`, selecting regions and datasets. |
 
 ## Configuration in short
 
