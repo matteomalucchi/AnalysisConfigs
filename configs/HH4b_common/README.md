@@ -421,8 +421,12 @@ run_pocket_coffea <config_name> <config_file> <t3_run_options> <output_dir>
 To compare the morphed 2b data with the 4b data in CR and SR, run the following command:
 
 ```bash
-sbatch -p short --account=t3 --time=00:05:00 --mem 25gb --cpus-per-task=8 --wrap="python AnalysisConfigs/scripts/plot_2bMorphedvs4b.py -i <input_directory> -o <output_directory> <--novars> <-r2>"
+sbatch -p short --account=t3 --time=00:05:00 --mem 25gb --cpus-per-task=8 --wrap="python AnalysisConfigs/scripts/plot_2bMorphedvs4b.py -i <input_directory> -o <output_directory> <--novars> <-r2> <--vbf>"
 ```
+
+Use `--vbf` for the VBF analysis output: it plots `vbf_4b_*` vs `vbf_2b_*_postW` and `ggf_4b_*` vs `ggf_2b_*_postW` in CR and SR (no `preW` regions).
+
+When the columns are read from parquet, only the categories that are plotted are loaded, and float64 columns (except weights) are stored as float32 to reduce the memory usage.
 
 ### Train DNN for signal / background classification
 
@@ -595,14 +599,15 @@ It can be run automatically at the end of `run_pocket_coffea` with `--merge-parq
 
 ```bash
 # -i: PocketCoffea output dir (the parquet location is read from its config.json) or the parquet files dir
-python utils_configs/merge_parquet.py -i <output_dir> [-o <merged_dir>] [--tmp-dir <tmp_dir>] [-j 32] [--files-per-step 256] [--overwrite] [--update-config]
+python utils_configs/merge_parquet.py -i <output_dir> [-o <merged_dir>] [--tmp-dir <tmp_dir>] [--redirector <root://host:port>] [-j 32] [--files-per-step 256] [--overwrite] [--update-config]
 
 # e.g. merge into <...>/merged_parquet_files next to <...>/parquet_files and point the config.json to the merged files
 python utils_configs/merge_parquet.py -i /work/$USER/out_hh4b/<name> --update-config
 ```
 
 * `-o/--output`: directory of the merged files. By default, a directory called `merged_parquet_files` next to the original `parquet` directory (e.g. `<...>/parquet_files` &rarr; `<...>/merged_parquet_files`)
-* `--tmp-dir`: merge each file here first, then copy it to the output directory, check the copy (size, adler32 checksum, number of events) and remove it (and the directories left empty) from here. If the check fails the copy is removed, the merged file is kept and the script stops; a rerun reuses it. Needed when the output is on `/pnfs`, where the files cannot be written directly: in that case it defaults to `<output_dir>/merged_parquet_files_tmp` when `-i` is the PocketCoffea output directory
+* `--tmp-dir`: merge the files here first; each merged file is copied to the output directory in the background while the next one is merged (so at most two merged files are kept here), the copy is checked (size, adler32 checksum, number of events) and the file is removed from here (the directories left empty are removed at the end). If a check fails the copy is removed, the merged file is kept and the script stops; a rerun reuses it. Needed when the output is on `/pnfs`, where the files cannot be written directly: in that case it defaults to `<output_dir>/merged_parquet_files_tmp` when `-i` is the PocketCoffea output directory. Each file is copied with `rsync` if `/pnfs` is writable through the mount (T3 login nodes, e.g. with `run_pocket_coffea --merge-parquet`), otherwise (batch nodes, where `/pnfs` is read-only) with `xrdcp` through the xrootd redirector (needs a valid grid proxy, `voms-proxy-init`)
+* `--redirector`: xrootd redirector used to write on `/pnfs` when it is read-only through the mount (default: the one of the parquet path in the `config.json`, otherwise `root://t3dcachedb03.psi.ch:1094`)
 * `--update-config`: overwrite `dump_columns_as_arrays_per_chunk` and `save_chunk` in the `workflow_options` of the `config.json` with the path of the merged files (keeping the same `root://` redirector, if any), so that the scripts reading the columns through the `config.json` use the merged files directly (in ML_pytorch, no `parquet_dir` is needed). The original paths are kept as `dump_columns_as_arrays_per_chunk_unmerged` and `save_chunk_unmerged`, and are used as input if the merging is run again
 * `-j/--threads`: number of threads reading the files in parallel (default 32)
 * `--files-per-step`: number of files kept in memory at the same time (default 256)

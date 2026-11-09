@@ -13,9 +13,14 @@ same parent directory, e.g. ``<...>/parquet_files`` ->
 ``<...>/merged_parquet_files``). Use -o to choose another directory.
 
 Files on /pnfs cannot be written directly: if the output directory is on
-/pnfs, each file is first merged in a temporary directory (--tmp-dir), then
-copied to the output directory, the copy is checked (size, adler32 checksum
-and number of events) and the temporary file is removed.
+/pnfs, all the files are first merged in a temporary directory (--tmp-dir),
+and each merged file is copied to the output directory in the background while
+the next one is merged (at most two merged files are kept in the temporary
+directory). The copy is done with rsync if /pnfs is writable through the
+mount (T3 login nodes, e.g. when run by run_pocket_coffea.sh), otherwise
+(batch nodes) with xrdcp through the xrootd --redirector (needs a valid grid
+proxy). Each copy is checked (size, adler32 checksum and number of events) and
+the temporary file is removed.
 
 With --update-config, the parquet path in the config.json of the PocketCoffea
 output directory (``dump_columns_as_arrays_per_chunk`` and ``save_chunk`` in
@@ -27,14 +32,14 @@ with the suffix ``_unmerged`` (and are used as input when merging again).
 Usage:
     python merge_parquet.py -i <PocketCoffea output dir or parquet files dir>
                             [-o <output_dir>] [--tmp-dir <tmp_dir>] [-j 32]
-                            [--update-config]
+                            [--redirector <root://host:port>] [--update-config]
 """
 
 import argparse
 import json
 import logging
 import os
-import shutil
+import subprocess
 import zlib
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlsplit
@@ -49,6 +54,8 @@ logger = logging.getLogger(__name__)
 CONFIG_KEYS = ("dump_columns_as_arrays_per_chunk", "save_chunk")
 UNMERGED_SUFFIX = "_unmerged"
 DEFAULT_OUTPUT_NAME = "merged_parquet_files"
+# xrootd door used to write on /pnfs if the config.json has no root:// path
+DEFAULT_REDIRECTOR = "root://t3dcachedb03.psi.ch:1094"
 
 
 def root_to_local(path_or_url):
@@ -138,58 +145,108 @@ def adler32(path, block_size=16 * 1024 * 1024):
     return value
 
 
-def remove_empty_parents(path, stop_dir, include_stop=False):
-    """Remove the parent directories of path left empty, up to stop_dir
-    (removed too only if include_stop)."""
-    parent = os.path.dirname(os.path.abspath(path))
-    stop_dir = os.path.abspath(stop_dir)
-    while (
-        parent.startswith(stop_dir)
-        and (parent != stop_dir or include_stop)
-        and os.path.isdir(parent)
-        and not os.listdir(parent)
-    ):
-        os.rmdir(parent)
-        if parent == stop_dir:
-            break
-        parent = os.path.dirname(parent)
+def remove_file(path, redirector=None):
+    """Remove path, through xrootd (xrdfs rm) if redirector is given."""
+    if redirector is None:
+        os.remove(path)
+    else:
+        subprocess.run(["xrdfs", redirector, "rm", path], check=True)
 
 
-def copy_and_remove(src_file, dst_file, stop_dir):
-    """Copy src_file to dst_file, check the copy and remove src_file and its
-    parent directories left empty (up to stop_dir excluded).
+def is_writable(path):
+    """True if path (or its closest existing parent) can be written through the
+    mount: /pnfs is writable on the T3 login nodes, read-only on the batch nodes."""
+    path = os.path.abspath(path)
+    while not os.path.exists(path):
+        path = os.path.dirname(path)
+    return os.access(path, os.W_OK)
 
-    If the copy is not correct, dst_file is removed, src_file is kept and an
-    error is raised."""
-    os.makedirs(os.path.dirname(dst_file), exist_ok=True)
-    # files on dCache cannot be overwritten, they have to be removed first
-    if os.path.exists(dst_file):
-        os.remove(dst_file)
-    logger.info(f"Copying {src_file} to {dst_file}")
-    shutil.copyfile(src_file, dst_file)
 
+def remove_empty_dirs(path):
+    """Remove the empty directories inside path (path itself too, if left empty)."""
+    if not os.path.isdir(path):
+        return
+    for root, _, _ in os.walk(path, topdown=False):
+        if not os.listdir(root):
+            os.rmdir(root)
+
+
+def check_and_remove(src_file, dst_file, redirector=None, cksum_done=False):
+    """Check the copy dst_file of src_file (size, adler32 unless already checked
+    by xrdcp, number of events) and remove src_file. Its parent directories
+    left empty are removed at the end (with remove_empty_dirs), not here, since
+    the next files are merged in the meantime in the same tmp directory.
+
+    If the copy is not correct, dst_file is removed (through xrootd if
+    redirector is given), src_file is kept and an error is raised."""
     errors = []
     src_size, dst_size = os.path.getsize(src_file), os.path.getsize(dst_file)
     if src_size != dst_size:
         errors.append(f"size {dst_size} != {src_size}")
     else:
-        src_sum, dst_sum = adler32(src_file), adler32(dst_file)
-        if src_sum != dst_sum:
-            errors.append(f"adler32 {dst_sum:08x} != {src_sum:08x}")
+        if not cksum_done:
+            src_sum, dst_sum = adler32(src_file), adler32(dst_file)
+            if src_sum != dst_sum:
+                errors.append(f"adler32 {dst_sum:08x} != {src_sum:08x}")
         src_rows = pq.ParquetFile(src_file).metadata.num_rows
         dst_rows = pq.ParquetFile(dst_file).metadata.num_rows
         if src_rows != dst_rows:
             errors.append(f"events {dst_rows} != {src_rows}")
     if errors:
-        os.remove(dst_file)
+        remove_file(dst_file, redirector)
         raise RuntimeError(
             f"Copy of {src_file} to {dst_file} failed ({', '.join(errors)}): "
             f"the copy was removed and the original file kept"
         )
-    logger.info(f"Copy checked (size, adler32, events), removing {src_file}")
-
+    logger.info(f"Copy of {dst_file} checked (size, adler32, events), removing {src_file}")
     os.remove(src_file)
-    remove_empty_parents(src_file, stop_dir)
+
+
+def copy_and_remove(src_file, dst_file, redirector=None):
+    """Copy src_file to dst_file, check the copy and remove src_file.
+
+    If redirector is None (output writable through the mount, e.g. /pnfs on
+    the login nodes) the copy is done with rsync. Otherwise (output on /pnfs,
+    read-only through the mount, e.g. on the batch nodes), the copy is done
+    with xrdcp through it, creating the missing directories and checking the
+    adler32 checksum. The copy is then read back through the mount to check
+    the size, the adler32 checksum (if not checked by xrdcp) and the number of
+    events.
+
+    If the copy is not correct, dst_file is removed, src_file is kept and an
+    error is raised."""
+    # files on dCache cannot be overwritten, they have to be removed first
+    if os.path.exists(dst_file):
+        remove_file(dst_file, redirector)
+    logger.info(f"Copying {src_file} to {dst_file}")
+    if redirector is None:
+        os.makedirs(os.path.dirname(dst_file), exist_ok=True)
+        subprocess.run(["rsync", "-a", src_file, dst_file], check=True)
+    else:
+        res = subprocess.run(
+            [
+                "xrdcp",
+                "--nopbar",
+                "--path",
+                "--cksum",
+                "adler32:source",
+                src_file,
+                f"{redirector}/{dst_file}",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode != 0:
+            if os.path.exists(dst_file):
+                remove_file(dst_file, redirector)
+            raise RuntimeError(
+                f"xrdcp of {src_file} to {dst_file} failed ({res.stderr.strip()}): "
+                "the original file was kept"
+            )
+    # with xrdcp the adler32 checksum is already checked by --cksum
+    check_and_remove(
+        src_file, dst_file, redirector, cksum_done=redirector is not None
+    )
 
 
 def read_config(config_file):
@@ -252,11 +309,19 @@ def main():
     parser.add_argument(
         "--tmp-dir",
         default=None,
-        help="Merge each file in this directory, then copy it to the output "
-        "directory, check the copy (size, adler32, events) and remove it from "
-        "here. Needed when the output is on /pnfs (default in that case: "
-        f"<input>/{DEFAULT_OUTPUT_NAME}_tmp if --input is the PocketCoffea "
+        help="Merge all the files in this directory (nothing is created in the "
+        "output directory until all the merges are done), then copy them to the "
+        "output directory, check the copies (size, adler32, events) and remove "
+        "them from here. Needed when the output is on /pnfs (default in that "
+        f"case: <input>/{DEFAULT_OUTPUT_NAME}_tmp if --input is the PocketCoffea "
         "output directory)",
+    )
+    parser.add_argument(
+        "--redirector",
+        default=None,
+        help="xrootd redirector (root://host:port) used to copy the files with "
+        "xrdcp when the output is on /pnfs (default: the one of the parquet "
+        f"path in the config.json, if any, otherwise {DEFAULT_REDIRECTOR})",
     )
     parser.add_argument(
         "-j", "--threads", type=int, default=32, help="Number of reading threads"
@@ -281,8 +346,18 @@ def main():
 
     config_file = os.path.join(args.input, "config.json")
     has_config = os.path.isfile(config_file)
+    redirector = args.redirector
     if has_config:
-        in_path = parquet_dir_from_config(read_config(config_file))
+        config = read_config(config_file)
+        options = config["workflow"]["workflow_options"]
+        in_path = parquet_dir_from_config(config)
+        if redirector is None:
+            for key in CONFIG_KEYS:
+                value = options.get(key + UNMERGED_SUFFIX) or options.get(key)
+                if isinstance(value, str) and value.startswith("root://"):
+                    u = urlsplit(value)
+                    redirector = f"{u.scheme}://{u.netloc}"
+                    break
     elif args.update_config:
         parser.error(f"--update-config needs a config.json in {args.input}")
     else:
@@ -308,31 +383,56 @@ def main():
         tmp_dir = os.path.join(args.input, DEFAULT_OUTPUT_NAME + "_tmp")
     if tmp_dir is not None:
         tmp_dir = os.path.abspath(tmp_dir)
+    # /pnfs read-only through the mount (batch nodes): write through xrootd,
+    # otherwise (e.g. login nodes) copy with rsync
+    if output.startswith("/pnfs") and not is_writable(output):
+        redirector = redirector or DEFAULT_REDIRECTOR
+    else:
+        redirector = None
 
     logger.info(f"Merging the parquet files in {in_path} into {output}")
     if tmp_dir is not None:
         logger.info(f"Using the temporary directory {tmp_dir}")
+    if redirector is not None:
+        logger.info(f"Copying to {output} with xrdcp through {redirector}")
 
-    for leaf in find_leaf_dirs(in_path):
-        rel_file = os.path.join(os.path.relpath(leaf, in_path), "merged.parquet")
-        final_file = os.path.join(output, rel_file)
-        if os.path.exists(final_file) and not args.overwrite:
-            logger.info(f"Skipping existing {final_file}")
-            continue
-        if tmp_dir is None:
-            merge_dir(leaf, final_file, args.threads, args.files_per_step)
-            continue
-        tmp_file = os.path.join(tmp_dir, rel_file)
-        # a merged file left by a previous run whose copy failed is reused
-        if not os.path.exists(tmp_file) or args.overwrite:
-            merge_dir(leaf, tmp_file, args.threads, args.files_per_step)
-        else:
-            logger.info(f"Reusing existing {tmp_file}")
-        # done after each merge, to not keep all the files in the tmp dir
-        copy_and_remove(tmp_file, final_file, tmp_dir)
+    # Each merged file is copied (and checked and removed from the tmp dir) in
+    # a background thread while the next one is merged. Before starting the
+    # copy of a file, the copy of the previous one has to be finished, so at
+    # most two merged files are kept in the tmp dir at the same time.
+    copy_future = None
+    with ThreadPoolExecutor(1) as copy_ex:
+        for leaf in find_leaf_dirs(in_path):
+            rel_file = os.path.join(os.path.relpath(leaf, in_path), "merged.parquet")
+            final_file = os.path.join(output, rel_file)
+            if os.path.exists(final_file) and not args.overwrite:
+                logger.info(f"Skipping existing {final_file}")
+                tmp_file = os.path.join(tmp_dir, rel_file) if tmp_dir else None
+                if tmp_file and os.path.exists(tmp_file):
+                    # copied by a previous run stopped before removing it
+                    # from the tmp dir: check the copy and remove it
+                    check_and_remove(tmp_file, final_file, redirector)
+                continue
+            if tmp_dir is None:
+                merge_dir(leaf, final_file, args.threads, args.files_per_step)
+                continue
+            tmp_file = os.path.join(tmp_dir, rel_file)
+            # a merged file left by a previous run whose copy failed is reused
+            if not os.path.exists(tmp_file) or args.overwrite:
+                merge_dir(leaf, tmp_file, args.threads, args.files_per_step)
+            else:
+                logger.info(f"Reusing existing {tmp_file}")
+            if copy_future is not None:
+                # raises the error of the previous copy, if any
+                copy_future.result()
+            copy_future = copy_ex.submit(
+                copy_and_remove, tmp_file, final_file, redirector
+            )
+        if copy_future is not None:
+            copy_future.result()
 
-    if tmp_dir is not None and os.path.isdir(tmp_dir) and not os.listdir(tmp_dir):
-        os.rmdir(tmp_dir)
+    if tmp_dir is not None:
+        remove_empty_dirs(tmp_dir)
 
     if args.update_config:
         update_config(config_file, output)
