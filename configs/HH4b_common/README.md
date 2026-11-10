@@ -424,9 +424,13 @@ To compare the morphed 2b data with the 4b data in CR and SR, run the following 
 sbatch -p short --account=t3 --time=00:05:00 --mem 25gb --cpus-per-task=8 --wrap="python AnalysisConfigs/scripts/plot_2bMorphedvs4b.py -i <input_directory> -o <output_directory> <--novars> <-r2> <--vbf>"
 ```
 
-Use `--vbf` for the VBF analysis output: it plots `vbf_4b_*` vs `vbf_2b_*_postW` and `ggf_4b_*` vs `ggf_2b_*_postW` in CR and SR (no `preW` regions).
+Use `--vbf` for the VBF analysis output: it plots `vbf_4b_*` vs `vbf_2b_*_postW` and `ggf_4b_*` vs `ggf_2b_*_postW` in CR and SR (no `preW` regions). With `--vbf` the vbf and ggf regions are also merged into the `CR_MERGED` and `SR_MERGED` entries.
+
+To merge regions, add a `cat_dict` entry whose key contains `MERGED` and use categories named `<cat_1>+<cat_2>`, e.g. `vbf_4b_control_region+ggf_4b_control_region`. In the legend a merged category is labelled with the dict key plus the part common to its sub-categories (e.g. `CR_MERGED 4b CR`). The columns of the sub-categories are concatenated only for the variable being plotted, so the stored columns are not duplicated and the errors are computed as for a single category.
 
 When the columns are read from parquet, only the categories that are plotted are loaded, and float64 columns (except weights) are stored as float32 to reduce the memory usage.
+
+For every jagged collection in the columns (usually the jet collections, stored either flattened with `<coll>_<var>` + `<coll>_N` or split per object as `<coll>_<var>_<idx>`), the number of objects per event is plotted as `N_<coll>`. It is computed by counting the non-None objects (not NaN and not `-999`) in each event, also when the `<coll>_N` column is present. Event-level multi-dimensional columns (`events_*`, weights, scores) are not considered collections.
 
 ### Train DNN for signal / background classification
 
