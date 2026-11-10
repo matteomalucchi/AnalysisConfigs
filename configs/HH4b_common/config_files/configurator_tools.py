@@ -5,7 +5,7 @@ from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.histograms import jet_hists, count_hist
 from pocket_coffea.lib.hist_manager import HistConf, Axis
 from pocket_coffea.parameters.cuts import passthrough
-from configs.HH4b_common.trigger_object_matching import get_trigger_object_matching
+from pocket_coffea.lib.cut_functions import get_trigger_object_matching
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
 from utils_configs.variables_helpers import jet_hists_dict, create_HistConf
@@ -1647,7 +1647,8 @@ def define_preselection(options):
     # Match the offline jets to the trigger objects: the trigger efficiencies
     # (and therefore the scale factors) are derived in this phase space. This is
     # a plain DeltaR matching of all the selected jets to any trigger object (no
-    # per-filter bit configuration), see `trigger_object_matching.py`.
+    # per-filter bit configuration), see
+    # `pocket_coffea.lib.cut_functions.get_trigger_object_matching`.
     if options.get("trigger_object_matching", False):
         preselection.append(
             get_trigger_object_matching(collection="JetGood", dr_max=0.5)

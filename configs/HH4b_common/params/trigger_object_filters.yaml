@@ -3,7 +3,7 @@
 # to name and assign an observable to each filter's correction.
 #
 # N.B: the event-level selection no longer uses this file. `trigger_object_matching`
-# (see `configs/HH4b_common/trigger_object_matching.py`) is a plain DeltaR matching
+# (see `pocket_coffea.lib.cut_functions.get_trigger_object_matching`) is a plain DeltaR matching
 # of the selected jets to any trigger object, with no per-filter-bit configuration.
 #
 # Each filter is defined by the string `type:bit:n_objects:threshold:name`

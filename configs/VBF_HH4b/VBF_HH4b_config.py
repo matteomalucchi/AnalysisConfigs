@@ -11,7 +11,6 @@ from pocket_coffea.parameters.histograms import *
 from pocket_coffea.utils.configurator import Configurator
 
 import configs.HH4b_common.custom_cuts_common as cuts
-import configs.HH4b_common.trigger_object_matching as trigger_object_matching
 import configs.HH4b_common.trigger_sf as trigger_sf
 from configs.HH4b_common.trigger_sf import SF_trigger
 import utils_configs.quantile_transformer as quantile_transformer
@@ -254,7 +253,7 @@ for sample in sample_list:
 # file with the per-filter efficiencies referenced in
 # `HH4b_common/params/trigger_scale_factors.yaml` (see the README). The weight is
 # implemented by `SF_trigger` in `configs.HH4b_common.trigger_sf` (name
-# "sf_trigger_hh4b"), self-contained in this repository.
+# "sf_trigger"), self-contained in this repository.
 common_weights_list = ["genWeight", "lumi", "XS"] + (
     [SF_trigger.name] if config_options_dict.get("trigger_sf", False) else []
 )
@@ -333,6 +332,3 @@ cloudpickle.register_pickle_by_value(quantile_transformer)
 # `atanh_btag_mean` observables of `trigger_scale_factors.yaml` (see `trigger_sf.py`)
 # available to the workers.
 cloudpickle.register_pickle_by_value(trigger_sf)
-# Makes the `get_trigger_object_matching` cut (see `trigger_object_matching.py`)
-# available to the workers.
-cloudpickle.register_pickle_by_value(trigger_object_matching)

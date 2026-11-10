@@ -1,12 +1,11 @@
 """Application of the HH4b jet-trigger scale factors, self-contained in AnalysisConfigs.
 
-Deliberately independent of PocketCoffea's own `pocket_coffea.lib.trigger_sf` /
-`pocket_coffea.lib.weights.common.common.SF_trigger` (added on the
-`claude/trigger-sf-root-files-2ph6y5` branch): the trigger scale factor can be
-applied, and its observables changed, by editing only this analysis
-configuration, without needing that PocketCoffea branch merged (or even
-present). It only relies on the stable `pocket_coffea.lib.weights.weights`
-base classes.
+The trigger scale factor can be applied, and its observables changed, by
+editing only this analysis configuration: PocketCoffea ships no built-in
+observable or weight for this (only the generic DeltaR-based trigger object
+matching, see `pocket_coffea.lib.cut_functions.get_trigger_object_matching`,
+used by the `trigger_object_matching` option instead). This module only
+relies on the stable `pocket_coffea.lib.weights.weights` base classes.
 
 The efficiency of a trigger path is often measured by factorizing it in the
 efficiency of each of the filters composing the path (plus the efficiency of the
@@ -31,8 +30,7 @@ import numpy as np
 import correctionlib
 
 from pocket_coffea.lib.weights.weights import WeightWrapper, WeightData
-
-from .trigger_object_matching import delta_r_table
+from pocket_coffea.lib.deltaR_matching import delta_r_table
 
 # Registry of the functions computing the observables used to evaluate the
 # per-filter efficiencies, local to this analysis configuration. New observables
@@ -223,13 +221,6 @@ def sf_trigger(params, events, year, correction_set=None):
     return sf["nominal"], sf["up"], sf["down"]
 
 
-# NOTE: named "sf_trigger_hh4b", not "sf_trigger", to avoid a duplicate-registration
-# error against PocketCoffea's own `SF_trigger` weight (name "sf_trigger"), still
-# present on the `claude/trigger-sf-root-files-2ph6y5` branch and pulled in by the
-# `common_weights` import below. The two implementations are otherwise equivalent;
-# this one is always the one actually used here, independently of what is or isn't
-# in the PocketCoffea install. Rename back to "sf_trigger" once that branch's own
-# copy is removed/decided on.
 class SF_trigger(WeightWrapper):
     """Trigger scale factor computed as the product of the per-filter data/MC
     efficiency ratios, read from a correctionlib file.
@@ -238,7 +229,7 @@ class SF_trigger(WeightWrapper):
     evaluate each filter is taken from the `trigger_scale_factors` parameters.
     """
 
-    name = "sf_trigger_hh4b"
+    name = "sf_trigger"
     has_variations = True
 
     def __init__(self, params, metadata):

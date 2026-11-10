@@ -126,9 +126,9 @@ default_config_options_dict = {
     # Add the trigger scale factor's up/down variations to the output.
     "trigger_sf_variations": False,
     # Require the offline jets (`JetGood`) to be matched, within DeltaR < 0.5, to
-    # a trigger object (`get_trigger_object_matching` in
-    # `configs/HH4b_common/trigger_object_matching.py`). The efficiencies used for
-    # the trigger scale factors are derived in this phase space.
+    # a trigger object (`pocket_coffea.lib.cut_functions.get_trigger_object_matching`).
+    # The efficiencies used for the trigger scale factors are derived in this
+    # phase space.
     "trigger_object_matching": False,
 
     # ------------------------------------------------------------------
