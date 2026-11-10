@@ -109,6 +109,12 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "--vbf",
+    action="store_true",
+    help="If true, VBF analysis regions are plotted (vbf_/ggf_ 4b vs 2b postW in CR and SR)",
+    default=False,
+)
+parser.add_argument(
     "--mixed",
     action="store_true",
     help="mixed datasets",

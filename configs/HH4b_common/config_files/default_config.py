@@ -61,8 +61,12 @@ default_config_options_dict = {
     # the `Jet` collection is built in `apply_object_preselection`:
     #   "first"   : use the PNet+Neutrino regressed pt when it is available
     #               (HIG-24-010 first approach)
-    #   "second"  : use the regressed pt also when the jet passes the loose
-    #               b-tag WP (HIG-24-010 second approach)
+    #   "second"  : second approach (HIG-24-010): the +neutrino regressed pt
+    #               for the jets passing the loose b-tag WP. It also selects the second approach event
+    #               preselection (`hh4b_presel_second_approach`), drops the
+    #               L1 seeds from the skim, and, without SPANet, takes the D_HH pairing (`run2`)
+    #               with the HH-frame pt tie-break and the leading-pt /
+    #               opposite-eta VBF pair
     #   "boosted" : skip the resolved jet-pt handling and the b-tag WP
     #               definition (used for the boosted analysis)
     "approach": "first",
@@ -109,7 +113,7 @@ default_config_options_dict = {
     #     the 2 highest-score jets > 0.65
     #   B (2023 preBPix ParkingHH data and MC, 2023 postBPix): jet pt >
     #     35,35,35,30, mean PNet of the 2 highest-score jets > 0.55
-    #   C (2024): jet pt > 30,30,30,30, >= 2 jets passing the UParT M WP
+    #   C (2024, 2025): jet pt > 30,30,30,30, >= 2 jets passing the UParT M WP
     # The config files written before this option existed set it to False to
     # keep their old preselection (`hh4b_presel`, i.e. A for all the years).
     "era_dependent_presel": True,
@@ -131,6 +135,10 @@ default_config_options_dict = {
     # contains "HH", "ZH" or "ZZ", so turning it on changes the yields of the
     # ggF/VBF signal too and breaks the comparison with older results.
     "xx4b_presel": False,
+    # Apply the jet veto map on the pt of the `Jet` collection, i.e. the regressed
+    # pt where the pt regression is applied (see `approach`), instead of the
+    # standard JEC pt (`pt_default`, default).
+    "jet_veto_map_regressed_pt": False,
 
     # ------------------------------------------------------------------
     # TRUTH MATCHING (MC only)
@@ -155,11 +163,22 @@ default_config_options_dict = {
     #   "with_mothers_children" : quarks whose mother also has two Higgs children
     #   "with_status"           : outgoing (status==23) non-b partons
     "which_vbf_quark": "with_mothers_children",
-    # Number of additional VBF jet candidates (on top of the leading-mjj pair)
-    # kept in `JetAdditionalGoodVBF` and merged into the SPANet input collections.
+    # Number of additional VBF jet candidates (on top of the VBF pair chosen with
+    # `spanet_vbf_candidates`) kept in `JetAdditionalGoodVBF` and merged into the
+    # SPANet input collections.
     "max_num_jets_add_vbf": 2,
     # Field used to order the additional VBF jets, e.g. "energy" or "pt".
     "jets_add_vbf_order": "energy",
+    # VBF pair fed to SPANet (`JetTotalSPANetPadded`) and to the ggF/VBF
+    # discriminator (`JetGoodVBFMergedProvVBFPadded`) before the additional VBF
+    # jets, also used as the VBF pair of the categories when no model predicts it:
+    #   None                      : automatic, "leading_pt_opposite_eta" in the
+    #                               second approach, "leading_mjj" otherwise
+    #   "leading_mjj"             : the pair leading in mjj
+    #   "leading_pt_opposite_eta" : the leading-pt jet and the leading-pt jet with
+    #                               eta1 * eta2 < 0
+    # Set it explicitly only to apply a model trained with the other definition.
+    "spanet_vbf_candidates": None,
     # Run the SPANet Higgs pairing first and define the VBF candidates from the
     # jets left over by the pairing, instead of using the b-tag ordered
     # `JetGoodClip` collection. Requires `spanet`.
@@ -231,6 +250,19 @@ default_config_options_dict = {
     # the rest. Set to False for the old behaviour (no split: +neutrino
     # regression wherever valid, else the standard JEC jets).
     "separate_regression_by_btag": True,
+    # MC only: smear the pT-regressed jets with the JER factor of the standard
+    # JEC jets (`JetDefault`) instead of their own one. The scaling method of
+    # the JER compares the jet pt with the GenJet pt, which does not include
+    # the neutrinos, so on the +neutrino regressed pt it smears the jets
+    # upwards. False keeps the old behaviour (own JER of the regressed jets).
+    "regressed_jets_default_jer": False,
+    # Apply the pT regression only to the jets with a raw pt (`pt_raw` of
+    # `JetDefault`, the pt before any correction) above this value in GeV, e.g.
+    # 15, for every `approach`. The regressed pt (`JetPtRegressed` and
+    # `JetPtRegressedPlusNeutrino`) of the other jets is set to -1 (failed
+    # regression, pt <= 0), so `merge_regressed_jets` takes the standard JEC
+    # jets for them. None applies the regression to every jet.
+    "regression_min_pt_raw": None,
   
     # ------------------------------------------------------------------
     # MODEL INPUTS AND PADDING

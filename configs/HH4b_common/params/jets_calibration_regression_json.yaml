@@ -116,14 +116,14 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23Prompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23Prompt23_V4_MC
         jec_data: Summer23Prompt23_V4_DATA
-        jer: Summer23Prompt23_JRV3_MC
+        jer: Summer23Prompt23_RunCv1234_JRV3_MC
         level: L1L2L3Res
       
       2023_postBPix:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23BPixPrompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23BPixPrompt23_V4_MC
         jec_data: Summer23BPixPrompt23_V4_DATA
-        jer: Summer23BPixPrompt23_JRV3_MC
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         level: L1L2L3Res
 
       "2024":
@@ -163,14 +163,14 @@ default_jets_calibration:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23Prompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23Prompt23_V4_MC
         jec_data: Summer23Prompt23_V4_DATA
-        jer: Summer23Prompt23_JRV3_MC
+        jer: Summer23Prompt23_RunCv1234_JRV3_MC
         level: L1L2L3Res
       
       2023_postBPix:
         json_path: "${path_to_JERC_regression_files}/Run3Summer23BPixPrompt23/latest/regJet_jerc.json.gz"
         jec_mc: Summer23BPixPrompt23_V4_MC
         jec_data: Summer23BPixPrompt23_V4_DATA
-        jer: Summer23BPixPrompt23_JRV3_MC
+        jer: Summer23BPixPrompt23_RunD_JRV3_MC
         level: L1L2L3Res
 
       "2024":
@@ -1024,6 +1024,38 @@ jets_calibration:
   # setup `jets_calibration.variations == "${default_jets_calibration.variations.full_variations}"` to use all variations
   # variations: "${default_jets_calibration.variations.full_variations}"
   variations: "${default_jets_calibration.variations.total_variation}"
+
+  # Run3 jets mitigations of PocketCoffea, each one switched on separately
+  # (see pocket_coffea/parameters/jets_calibration.yaml).
+  jets_mitigation:
+    ## Selection mitigations: every AK4 jet selection (never the FatJets), on the
+    ## pt_type pt of custom_jet_selection.
+
+    # pt > 50 GeV in 2.5 < |eta| < 3 (2022-2024, and 2025 here): only the VBF jets reach
+    # |eta| > 2.5
+    pt_cut_HE:
+      apply: True
+      eta_regions:
+        "2025": [[2.5, 3.0]]
+    pt_cut_HF:
+      apply: False
+    raw_factor_cut:
+      apply: True
+
+    ## Calibration mitigations: only the jet types of jet_types.
+
+    # every AK4 jet type calibrated in the analysis: the standard AK4PFPuppi jets (also
+    # the CorrT1METJet ones, aliased to AK4PFPuppi) and the pt-regressed ones
+    jet_types:
+      - AK4PFPuppi
+      - AK4PFPuppiPNetRegression
+      - AK4PFPuppiPNetRegressionPlusNeutrino
+      - AK4PFPuppiUParTRegression
+      - AK4PFPuppiUParTRegressionPlusNeutrino
+    jer_genmatched_only:
+      apply: True
+    residual_pt_floor:
+      apply: False
 
 # path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/JERC_json/JERC_json_forPNetUParT_WithJER/"
 path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/tharte/JERC_json/JERC_json_forPNetUParT_WithJER/"

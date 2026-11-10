@@ -20,6 +20,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     define_categories,
     define_single_category,
     define_preselection,
+    VBF_SELECTED_PAIR_COLUMNS,
     get_columns_list,
     get_variables_dict,
     with_fw_momenta_columns,
@@ -27,6 +28,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
 )
+from configs.HH4b_common.vbf_jet_collections import applies_pairing
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
@@ -241,6 +243,15 @@ else:
     # Add special columns
     if config_options_dict["sig_bkg_dnn"]:
         column_list += get_columns_list({"events": ["sig_bkg_dnn_score"]})
+
+# Save the VBF pair assigned after the pairing (SPANet or Run 2), ordered by pt,
+# with its mjj, deta and centrality: the one used by the VBF categories
+if config_options_dict["vbf_analysis"] and applies_pairing(
+    config_options_dict["spanet"], config_options_dict["run2"]
+):
+    column_list += get_columns_list(
+        VBF_SELECTED_PAIR_COLUMNS, not config_options_dict["save_chunk"]
+    )
 
 bysample_bycategory_column_dict = {}
 for sample in sample_list:

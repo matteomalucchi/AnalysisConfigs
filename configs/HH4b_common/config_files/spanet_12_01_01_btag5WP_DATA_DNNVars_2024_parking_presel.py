@@ -7,8 +7,8 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 onnx_model_dict  |= {
     "spanet": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/hh4b_pairing_vbf_ggf_all_Klambda_HiggsPairing_2024_Zsamples_5jets_parking_presel.onnx",
+    "bkg_morphing_dnn": "/work/mmalucch/out_ML_pytorch/hh4b_bkg_reweighting/DNN_12_01_05_1e-3_e0drop95_minDelta1em5_ClassWeights_ggF_VBF_vars_NVBFjets_2024_parking_kfold20/kfold_onnx/average_ratio_model_kfold.onnx",
     "vbf_discriminator": "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/hh4b_pairing_vbf_ggf_all_Klambda_VBFPairingAfterHiggsPairingWithZSamples_JetHiggsSeparate_DNNVars_VBFNoKinCut_ClassLoss7_2024_NormWeightsPerSample_NoBtag.onnx",
-    "bkg_morphing_dnn": "",
     # "sig_bkg_dnn": "",
 }
 
@@ -16,16 +16,15 @@ config_options_dict |= {
     "dnn_variables": True,
     "run2": False,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,
-    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_vbf_input_variables,
     "max_num_jets_good": 4,
     "max_num_jets_higgs_pairing": 5,
     "which_bquark": "last",
     "fifth_jet": "pt",
     "pad_value": -999.0,
     "add_jet_spanet": True,
-    "qt_postEE": None,
-    "random_pt": True,
-    "rand_type": 0.3,
+    # "random_pt": True,
+    # "rand_type": 0.3,
     "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/12_01_01_out_ggf_vbf_DATA_AllKlambda_DetaMjjCentrality_ApplyGGFvsVBF_DNNVars_vbfregions_2024SPANetHiggsTraining_parking_presel/parquet_files/",
     "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
     # VBF

@@ -15,6 +15,14 @@ def get_era_lumi(dataset_data):
         "22 postEE": 5.79+17.6+2.88,
         "23 preBPix": 4.43+1.28+1.57+10.68,
         "23 postBPix": 7.83+1.67,
+        # 2024 values from PocketCoffea/pocket_coffea/parameters/lumi.yaml
+        "24 Era C": 7.26,
+        "24 Era D": 7.98,
+        "24 Era E": 11.42,
+        "24 Era F": 28.04,
+        "24 Era G": 38.07,
+        "24 Era H": 5.49,
+        "24 Era I": 11.56,
     }
     # GluGlutoHHto4B_spanet_kl-1p00_kt-1p00_c2-0p00_2022_postEE
     era_list = []
@@ -55,6 +63,13 @@ def get_era_lumi(dataset_data):
                 era_list.append("23 postBPix")
             else:
                 print("2023 data, but not identified")
+        elif "2024" in dataset:
+            for era in ["C", "D", "E", "F", "G", "H", "I"]:
+                if f"Era{era}" in dataset:
+                    era_list.append(f"24 Era {era}")
+                    break
+            else:
+                print("2024 data, but not identified")
     print("Found eras in datasets")
     print(era_list)
     assert len(era_list) > 0
@@ -103,6 +118,8 @@ def get_era_lumi(dataset_data):
         ]
     ):
         era_string = "2023"
+    elif all([era in era_list for era in [f"24 Era {e}" for e in "CDEFGHI"]]):
+        era_string = "2024"
     elif all([era in era_list for era in era_lumi_dict]):
         era_string = "2022, 2023"
     if era_string in era_lumi_dict.keys():

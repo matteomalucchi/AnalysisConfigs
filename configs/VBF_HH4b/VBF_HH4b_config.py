@@ -1,3 +1,4 @@
+import dataclasses
 import os
 
 import cloudpickle
@@ -20,6 +21,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
     define_categories,
     define_single_category,
     define_preselection,
+    VBF_SELECTED_PAIR_COLUMNS,
     get_columns_list,
     get_variables_dict,
     with_fw_momenta_columns,
@@ -27,13 +29,18 @@ from configs.HH4b_common.config_files.configurator_tools import (
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
 )
+from configs.HH4b_common.vbf_jet_collections import (
+    applies_pairing,
+    get_vbf_jet_collection,
+)
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
-SPANET_TRAINING = False
+SPANET_TRAINING = True
 VBF_REGIONS = False
 SIGNAL_REGION = False
-TRAIN_BKG_MORPHING = True
+TRAIN_BKG_MORPHING = False
+APPLY_BKG_MORPHING = False
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -141,9 +148,9 @@ sample_data_parkinghh_list = ["DATA_ParkingHH"]
 sample_list = (
     []
     # + sample_spanet_ggF_list
-    # + sample_official_ggF_list
-    # + sample_VBF_list
-    # + sample_ZZ_ZH_list
+    + sample_official_ggF_list
+    + sample_VBF_list
+    + sample_ZZ_ZH_list
     # + sample_data_jme_list
     + sample_data_parkinghh_list
 )
@@ -159,6 +166,7 @@ categories_dict = define_categories(
     vbf_analysis=config_options_dict["vbf_analysis"],
     vbf_discriminator=config_options_dict["vbf_discriminator"],
     ggf_vbf_threshold=config_options_dict["ggf_vbf_threshold"],
+    approach=config_options_dict["approach"],
 )
 categories_dict.pop("4b_region", None)
 
@@ -171,22 +179,36 @@ if SPANET_TRAINING:
     if SIGNAL_REGION:
         categories_dict |= define_single_category("4b_signal_region")
     if VBF_REGIONS:
-        categories_dict |= define_single_category(
-            "vbf_best_candidates_6_jets_nokincut_4b_region"
+        # VBF jets of the SPANet inputs (or the selected pair with a pairing)
+        vbf_jet_coll = get_vbf_jet_collection(
+            config_options_dict["spanet"], config_options_dict["run2"]
         )
         categories_dict |= define_single_category(
-            "vbf_best_candidates_6_jets_4b_region"
+            "vbf_best_candidates_6_jets_nokincut_4b_region",
+            vbf_jet_coll=vbf_jet_coll,
         )
+        # categories_dict |= define_single_category(
+        #     "vbf_best_candidates_6_jets_4b_region", vbf_jet_coll=vbf_jet_coll
+        # )
         if SIGNAL_REGION:
             categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_nokincut_4b_signal_region"
+                "vbf_best_candidates_6_jets_nokincut_4b_signal_region",
+                vbf_jet_coll=vbf_jet_coll,
             )
             categories_dict |= define_single_category(
-                "vbf_best_candidates_6_jets_4b_signal_region"
+                "vbf_best_candidates_6_jets_4b_signal_region",
+                vbf_jet_coll=vbf_jet_coll,
             )
+
 if TRAIN_BKG_MORPHING:
     categories_dict = define_single_category("4b_control_region")
     categories_dict |= define_single_category("2b_control_region_preW")
+
+if APPLY_BKG_MORPHING:
+    categories_dict = {}
+    categories_dict |= define_single_category("2b_control_region_postW")
+    categories_dict = define_single_category("4b_signal_region")
+    categories_dict |= define_single_category("2b_signal_region_postW")
 
 column_list = []
 
@@ -264,20 +286,6 @@ else:
         )
     else:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
-    if config_options_dict["vbf_analysis"]:
-        # VBF jets assigned by the pairing, used by the VBF categories
-        total_input_columns |= {
-            f"JetGoodVBFEnergyOrdered_{x}": ["JetGoodVBFEnergyOrdered", x]
-            for x in ["pt", "eta", "phi", "mass", "index"]
-        } | {
-            x: ["events", x]
-            for x in [
-                "mjjJetGoodVBFEnergyOrdered",
-                "detaJetGoodVBFEnergyOrdered",
-                "centralityHiggsLeadingJetGoodVBFEnergyOrdered",
-                "centralityHiggsSubLeadingJetGoodVBFEnergyOrdered",
-            ]
-        }
     if BASELINE:
         total_input_columns |= DEFAULT_JET_COLUMNS_DICT
 
@@ -290,6 +298,37 @@ else:
     if config_options_dict["vbf_discriminator"]:
         column_list += get_columns_list({"events": ["VBF_ggF_score"]})
 
+# Save the VBF pair assigned after the pairing (SPANet or Run 2), ordered by pt,
+# with its mjj, deta and centrality: the one used by the VBF categories. When
+# creating the SPANet training inputs the VBF jets are instead the first two of
+# `JetGoodVBFMergedProvVBFPadded`, saved with the training columns above
+if config_options_dict["vbf_analysis"] and applies_pairing(
+    config_options_dict["spanet"], config_options_dict["run2"]
+):
+    column_list += get_columns_list(
+        VBF_SELECTED_PAIR_COLUMNS, not config_options_dict["save_chunk"]
+    )
+
+# Columns that only exist for MC (pt-flattening weights and pt-flattened
+# collections), removed for data samples to avoid crashing
+MC_ONLY_COLUMN_PATTERNS = ["PtFlatten", "random_pt_weights"]
+
+
+def remove_mc_only_columns(columns):
+    filtered_columns = []
+    for col in columns:
+        if any(pattern in col.collection for pattern in MC_ONLY_COLUMN_PATTERNS):
+            continue
+        kept = [
+            c
+            for c in col.columns
+            if not any(pattern in c for pattern in MC_ONLY_COLUMN_PATTERNS)
+        ]
+        if kept:
+            filtered_columns.append(dataclasses.replace(col, columns=kept))
+    return filtered_columns
+
+
 bysample_bycategory_column_dict = {}
 for sample in sample_list:
     bysample_bycategory_column_dict[sample] = {
@@ -298,7 +337,7 @@ for sample in sample_list:
     }
     for category in categories_dict.keys():
         bysample_bycategory_column_dict[sample]["bycategory"][category] = (
-            column_list
+            (remove_mc_only_columns(column_list) if "DATA" in sample else column_list)
             + (
                 get_columns_list({"events": ["bkg_morphing_spread_dnn_weights"]})
                 if "DATA" in sample
@@ -307,6 +346,7 @@ for sample in sample_list:
                 else []
             )
         )
+
 
 # Define the weights to apply
 bysample_bycategory_weight_dict = {}

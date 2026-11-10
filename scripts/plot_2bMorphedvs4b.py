@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import numpy as np
 import awkward as ak
@@ -29,7 +30,7 @@ NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
 ARCTANH_BINS = False
-VARIABLES_TEST = ["score", "weight", "prob"]
+VARIABLES_TEST = ["score", "weight", ]
 DEBUG = args.test
 
 input_dir = os.path.dirname(args.input_data[0])
@@ -42,6 +43,9 @@ outputdir = args.output + f"_{args.normalisation}"
 # because first the name of the variables is try with the Run2 string
 # and after without it
 cat_dict = {}
+
+# Separator of the categories merged in a "MERGED" entry
+MERGE_SEP = "+"
 
 # The first category is the one that will be used as the reference in the ratio
 if args.run2:
@@ -88,6 +92,40 @@ elif args.boosted:
                 "boosted_vbf_incl_qcd_C_region",
             ]
         ]
+    }
+elif args.vbf:
+    # VBF analysis: vbf_ and ggf_ regions (if preW regions are missing they are built from postW with weight=1)
+    for prefix in ["vbf", "ggf"]:
+        cat_dict |= {
+            f"{prefix}_CR{args.region_suffix}": [
+                [
+                    f"{prefix}_4b{args.region_suffix}_control_region",
+                    f"{prefix}_2b{args.region_suffix}_control_region_postW",
+                    f"{prefix}_2b{args.region_suffix}_control_region_preW",
+                ]
+            ],
+            f"{prefix}_SR{args.region_suffix}": [
+                [
+                    f"{prefix}_4b{args.region_suffix}_signal_region",
+                    f"{prefix}_2b{args.region_suffix}_signal_region_postW",
+                    f"{prefix}_2b{args.region_suffix}_signal_region_preW",
+                ]
+            ],
+        }
+    # Special case to merge regions together
+    # Keyword: "MERGED" (the merged categories are named internally "<cat_1>+<cat_2>"
+    # and in the plots by the dict key)
+    cat_dict |= {
+        f"{region}{args.region_suffix}_MERGED": [
+            [
+                MERGE_SEP.join(cats)
+                for cats in zip(
+                    cat_dict[f"vbf_{region}{args.region_suffix}"][0],
+                    cat_dict[f"ggf_{region}{args.region_suffix}"][0],
+                )
+            ]
+        ]
+        for region in ["CR", "SR"]
     }
 elif args.mixed:
     cat_dict |= {
@@ -181,22 +219,23 @@ if args.comparison:
         ],
     }
 
-if args.test:
-    cat_dict = {
-        f"CR": [
-            [
-                f"4b_control_region",
-                f"2b_control_region_postW",
-                f"2b_control_region_preW",
-            ]
-        ],
-        f"SR{args.region_suffix}_SPREAD": [
-            [
-                f"2b{args.region_suffix}_signal_region_postW",
-                f"2b{args.region_suffix}_signal_region_postW_SPREAD",
-            ]
-        ],
-    }
+# if args.test:
+#     cat_dict = {
+#         f"CR": [
+#             [
+#                 f"4b_control_region",
+#                 f"2b_control_region_postW",
+#                 f"2b_control_region_preW",
+#             ]
+#         ],
+#         f"SR{args.region_suffix}_SPREAD": [
+#             [
+#                 f"2b{args.region_suffix}_signal_region_postW",
+#                 f"2b{args.region_suffix}_signal_region_postW_SPREAD",
+#             ]
+#         ],
+#     }
+
 
 
 color_list_orig = [[("black",), ("blue", "dodgerblue"), ("red",)]]
@@ -235,8 +274,29 @@ else:
         if file.endswith(".coffea") and ("DATA" in file or "Mixed" in file)
     ]
 
+# only read from parquet the categories used in cat_dict (saves memory);
+# float64 columns (except weights) are stored as float32
+needed_categories = {
+    sub_cat.replace("_MC", "").replace("_SPREAD", "")
+    for cat_lists in cat_dict.values()
+    for cat_list in cat_lists
+    for cat in cat_list
+    for sub_cat in cat.split(MERGE_SEP)
+}
 filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed)
+cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories, float32=True)
+
+# If a preW category is missing in the files, build it from the corresponding
+# postW category: same columns, but with the weight set to 1 (i.e. no morphing)
+for cat in needed_categories:
+    if "preW" not in cat or cat in cat_col_data:
+        continue
+    cat_postW = cat.replace("preW", "postW")
+    if cat_postW not in cat_col_data:
+        continue
+    print(f"WARNING: {cat} not found in the files, using {cat_postW} with weight=1")
+    cat_col_data[cat] = dict(cat_col_data[cat_postW])
+    cat_col_data[cat]["weight"] = np.ones_like(cat_col_data[cat_postW]["weight"])
 
 cat_col_mc = None
 if args.input_mc:
@@ -250,12 +310,20 @@ if args.input_mc:
             if file.endswith(".coffea") and "DATA" not in file
         ]
 
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed)
+    sig_mc_category = (
+        f"4b{args.region_suffix}_signal_regionRun2" if args.run2
+        else f"boosted_signal_{args.region_suffix}_region" if args.boosted
+        else f"vbf_4b{args.region_suffix}_signal_region" if args.vbf
+        else f"4b{args.region_suffix}_signal_region"
+    )
+    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories | {sig_mc_category}, float32=True)
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
     elif args.boosted:
         cols_sig_mc = cat_col_mc[f"boosted_signal_{args.region_suffix}_region"]
+    elif args.vbf:
+        cols_sig_mc = cat_col_mc[f"vbf_4b{args.region_suffix}_signal_region"]
     else:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_region"]
 
@@ -410,6 +478,68 @@ def get_median_quantiles(hist_1d_dict, histos_spread, bins, var, k, color_list):
     return hist_1d_ratio_dict
 
 
+def get_merged(col_dict, cat):
+    # Return the column of a category; for merged categories ("MERGED")
+    # the columns of the sub-categories are concatenated only for the
+    # variable being plotted, so the memory requirements do not increase
+    sub_cats = cat.split(MERGE_SEP)
+    if len(sub_cats) == 1:
+        return col_dict[cat]
+    return np.concatenate([col_dict[sub_cat] for sub_cat in sub_cats])
+
+
+def find_jagged_collections(columns):
+    # Find the jagged collections (usually the jet collections) among the columns
+    # of a category. Two formats are supported:
+    # - flattened (coffea columns): <coll>_<var> of length n_events*N plus <coll>_N
+    # - split (parquet): <coll>_<var>_<idx>, one column per object index
+    # Returns {collection: ("flat", var_column) or ("split", [var_column_0, ...])}
+    collections = {}
+    split_cols = {}
+    for c in columns:
+        m = re.match(r"^(.+)_(\d+)$", c)
+        if m and "_" in m.group(1):
+            split_cols.setdefault(m.group(1), []).append((int(m.group(2)), c))
+    for base, items in split_cols.items():
+        coll = base.split("_")[0]
+        # skip the event-level multi-dimensional columns (e.g. the spread weights)
+        if coll in collections or coll == "events" or "weight" in base or "score" in base:
+            continue
+        collections[coll] = ("split", [c for _, c in sorted(items)])
+
+    for c in columns:
+        if not c.endswith("_N") or c[:-2] in collections:
+            continue
+        coll = c[:-2]
+        var = next(
+            (v for v in columns if v.startswith(f"{coll}_") and v != c), None
+        )
+        if var is not None:
+            collections[coll] = ("flat", var)
+    return collections
+
+
+def count_objects(cat_columns, coll, kind, cols):
+    # Number of non-None (i.e. not NaN and not PAD_VALUE) objects per event
+    def is_valid(x):
+        return (x == x) & (x != PAD_VALUE)
+
+    if kind == "flat":
+        n_stored = cat_columns[f"{coll}_N"]
+        col = cat_columns[cols]
+        N = n_stored[0] if len(n_stored) else 0
+        if len(col) == len(n_stored) * N and (n_stored == N).all():
+            # padded collection: count the valid objects in each event
+            return is_valid(col.reshape(-1, N)).sum(axis=1).astype(np.int64)
+        # not padded: the stored size is already the number of objects
+        return np.asarray(n_stored, dtype=np.int64)
+
+    n_obj = np.zeros(len(cat_columns[cols[0]]), dtype=np.int64)
+    for c in cols:
+        n_obj += is_valid(cat_columns[c])
+    return n_obj
+
+
 def plot_single_var_from_columns(
     var,
     col_dict,
@@ -448,12 +578,18 @@ def plot_single_var_from_columns(
                 else:
                     namesuffix = ""
                 cat_plot_name = plot_regions_names(cat, namesuffix)
+                if MERGE_SEP in cat:
+                    # merged categories: dict key + the part common to all the sub-categories
+                    # (e.g. "CR_MERGED 4b CR"), to distinguish the 4b and 2b ones
+                    sub_cats = [c.split("_") for c in cat.split(MERGE_SEP)]
+                    common = [t for t in sub_cats[0] if all(t in c for c in sub_cats)]
+                    cat_plot_name = f"{cats_name} " + plot_regions_names("_".join(common), namesuffix)
 
-            weights_den = weight_dict[cat]
-            weights_num = weight_dict[cat_list[0]]
+            weights_den = get_merged(weight_dict, cat)
+            weights_num = get_merged(weight_dict, cat_list[0])
 
-            col_den = col_dict[cat]
-            col_num = col_dict[cat_list[0]]
+            col_den = get_merged(col_dict, cat)
+            col_num = get_merged(col_dict, cat_list[0])
 
             # remove padded values
             noninf_den = np.abs(weights_den) < np.inf
@@ -672,8 +808,10 @@ def main(cat_cols, lumi, era_string):
                 color_list = color_list_spread
 
             # check if the categories are in the accumulator
+            # merged categories ("MERGED") are split in their sub-categories
+            sub_cat_list = [sub_cat for cat in cat_list for sub_cat in cat.split(MERGE_SEP)]
             try:
-                for cat in cat_list:
+                for cat in sub_cat_list:
                     cat_col_DATA[cat.replace("_MC", "").replace("_SPREAD", "")]
             except KeyError:
                 print(
@@ -685,7 +823,7 @@ def main(cat_cols, lumi, era_string):
                 vars_tot = list(cat_col_DATA[cat_list[0]].keys())
                 vars_tot = [v for v in vars_tot if "weight" in v or "score" in v]
             else:
-                vars_tot = list(cat_col_DATA[cat_list[1]].keys())
+                vars_tot = list(cat_col_DATA[cat_list[1].split(MERGE_SEP)[0]].keys())
                 vars_tot = [v for v in vars_tot if "year" not in v]
 
 
@@ -708,12 +846,12 @@ def main(cat_cols, lumi, era_string):
                     continue
                 v_pref = v.split("_")[0]
                 if v_pref + "_N" in vars_tot:
-                    N = cat_col_DATA[cat_list[0]][v_pref + "_N"][0]
+                    N = cat_col_DATA[sub_cat_list[0]][v_pref + "_N"][0]
                     try:
-                        assert (cat_col_DATA[cat_list[0]][v_pref + "_N"] == N).all()
+                        assert (cat_col_DATA[sub_cat_list[0]][v_pref + "_N"] == N).all()
                     except AssertionError:
                         print(
-                            f"WARNING: Variables {v_pref} have different N values: {cat_col_DATA[cat_list[0]][v_pref + '_N']}. Skipping..."
+                            f"WARNING: Variables {v_pref} have different N values: {cat_col_DATA[sub_cat_list[0]][v_pref + '_N']}. Skipping..."
                         )
                         # skip the variable
                         continue
@@ -722,7 +860,7 @@ def main(cat_cols, lumi, era_string):
                         if f"{var_name}_{idx}" not in col_dict:
                             col_dict[f"{var_name}_{idx}"] = {}
                         vars_to_plot.append(f"{var_name}_{idx}")
-                        for cat in cat_list:
+                        for cat in sub_cat_list:
                             if "SPREAD" in cat:
                                 continue
                             if cat in col_dict[f"{var_name}_{idx}"]:
@@ -756,7 +894,7 @@ def main(cat_cols, lumi, era_string):
                         col_dict[var_name] = {}
                     if "weight" not in v:
                         vars_to_plot.append(var_name)
-                    for cat in cat_list:
+                    for cat in sub_cat_list:
                         if "SPREAD" in cat:
                             continue
                         if cat in col_dict[var_name]:
@@ -777,6 +915,27 @@ def main(cat_cols, lumi, era_string):
                                 var_name
                             ]
 
+            # number of objects of each jagged collection (e.g. jets), computed
+            # by counting the non-None objects in each event (also if <coll>_N is stored)
+            if "SPREAD" not in cats_name:
+                for cat in sub_cat_list:
+                    cat_col = cat_col_MC if "MC" in cat else cat_col_DATA
+                    cat_columns = cat_col[cat.replace("_MC", "")]
+                    for coll, (kind, cols) in find_jagged_collections(
+                        list(cat_columns.keys())
+                    ).items():
+                        var_n = f"N_{coll.replace('Run2', '')}"
+                        if args.test and not any(t in var_n for t in VARIABLES_TEST):
+                            continue
+                        if var_n not in col_dict:
+                            col_dict[var_n] = {}
+                        if var_n not in vars_to_plot:
+                            vars_to_plot.append(var_n)
+                        if cat not in col_dict[var_n]:
+                            col_dict[var_n][cat] = count_objects(
+                                cat_columns, coll, kind, cols
+                            )
+
             cat_list_final = cat_list.copy()
 
             # compute the DNN score if onnx model is given
@@ -787,7 +946,7 @@ def main(cat_cols, lumi, era_string):
                 if not v in vars_to_plot:
                     vars_to_plot.append(v)
 
-                for cat in cat_list:
+                for cat in sub_cat_list:
                     if "SPREAD" in cat:
                         continue
                     if not cat in col_dict[v].keys():
