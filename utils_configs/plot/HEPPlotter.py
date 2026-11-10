@@ -14,7 +14,7 @@ class HEPPlotter:
     A helper class for standardized plotting in HEP analyses using `mplhep`.
 
     Supports:
-    - 1D histograms with optional ratio plots
+    - 1D histograms with optional ratio and pull plots
     - 2D histograms
     - Graph plotting (values with error bars)
 
@@ -39,7 +39,7 @@ class HEPPlotter:
     -------
     - set_plot_config(figsize=None, lumitext="(13.6 TeV)", cmstext="Preliminary", data_formats=["png", "pdf", "svg"], lumitext_font_size=None, cmstext_font_size=None, cmstext_loc=0)
     - set_output(output_base)
-    - set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio")
+    - set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio", pull_label="Pull")
     - set_data(series_dict, plot_type="1d")
     - set_extra_kwargs(**kwargs)
     - set_options(**kwargs)
@@ -81,6 +81,7 @@ class HEPPlotter:
         self.ylabel = "Events"
         self.cbar_label = "Events"
         self.ratio_label = "Ratio"
+        self.pull_label = "Pull"
         ## special for categorical plots
         self.xticklabels = None
         self.label_pos = None
@@ -106,6 +107,12 @@ class HEPPlotter:
             "legend_loc": "best",
             "legend_ratio": False,
             "legend_ratio_loc": "best",
+            "legend_pull": False,
+            "legend_pull_loc": "best",
+            ## pull plot (1D only, requires a reference histogram)
+            "pull": False,
+            ## systematic uncertainties (style key "syst_unc")
+            "sum_syst_in_quadrature": False,
             ## y lim
             "set_ylim": True,
             "set_ylim_ratio": 0,  # If a number is set, this will be used.
@@ -115,6 +122,7 @@ class HEPPlotter:
             "ylim_bottom_value": None,
             "ylim_ratio_top_value": None,
             "ylim_ratio_bottom_value": None,
+            "set_ylim_pull": 0,  # If a number is set, the pull y-range is [-value, value].
             ## x lim
             "set_xlim": False,
             "xlim_right_factor": 1,
@@ -189,6 +197,7 @@ class HEPPlotter:
         ylabel="Events",
         cbar_label="Events",
         ratio_label="Ratio",
+        pull_label="Pull",
         xticklabels=None,
         label_pos=None,
         rotate_xticks=False,
@@ -201,6 +210,7 @@ class HEPPlotter:
         self.ylabel = ylabel
         self.cbar_label = cbar_label
         self.ratio_label = ratio_label
+        self.pull_label = pull_label
 
         self.xticklabels = xticklabels
         self.label_pos = label_pos
@@ -218,6 +228,9 @@ class HEPPlotter:
             series_dict : dict
                 Dictionary mapping names to {name:{"data": hist.Hist, "style": dict}}.
                 To plot the ratio plot, the reference histogram must include {"is_reference": True} inside the style dict.
+                The pull plot is drawn below the ratio plot if set_options(pull=True) is used.
+                Optional systematic uncertainties can be passed with {"syst_unc": array} inside the style dict
+                (absolute, symmetric, one value per bin).
         - For 2D histograms:
             series_dict : dict
                 {name:{"data": hist.Hist, "style": dict}}
@@ -621,6 +634,15 @@ class HEPPlotter:
 
         return hist
 
+    def _add_syst_to_variances(self, hist, syst_unc):
+        """
+        Return a copy of a 1D histogram whose variances include the
+        systematic uncertainties summed in quadrature (var = stat^2 + syst^2).
+        """
+        hist = hist.copy()
+        hist.view().variance = hist.variances() + np.asarray(syst_unc) ** 2
+        return hist
+
     # ----------------------------
     # IMPLEMENTATIONS
     # ----------------------------
@@ -629,13 +651,21 @@ class HEPPlotter:
         """Plot 1D histograms with optional ratio plot."""
 
         ratio_plot, ref_name = self._validate_inputs(self.series_dict)
+        pull_plot = self.pull and ratio_plot
         ratio_plot = ratio_plot or self._ratio_hists
 
-        fig, ax, ax_ratio = self._create_figure(ratio_plot)
+        fig, ax, ax_ratio, ax_pull = self._create_figure(ratio_plot, pull_plot)
 
         ref_hist = self.series_dict[ref_name]["data"] if ref_name else None
         if self.normalize_1d_histo and ref_hist is not None:
             ref_hist = self._normalize(ref_hist)
+        ref_syst_unc = (
+            self.series_dict[ref_name].get("style", {}).get("syst_unc", None)
+            if ref_name
+            else None
+        )
+        if self.sum_syst_in_quadrature and ref_syst_unc is not None:
+            ref_hist = self._add_syst_to_variances(ref_hist, ref_syst_unc)
 
         for index, (name, props) in enumerate(self.series_dict.items()):
 
@@ -643,8 +673,9 @@ class HEPPlotter:
             if self.normalize_1d_histo:
                 hist_1d = self._normalize(hist_1d)
 
-            style = props.get("style", {})
-            hist_1d, style = self._stack_plot_order(hist_1d.copy(), style.copy())
+            style = props.get("style", {}).copy()
+            syst_unc = style.pop("syst_unc", None)
+            hist_1d, style = self._stack_plot_order(hist_1d.copy(), style)
 
             is_ref = style.get("is_reference", False)
 
@@ -698,6 +729,28 @@ class HEPPlotter:
                 if isinstance(style[key], list):
                     style[key] = style[key][-1]
 
+            # systematic uncertainties: plotted separately or summed in quadrature with stat
+            rel_syst_unc = None
+            if syst_unc is not None:
+                syst_unc = np.asarray(syst_unc, dtype=float)
+                if self.sum_syst_in_quadrature:
+                    hist_1d = self._add_syst_to_variances(hist_1d, syst_unc)
+                    band_unc = np.sqrt(hist_1d.variances())
+                    band_label = r"stat. $\oplus$ syst. unc."
+                else:
+                    band_unc = syst_unc
+                    band_label = "syst. unc."
+                    with np.errstate(divide="ignore", invalid="ignore"):
+                        rel_syst_unc = syst_unc / hist_1d.values()
+                self._plot_syst_band(
+                    ax,
+                    hist_1d.values(),
+                    hist_1d.axes[0].edges,
+                    band_unc,
+                    f"{legend_name} {band_label}" if legend_name else None,
+                    style,
+                )
+
             if self._plot_chi_square and ratio_plot and not is_ref:
                 self._apply_chi_square(ax, hist_1d, ref_hist, index, style)
 
@@ -714,6 +767,7 @@ class HEPPlotter:
                         legend_name_ratio,
                         is_ref,
                         style,
+                        rel_syst_unc=rel_syst_unc,
                     )
                 else:
                     self._plot_ratio(
@@ -723,6 +777,18 @@ class HEPPlotter:
                         legend_name_ratio,
                         is_ref,
                         style,
+                        rel_syst_unc=rel_syst_unc,
+                    )
+
+            # pull
+            if pull_plot and ax_pull is not None:
+                if self.reference_to_den:
+                    self._plot_pull(
+                        ax_pull, hist_1d, ref_hist, legend_name_ratio, is_ref, style
+                    )
+                else:
+                    self._plot_pull(
+                        ax_pull, ref_hist, hist_1d, legend_name_ratio, is_ref, style
                     )
 
         # plot precomputed ratio hists
@@ -746,11 +812,11 @@ class HEPPlotter:
                     ratio_hist=ratio_hist,
                 )
 
-        self._finalize(fig, ax, ax_ratio)
+        self._finalize(fig, ax, ax_ratio, ax_pull)
 
     def _plot_2d(self):
         """Plot 2D histograms."""
-        fig, ax, _ = self._create_figure()
+        fig, ax, _, _ = self._create_figure()
         for name, props in self.series_dict.items():
             if not isinstance(props["data"], Hist) or props["data"].ndim != 2:
                 raise ValueError(
@@ -816,7 +882,7 @@ class HEPPlotter:
 
         ratio_plot = ratio_plot or self._ratio_graphs
         # Create figure with or without ratio subplot
-        fig, ax, ax_ratio = self._create_figure(ratio_plot=ratio_plot)
+        fig, ax, ax_ratio, _ = self._create_figure(ratio_plot=ratio_plot)
 
         # Plot all graphs
         for index, (name, props) in enumerate(self.series_dict.items()):
@@ -1061,7 +1127,7 @@ class HEPPlotter:
                 # check that the lists of histograms have the same dimension
                 lenght_hists = len(hist_1d)
                 for key in style:
-                    if isinstance(style[key], list):
+                    if isinstance(style[key], list) and key != "syst_unc":
                         if len(style[key]) != lenght_hists:
                             raise ValueError(
                                 f"Length mismatch in style lists for {name}: expected {lenght_hists}, got {len(style[key])} for key {key}"
@@ -1069,9 +1135,19 @@ class HEPPlotter:
 
         return ratio_plot, ref_name
 
-    def _create_figure(self, ratio_plot=False):
-        """Create figure and axes, with optional ratio subplot."""
-        if ratio_plot:
+    def _create_figure(self, ratio_plot=False, pull_plot=False):
+        """Create figure and axes, with optional ratio and pull subplots."""
+        if pull_plot:
+            fig, (ax, ax_ratio, ax_pull) = plt.subplots(
+                3,
+                1,
+                figsize=self.figsize,
+                sharex=True,
+                gridspec_kw={"height_ratios": [2.5, 1, 1]},
+                constrained_layout=True,
+            )
+            return fig, ax, ax_ratio, ax_pull
+        elif ratio_plot:
             fig, (ax, ax_ratio) = plt.subplots(
                 2,
                 1,
@@ -1080,10 +1156,10 @@ class HEPPlotter:
                 gridspec_kw={"height_ratios": [2.5, 1]},
                 constrained_layout=True,
             )
-            return fig, ax, ax_ratio
+            return fig, ax, ax_ratio, None
         else:
             fig, ax = plt.subplots(figsize=self.figsize)
-            return fig, ax, None
+            return fig, ax, None, None
 
     def _check_bin_consistency(self, hist_1d, bin_edges_plotting):
         """Check that the provided bin edges for plotting are consistent with the histogram."""
@@ -1152,7 +1228,15 @@ class HEPPlotter:
         ax.set_xlabel("")
 
     def _plot_ratio(
-        self, ax_ratio, hist_num, hist_den, name, is_reference, style, ratio_hist=None
+        self,
+        ax_ratio,
+        hist_num,
+        hist_den,
+        name,
+        is_reference,
+        style,
+        ratio_hist=None,
+        rel_syst_unc=None,
     ):
         """Plot the ratio of hist_1d to ref_hist on the ratio axes."""
 
@@ -1204,6 +1288,62 @@ class HEPPlotter:
                 edges=style.get("edges_ratio", True),
                 linewidth=style.get("linewidth", 2),
             )
+
+        # systematic uncertainty band (relative uncertainty propagated to the ratio)
+        if rel_syst_unc is not None and bins is not None:
+            self._plot_syst_band(
+                ax_ratio,
+                ratio,
+                bins,
+                np.abs(ratio) * rel_syst_unc,
+                f"{name} syst. unc." if name else None,
+                style,
+            )
+
+    def _plot_pull(self, ax_pull, hist_num, hist_den, name, is_reference, style):
+        """Plot the pull (hist_num - hist_den) / sqrt(var_num + var_den) on the pull axes."""
+        color = style.get("color", style.get("edgecolor", style.get("facecolor")))
+
+        if is_reference:
+            ax_pull.axhline(y=0, linestyle="--", color=color, zorder=0)
+            return
+
+        pull, pull_err, _ = hep.get_comparison(
+            hist_num,
+            hist_den,
+            comparison="pull",
+            h1_w2method="sqrt",
+        )
+
+        histtype_pull = style.get("histtype_pull", "fill")
+        kwargs = {}
+        self._color_handler(histtype_pull, style, kwargs)
+        hep.histplot(
+            pull,
+            bins=hist_num.axes[0].edges,
+            yerr=pull_err if histtype_pull == "errorbar" else None,
+            histtype=histtype_pull,
+            label=name,
+            ax=ax_pull,
+            **kwargs,
+        )
+
+    def _plot_syst_band(self, ax, values, bins, unc, name, style):
+        """Plot a (symmetric) systematic uncertainty band around the given values."""
+        color = style.get("color", style.get("edgecolor", style.get("facecolor")))
+        hep.histplot(
+            values,
+            bins=bins,
+            yerr=unc,
+            histtype="band",
+            label=name,
+            ax=ax,
+            facecolor=style.get("syst_facecolor", "none"),
+            edgecolor=style.get("syst_color", color),
+            hatch=style.get("syst_hatch", "///"),
+            linewidth=0,
+            zorder=0,
+        )
 
     def _plot_graph_ratio(
         self,
@@ -1373,7 +1513,7 @@ class HEPPlotter:
         self._autolabel_categorical(ax, bars)
         return bars
 
-    def _finalize(self, fig, ax, ax_ratio=None):
+    def _finalize(self, fig, ax, ax_ratio=None, ax_pull=None):
         """Final adjustments and saving the figure."""
 
         # ----------------------------
@@ -1428,6 +1568,21 @@ class HEPPlotter:
 
             if self.legend_ratio:
                 self._set_legend(ax_ratio, self.legend_ratio_loc)
+
+            # if the pull plot is present, the x label goes below the pull plot
+            if ax_pull:
+                ax_ratio.set_xlabel("")
+                ax_pull.set_xlabel(self.xlabel, fontsize=self.xlabel_fontsize)
+                ax_pull.set_ylabel(self.pull_label, fontsize=self.ylabel_fontsize)
+
+                if self.grid:
+                    ax_pull.grid()
+
+                if self.set_ylim_pull:
+                    ax_pull.set_ylim(-self.set_ylim_pull, self.set_ylim_pull)
+
+                if self.legend_pull:
+                    self._set_legend(ax_pull, self.legend_pull_loc)
         else:
             # categorical plots may intentionally leave xlabel empty
             if self.xlabel:

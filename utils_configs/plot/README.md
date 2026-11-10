@@ -5,7 +5,7 @@ It standardizes the creation of publication-quality plots for High Energy Physic
 
 Supports:
 
-* ✅ 1D histograms (with ratio plots)
+* ✅ 1D histograms (with ratio and pull plots, optional systematic uncertainties)
 * ✅ 2D histograms (heatmaps)
 * ✅ Graphs with error bars (e.g. efficiency or response curves)
 * ✅ Categorical plots (e.g. efficiencies per category, grouped bar charts)
@@ -72,6 +72,72 @@ series_dict = {
 ```
 
 This produces `plots/pt_distribution.png` (and also `.pdf`, `.svg` by default).
+
+### 📉 Example: 1D Histogram with Ratio and Pull Plots (+ systematics)
+
+The pull plot is drawn **below the ratio plot** when `pull=True` is passed to `set_options()`.
+It requires a reference histogram (`"is_reference": True`) and is computed with
+`mplhep.get_comparison(..., comparison="pull")`:
+
+```text
+pull = (h - h_ref) / sqrt(sigma_h^2 + sigma_ref^2)
+```
+
+(`h_ref - h` if `reference_to_den=False`). By default it is drawn as a filled histogram;
+use `"histtype_pull"` in the style dict to change it (e.g. `"step"` or `"errorbar"`).
+
+`hist.Hist` objects only store the value and the (statistical) variance of each bin, so
+systematic uncertainties can't be stored in the histogram itself. They can be passed
+through the `style` dict with the `"syst_unc"` key, as an **absolute, symmetric** uncertainty
+per bin (array with the same length as the number of bins, in the same units as the plotted
+histogram, e.g. already normalized if `normalize_1d_histo=True`). For stacked histograms
+`syst_unc` refers to the sum of the stack.
+
+```python
+series_dict = {
+    "Data": {
+        "data": data,
+        "style": {"color": "black", "histtype": "errorbar", "is_reference": True},
+    },
+    "MC": {
+        "data": mc,
+        "style": {
+            "color": "red",
+            "syst_unc": 0.1 * mc.values(),  # e.g. 10% systematic uncertainty
+        },
+    },
+}
+
+(
+    HEPPlotter("CMS")
+    .set_output("plots/pt_distribution_pull")
+    .set_labels(xlabel="pT [GeV]", ylabel="Events", ratio_label="MC/Data", pull_label="Pull")
+    .set_data(series_dict, plot_type="1d")
+    .set_options(
+        pull=True,                      # add the pull plot below the ratio plot
+        set_ylim_pull=3,                # pull y-range [-3, 3]
+        sum_syst_in_quadrature=False,   # plot syst separately from stat
+    )
+    .run()
+)
+```
+
+Treatment of the systematic uncertainties (`"syst_unc"`), depending on `sum_syst_in_quadrature`:
+
+| | `sum_syst_in_quadrature=False` (default) | `sum_syst_in_quadrature=True` |
+| --- | --- | --- |
+| Main plot | stat. error bars + hatched **syst.** band | stat. error bars + hatched **stat. ⊕ syst.** band |
+| Ratio plot | stat. uncertainties + hatched **syst.** band (relative syst. propagated to the ratio) | uncertainties are **stat. ⊕ syst.** |
+| Pull plot | denominator uses stat. only | denominator uses **stat. ⊕ syst.** |
+| χ² (`add_chi_square`) | stat. only | **stat. ⊕ syst.** |
+
+The style of the systematic band can be customized with the style keys
+`"syst_color"` (edge/hatch color, default: the histogram color), `"syst_facecolor"` (default `"none"`)
+and `"syst_hatch"` (default `"///"`).
+
+> [!NOTE]
+> The pull plot and the systematic uncertainties are only available for `plot_type="1d"`.
+> Summing in quadrature requires histograms with `Weight()` storage.
 
 ### 🟩🟥🟦 Example: 2D Histogram (HeatMap)
 
@@ -362,7 +428,7 @@ Each method returns `self`, so you can chain calls.
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `set_plot_config(figsize=None, lumitext="(13.6 TeV)", formats=None)`            | Sets figure size, CMS lumi text, and output formats (`png`, `pdf`, etc.) |
 | `set_output(output_base)`                                                       | Defines output path without extension (e.g. `"plots/pt"`)                |
-| `set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio")` | Sets axis and colorbar labels                                            |
+| `set_labels(xlabel, ylabel="Events", cbar_label="Events", ratio_label="Ratio", pull_label="Pull")` | Sets axis and colorbar labels                         |
 | `set_data(series_dict, plot_type="1d")`                                         | Provides plotting data. Supports `"1d"`, `"2d"`, `"graph"`               |
 | `set_extra_kwargs(**kwargs)`                                                    | Passes extra arguments directly to plotting functions                    |
 | `set_options(**kwargs)`                                                         | Configures log scales, legends, grids, limits, etc. (see below)          |
@@ -393,6 +459,11 @@ You can pass multiple options together:
 | `legend_loc`         | str   | `"best"` | Legend position on main plot           |
 | `legend_ratio`       | bool  | `False`  | Show legend in ratio plot              |
 | `legend_ratio_loc`   | str   | `"best"` | Legend position for ratio plot         |
+| `pull`               | bool  | `False`  | Add pull plot below the ratio plot (1D, needs a reference) |
+| `set_ylim_pull`      | float | `0`      | If set, pull y-range is `[-value, value]` |
+| `legend_pull`        | bool  | `False`  | Show legend in pull plot               |
+| `legend_pull_loc`    | str   | `"best"` | Legend position for pull plot          |
+| `sum_syst_in_quadrature` | bool | `False` | Sum `syst_unc` in quadrature with stat. instead of plotting it separately |
 | `grid`               | bool  | `True`   | Show gridlines                         |
 | `set_ylim`           | bool  | `True`   | Automatically scale y-limits           |
 | `ylim_top_factor`    | float | `1.7`    | Scale factor for y-max                 |
@@ -421,6 +492,9 @@ series_dict = {
 * `"bin_edges_plotting"`: array of custom bin edges (for visual representation only)
 * `"legend_name"` / `"legend_name_ratio"`: custom labels
 * `"appear_in_legend"`: include/exclude from legend
+* `"syst_unc"`: absolute symmetric systematic uncertainty per bin (see pull/systematics example)
+* `"syst_color"` / `"syst_facecolor"` / `"syst_hatch"`: style of the systematic band
+* `"histtype_pull"`: histtype in the pull plot (default `"fill"`)
 
 ---
 
