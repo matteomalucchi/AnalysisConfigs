@@ -121,6 +121,18 @@ variables_dict_fatjets = {
             )
         ],
     ),
+    "SubLeadingHiggsTXbbCDFWPs": HistConf(
+        [
+            Axis(
+                coll=f"HiggsSubLeading",
+                field="btagBBTXbb_CDF_rescaled_WPs",
+                bins=6,
+                start=-0.5,
+                stop=5.5,
+                label=r"$TXbb_{H_2}$ CDF-rescaled WP",
+            )
+        ],
+    ),
 }
 
 

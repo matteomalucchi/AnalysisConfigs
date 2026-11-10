@@ -1,11 +1,13 @@
 from collections import defaultdict
 import copy
+import re
 
 from pocket_coffea.lib.columns_manager import ColOut
 from pocket_coffea.parameters.cuts import passthrough
 from utils_configs.quantile_transformer import WeightedQuantileTransformer
 
 import configs.HH4b_common.custom_cuts_common as cuts
+import configs.HH4b_common.custom_cut_functions_common as cuts_f
 import configs.VBF_HH4b.custom_cuts as vbf_cuts
 from configs.HH4b_common.config_files.variables_dict import (
     variables_dict_jets,
@@ -285,7 +287,18 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
     return column_list
 
 
-def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False, full_sideband=False, region_setting="40GeV", lead_sublead="sublead", optimised_cuts=False):
+# TXbb working points (VL, L, M, T, XT, as in `generate_btag_workingpoints`) and the upper edge, defined next to the cut
+# functions. The category suffix `txbbwp<i>` selects the bin (TXBB_WP_EDGES[i], TXBB_WP_EDGES[i + 1]].
+TXBB_WP_EDGES = cuts_f.TXBB_WP_EDGES
+
+
+def txbb_wp_bins(region_setting):
+    """Indices of the TXbb WP bins that lie above the TXbb threshold of the signal regions (C, D)."""
+    threshold = 0.8 if region_setting == "40GeV" else 0.65
+    return [i for i in range(len(TXBB_WP_EDGES) - 1) if TXBB_WP_EDGES[i] >= threshold]
+
+
+def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False, full_sideband=False, region_setting="40GeV", lead_sublead="sublead", optimised_cuts=False, txbb_cdf_wps=False):
     """
     Define a single category for the analysis.
 
@@ -319,17 +332,26 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
                     cut_list.append(cuts.hh4b_boosted_mass_sideband_lower(region_setting, lead_sublead))
             else:
                 cut_list.append(cuts.hh4b_boosted_mass_signal(region_setting, lead_sublead))
+        # TXbb working point bins, for the closure checks. The same bin edges are used in both regions, on the
+        # nominal TXbb in the signal regions (C, D) and on the morphed TXbb in the control regions (A, B), or, with
+        # `txbb_cdf_wps`, on the CDF-rescaled working-point index in all regions.
+        wp_match = re.search(r"txbbwp(\d+)", category_name)
+        if wp_match:
+            wp_bin = int(wp_match.group(1))
+            cut_list.append(cuts.hh4b_boosted_TXbb_bin(TXBB_WP_EDGES[wp_bin], TXBB_WP_EDGES[wp_bin + 1], morph="boosted_control" in category_name, txbb_cdf=txbb_cdf_wps))
         # The signal categories cut on the subleading TXbb. In the control regions (A, B) the TXbb is below the
         # signal threshold by construction, so there the categories cut on the morphed TXbb (`btagBBTXbb_morph`)
         # instead. The signal regions (C, D) always use the nominal TXbb.
+        # With `txbb_cdf_wps` (option `txbb_cdf_wp_cuts`) all regions use the CDF-rescaled working-point index of the
+        # subleading Higgs instead, so the cuts must sit on working points and no shape of the TXbb is used.
         if "cat1" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_1(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts))
+            cut_list.append(cuts.hh4b_boosted_category_1(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
         elif "catvbf" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_vbf(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts))
+            cut_list.append(cuts.hh4b_boosted_category_vbf(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
         elif "cat2" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_2(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts))
+            cut_list.append(cuts.hh4b_boosted_category_2(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
         elif "cat3" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_3(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts))
+            cut_list.append(cuts.hh4b_boosted_category_3(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
 
     # mass cuts
     elif "VR1" not in category_name:
@@ -401,6 +423,8 @@ def define_categories(
     optimised_cuts=False,
     bdt_model="",
     morphing_direction="btag",
+    txbb_wp_categories=False,
+    txbb_cdf_wps=False,
 ):
     """Define the categories for the analysis."""
     categories_dict = {}
@@ -409,7 +433,7 @@ def define_categories(
         if morphing_direction not in ("btag", "mass"):
             raise ValueError(f"Unknown bkg_morphing_direction '{morphing_direction}', expected 'btag' or 'mass'")
         # All ABCD regions must share the same region definition, otherwise the regions are inconsistent
-        region_kwargs = dict(full_sideband=full_sideband, region_setting=region_setting, lead_sublead=lead_sublead, optimised_cuts=optimised_cuts)
+        region_kwargs = dict(full_sideband=full_sideband, region_setting=region_setting, lead_sublead=lead_sublead, optimised_cuts=optimised_cuts, txbb_cdf_wps=txbb_cdf_wps)
         # The signal categories cut on the DNN scores (optimised cuts) or, without optimised cuts, on the BDT scores.
         # If neither is available, only the ABCD regions are defined.
         signal_categories = bool(optimised_cuts) or bool(bdt_model)
@@ -437,6 +461,11 @@ def define_categories(
                 categories_dict |= define_single_category("boosted_signal_region_D_cat2", **region_kwargs)
                 categories_dict |= define_single_category("boosted_signal_region_D_cat3", **region_kwargs)
                 categories_dict |= define_single_category("boosted_signal_region_D_catvbf", **region_kwargs)
+                # Also define the region C subcategories, for closure check. 
+                categories_dict |= define_single_category("boosted_signal_sideband_region_C_cat1", **region_kwargs)
+                categories_dict |= define_single_category("boosted_signal_sideband_region_C_cat2", **region_kwargs)
+                categories_dict |= define_single_category("boosted_signal_sideband_region_C_cat3", **region_kwargs)
+                categories_dict |= define_single_category("boosted_signal_sideband_region_C_catvbf", **region_kwargs)
             if morphing_direction == "mass":
                 categories_dict |= define_single_category("boosted_signal_sideband_region_C_postW", **region_kwargs)
                 if signal_categories:
@@ -451,7 +480,19 @@ def define_categories(
                     categories_dict |= define_single_category("boosted_control_region_B_cat2_postW", **region_kwargs)
                     categories_dict |= define_single_category("boosted_control_region_B_cat3_postW", **region_kwargs)
                     categories_dict |= define_single_category("boosted_control_region_B_catvbf_postW", **region_kwargs)
-
+                    # Also define the region A subcategories, for closure check.
+                    categories_dict |= define_single_category("boosted_control_sideband_region_A_cat1_postW", **region_kwargs)
+                    categories_dict |= define_single_category("boosted_control_sideband_region_A_cat2_postW", **region_kwargs)
+                    categories_dict |= define_single_category("boosted_control_sideband_region_A_cat3_postW", **region_kwargs)
+                    categories_dict |= define_single_category("boosted_control_sideband_region_A_catvbf_postW", **region_kwargs)
+                if txbb_wp_categories:
+                    # Closure of the morphing (trained A -> C) in bins of the TXbb working point: the nominal TXbb in C
+                    # and the morphed TXbb in A_postW, with the same bin edges
+                    for wp_bin in txbb_wp_bins(region_setting):
+                        categories_dict |= define_single_category(f"boosted_signal_sideband_region_C_txbbwp{wp_bin}", **region_kwargs)
+                        categories_dict |= define_single_category(f"boosted_control_sideband_region_A_txbbwp{wp_bin}_postW", **region_kwargs)
+    
+                    
 
         # elif not vbf_discriminator:
         #     categories_dict |= define_single_category(f"boosted{is_vbf}_incl_region")

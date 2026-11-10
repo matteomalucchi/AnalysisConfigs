@@ -517,6 +517,56 @@ bkg_morphing_boosted_dnn_input_variables_other_group_txbb_wp = OrderedDict(
     }
 )
 
+# Same as `..._other_group_txbb_wp`, but: the TXbb working points of the subleading Higgs are the CDF-rescaled ones
+# (option `txbb_cdf_wp_cuts`): quantile-mapped in A/B, nominal in C/D; and the leading Higgs uses the nominal TXbb
+# (`btagBBTXbb`, neither digitised nor morphed). Needs a morphing DNN trained with these variables.
+bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp = OrderedDict(
+    {
+        "n_vbf_cand_jets": ["events", "nJetGoodVBFGood"],
+        "vbf_cand_jets_pt_jet0": ["JetGoodVBFGood:0", "pt"],
+        "vbf_cand_jets_eta_jet0": ["JetGoodVBFGood:0", "eta"],
+        "vbf_cand_jets_phi_jet0": ["JetGoodVBFGood:0", "phi"],
+        "vbf_cand_jets_mass_jet0": ["JetGoodVBFGood:0", "mass"],
+        "vbf_cand_jets_pt_jet1": ["JetGoodVBFGood:1", "pt"],
+        "vbf_cand_jets_eta_jet1": ["JetGoodVBFGood:1", "eta"],
+        "vbf_cand_jets_phi_jet1": ["JetGoodVBFGood:1", "phi"],
+        "vbf_cand_jets_mass_jet1": ["JetGoodVBFGood:1", "mass"],
+        "HT": ["events", "HT"],
+        "hh_vec_pt": ["HH", "pt"],
+        "hh_vec_eta": ["HH", "eta"],
+        "hh_vec_mass": ["HH", "mass"],
+        "hh_vec_phi": ["HH", "phi"],
+        "hh_vec_DeltaR": ["HH", "dR"],
+        "hh_vec_DeltaPhi": ["HH", "dPhi"],
+        "hh_vec_DeltaEta": ["HH", "dEta"],
+        "hh_CosThetaStar_CS": ["HH", "Costhetastar_CS"],
+        "higgs1_tau2overtau3": ["HiggsLeading", "Tau3OverTau2"],
+        "higgs2_tau2overtau3": ["HiggsSubLeading", "Tau3OverTau2"],
+        "higgs1_reco_pt": ["HiggsLeading", "pt"],
+        "higgs1_reco_eta": ["HiggsLeading", "eta"],
+        "higgs1_reco_phi": ["HiggsLeading", "phi"],
+        # "higgs1_reco_mass": ["HiggsLeading", "mass"],
+        "higgs1_btag": ["HiggsLeading", "btagBBTXbb"],  # nominal TXbb of the leading Higgs: not digitised, not morphed
+        "higgs1_centrality": ["HiggsLeading", "centrality"],
+        "higgs2_reco_pt": ["HiggsSubLeading", "pt"],
+        "higgs2_reco_eta": ["HiggsSubLeading", "eta"],
+        "higgs2_reco_phi": ["HiggsSubLeading", "phi"],
+        "higgs2_reco_mass": ["HiggsSubLeading", "mass"],
+        "higgs2_btag_cdf_wp": ["HiggsSubLeading", "btagBBTXbb_CDF_rescaled_WPs"],
+        "higgs2_centrality": ["HiggsSubLeading", "centrality"],
+        "higgs1_divHHmass": ["HiggsLeading", "divHHmass"],
+        "higgs1byhiggs2pt": ["events", "HiggsLeadingByHiggsSubLeadingPt"],
+        "mjj": ["events", "mjjJetGoodVBFGood"],
+        "deta": ["events", "detaJetGoodVBFGood"],
+        "higgs1_dRclosestVBF": ["HiggsLeading", "dRclosestVBF"],
+        "higgs2_dRclosestVBF": ["HiggsSubLeading", "dRclosestVBF"],
+        "higgs1_massclosestVBF": ["HiggsLeading", "massclosestVBF"],
+        "higgs2_massclosestVBF": ["HiggsSubLeading", "massclosestVBF"],
+        "puppimet_pt": ["PuppiMET", "pt"],
+        "met_et": ["PuppiMET", "sumEt"],
+    }
+)
+
 sig_bkg_boosted_dnn_input_variables_other_group_txbb_wp_noh2txbb = OrderedDict(
     {
         "n_vbf_cand_jets": ["events", "nJetGoodVBFGood"],

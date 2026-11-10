@@ -313,6 +313,75 @@ def hh4b_boosted_TXbb(events, params, **kwargs):
         return ~cat_mask
 
 
+# TXbb working points (VL, L, M, T, XT, as in `generate_btag_workingpoints`) and the upper edge.
+# The category suffix `txbbwp<i>` selects the bin (TXBB_WP_EDGES[i], TXBB_WP_EDGES[i + 1]].
+TXBB_WP_EDGES = [0.65, 0.8, 0.95, 0.975, 0.99, 1.0]
+
+
+def txbb_wp_index(edge):
+    """Position k of a TXbb cut value among the working points TXBB_WP_EDGES[:-1] (0.65 -> 0, 0.8 -> 1, ...).
+
+    Raises a ValueError if the value is not a working point: the CDF-rescaled TXbb is a working-point index,
+    so it can only express cuts on the working points.
+    """
+    for k, wp in enumerate(TXBB_WP_EDGES[:-1]):
+        if abs(edge - wp) < 1e-9:
+            return k
+    raise ValueError(
+        f"TXbb cut {edge} is not a working point. With the CDF-rescaled TXbb working points (`txbb_cdf_wp_cuts`) the "
+        f"cuts must be one of {TXBB_WP_EDGES[:-1]} (see `--txbb-wps` of scripts/optimise_boosted_categories.py)"
+    )
+
+
+class _SubleadingTXbb:
+    """Cuts on the TXbb of the subleading Higgs, the same call in all regions.
+
+    - `params["txbb_cdf"]`: the CDF-rescaled working-point index `n` (`btagBBTXbb_CDF_rescaled_WPs`, number of the
+      working points TXBB_WP_EDGES[:-1] exceeded, `old_wp_def=False`). It is the nominal index in C and D and the
+      quantile-mapped one in A and B, so no shape of the TXbb is used. `gt(WP_k)` is `n > k`, `lt(WP_k)` is `n <= k`
+      (this differs from `txbb < WP_k` only for a TXbb exactly equal to the working point).
+    - otherwise the continuous TXbb: the linear morph (`btagBBTXbb_morph`) if `params["txbb_morph"]`
+      (control regions A, B), the nominal one if not.
+    """
+
+    def __init__(self, events, params):
+        self.cdf = bool(params.get("txbb_cdf", False))
+        higgs = events["HiggsSubLeading"]
+        if self.cdf:
+            self.values = higgs["btagBBTXbb_CDF_rescaled_WPs"]
+        elif params["txbb_morph"]:
+            self.values = higgs["btagBBTXbb_morph"]
+        else:
+            self.values = higgs["btagBBTXbb"]
+
+    def gt(self, edge):
+        if self.cdf:
+            return self.values > txbb_wp_index(edge)
+        return self.values > edge
+
+    def lt(self, edge):
+        if self.cdf:
+            return self.values <= txbb_wp_index(edge)
+        return self.values < edge
+
+
+def hh4b_boosted_TXbb_bin(events, params, **kwargs):
+    # Same strict ">" convention as the working points: a jet is in the bin (low, high] if it passes the WP `low`
+    # but not the WP `high`. The morphed TXbb is used in the control regions (A, B), unless the CDF-rescaled working
+    # points are used (`txbb_cdf`): then the bin (TXBB_WP_EDGES[i], TXBB_WP_EDGES[i + 1]] is the working-point index i + 1
+    # in all regions.
+    if params.get("txbb_cdf", False):
+        i = txbb_wp_index(params["low"])
+        if abs(params["high"] - TXBB_WP_EDGES[i + 1]) > 1e-9:
+            raise ValueError(f"TXbb bin ({params['low']}, {params['high']}] is not between two neighbouring working points")
+        return events["HiggsSubLeading"]["btagBBTXbb_CDF_rescaled_WPs"] == i + 1
+    if params["morph"]:
+        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    else:
+        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
+    return (txbb > params["low"]) & (txbb <= params["high"])
+
+
 def hh4b_boosted_mass(events, params, **kwargs):
     if params["higgs"] == "lead":
         mass = events["HiggsLeading"]["mass"]
@@ -330,81 +399,63 @@ def hh4b_boosted_mass(events, params, **kwargs):
 
 
 def hh4b_boosted_category_1(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    txbb = _SubleadingTXbb(events, params)
     bdt_ggf = events[params["score_ggf"]]
     # cat_mask = (txbb > 0.945) & (bdt_ggf > 0.94)
-    cat_mask = (txbb > params["txbb_c1"]) & (bdt_ggf > params["bdt_ggf_c1"])
+    cat_mask = txbb.gt(params["txbb_c1"]) & (bdt_ggf > params["bdt_ggf_c1"])
     return cat_mask
 
 
 def hh4b_boosted_category_vbf(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    txbb = _SubleadingTXbb(events, params)
     bdt_vbf = events[params["score_vbf"]]
-    cat_mask = ~hh4b_boosted_category_1(events, params) & (txbb > params["txbb_vbf"]) & (bdt_vbf > params["bdt_vbf"])
+    cat_mask = ~hh4b_boosted_category_1(events, params) & txbb.gt(params["txbb_vbf"]) & (bdt_vbf > params["bdt_vbf"])
     return cat_mask
 
 
 def hh4b_boosted_category_2(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    txbb = _SubleadingTXbb(events, params)
     bdt_ggf = events[params["score_ggf"]]
     cat_mask_1 = (
             ~hh4b_boosted_category_1(events, params) & 
             ~hh4b_boosted_category_vbf(events, params) &
-            (txbb > params["txbb_c2a"]) & (txbb < params["txbb_c1"]) & (bdt_ggf > params["bdt_ggf_c1"])
+            txbb.gt(params["txbb_c2a"]) & txbb.lt(params["txbb_c1"]) & (bdt_ggf > params["bdt_ggf_c1"])
             )
     cat_mask_2 = (
             ~hh4b_boosted_category_1(events, params) &
             ~hh4b_boosted_category_vbf(events, params) &
-            (txbb > params["txbb_c1"]) & (bdt_ggf > params["bdt_ggf_c2b"]) & (bdt_ggf < params["bdt_ggf_c1"])
+            txbb.gt(params["txbb_c1"]) & (bdt_ggf > params["bdt_ggf_c2b"]) & (bdt_ggf < params["bdt_ggf_c1"])
             )
     cat_mask = cat_mask_1 | cat_mask_2
     return cat_mask
 
 
 def hh4b_boosted_category_3(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    txbb = _SubleadingTXbb(events, params)
     bdt_ggf = events[params["score_ggf"]]
     cat_mask = (
             ~hh4b_boosted_category_1(events, params) &
             ~hh4b_boosted_category_vbf(events, params) &
             ~hh4b_boosted_category_2(events, params) &
-            (txbb > params["txbb_c2a"]) & (bdt_ggf > params["bdt_ggf_bkg"])
+            txbb.gt(params["txbb_c2a"]) & (bdt_ggf > params["bdt_ggf_bkg"])
             )
     return cat_mask
 
 
 def hh4b_boosted_background_vbf(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    txbb = _SubleadingTXbb(events, params)
     bdt_vbf = events[params["score_vbf"]]
     cat_mask = (
-            (txbb < params["txbb_c2a"]) & (bdt_vbf > params["bdt_ggf_bkg"])
+            txbb.lt(params["txbb_c2a"]) & (bdt_vbf > params["bdt_ggf_bkg"])
             )
     return cat_mask
 
 
 def hh4b_boosted_background_ggf(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
+    txbb = _SubleadingTXbb(events, params)
     bdt_ggf = events[params["score_ggf"]]
     cat_mask = (
-            (txbb < params["txbb_c2a"]) & (bdt_ggf > params["bdt_ggf_bkg"])
+            txbb.lt(params["txbb_c2a"]) & (bdt_ggf > params["bdt_ggf_bkg"])
             )
     return cat_mask
 

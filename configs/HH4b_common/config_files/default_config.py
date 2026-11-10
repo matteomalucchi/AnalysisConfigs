@@ -222,6 +222,11 @@ default_config_options_dict = {
     "old_wp_def": False,
     # Boosted only: order the FatJets by `btagBBTXbb` instead of `btagBB`.
     "TXbb_order": False,
+    # Boosted only (50GeV setting): TXbb cuts in the low-TXbb regions (A, B) that match the TXbb working
+    # points of the high-TXbb regions (C, D) by quantile mapping, used to define
+    # `btagBBTXbb_CDF_rescaled_WPs`. Path to the JSON written by
+    # `scripts/find_txbb_cdf_wp_cuts.py` (or the dict itself). Empty: the column is not defined.
+    "txbb_cdf_wp_cuts": "",
     # b-tag SF studies only: compute the b-tag scale factors using only the
     # 5 leading jets instead of all the `JetGood`.
     "only5jetsbSF": False,
@@ -324,6 +329,10 @@ default_config_options_dict = {
     # `boosted_bdt_score` and `boosted_bdt_vbf_score`. Empty string disables it.
     "bdt_model": "",
     "boosted_full_sideband": False,
+    # Define the categories in bins of the TXbb working point (`txbbwp<i>`), in region C (nominal TXbb) and in
+    # region A_postW (morphed TXbb), to check the closure of the morphing per working point. Needs
+    # `bkg_morphing_dnn` and `bkg_morphing_direction == "btag"`.
+    "boosted_txbb_wp_categories": False,
     # Size of the signal and control regions in the boosted topology
     "region_setting": "40GeV",
     # Boosted region definition either by the leading or subleading Higgs mass

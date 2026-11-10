@@ -201,6 +201,8 @@ categories_dict = define_categories(
     optimised_cuts=config_options_dict["optimised_signal_cuts"],
     bdt_model=config_options_dict["bdt_model"],
     morphing_direction=config_options_dict["bkg_morphing_direction"],
+    txbb_wp_categories=config_options_dict["boosted_txbb_wp_categories"],
+    txbb_cdf_wps=bool(config_options_dict["txbb_cdf_wp_cuts"]),
 )
 
 if BASELINE:
@@ -276,6 +278,12 @@ else:
             },
             not config_options_dict["save_chunk"],
         )
+        if config_options_dict["txbb_cdf_wp_cuts"]:
+            # quantile-mapped TXbb working points, subleading Higgs only
+            column_list += get_columns_list(
+                {"HiggsSubLeading": ["btagBBTXbb_CDF_rescaled_WPs"]},
+                not config_options_dict["save_chunk"],
+            )
         if config_options_dict["bdt_model"]:
             column_list += get_columns_list(
                 {"events": ["boosted_bdt_score", "boosted_bdt_vbf_score"]},

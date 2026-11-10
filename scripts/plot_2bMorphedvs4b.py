@@ -18,10 +18,25 @@ from utils_configs.plot.plot_names import plot_regions_names
 from utils_configs.plot.args_plot import args
 
 from utils_configs.plot.HEPPlotter import HEPPlotter
+from utils_configs.plot.morphing_model_comparison import (
+    MODEL_LABELS,
+    MODEL_SUFFIXES,
+    compare_with_stored,
+    evaluate_morphing_weight,
+    model_suffix,
+    plot_weight_comparison,
+    strip_model_suffix,
+)
 
 
 if not args.output:
-    if not args.test:
+    if args.compare_morphing_models:
+        # next to the models: <dir of the models>/plots_avg_vs_med_<normalisation>
+        args.output = os.path.join(
+            os.path.dirname(os.path.abspath(args.compare_morphing_models[0])),
+            "plots_avg_vs_med",
+        )
+    elif not args.test:
         args.output = "plots_2bVS4b"
     else:
         args.output = "test_2bVS4b"
@@ -30,10 +45,16 @@ NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
 ARCTANH_BINS = False
+# Columns that are a working-point index (integers stored as floats): one bin per index, the same in all the regions
+WP_INDEX_VARIABLES = ("btagBBTXbb_morph_5wp", "btagBBTXbb_CDF_rescaled_WPs")
 VARIABLES_TEST = ["score", "weight", "prob"]
 DEBUG = args.test
 
-input_dir = os.path.dirname(args.input_data[0])
+# -i can be a directory (with or without trailing slash) or coffea files
+if os.path.isdir(args.input_data[0]):
+    input_dir = args.input_data[0]
+else:
+    input_dir = os.path.dirname(args.input_data[0])
 log_scale = not args.linear
 outputdir = args.output + f"_{args.normalisation}"
 # outputdir = os.path.join(input_dir, args.output) + f"_{args.normalisation}"
@@ -241,6 +262,33 @@ if args.comparison:
         ],
     }
 
+if args.compare_morphing_models:
+    if not args.boosted:
+        raise ValueError("--compare-morphing-models is only for --boosted")
+    # Same events (postW regions) reweighted with the two models, compared to
+    # the target region (first category = reference of the ratio). The last
+    # category is the ttbar MC of the target region: it is added to each
+    # reweighted curve, whose yield is scaled to (data - ttbar MC), as in the
+    # CR_TT / SR_TT plots. Only these plots are made.
+    cat_dict = {
+        f"CR_MODELCMP{args.region_suffix}": [
+            [sub_regions["control"]]
+            + [sub_regions["con_bkg_postW"] + s for s in MODEL_SUFFIXES]
+            + [sub_regions["control"] + "_TT"]
+        ],
+        f"SR_MODELCMP{args.region_suffix}": [
+            [sub_regions["signal"]]
+            + [sub_regions["sig_bkg_postW"] + s for s in MODEL_SUFFIXES]
+            + [sub_regions["signal"] + "_TT"]
+        ],
+    }
+
+if args.skip_signal_region:
+    if not args.boosted:
+        raise ValueError("--skip-signal-region is only for --boosted")
+    # no plot (and no loading) of the signal region data
+    cat_dict = {name: cats for name, cats in cat_dict.items() if not name.startswith("SR")}
+
 if args.test:
     cat_dict = {
         f"CR": [
@@ -270,6 +318,7 @@ color_list_DATAMC = [
 color_list_BOOSTED = [
     [("black",), ("red", "salmon"), ("gray",)]
 ]
+color_list_MODELCMP = [[("black",), ("red",), ("blue",)]]
 color_list_BOOSTED_TT = [
     [("black",), ("red", "salmon"), ("gray",), ("darkorange", "navajowhite")]
 ]
@@ -287,6 +336,27 @@ if args.onnx_model:
     print(f"Input list for DNN: {dnn_input_list}")
 
 
+## Load the two morphing models to compare
+if args.compare_morphing_models:
+    morphing_sessions = {
+        suffix: get_model_session(path, f"morphing_{suffix}")
+        for suffix, path in zip(MODEL_SUFFIXES, args.compare_morphing_models)
+    }
+    morphing_input_list = get_DNN_input_list(
+        args.run2, getattr(dnn_input_variables, args.input_variables)
+    )
+    print(f"Input list for the morphing models: {morphing_input_list}")
+    for _suffix, (_session, _, _) in morphing_sessions.items():
+        _n_model = _session.get_inputs()[0].shape[1]
+        if _n_model != len(morphing_input_list):
+            raise ValueError(
+                f"The {_suffix} model has {_n_model} inputs but "
+                f"--input-variables {args.input_variables} has "
+                f"{len(morphing_input_list)}: give the variables of the "
+                f"morphing training (a name in dnn_input_variables.py, e.g. "
+                f"bkg_morphing_boosted_dnn_input_variables_other_group_txbb_wp)"
+            )
+
 if not os.path.exists(outputdir):
     os.makedirs(outputdir)
 
@@ -300,6 +370,10 @@ else:
         for file in os.listdir(input_dir)
         if file.endswith(".coffea") and ("DATA" in file or "Mixed" in file)
     ]
+if not inputfiles:
+    raise FileNotFoundError(
+        f"No DATA/Mixed .coffea files found in {input_dir} (from -i {args.input_data})"
+    )
 
 # Optional debug restriction: only keep columns matching one of --only-vars
 # ("weight" and "*_N" are always kept because the plotting code needs them).
@@ -340,7 +414,7 @@ filter_lambda = (
 # Only load the base categories actually referenced in cat_dict.
 if args.boosted:
     needed_categories = {
-        cat.replace("_MC", "").replace("_TT", "").replace("_SPREAD", "")
+        strip_model_suffix(cat.replace("_MC", "").replace("_TT", "").replace("_SPREAD", ""))
         for cat_lists in cat_dict.values()
         for cat_list in cat_lists
         for cat in cat_list
@@ -365,6 +439,11 @@ if inputfiles_tt:
         category_filter=category_filter,
     )
 else:
+    if args.compare_morphing_models:
+        raise FileNotFoundError(
+            f"--compare-morphing-models adds the ttbar MC, but no TT .coffea files "
+            f"were found in {input_dir}"
+        )
     print("WARNING: no ttbar ('TT') files found in input_mc, ttbar stacking disabled")
 
 cat_col_mc = None
@@ -583,6 +662,9 @@ def plot_single_var_from_columns(
 
     for k, cat_list in enumerate(cat_lists):
         hist_1d_dict = {}
+        # model comparison with the ttbar MC as last category
+        has_tt = "MODELCMP" in cats_name and cat_list[-1].endswith("_TT")
+        model_stash = {}
         for i, cat in enumerate(cat_list):
 
             if "SPREAD" in cats_name:
@@ -604,7 +686,11 @@ def plot_single_var_from_columns(
                     namesuffix = r" ($\kappa_\lambda$=" + kl + ")"
                 else:
                     namesuffix = ""
-                cat_plot_name = plot_regions_names(cat, namesuffix)
+                cat_plot_name = plot_regions_names(strip_model_suffix(cat), namesuffix)
+                if model_suffix(cat):
+                    cat_plot_name = cat_plot_name.replace(
+                        " SPANet", f" ({MODEL_LABELS[model_suffix(cat)]}) SPANet"
+                    )
 
             weights_den = weight_dict[cat]
             weights_num = weight_dict[cat_list[0]]
@@ -639,7 +725,22 @@ def plot_single_var_from_columns(
 
             # WARNING: the weights are different for the additional jets because
             # the number of events is different since it's computed after the masking of the PAD_VALUE
-            if "TT" in cats_name and i != 2:
+            if has_tt:
+                # Two reweighted curves (mean / median model) + the ttbar MC of
+                # the target region (last category). Each QCD estimate is
+                # scaled to (data - ttbar MC), the data and the ttbar MC keep
+                # their own normalisation.
+                norm_factor_num = 1.0
+                if model_suffix(cat):
+                    w_tt = weight_dict[cat_list[-1]]
+                    c_tt = col_dict[cat_list[-1]]
+                    m_tt = (c_tt != PAD_VALUE) & (np.abs(w_tt) < np.inf)
+                    norm_factor_den = (
+                        weights_num.sum() - w_tt[m_tt].sum()
+                    ) / weights_den.sum()
+                else:
+                    norm_factor_den = 1.0
+            elif "TT" in cats_name and i != 2:
                 # TTbar-inclusive closure check compares absolute yields. The
                 # TT MC (i == 3) and the data (i == 0) keep their own
                 # normalization. The data-driven QCD estimate (i == 1) is
@@ -686,6 +787,12 @@ def plot_single_var_from_columns(
                     if "blind" not in cat
                     else CONSTANT_SIGNAL_BLIND_BINS
                 )
+            elif any(wp_var in var for wp_var in WP_INDEX_VARIABLES):
+                # working-point index: one bin per index, over the values of all the regions of the plot, so that the
+                # bins are the same in all the regions (the cuts of the quantile map move events between the indices)
+                wp_values = np.concatenate([np.asarray(col_dict[c], dtype=np.float64) for c in cat_list])
+                wp_values = wp_values[wp_values != PAD_VALUE]
+                bins = np.arange(np.floor(wp_values.min()) - 0.5, np.ceil(wp_values.max()) + 1.5, 1)
             elif type(col_num[0]) == np.int64:
                 # this is a categorical variable, use the number of bins
                 bins = np.arange(
@@ -754,6 +861,22 @@ def plot_single_var_from_columns(
                     "data": histo,
                     "style": style_dict,
                 }
+            elif has_tt and model_suffix(cat):
+                # stash the reweighted background of this model; the ttbar MC
+                # (last category) is added to it below
+                model_stash[cat] = (histo, cat_plot_name, color_list[k][i][0])
+            elif has_tt and cat.endswith("_TT"):
+                for stash_cat, (histo_bkg, name_bkg, color_bkg) in model_stash.items():
+                    hist_1d_dict[f"{name_bkg} + TT"] = {
+                        "data": histo_bkg + histo,
+                        "style": {
+                            "is_reference": False,
+                            "histtype": "step",
+                            "color": color_bkg,
+                            "linewidth": 2,
+                        },
+                    }
+                model_stash = {}
             elif "TT" in cats_name and i == 1:
                 # stash the reweighted background; it is combined with the
                 # TT MC histogram (i == 3) into one stacked entry below,
@@ -899,6 +1022,9 @@ def main(cat_cols, lumi, era_string):
                 color_list = color_list_BOOSTED
             if "TT" in cats_name:
                 color_list = color_list_BOOSTED_TT
+            if "MODELCMP" in cats_name:
+                chi_squared = False
+                color_list = color_list_MODELCMP
 
             if "TT" in cats_name and cat_col_TT is None:
                 print(f"WARNING: no ttbar columns loaded, skipping {cats_name}")
@@ -907,7 +1033,7 @@ def main(cat_cols, lumi, era_string):
             # check if the categories are in the accumulator
             try:
                 for cat in cat_list:
-                    cat_col_DATA[cat.replace("_MC", "").replace("_TT", "").replace("_SPREAD", "")]
+                    cat_col_DATA[strip_model_suffix(cat.replace("_MC", "").replace("_TT", "").replace("_SPREAD", ""))]
             except KeyError:
                 print(
                     f"KeyError: {cat} not in {cat_col_DATA.keys()}, skipping {cats_name}"
@@ -918,7 +1044,7 @@ def main(cat_cols, lumi, era_string):
                 vars_tot = list(cat_col_DATA[cat_list[0]].keys())
                 vars_tot = [v for v in vars_tot if "weight" in v or "score" in v]
             else:
-                vars_tot = list(cat_col_DATA[cat_list[1]].keys())
+                vars_tot = list(cat_col_DATA[strip_model_suffix(cat_list[1])].keys())
                 vars_tot = [v for v in vars_tot if "year" not in v]
 
 
@@ -968,7 +1094,7 @@ def main(cat_cols, lumi, era_string):
                                 cat_col = cat_col_DATA
 
                             print(v, cat)
-                            base_cat = cat.replace("_MC", "").replace("_TT", "")
+                            base_cat = strip_model_suffix(cat.replace("_MC", "").replace("_TT", ""))
                             try:
                                 col_dict[f"{var_name}_{idx}"][cat] = cat_col[
                                     base_cat
@@ -1008,7 +1134,7 @@ def main(cat_cols, lumi, era_string):
 
                         # swap the dict keys
                         print(v, cat)
-                        base_cat = cat.replace("_MC", "").replace("_TT", "")
+                        base_cat = strip_model_suffix(cat.replace("_MC", "").replace("_TT", ""))
                         try:
                             col_dict[var_name][cat] = cat_col[base_cat][v]
                         except KeyError:
@@ -1017,6 +1143,30 @@ def main(cat_cols, lumi, era_string):
                             ]
 
             cat_list_final = cat_list.copy()
+
+            # re-evaluate the weight of the two morphing models on the same
+            # events (the columns of the model categories are those of postW)
+            model_weights = {}
+            if args.compare_morphing_models:
+                for cat in cat_list:
+                    suffix = model_suffix(cat)
+                    if not suffix:
+                        continue
+                    session, input_name, output_name = morphing_sessions[suffix]
+                    w_model = evaluate_morphing_weight(
+                        session,
+                        input_name,
+                        output_name,
+                        [
+                            col_dict[v.replace("Run2", "")][cat]
+                            for v in morphing_input_list
+                        ],
+                    )
+                    compare_with_stored(
+                        f"{cats_name} {suffix}", w_model, np.asarray(col_dict["weight"][cat])
+                    )
+                    col_dict["weight"][cat] = w_model
+                    model_weights[suffix] = w_model
 
             # compute the DNN score if onnx model is given
             if args.onnx_model:
@@ -1088,6 +1238,17 @@ def main(cat_cols, lumi, era_string):
             dir_cat = f"{outputdir}/{cats_name}_columns"
             if not os.path.exists(dir_cat):
                 os.makedirs(dir_cat)
+
+            if len(model_weights) == 2:
+                plot_weight_comparison(
+                    model_weights[MODEL_SUFFIXES[0]],
+                    model_weights[MODEL_SUFFIXES[1]],
+                    cats_name,
+                    dir_cat,
+                    lumi,
+                    era_string,
+                    args.cmstext,
+                )
 
             vars_to_plot += [f"{v}_TRANSFORM" for v in vars_to_plot if "score" in v]
 

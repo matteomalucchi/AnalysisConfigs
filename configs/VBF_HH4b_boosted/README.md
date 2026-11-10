@@ -93,6 +93,50 @@ is set by the `bkg_morphing_direction` option and has to match how the model was
 
 `boosted_control_sideband_region_A_postW` is always created, to check the training closure.
 
+### Quantile-mapped TXbb working points (optional, 50GeV)
+
+The TXbb shape is not used in the morphing, only its working-point (WP) index. The nominal rescaling of the low-TXbb
+regions (A, B) is the linear `btagBBTXbb_morph`. As an alternative, `btagBBTXbb_CDF_rescaled_WPs` (subleading Higgs
+only) maps the WPs of C onto A by quantile: the cuts in A are the TXbb values at the percentiles of the WPs
+(0.8, 0.95, 0.975, 0.99) in C, so the fraction of A in each WP bin equals the one of C. The lowest WP (0.65) is the
+lower edge of C and needs no cut. The column has the same 0&ndash;5 scale as `btagBBTXbb_morph_5wp`: in C and D it is the
+nominal WP index, in A and B it is `1 + number of cuts exceeded`.
+
+It takes two passes, because the cuts are derived from the data in A and C (the nominal TXbb in these regions does not
+depend on the option):
+
+1. Run the ABCD regions without the option (step 1).
+2. Find the cuts:
+
+   ```bash
+   python scripts/find_txbb_cdf_wp_cuts.py -i <output_dir> -o <cuts_dir>
+   ```
+
+   This writes `txbb_cdf_wp_cuts.json` (with the percentiles and cuts), a CDF plot, and logs the fraction of A and C
+   in each WP bin, for the quantile map and for the linear morph.
+3. Add `"txbb_cdf_wp_cuts": "<cuts_dir>/txbb_cdf_wp_cuts.json"` to the config options and rerun. The column
+   `HiggsSubLeading_btagBBTXbb_CDF_rescaled_WPs` is then saved next to `btagBBTXbb_morph_5wp`.
+
+Setting the option also switches everything downstream of the subleading-Higgs TXbb to this column, in all four regions
+(A, B, C, D), so that neither the linear morph nor the TXbb shape is used:
+
+- the `txbbwp<i>` bins (`hh4b_boosted_TXbb_bin`) and the signal/background categories (`hh4b_boosted_category_*`,
+  `hh4b_boosted_background_*`) cut on the WP index. A cut `txbb > WP_k` becomes `index > k`, `txbb < WP_k` becomes
+  `index <= k`, and the bin `(EDGES[i], EDGES[i+1]]` becomes `index == i + 1`. The TXbb cuts of the categories
+  (`txbb_c1`, `txbb_vbf`, `txbb_c2a` of `optimised_signal_cuts`) must therefore be working points
+  (0.8, 0.95, 0.975, 0.99), otherwise building the config raises an error. The default cuts of `_get_params` are not
+  working points, so `optimised_signal_cuts` is required. `old_wp_def` must be `False`.
+- the morphing DNN has to be trained with the new variable: use `bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp`
+  (it replaces the subleading `btagBBTXbb_morph_5wp` by the CDF column and the leading `btagBBTXbb_morph_5wp` by the nominal
+  `btagBBTXbb`, neither digitised nor morphed). In ML_pytorch
+  the input file is `bkg_morphing_dnn_boosted_bdt_inputs_50GeV_wps_cdf` and the training yml
+  `configs/hh4b_bkg_reweighting/boosted_vbf/..._lower_band_txbbwps_cdf.yml`, with the outputs of this step as `data_dirs`.
+  A model trained on `btagBBTXbb_morph_5wp` cannot be used: its input has a different meaning in A.
+- `scripts/optimise_boosted_categories.py --txbb-cdf` uses the CDF column for the QCD estimate (B_postW).
+
+The config `boosted_other_group_50GeV_lower_sideband_txbbwps_cdf_model.py` is the second pass: it needs the
+retrained morphing model (without it, only the ABCD regions are defined). Without the option, nothing changes.
+
 ## 0. Datasets and skimming
 
 The datasets are built in the same way as in the resolved analysis, see

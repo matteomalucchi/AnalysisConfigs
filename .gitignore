@@ -161,3 +161,6 @@ __*[0-9]*.py
 
 # Ignoring ctag file
 tags
+
+# Local Claude briefing for the boosted analysis
+configs/VBF_HH4b_boosted/BOOSTED_CONTEXT.md

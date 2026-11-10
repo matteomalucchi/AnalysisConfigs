@@ -70,6 +70,10 @@ parser.add_argument("--txbb-values", type=float, nargs="+", default=None,
 parser.add_argument("--txbb-wps", action="store_true", default=False,
                     help="Restrict the TXbb cuts to the working-point edges 0.8 0.95 0.975 0.99 (shorthand for --txbb-values). "
                          "The bkg morphing only sees the digitised TXbb (btagBBTXbb_morph_5wp), so cuts between the edges are not modelled")
+parser.add_argument("--txbb-cdf", action="store_true", default=False,
+                    help="Use the CDF-rescaled TXbb working points (HiggsSubLeading_btagBBTXbb_CDF_rescaled_WPs, option txbb_cdf_wp_cuts of the "
+                         "workflow) for the QCD estimate (B_postW) instead of the linearly morphed TXbb, as the cuts of the "
+                         "`..._cdf_model` configs. Implies --txbb-wps: the cuts must be working points")
 parser.add_argument("--txbb-scan", action="store_true", default=False,
                     help="Scan all TXbb cut combinations on the grid (score cuts re-optimised for each) and plot the figure of merit "
                          "as a heatmap. Only sensible for a coarse TXbb grid, e.g. with --txbb-wps")
@@ -94,6 +98,10 @@ parser.add_argument("--profile-txbb-grid", type=float, nargs=3, default=[0.65, 0
 parser.add_argument("--profile-2d-step", type=float, default=0.01, help="TXbb step of the 2D map")
 args = parser.parse_args()
 TXBB_WPS = [0.8, 0.95, 0.975, 0.99]
+if args.txbb_cdf:
+    if args.txbb_values is not None:
+        parser.error("--txbb-cdf restricts the cuts to the working points, it cannot be combined with --txbb-values")
+    args.txbb_wps = True
 if args.txbb_wps:
     if args.txbb_values is not None:
         parser.error("--txbb-wps and --txbb-values are mutually exclusive")
@@ -141,10 +149,26 @@ def get_discriminants(cols):
     return ggf / (ggf + bkg), vbf / (vbf + bkg)
 
 
-def build_process(cols, txbb_column, scale=1.0):
+TXBB_WP_EDGES = [0.65, 0.8, 0.95, 0.975, 0.99, 1.0]
+
+
+def wp_index_to_txbb(index):
+    """Value in the middle of the working-point bin of a WP index, so that `value > WP_k` <=> `index > k` for the TXbb grid.
+
+    Index 0 (below the lowest working point) gets 0.5.
+    """
+    index = np.clip(np.asarray(index, dtype=np.int64), 0, len(TXBB_WP_EDGES) - 1)
+    mid = np.array([0.5] + [(lo + hi) / 2 for lo, hi in zip(TXBB_WP_EDGES[:-1], TXBB_WP_EDGES[1:])])
+    return mid[index]
+
+
+def build_process(cols, txbb_column, scale=1.0, wp_index=False):
     d_ggf, d_vbf = get_discriminants(cols)
+    txbb = np.asarray(cols[txbb_column], dtype=np.float64)
+    if wp_index:
+        txbb = wp_index_to_txbb(txbb)
     return {
-        "t": np.asarray(cols[txbb_column], dtype=np.float64),
+        "t": txbb,
         "g": np.asarray(d_ggf, dtype=np.float64),
         "v": np.asarray(d_vbf, dtype=np.float64),
         "m": np.asarray(cols[args.mass_column], dtype=np.float64),
@@ -167,6 +191,9 @@ def load_processes():
             raise ValueError(f"No files found for {name}")
 
     columns = ["weight", "events_event", args.mass_column, "HiggsSubLeading_btagBBTXbb", "HiggsSubLeading_btagBBTXbb_morph"] + SCORE_COLUMNS[args.discriminant]
+    qcd_txbb_column = "HiggsSubLeading_btagBBTXbb_CDF_rescaled_WPs" if args.txbb_cdf else "HiggsSubLeading_btagBBTXbb_morph"
+    if args.txbb_cdf:
+        columns.append(qcd_txbb_column)
     processes = {}
     for name in ["ggF", "VBF", "TT"]:
         cat_col = load_group(groups[name], [args.signal_region], columns)
@@ -182,8 +209,9 @@ def load_processes():
     logger.info(f"QCD normalisation ({args.norm_num_region} - TT) / {args.norm_denom_region} = "
                 f"({sum_num:.1f} - {sum_tt:.1f}) / {sum_denom:.1f} = {norm_factor:.5f}")
     cat_col = load_group(groups["DATA"], [args.qcd_region], columns)
-    # In the control region the TXbb is morphed into the signal region range (as in the category cuts)
-    processes["QCD"] = build_process(cat_col[args.qcd_region], "HiggsSubLeading_btagBBTXbb_morph", scale=norm_factor)
+    # In the control region the TXbb is morphed into the signal region range (as in the category cuts): linearly, or
+    # with --txbb-cdf as the CDF-rescaled working-point index (the WP index and the nominal TXbb give the same cuts in the SR)
+    processes["QCD"] = build_process(cat_col[args.qcd_region], qcd_txbb_column, scale=norm_factor, wp_index=args.txbb_cdf)
     for name, proc in processes.items():
         logger.info(f"{name}: {len(proc['w'])} events, yield {proc['w'].sum():.3f}")
     return processes

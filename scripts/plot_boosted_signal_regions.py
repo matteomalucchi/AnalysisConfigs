@@ -9,8 +9,21 @@ with C = boosted_signal_sideband_region_C.
 The ttbar component is taken from the TT MC in boosted_signal_region_D_<cat>.
 Data is only shown in the categories passed with --unblind (default: cat3).
 
+With --region sideband the same plots are made for the mass sideband C (closure check): the QCD estimate is the
+reweighted data of boosted_control_sideband_region_A_<cat>_postW (same global scale factor), the ttbar component is
+the TT MC and the data are taken from boosted_signal_sideband_region_C_<cat>. Data is always shown (C is not blinded)
+and --unblind is ignored. For "full" the prediction matches the data in total by construction.
+
+With --region txbbwp the sideband closure is made in bins of the TXbb working point (categories txbbwp<i>, bin i is
+(TXBB_WP_EDGES[i], TXBB_WP_EDGES[i+1]]): the data are taken from boosted_signal_sideband_region_C_txbbwp<i> (nominal
+TXbb) and the QCD estimate from boosted_control_sideband_region_A_txbbwp<i>_postW (morphed TXbb), both with the same
+global scale factor. Besides the per-variable plots, closure_summary.png/pdf shows the data/prediction yield per bin.
+The input must be made with the option boosted_txbb_wp_categories.
+
 Example:
     python scripts/plot_boosted_signal_regions.py -i /path/to/output_dir -o plots_boosted_SR
+    python scripts/plot_boosted_signal_regions.py -i /path/to/output_dir -r sideband -o plots_boosted_SB
+    python scripts/plot_boosted_signal_regions.py -i /path/to/output_dir -r txbbwp -o plots_boosted_TXWP
 """
 
 import os
@@ -29,9 +42,16 @@ FULL_SR = "full"
 
 parser = argparse.ArgumentParser(description="Plot boosted background prediction in the signal-region categories")
 parser.add_argument("-i", "--input-dir", type=str, required=True, help="Directory with the coffea output files")
-parser.add_argument("-o", "--output", type=str, default="plots_boosted_SR", help="Output directory")
-parser.add_argument("-c", "--categories", type=str, nargs="+", default=["catvbf", "cat1", "cat2", "cat3", FULL_SR],
-                    help=f"Signal-region categories to plot ('{FULL_SR}' = inclusive signal region D)")
+parser.add_argument("-o", "--output", type=str, default=None,
+                    help="Output directory (default: plots_boosted_SR, plots_boosted_SB with --region sideband, "
+                         "plots_boosted_TXWP with --region txbbwp)")
+parser.add_argument("-r", "--region", type=str, choices=["signal", "sideband", "txbbwp"], default="signal",
+                    help="'signal': QCD from B_postW + ttbar MC of D vs data of D; "
+                         "'sideband': QCD from A_postW + ttbar MC of C vs data of C (closure check); "
+                         "'txbbwp': the same closure check in bins of the TXbb working point")
+parser.add_argument("-c", "--categories", type=str, nargs="+", default=None,
+                    help=f"Categories to plot ('{FULL_SR}' = inclusive region). Default: catvbf cat1 cat2 cat3 {FULL_SR}, "
+                         f"or the TXbb working point bins txbbwp0 txbbwp1 ... with --region txbbwp")
 parser.add_argument("-u", "--unblind", type=str, nargs="*", default=["cat3"], help="Categories in which data is shown")
 parser.add_argument("-w", "--workers", type=int, default=8, help="Number of workers")
 parser.add_argument("-l", "--linear", action="store_true", help="Linear y scale", default=False)
@@ -40,6 +60,19 @@ parser.add_argument("-mw", "--mask-large-weights", action="store_true", default=
                     help="Remove reweighted events with NaN, weight > 100 or weight < 0 (also in the normalisation region)")
 parser.add_argument("-cms", "--cmstext", type=str, default="Private", help="Text shown on CMS plot")
 args = parser.parse_args()
+
+TXBB_WP = args.region == "txbbwp"
+if TXBB_WP:
+    # single source of truth for the bin edges of the txbbwp<i> categories
+    from configs.HH4b_common.config_files.configurator_tools import TXBB_WP_EDGES
+
+    DEFAULT_CATEGORIES = [f"txbbwp{i}" for i in range(len(TXBB_WP_EDGES) - 1)]
+else:
+    DEFAULT_CATEGORIES = ["catvbf", "cat1", "cat2", "cat3", FULL_SR]
+# bins that don't exist in the input (e.g. the lowest bin for region_setting 40GeV) are dropped for the default list
+DEFAULT_CATEGORIES_USED = args.categories is None
+if DEFAULT_CATEGORIES_USED:
+    args.categories = DEFAULT_CATEGORIES
 
 NUMBER_OF_BINS = 20
 PAD_VALUE = -999
@@ -55,16 +88,34 @@ COLOR_TT = ("darkorange", "navajowhite")
 
 SKIP_VARS = ("weight", "events_event", "year")
 
+SIDEBAND = args.region in ("sideband", "txbbwp")
+REGION_TAG = {"signal": "SR", "sideband": "SB", "txbbwp": "TXWP"}[args.region]
+# C is not blinded, so data is always shown there
+UNBLIND = set(args.categories) if SIDEBAND else set(args.unblind)
+
+
+def category_label(category):
+    """Readable label of a category: the TXbb range for the txbbwp<i> bins, the category name otherwise."""
+    if TXBB_WP and category.startswith("txbbwp"):
+        i = int(category[len("txbbwp"):])
+        return f"{TXBB_WP_EDGES[i]} < TXbb ≤ {TXBB_WP_EDGES[i + 1]}"
+    return category
+
 
 def sig_region(category):
-    return SIG_REGION_FULL if category == FULL_SR else f"{SIG_REGION_FULL}_{category}"
+    """Region of the data and of the ttbar MC (D for the signal region, C for the sideband)."""
+    base = NORM_NUM_REGION if SIDEBAND else SIG_REGION_FULL
+    return base if category == FULL_SR else f"{base}_{category}"
 
 
 def bkg_region(category):
+    """Region of the reweighted data used as QCD estimate (B_postW for the signal region, A_postW for the sideband)."""
+    if SIDEBAND:
+        return NORM_DEN_REGION if category == FULL_SR else f"boosted_control_sideband_region_A_{category}_postW"
     return BKG_REGION_FULL if category == FULL_SR else f"boosted_control_region_B_{category}_postW"
 
 
-outputdir = args.output
+outputdir = args.output or f"plots_boosted_{REGION_TAG}"
 os.makedirs(outputdir, exist_ok=True)
 
 
@@ -86,7 +137,7 @@ def _list_files(selector):
 
 data_categories = {NORM_NUM_REGION, NORM_DEN_REGION}
 data_categories |= {bkg_region(c) for c in args.categories}
-data_categories |= {sig_region(c) for c in args.categories if c in args.unblind}
+data_categories |= {sig_region(c) for c in args.categories if c in UNBLIND}
 tt_categories = {NORM_NUM_REGION} | {sig_region(c) for c in args.categories}
 
 print(f"Loading data categories: {sorted(data_categories)}")
@@ -99,6 +150,18 @@ cat_col_tt, _ = get_columns_from_files(
     _list_files(lambda f: "_TT" in f), "nominal", _keep_var,
     category_filter=lambda c: c in tt_categories,
 )
+
+if DEFAULT_CATEGORIES_USED and TXBB_WP:
+    available = [
+        c for c in args.categories
+        if all(r in cat_col_data for r in (bkg_region(c), sig_region(c))) and sig_region(c) in cat_col_tt
+    ]
+    if dropped := [c for c in args.categories if c not in available]:
+        print(f"WARNING: categories {dropped} not found in the input, dropping them")
+    if not available:
+        raise KeyError("None of the txbbwp categories found in the input, was it made with boosted_txbb_wp_categories?")
+    args.categories = available
+    UNBLIND = set(args.categories)
 
 
 def clean_weights(cols, is_reweighted):
@@ -151,7 +214,7 @@ def plot_single_var(category, var, lumi, era_string):
     col_qcd, w_qcd = get_column(cat_col_data, masks_data, bkg_region(category), var)
     col_tt, w_tt = get_column(cat_col_tt, masks_tt, sig_region(category), var)
     w_qcd = w_qcd * NORM_FACTOR
-    show_data = category in args.unblind
+    show_data = category in UNBLIND
 
     if len(col_qcd) == 0:
         print(f"WARNING: no background events for {var} in {category}, skipping")
@@ -188,12 +251,12 @@ def plot_single_var(category, var, lumi, era_string):
         },
     }
 
-    dir_cat = os.path.join(outputdir, f"SR_{category}")
+    dir_cat = os.path.join(outputdir, f"{REGION_TAG}_{category}")
     os.makedirs(dir_cat, exist_ok=True)
     p = (
         HEPPlotter()
         .set_plot_config(
-            lumitext=f"SR {category}, {era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
+            lumitext=f"{REGION_TAG} {category_label(category)}, {era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
             figsize=[13, 13],
         )
         .set_output(os.path.join(dir_cat, var))
@@ -214,10 +277,63 @@ def print_yields():
         y_tt = cat_col_tt[sig_reg]["weight"][masks_tt[sig_reg]].sum()
         y_data = (
             f"{cat_col_data[sig_reg]['weight'][masks_data[sig_reg]].sum():10.1f}"
-            if category in args.unblind else f"{'blind':>10}"
+            if category in UNBLIND else f"{'blind':>10}"
         )
         print(f"{category:<10} {y_qcd:14.2f} {y_tt:12.2f} {y_qcd + y_tt:14.2f} {y_data}")
     print()
+
+
+def _yield_and_error(cat_col, masks, region, scale=1.0):
+    """Sum of weights and its statistical uncertainty sqrt(sum w^2)."""
+    w = cat_col[region]["weight"][masks[region]] * scale
+    return w.sum(), np.sqrt((w ** 2).sum())
+
+
+def plot_closure_summary(lumi, era_string):
+    """Data / prediction yield in each category (TXbb working point bin), with statistical uncertainties only."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    categories = args.categories
+    qcd = np.array([_yield_and_error(cat_col_data, masks_data, bkg_region(c), NORM_FACTOR) for c in categories])
+    tt = np.array([_yield_and_error(cat_col_tt, masks_tt, sig_region(c)) for c in categories])
+    data = np.array([_yield_and_error(cat_col_data, masks_data, sig_region(c)) for c in categories])
+    pred = qcd[:, 0] + tt[:, 0]
+    pred_err = np.hypot(qcd[:, 1], tt[:, 1])
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ratio = data[:, 0] / pred
+        ratio_err = ratio * np.hypot(data[:, 1] / data[:, 0], pred_err / pred)
+
+    print(f"{'bin':<22} {'data':>12} {'pred':>12} {'data/pred':>18}")
+    for c, d, p, r, re in zip(categories, data[:, 0], pred, ratio, ratio_err):
+        print(f"{category_label(c):<22} {d:12.1f} {p:12.1f} {r:10.3f} +- {re:.3f}")
+
+    x = np.arange(len(categories))
+    fig, (ax, ax_ratio) = plt.subplots(
+        2, 1, figsize=(9, 7.5), sharex=True, gridspec_kw={"height_ratios": [3, 1], "hspace": 0.05}
+    )
+    ax.bar(x, qcd[:, 0], width=0.8, color=COLOR_QCD[1], edgecolor=COLOR_QCD[0], label="QCD (reweighted)")
+    ax.bar(x, tt[:, 0], width=0.8, bottom=qcd[:, 0], color=COLOR_TT[1], edgecolor=COLOR_TT[0], label=r"$t\bar{t}$")
+    ax.errorbar(x, pred, yerr=pred_err, fmt="none", ecolor="gray", capsize=3, label="Pred. stat. unc.")
+    ax.errorbar(x, data[:, 0], yerr=data[:, 1], fmt="o", color=COLOR_DATA, label="Data")
+    if not args.linear:
+        ax.set_yscale("log")
+    ax.set_ylabel("Events")
+    ax.set_title(f"{REGION_TAG} closure, {era_string}, {lumi}" + r" $fb^{-1}$ (13.6 TeV)", loc="right", fontsize=11)
+    ax.legend()
+
+    ax_ratio.errorbar(x, ratio, yerr=ratio_err, fmt="o", color=COLOR_DATA)
+    ax_ratio.axhline(1, color="gray", linestyle="--")
+    ax_ratio.set_ylim(0.5, 1.5)
+    ax_ratio.set_ylabel("Data/Pred.")
+    ax_ratio.set_xticks(x)
+    ax_ratio.set_xticklabels([category_label(c) for c in categories], rotation=20, ha="right")
+    ax_ratio.set_xlabel("Subleading Higgs TXbb bin")
+
+    for ext in ("png", "pdf"):
+        fig.savefig(os.path.join(outputdir, f"closure_summary.{ext}"), bbox_inches="tight")
+    plt.close(fig)
 
 
 if __name__ == "__main__":
@@ -231,6 +347,8 @@ if __name__ == "__main__":
         raise KeyError(f"Missing background or ttbar columns for categories {missing}")
 
     print_yields()
+    if TXBB_WP:
+        plot_closure_summary(lumi, era_string)
 
     jobs = []
     for category in args.categories:

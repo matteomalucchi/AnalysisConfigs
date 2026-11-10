@@ -1,6 +1,7 @@
 import awkward as ak
 import pandas as pd
 import copy
+import json
 import numpy as np
 import xgboost as xgb
 
@@ -15,6 +16,46 @@ from configs.HH4b_common.custom_object_preselection_common import clean_ak4_boos
 class VBFHH4bProcessor(HH4bCommonProcessor):
     def __init__(self, cfg) -> None:
         super().__init__(cfg=cfg)
+        # TXbb cuts in the low-TXbb regions matching the TXbb working points of the high-TXbb regions (quantile map)
+        self.txbb_cdf_wp_cuts = self._load_txbb_cdf_wp_cuts(getattr(self, "txbb_cdf_wp_cuts", ""))
+        # The downstream cuts and the DNN input read this column as the index of the working points (offset 0)
+        if self.txbb_cdf_wp_cuts and self.old_wp_def:
+            raise ValueError("txbb_cdf_wp_cuts cannot be used with old_wp_def=True: the cuts on the working-point index assume the offset 0")
+        if not self.txbb_cdf_wp_cuts:
+            for option in ("bkg_morphing_dnn_input_variables", "sig_bkg_dnn_input_variables"):
+                if any(v[1] == "btagBBTXbb_CDF_rescaled_WPs" for v in (getattr(self, option, None) or {}).values()):
+                    raise ValueError(f"{option} uses btagBBTXbb_CDF_rescaled_WPs, set the option txbb_cdf_wp_cuts to define it")
+
+    @staticmethod
+    def _load_txbb_cdf_wp_cuts(option):
+        """Read the output of scripts/find_txbb_cdf_wp_cuts.py (path or dict). Returns the sorted cuts, or None if not requested."""
+        if not option:
+            return None
+        if isinstance(option, str):
+            with open(option) as f:
+                option = json.load(f)
+        if option.get("region_setting", "50GeV") != "50GeV":
+            raise ValueError("txbb_cdf_wp_cuts is only supported for the 50GeV region setting")
+        cuts = [float(c) for c in option["cuts_A"]]
+        if len(cuts) != 4 or any(b < a for a, b in zip(cuts, cuts[1:])):
+            raise ValueError(f"txbb_cdf_wp_cuts needs 4 increasing cuts_A (for the WPs 0.8, 0.95, 0.975, 0.99), got {cuts}")
+        return cuts
+
+    def define_cdf_rescaled_wps(self, fatjets, b_low, b_thresh):
+        """TXbb working-point index with the low-TXbb jets (A, B) mapped to the WPs of the high-TXbb jets (C, D) by quantile.
+
+        Jets above `b_thresh` (C, D): nominal WP index (number of the 5 WPs exceeded).
+        Jets below `b_thresh` (A, B): 1 + number of the quantile-matched cuts exceeded, 0 below `b_low`.
+        Same scale as `btagBBTXbb_morph_5wp`. The lowest WP (0.65) is the lower edge of C, so it maps onto `b_low` and needs no cut.
+        """
+        fatjets = self.generate_btag_workingpoints(fatjets, 5, "btagBBTXbb")
+        txbb = fatjets["btagBBTXbb"]
+        offset = 1 if self.old_wp_def else 0
+        low_wp = ak.where(txbb > b_low, 1, 0) - offset
+        for cut in self.txbb_cdf_wp_cuts:
+            low_wp = low_wp + ak.where(txbb > cut, 1, 0)
+        cdf_wp = ak.where(txbb > b_thresh, fatjets["btagBBTXbb_5wp"], low_wp)
+        return ak.with_field(fatjets, cdf_wp, "btagBBTXbb_CDF_rescaled_WPs")
 
     def process_extra_after_skim(self):
         super().process_extra_after_skim()
@@ -84,6 +125,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 "btagCC",
             )
             self.events["FatJet"] = self.generate_btag_workingpoints(self.events["FatJet"], 5, "btagBBTXbb_morph")
+            if "2024" in self._year and self.txbb_cdf_wp_cuts:
+                self.events["FatJet"] = self.define_cdf_rescaled_wps(self.events["FatJet"], b_low, b_thresh)
             # jet ordered in btagging score
             if not self.TXbb_order:
                 self.events["FatJet"] = self.events["FatJet"][

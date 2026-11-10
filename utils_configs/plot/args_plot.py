@@ -67,6 +67,25 @@ parser.add_argument(
     default="",
 )
 parser.add_argument(
+    "-cm",
+    "--compare-morphing-models",
+    type=str,
+    nargs=2,
+    metavar=("AVERAGE_ONNX", "MEDIAN_ONNX"),
+    default=None,
+    help=(
+        "Boosted only: compare two background-morphing ONNX models, the mean "
+        "over the k-folds of the weight and the median over the k-folds of the "
+        "weight (average_morphing_model_kfold.onnx and "
+        "median_morphing_model_kfold.onnx). Both are evaluated again on the "
+        "saved morphing inputs of the postW regions (the inputs are given with "
+        "--input-variables, a name in configs/HH4b_common/dnn_input_variables.py, e.g. bkg_morphing_boosted_dnn_input_variables_other_group_txbb_wp). "
+        "The ttbar MC of the target region is added to both reweighted curves. "
+        "Only the comparison plots are made. Unless -o is given, they are saved "
+        "in <directory of the models>/plots_avg_vs_med_<normalisation>."
+    ),
+)
+parser.add_argument(
     "-r",
     "--region-suffix",
     type=str,
@@ -134,6 +153,15 @@ parser.add_argument(
     "--boosted",
     action="store_true",
     help="If true, boosted regions format is expected",
+    default=False,
+)
+parser.add_argument(
+    "--skip-signal-region",
+    action="store_true",
+    help=(
+        "Boosted only: do not make the SR and SR_TT plots (data of the signal region D and the corresponding "
+        "reweighted regions): only the CR and CR_TT plots are made and the signal-region data are not loaded"
+    ),
     default=False,
 )
 parser.add_argument(
