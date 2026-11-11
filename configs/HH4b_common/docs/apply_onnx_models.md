@@ -24,7 +24,9 @@ All the options are documented in
   `input_variables: <path/to/file.py>:<name>`. The `events` record is rebuilt from the columns
   (`<Collection>_<feature>`, unflattened with `<Collection>_N` for the coffea columns) and the model is
   evaluated with `get_onnx_prediction`, so DNN and SPANet models are handled exactly as in the
-  workflow. All the columns used by the input dictionary must be saved in the output of the run.
+  workflow. All the columns used by the input dictionary must be saved in the output of the run,
+  except constant per-dataset inputs (e.g. `events_era`), which can be given with `extra_columns`
+  (`{column: {dataset pattern: value}}`, used only as model inputs and not saved).
 - **Selection**: each model is applied only to the `regions` and `datasets` listed in the config (names
   or glob patterns, all if not given), and only the selected `variations` are processed.
 - **Output**: all the original columns plus the scores, saved with the `column_name` of each model
@@ -38,6 +40,15 @@ All the options are documented in
 - **/pnfs**: since the slurm jobs cannot write on /pnfs, if the output is on /pnfs (or an xrootd url)
   the files are written in a local temporary directory (`tmp_dir`, `$TMPDIR` by default) and copied
   with `xrdcp` through the `redirector`. The parquet files are copied as soon as they are written.
+  `xrdcp` needs a grid proxy: the script stops at the start if `$X509_USER_PROXY` is not valid for at
+  least 2 h (`voms-proxy-init -voms cms -rfc --valid 168:0`). The script can be run directly in a
+  slurm job (e.g. `sbatch -c 4 --mem-per-cpu 8000 --wrap "python scripts/apply_onnx_models.py -c <cfg>"`):
+  the proxy must be on a shared file system (e.g. `/t3home`) and, since `/tmp` of the workers is only
+  2 GB, `tmp_dir` should point to `/scratch/<user>`. If the script fails, the temporary directory is
+  removed.
+- **Memory**: the parquet files where a model is applied are processed one row group at a time, so
+  the memory does not scale with the file size (the merged files can be several GB); the files where
+  no model is applied are copied without being read.
 - **Parallelism**: `workers: 1` runs everything in a single process. With more workers, the chunks of
   `chunk_size` events (coffea columns) or the parquet files are processed in parallel processes; each
   process creates its ONNX sessions once.

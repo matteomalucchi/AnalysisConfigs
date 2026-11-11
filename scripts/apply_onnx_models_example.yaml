@@ -48,6 +48,13 @@ process_output_all: false
 # max_parquet_files: 2
 # Optional: name of the parquet subdirectory of the output (default parquet_files).
 # parquet_subdir: parquet_files
+# Optional: constant input columns not saved in the run (e.g. events_era), as
+# {column: {dataset name or glob pattern: value}} (first matching pattern).
+# They are only used as model inputs (not saved) and only if the column is missing.
+# extra_columns:
+#   events_era:
+#     "*_2024_EraC": 13
+#     "*_2024_EraD": 14
 
 models:
   - name: sig_bkg_dnn
