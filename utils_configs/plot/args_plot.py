@@ -134,6 +134,13 @@ parser.add_argument(
     help="Removes events with large weights from the plots (w>100)",
     default=True,
 )
+parser.add_argument(
+    "-wc",
+    "--weight-column",
+    type=str,
+    help="Name of the column used as weight when filling the histograms (default: weight)",
+    default="weight",
+)
 
 args = parser.parse_args()
 

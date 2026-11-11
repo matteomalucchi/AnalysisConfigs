@@ -30,7 +30,11 @@ NUMBER_OF_BINS = 20
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
 ARCTANH_BINS = False
-VARIABLES_TEST = ["score", "weight", ]
+# Column used as weight to fill the histograms (set with --weight-column)
+WEIGHT_COLUMN = args.weight_column
+# key in col_dict (variable names are stored without the "Run2" suffix)
+WEIGHT_KEY = WEIGHT_COLUMN.replace("Run2", "")
+VARIABLES_TEST = ["score", WEIGHT_COLUMN]
 DEBUG = args.test
 
 input_dir = os.path.dirname(args.input_data[0])
@@ -283,7 +287,7 @@ needed_categories = {
     for cat in cat_list
     for sub_cat in cat.split(MERGE_SEP)
 }
-filter_lambda = (lambda x: ("weight" in x or "score" in x)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
+filter_lambda = (lambda x: ("weight" in x or "score" in x or x == WEIGHT_COLUMN)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
 cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories, float32=True)
 
 # If a preW category is missing in the files, build it from the corresponding
@@ -821,7 +825,7 @@ def main(cat_cols, lumi, era_string):
 
             if "SPREAD" in cats_name:
                 vars_tot = list(cat_col_DATA[cat_list[0]].keys())
-                vars_tot = [v for v in vars_tot if "weight" in v or "score" in v]
+                vars_tot = [v for v in vars_tot if "weight" in v or "score" in v or v == WEIGHT_COLUMN]
             else:
                 vars_tot = list(cat_col_DATA[cat_list[1].split(MERGE_SEP)[0]].keys())
                 vars_tot = [v for v in vars_tot if "year" not in v]
@@ -892,7 +896,7 @@ def main(cat_cols, lumi, era_string):
                 else:
                     if var_name not in col_dict:
                         col_dict[var_name] = {}
-                    if "weight" not in v:
+                    if "weight" not in v and v != WEIGHT_COLUMN:
                         vars_to_plot.append(var_name)
                     for cat in sub_cat_list:
                         if "SPREAD" in cat:
@@ -987,7 +991,7 @@ def main(cat_cols, lumi, era_string):
                                         col_dict[v][cat_list_final[0]]
                                     )
 
-                            col_dict["weight"][f"{cat}_{i}"] = col_dict[var_SPREAD][
+                            col_dict[WEIGHT_KEY][f"{cat}_{i}"] = col_dict[var_SPREAD][
                                 cat_list_final[0]
                             ][:, i]
 
@@ -1020,7 +1024,7 @@ def main(cat_cols, lumi, era_string):
                             (
                                 var,
                                 col_dict[var.replace("_TRANSFORM", "")],
-                                col_dict["weight"],
+                                col_dict[WEIGHT_KEY],
                                 cats_name,
                                 cat_lists_final,
                                 dir_cat,
@@ -1037,7 +1041,7 @@ def main(cat_cols, lumi, era_string):
                     plot_single_var_from_columns(
                         var,
                         col_dict[var.replace("_TRANSFORM", "")],
-                        col_dict["weight"],
+                        col_dict[WEIGHT_KEY],
                         cats_name,
                         cat_lists_final,
                         dir_cat,
@@ -1054,7 +1058,7 @@ if __name__ == "__main__":
 
     # plot the weights
     for category in cat_col_data.keys():
-        weights = cat_col_data[category]["weight"]
+        weights = cat_col_data[category][WEIGHT_COLUMN]
         if np.any(weights >= np.inf):
             print("Found infinite values in weights")
         weights = weights[weights < np.inf]
