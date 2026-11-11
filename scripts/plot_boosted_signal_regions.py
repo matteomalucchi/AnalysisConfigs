@@ -7,7 +7,7 @@ scaled with one global factor such that QCD estimate + ttbar MC matches the data
     (sum_w(data, C) - sum_w(ttbar MC, C)) / sum_w(data, boosted_control_sideband_region_A_postW)
 with C = boosted_signal_sideband_region_C.
 The ttbar component is taken from the TT MC in boosted_signal_region_D_<cat>.
-Data is only shown in the categories passed with --unblind (default: cat3).
+Data is only shown in the categories passed with --unblind (default: cat3, full).
 
 With --region sideband the same plots are made for the mass sideband C (closure check): the QCD estimate is the
 reweighted data of boosted_control_sideband_region_A_<cat>_postW (same global scale factor), the ttbar component is
@@ -52,7 +52,7 @@ parser.add_argument("-r", "--region", type=str, choices=["signal", "sideband", "
 parser.add_argument("-c", "--categories", type=str, nargs="+", default=None,
                     help=f"Categories to plot ('{FULL_SR}' = inclusive region). Default: catvbf cat1 cat2 cat3 {FULL_SR}, "
                          f"or the TXbb working point bins txbbwp0 txbbwp1 ... with --region txbbwp")
-parser.add_argument("-u", "--unblind", type=str, nargs="*", default=["cat3"], help="Categories in which data is shown")
+parser.add_argument("-u", "--unblind", type=str, nargs="*", default=["cat3", "full"], help="Categories in which data is shown")
 parser.add_argument("-w", "--workers", type=int, default=8, help="Number of workers")
 parser.add_argument("-l", "--linear", action="store_true", help="Linear y scale", default=False)
 parser.add_argument("-ov", "--only-vars", type=str, nargs="+", default=None, help="Only plot columns containing one of these substrings")

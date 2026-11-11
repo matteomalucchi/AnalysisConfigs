@@ -124,7 +124,9 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                 self.events["FatJet"]["particleNet_XccVsQCD"],
                 "btagCC",
             )
+            # Creating btag working points for both the nominal and the morphed/scaled btag values
             self.events["FatJet"] = self.generate_btag_workingpoints(self.events["FatJet"], 5, "btagBBTXbb_morph")
+            self.events["FatJet"] = self.generate_btag_workingpoints(self.events["FatJet"], 5, "btagBBTXbb")
             if "2024" in self._year and self.txbb_cdf_wp_cuts:
                 self.events["FatJet"] = self.define_cdf_rescaled_wps(self.events["FatJet"], b_low, b_thresh)
             # jet ordered in btagging score
