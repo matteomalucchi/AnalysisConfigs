@@ -230,7 +230,7 @@ class HEPPlotter:
                 To plot the ratio plot, the reference histogram must include {"is_reference": True} inside the style dict.
                 The pull plot is drawn below the ratio plot if set_options(pull=True) is used.
                 Optional systematic uncertainties can be passed with {"syst_unc": array} inside the style dict
-                (absolute, symmetric, one value per bin).
+                (absolute, one value per bin): symmetric (array) or asymmetric ([down, up]).
         - For 2D histograms:
             series_dict : dict
                 {name:{"data": hist.Hist, "style": dict}}
@@ -634,13 +634,31 @@ class HEPPlotter:
 
         return hist
 
-    def _add_syst_to_variances(self, hist, syst_unc):
+    def _parse_syst_unc(self, syst_unc):
+        """
+        Return the (down, up) absolute systematic uncertainties per bin.
+        syst_unc can be symmetric (one value per bin) or asymmetric ([down, up]).
+        """
+        syst_unc = np.abs(np.asarray(syst_unc, dtype=float))
+        if syst_unc.ndim == 2:
+            if syst_unc.shape[0] != 2:
+                raise ValueError(
+                    f"Asymmetric syst_unc must have shape (2, n_bins) as [down, up], got {syst_unc.shape}"
+                )
+            return syst_unc[0], syst_unc[1]
+        return syst_unc, syst_unc
+
+    def _add_syst_to_variances(self, hist, syst_unc, other_hist):
         """
         Return a copy of a 1D histogram whose variances include the
         systematic uncertainties summed in quadrature (var = stat^2 + syst^2).
+        For asymmetric uncertainties, the side pointing towards other_hist is used
+        (down if hist > other_hist, up otherwise).
         """
+        syst_down, syst_up = self._parse_syst_unc(syst_unc)
+        syst = np.where(hist.values() > other_hist.values(), syst_down, syst_up)
         hist = hist.copy()
-        hist.view().variance = hist.variances() + np.asarray(syst_unc) ** 2
+        hist.view().variance = hist.variances() + syst**2
         return hist
 
     # ----------------------------
@@ -664,8 +682,6 @@ class HEPPlotter:
             if ref_name
             else None
         )
-        if self.sum_syst_in_quadrature and ref_syst_unc is not None:
-            ref_hist = self._add_syst_to_variances(ref_hist, ref_syst_unc)
 
         for index, (name, props) in enumerate(self.series_dict.items()):
 
@@ -729,19 +745,24 @@ class HEPPlotter:
                 if isinstance(style[key], list):
                     style[key] = style[key][-1]
 
-            # systematic uncertainties: plotted separately or summed in quadrature with stat
+            # systematic uncertainties (symmetric or [down, up]): plotted as a band,
+            # separately from stat or summed in quadrature with stat
             rel_syst_unc = None
+            band_label = None
             if syst_unc is not None:
-                syst_unc = np.asarray(syst_unc, dtype=float)
+                syst_down, syst_up = self._parse_syst_unc(syst_unc)
                 if self.sum_syst_in_quadrature:
-                    hist_1d = self._add_syst_to_variances(hist_1d, syst_unc)
-                    band_unc = np.sqrt(hist_1d.variances())
+                    stat_unc = np.sqrt(hist_1d.variances())
+                    band_unc = [np.hypot(stat_unc, syst_down), np.hypot(stat_unc, syst_up)]
                     band_label = r"stat. $\oplus$ syst. unc."
                 else:
-                    band_unc = syst_unc
+                    band_unc = [syst_down, syst_up]
                     band_label = "syst. unc."
-                    with np.errstate(divide="ignore", invalid="ignore"):
-                        rel_syst_unc = syst_unc / hist_1d.values()
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    rel_syst_unc = [unc / hist_1d.values() for unc in band_unc]
+                # if the series is the denominator of the ratio, an up variation lowers the ratio
+                if not self.reference_to_den and not is_ref:
+                    rel_syst_unc = rel_syst_unc[::-1]
                 self._plot_syst_band(
                     ax,
                     hist_1d.values(),
@@ -751,8 +772,18 @@ class HEPPlotter:
                     style,
                 )
 
+            # histograms used for chi2 and pull: include syst if summed in quadrature
+            hist_cmp, ref_cmp = hist_1d, ref_hist
+            if self.sum_syst_in_quadrature and ref_hist is not None and not is_ref:
+                if syst_unc is not None:
+                    hist_cmp = self._add_syst_to_variances(hist_1d, syst_unc, ref_hist)
+                if ref_syst_unc is not None:
+                    ref_cmp = self._add_syst_to_variances(
+                        ref_hist, ref_syst_unc, hist_1d
+                    )
+
             if self._plot_chi_square and ratio_plot and not is_ref:
-                self._apply_chi_square(ax, hist_1d, ref_hist, index, style)
+                self._apply_chi_square(ax, hist_cmp, ref_cmp, index, style)
 
             if self._plot_mean_std:
                 self._apply_mean_std(ax, hist_1d, name, style, index)
@@ -768,6 +799,7 @@ class HEPPlotter:
                         is_ref,
                         style,
                         rel_syst_unc=rel_syst_unc,
+                        syst_label=band_label,
                     )
                 else:
                     self._plot_ratio(
@@ -778,17 +810,18 @@ class HEPPlotter:
                         is_ref,
                         style,
                         rel_syst_unc=rel_syst_unc,
+                        syst_label=band_label,
                     )
 
             # pull
             if pull_plot and ax_pull is not None:
                 if self.reference_to_den:
                     self._plot_pull(
-                        ax_pull, hist_1d, ref_hist, legend_name_ratio, is_ref, style
+                        ax_pull, hist_cmp, ref_cmp, legend_name_ratio, is_ref, style
                     )
                 else:
                     self._plot_pull(
-                        ax_pull, ref_hist, hist_1d, legend_name_ratio, is_ref, style
+                        ax_pull, ref_cmp, hist_cmp, legend_name_ratio, is_ref, style
                     )
 
         # plot precomputed ratio hists
@@ -1237,6 +1270,7 @@ class HEPPlotter:
         style,
         ratio_hist=None,
         rel_syst_unc=None,
+        syst_label="syst. unc.",
     ):
         """Plot the ratio of hist_1d to ref_hist on the ratio axes."""
 
@@ -1289,14 +1323,14 @@ class HEPPlotter:
                 linewidth=style.get("linewidth", 2),
             )
 
-        # systematic uncertainty band (relative uncertainty propagated to the ratio)
+        # systematic uncertainty band (relative [down, up] uncertainty propagated to the ratio)
         if rel_syst_unc is not None and bins is not None:
             self._plot_syst_band(
                 ax_ratio,
                 ratio,
                 bins,
-                np.abs(ratio) * rel_syst_unc,
-                f"{name} syst. unc." if name else None,
+                [np.abs(ratio) * rel_unc for rel_unc in rel_syst_unc],
+                f"{name} {syst_label}" if name else None,
                 style,
             )
 
@@ -1329,7 +1363,7 @@ class HEPPlotter:
         )
 
     def _plot_syst_band(self, ax, values, bins, unc, name, style):
-        """Plot a (symmetric) systematic uncertainty band around the given values."""
+        """Plot a systematic uncertainty band around the given values (unc can be symmetric or [down, up])."""
         color = style.get("color", style.get("edgecolor", style.get("facecolor")))
         hep.histplot(
             values,

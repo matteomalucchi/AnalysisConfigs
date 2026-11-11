@@ -88,10 +88,14 @@ use `"histtype_pull"` in the style dict to change it (e.g. `"step"` or `"errorba
 
 `hist.Hist` objects only store the value and the (statistical) variance of each bin, so
 systematic uncertainties can't be stored in the histogram itself. They can be passed
-through the `style` dict with the `"syst_unc"` key, as an **absolute, symmetric** uncertainty
-per bin (array with the same length as the number of bins, in the same units as the plotted
-histogram, e.g. already normalized if `normalize_1d_histo=True`). For stacked histograms
-`syst_unc` refers to the sum of the stack.
+through the `style` dict with the `"syst_unc"` key, as an **absolute** uncertainty per bin,
+in the same units as the plotted histogram (e.g. already normalized if `normalize_1d_histo=True`):
+
+* **symmetric:** an array with one value per bin, e.g. `0.1 * h.values()`
+* **asymmetric:** `[down, up]`, two arrays with one value per bin each (signs are ignored),
+  e.g. `[0.05 * h.values(), 0.2 * h.values()]`
+
+For stacked histograms `syst_unc` refers to the sum of the stack.
 
 ```python
 series_dict = {
@@ -103,7 +107,8 @@ series_dict = {
         "data": mc,
         "style": {
             "color": "red",
-            "syst_unc": 0.1 * mc.values(),  # e.g. 10% systematic uncertainty
+            "syst_unc": 0.1 * mc.values(),  # e.g. 10% symmetric systematic uncertainty
+            # or asymmetric: "syst_unc": [0.05 * mc.values(), 0.2 * mc.values()],  # [down, up]
         },
     },
 }
@@ -127,9 +132,16 @@ Treatment of the systematic uncertainties (`"syst_unc"`), depending on `sum_syst
 | | `sum_syst_in_quadrature=False` (default) | `sum_syst_in_quadrature=True` |
 | --- | --- | --- |
 | Main plot | stat. error bars + hatched **syst.** band | stat. error bars + hatched **stat. ⊕ syst.** band |
-| Ratio plot | stat. uncertainties + hatched **syst.** band (relative syst. propagated to the ratio) | uncertainties are **stat. ⊕ syst.** |
+| Ratio plot | stat. uncertainties + hatched **syst.** band | stat. uncertainties + hatched **stat. ⊕ syst.** band |
 | Pull plot | denominator uses stat. only | denominator uses **stat. ⊕ syst.** |
 | χ² (`add_chi_square`) | stat. only | **stat. ⊕ syst.** |
+
+* The bands follow the asymmetric `[down, up]` uncertainties. In the ratio plot, the relative
+  uncertainty of each series is propagated to its ratio (down and up are swapped for the
+  series in the denominator when `reference_to_den=False`).
+* For asymmetric uncertainties, the pull and the χ² use, in each bin, the side pointing towards
+  the other histogram: the down uncertainty of the histogram that is above, and the up uncertainty
+  of the one that is below.
 
 The style of the systematic band can be customized with the style keys
 `"syst_color"` (edge/hatch color, default: the histogram color), `"syst_facecolor"` (default `"none"`)
@@ -492,7 +504,7 @@ series_dict = {
 * `"bin_edges_plotting"`: array of custom bin edges (for visual representation only)
 * `"legend_name"` / `"legend_name_ratio"`: custom labels
 * `"appear_in_legend"`: include/exclude from legend
-* `"syst_unc"`: absolute symmetric systematic uncertainty per bin (see pull/systematics example)
+* `"syst_unc"`: absolute systematic uncertainty per bin, symmetric (array) or asymmetric (`[down, up]`) (see pull/systematics example)
 * `"syst_color"` / `"syst_facecolor"` / `"syst_hatch"`: style of the systematic band
 * `"histtype_pull"`: histtype in the pull plot (default `"fill"`)
 
