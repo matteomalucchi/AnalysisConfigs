@@ -32,11 +32,11 @@ All the options are documented in
 - **Output**: all the original columns plus the scores, saved with the `column_name` of each model
   (`score_index` sets which output columns are saved):
   - columns in the coffea files: copies of the coffea files with the new columns;
-  - columns in parquet files: `<output>/parquet_files/<dataset>/<category>/<variation>/*.parquet`
-    (copies of all the input files, with the new columns where a model is applied), the coffea files
-    and a `config.json` pointing to the new parquet directory, so the plotting scripts can read the
-    output as a normal run.
-  The yaml used is copied as `apply_onnx_models_config.yaml`.
+    The yaml used is copied as `apply_onnx_models_config.yaml`.
+  - columns in parquet files: only the new parquet files,
+    `<output>/<dataset>/<category>/<variation>/*.parquet` (`parquet_subdir` adds a subdirectory). They
+    are copies of the input files with the new columns; the files of the datasets/regions where no
+    model is applied, the coffea files and the `config.json` are not copied.
 - **/pnfs**: since the slurm jobs cannot write on /pnfs, if the output is on /pnfs (or an xrootd url)
   the files are written in a local temporary directory (`tmp_dir`, `$TMPDIR` by default) and copied
   with `xrdcp` through the `redirector`. The parquet files are copied as soon as they are written.
