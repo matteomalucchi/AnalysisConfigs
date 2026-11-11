@@ -12,8 +12,9 @@ the same logic as in the standard PocketCoffea run.
 The output contains all the original columns plus the ONNX scores:
 - coffea columns: a copy of the coffea files with the score columns added;
 - parquet columns: a copy of every parquet file with the score columns added,
-  the coffea files and a `config.json` pointing to the new parquet directory,
-  so that the plotting scripts can read the new output directly.
+  only the new parquet files are written (in the same
+  <dataset>/<category>/<variation>/ structure); the files where no model is
+  applied and the coffea files are not copied.
 
 If the output directory is on /pnfs (or is an xrootd url), the files are first
 written in a local temporary directory and then copied with `xrdcp`, since
@@ -868,13 +869,19 @@ def process_parquet_columns(cfg, coffea_files, col_dir, out, pool):
         datasets.append(name[: -len(".coffea")].split("_", 1)[-1])
     datasets = list(dict.fromkeys(datasets))
 
-    parquet_rel = cfg.get("parquet_subdir", "parquet_files")
+    # only the new parquet files are written, directly in the output directory
+    # (or in `parquet_subdir` inside it): <output>/<dataset>/<category>/<variation>/*.parquet
+    parquet_rel = cfg.get("parquet_subdir") or ""
     tasks = []
     for dataset, category, variation, files in list_parquet_units(
         col_dir, datasets, cfg["variations"]
     ):
         unit_models = models_for(cfg["models"], dataset, category)
         unit_name = f"{dataset}/{category}/{variation}"
+        if not unit_models:
+            # no model for this dataset/region: nothing new to write
+            logger.debug(f"{unit_name}: no model to apply, skipped")
+            continue
         if cfg["max_parquet_files"]:
             files = files[: cfg["max_parquet_files"]]
         logger.info(
@@ -916,19 +923,6 @@ def process_parquet_columns(cfg, coffea_files, col_dir, out, pool):
             n_done += 1
             if n_done % 50 == 0:
                 logger.info(f"{n_done}/{len(tasks)} parquet files done")
-
-    # the coffea files (without columns) and the config.json pointing to the
-    # new parquet directory, so that the output can be read as the input
-    for f in coffea_files:
-        relpath = os.path.basename(f)
-        shutil.copy(f, out.local_path(relpath))
-        out.copy_file(relpath)
-    if os.path.basename(coffea_files[0]) != "output_all.coffea":
-        all_file = os.path.join(os.path.dirname(coffea_files[0]), "output_all.coffea")
-        if os.path.exists(all_file) and all_file not in coffea_files:
-            shutil.copy(all_file, out.local_path("output_all.coffea"))
-            out.copy_file("output_all.coffea")
-    copy_config_json(coffea_files[0], out, parquet_dir=out.final_url(parquet_rel))
 
 
 # ---------------------------------------------------------------------------
@@ -1060,9 +1054,11 @@ def main(argv=None):
         if pool is not None:
             pool.shutdown()
 
-    # save the configuration used, for reference
-    shutil.copy(args.config, out.local_path("apply_onnx_models_config.yaml"))
-    out.copy_file("apply_onnx_models_config.yaml")
+    if columns_in_coffea:
+        # save the configuration used, for reference (for the parquet columns
+        # only the new parquet files are written)
+        shutil.copy(args.config, out.local_path("apply_onnx_models_config.yaml"))
+        out.copy_file("apply_onnx_models_config.yaml")
     out.finalize()
     logger.info("Done")
 

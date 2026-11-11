@@ -14,14 +14,15 @@ input: /work/mmalucch/out_hh4b/my_run/
 
 # Output directory. It contains all the original columns plus the ONNX scores:
 # - columns in the coffea files: a copy of the coffea files with the new columns;
-# - columns in parquet files: <output>/parquet_files/<dataset>/<category>/<variation>/*.parquet
-#   (copies of the input files with the new columns), the coffea files and a
-#   config.json pointing to the new parquet directory.
+# - columns in parquet files: only the new parquet files,
+#   <output>/<dataset>/<category>/<variation>/*.parquet (copies of the input
+#   files with the new columns). Files of datasets/regions where no model is
+#   applied are not written, and the coffea files are not copied.
 # If the output is on /pnfs (or an xrootd url), the files are written in a local
 # temporary directory and copied with xrdcp (the slurm jobs cannot write on /pnfs).
 output: /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/my_run_onnx/
 
-# Redirector used to copy to /pnfs and written in the output config.json
+# Redirector used to copy to /pnfs
 redirector: root://t3dcachedb03.psi.ch:1094/
 # Local temporary directory for /pnfs outputs (default: $TMPDIR or /tmp)
 tmp_dir: null
@@ -46,7 +47,8 @@ process_output_all: false
 # parquet_input: /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/my_run/parquet_files/
 # Optional: only process the first N parquet files per dataset/category/variation (tests).
 # max_parquet_files: 2
-# Optional: name of the parquet subdirectory of the output (default parquet_files).
+# Optional: subdirectory of the output where the parquet files are written
+# (default: directly in the output directory).
 # parquet_subdir: parquet_files
 # Optional: constant input columns not saved in the run (e.g. events_era), as
 # {column: {dataset name or glob pattern: value}} (first matching pattern).
