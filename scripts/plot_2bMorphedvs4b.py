@@ -34,8 +34,12 @@ ARCTANH_BINS = False
 WEIGHT_COLUMN = args.weight_column
 # key in col_dict (variable names are stored without the "Run2" suffix)
 WEIGHT_KEY = WEIGHT_COLUMN.replace("Run2", "")
-VARIABLES_TEST = ["score", WEIGHT_COLUMN]
+VARIABLES_TEST = ["score", "HH_mass", "HiggsLeading", WEIGHT_COLUMN]
 DEBUG = args.test
+# In test mode (--test) only the first TEST_MAX_EVENTS events of each category are kept,
+# and only the first TEST_MAX_PARQUET_FILES parquet files per category are read
+TEST_MAX_EVENTS = 10_000
+TEST_MAX_PARQUET_FILES = 1
 
 input_dir = os.path.dirname(args.input_data[0])
 log_scale = not args.linear
@@ -287,8 +291,12 @@ needed_categories = {
     for cat in cat_list
     for sub_cat in cat.split(MERGE_SEP)
 }
-filter_lambda = (lambda x: ("weight" in x or "score" in x or x == WEIGHT_COLUMN)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories, float32=True)
+filter_lambda = (lambda x: ("score" in x or x == WEIGHT_COLUMN)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
+max_num_parquet_files = TEST_MAX_PARQUET_FILES if args.test else None
+
+max_events = TEST_MAX_EVENTS if args.test else None
+
+cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, max_num_parquet_files=max_num_parquet_files, max_events=max_events, filter_mixed=args.mixed, categories=needed_categories, float32=True)
 
 # If a preW category is missing in the files, build it from the corresponding
 # postW category: same columns, but with the weight set to 1 (i.e. no morphing)
@@ -298,9 +306,11 @@ for cat in needed_categories:
     cat_postW = cat.replace("preW", "postW")
     if cat_postW not in cat_col_data:
         continue
-    print(f"WARNING: {cat} not found in the files, using {cat_postW} with weight=1")
+    print(f"WARNING: {cat} not found in the files, using {cat_postW} with {WEIGHT_COLUMN}=1")
     cat_col_data[cat] = dict(cat_col_data[cat_postW])
-    cat_col_data[cat]["weight"] = np.ones_like(cat_col_data[cat_postW]["weight"])
+    # the weight column may be missing in postW: use the length of any column
+    n_events = len(next(iter(cat_col_data[cat_postW].values())))
+    cat_col_data[cat][WEIGHT_COLUMN] = np.ones(n_events)
 
 cat_col_mc = None
 if args.input_mc:
@@ -320,7 +330,7 @@ if args.input_mc:
         else f"vbf_4b{args.region_suffix}_signal_region" if args.vbf
         else f"4b{args.region_suffix}_signal_region"
     )
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed, categories=needed_categories | {sig_mc_category}, float32=True)
+    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, max_num_parquet_files=max_num_parquet_files, max_events=max_events, filter_mixed=args.mixed, categories=needed_categories | {sig_mc_category}, float32=True)
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
@@ -345,7 +355,7 @@ if args.input_mc:
             CONSTANT_SIGNAL_BINS = weighted_quantile(
                 cols_sig_mc[col],
                 np.linspace(0, 1, NUMBER_OF_BINS + 1),
-                weights=cols_sig_mc["weight"],
+                weights=cols_sig_mc[WEIGHT_COLUMN],
             )
             CONSTANT_SIGNAL_BLIND_BINS = CONSTANT_SIGNAL_BINS[
                 CONSTANT_SIGNAL_BINS < BLIND_VALUE
@@ -354,7 +364,7 @@ if args.input_mc:
             score_hist = np.histogram(
                 cols_sig_mc[col],
                 bins=CONSTANT_SIGNAL_BINS,
-                weights=cols_sig_mc["weight"],
+                weights=cols_sig_mc[WEIGHT_COLUMN],
             )
             print(f"Constant signal bins histogram: {score_hist}")
 else:
@@ -507,7 +517,7 @@ def find_jagged_collections(columns):
     for base, items in split_cols.items():
         coll = base.split("_")[0]
         # skip the event-level multi-dimensional columns (e.g. the spread weights)
-        if coll in collections or coll == "events" or "weight" in base or "score" in base:
+        if coll in collections or coll == "events" or WEIGHT_COLUMN in base or "score" in base:
             continue
         collections[coll] = ("split", [c for _, c in sorted(items)])
 
@@ -598,8 +608,8 @@ def plot_single_var_from_columns(
             # remove padded values
             noninf_den = np.abs(weights_den) < np.inf
             noninf_num = np.abs(weights_num) < np.inf
-            mask_den = (col_den != PAD_VALUE) & noninf_den
-            mask_num = (col_num != PAD_VALUE) & noninf_num
+            mask_den = (col_den != PAD_VALUE) & noninf_den & np.isfinite(col_den)
+            mask_num = (col_num != PAD_VALUE) & noninf_num & np.isfinite(col_num)
             weights_den = weights_den[mask_den]
             weights_num = weights_num[mask_num]
             col_den = col_den[mask_den]
@@ -642,7 +652,7 @@ def plot_single_var_from_columns(
                     if "blind" not in cat
                     else CONSTANT_SIGNAL_BLIND_BINS
                 )
-            elif type(col_num[0]) == np.int64:
+            elif np.issubdtype(col_num.dtype, np.integer):
                 # this is a categorical variable, use the number of bins
                 bins = np.arange(
                     col_num.min() - 0.5,
@@ -651,9 +661,12 @@ def plot_single_var_from_columns(
                 )
             else:
                 # compute the range of the 4b category considering the 0.1% and 99.9% quantile
-                range_4b = (
-                    tuple(np.quantile(col_den, [0.001, 0.999])) if i == 0 else range_4b
-                )
+                if i == 0:
+                    range_4b = tuple(np.quantile(col_den, [0.001, 0.999]))
+                    # degenerate range (e.g. constant column): widen it to get valid bins
+                    if not range_4b[1] > range_4b[0]:
+                        print(f"WARNING: degenerate range {range_4b} for {var} in {cat}, widening it")
+                        range_4b = (range_4b[0] - 0.5, range_4b[0] + 0.5)
 
                 mask_num_range4b = (col_num >= range_4b[0]) & (col_num <= range_4b[1])
                 weights_num = weights_num[mask_num_range4b]
@@ -825,7 +838,7 @@ def main(cat_cols, lumi, era_string):
 
             if "SPREAD" in cats_name:
                 vars_tot = list(cat_col_DATA[cat_list[0]].keys())
-                vars_tot = [v for v in vars_tot if "weight" in v or "score" in v or v == WEIGHT_COLUMN]
+                vars_tot = [v for v in vars_tot if "score" in v or v == WEIGHT_COLUMN]
             else:
                 vars_tot = list(cat_col_DATA[cat_list[1].split(MERGE_SEP)[0]].keys())
                 vars_tot = [v for v in vars_tot if "year" not in v]
@@ -896,7 +909,7 @@ def main(cat_cols, lumi, era_string):
                 else:
                     if var_name not in col_dict:
                         col_dict[var_name] = {}
-                    if "weight" not in v and v != WEIGHT_COLUMN:
+                    if v != WEIGHT_COLUMN:
                         vars_to_plot.append(var_name)
                     for cat in sub_cat_list:
                         if "SPREAD" in cat:
@@ -1058,6 +1071,13 @@ if __name__ == "__main__":
 
     # plot the weights
     for category in cat_col_data.keys():
+        if WEIGHT_COLUMN not in cat_col_data[category]:
+            print(
+                f"WARNING: weight column {WEIGHT_COLUMN} not found in category {category}, using weight 1"
+            )
+            n_events = len(next(iter(cat_col_data[category].values())))
+            # store it so that the histograms of this category are also filled with weight 1
+            cat_col_data[category][WEIGHT_COLUMN] = np.ones(n_events)
         weights = cat_col_data[category][WEIGHT_COLUMN]
         if np.any(weights >= np.inf):
             print("Found infinite values in weights")

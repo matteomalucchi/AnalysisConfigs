@@ -24,18 +24,21 @@ logger = logging.getLogger()
 
 def get_columns_from_files(
     inputfiles, sel_var="nominal", filter_lambda=None, debug=False, novars=False, max_num_parquet_files=None, filter_mixed=False,
-    categories=None, float32=False,
+    categories=None, float32=False, max_events=None,
 ):
     """
     categories: optional iterable of category names to load from parquet
         (None = all). Skipping unused categories saves memory.
     float32: if True, float64 parquet columns (except weights) are converted
         to float32 to halve their memory.
+    max_events: optional maximum number of events kept per category (None = all).
+        From parquet only the needed rows are read; coffea columns are loaded
+        and then truncated.
     """
     if not debug:
         logger.setLevel(level=logging.INFO)
     if novars:
-        return get_columns_from_files_novars(inputfiles, filter_lambda, debug, max_num_parquet_files, filter_mixed, categories, float32)
+        return get_columns_from_files_novars(inputfiles, filter_lambda, debug, max_num_parquet_files, filter_mixed, categories, float32, max_events)
     logger.info(f"Loading variations: {sel_var}")
     cat_col = {}
     total_datasets_list = []
@@ -45,7 +48,7 @@ def get_columns_from_files(
         samples = list(accumulator["columns"].keys())
         if accumulator["columns"] == {}:
             logger.info("Empty columns, trying to read from parquet files")
-            return get_columns_from_parquet(inputfiles, sel_var, filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed, categories=categories, float32=float32)
+            return get_columns_from_parquet(inputfiles, sel_var, filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed, categories=categories, float32=float32, max_events=max_events)
         if debug:
             logger.debug(f"inputfile {inputfile}")
         for sample in samples:
@@ -176,7 +179,37 @@ def get_columns_from_files(
                         raise ValueError(
                             f"Variation {sel_var} not found in variations {variations}"
                         )
+    if max_events is not None:
+        for category in cat_col:
+            if sel_var.lower() == "all":
+                for variation in cat_col[category]:
+                    _truncate_columns(cat_col[category][variation], max_events)
+            else:
+                _truncate_columns(cat_col[category], max_events)
     return cat_col, total_datasets_list
+
+
+def _truncate_columns(columns, max_events):
+    """
+    Keep only the first max_events events of a {column: array} dict (in place).
+    Flattened jagged columns (<coll>_<var> of length sum(<coll>_N)) are cut
+    at the objects of the kept events. The number of events is taken from "weight".
+    """
+    if "weight" not in columns or len(columns["weight"]) <= max_events:
+        return
+    n_events = len(columns["weight"])
+    n_obj_kept = {
+        c[:-2]: int(np.sum(columns[c][:max_events])) for c in columns if c.endswith("_N")
+    }
+    for column, arr in list(columns.items()):
+        if len(arr) == n_events:
+            columns[column] = arr[:max_events]
+            continue
+        coll = next((k for k in n_obj_kept if column.startswith(f"{k}_")), None)
+        if coll is None:
+            logger.warning(f"Cannot truncate column {column} (length {len(arr)} != {n_events} events)")
+            continue
+        columns[column] = arr[: n_obj_kept[coll]]
 
 
 def fill_category(
@@ -222,10 +255,13 @@ def get_columns_from_parquet(
     filter_mixed=False,
     categories=None,
     float32=False,
+    max_events=None,
 ):
     """
     Parquet loader reading in batches of BATCH_SIZE rows, with
     ThreadPoolExecutor for parallel variation loading.
+    If max_events is given, reading stops after max_events rows per
+    (dataset, category, variation) and each category is truncated to max_events.
 
     Memory: only the requested `categories` are read, each Arrow batch is
     converted to numpy and released right away, list columns are converted
@@ -370,9 +406,17 @@ def get_columns_from_parquet(
         # numpy right away, so that only one small Arrow batch is in memory at
         # a time (reading the full table at once more than doubles the peak)
         batches_dict = {c: [] for c in schema_cols}
+        n_read = 0
         for file in files:
+            if max_events is not None and n_read >= max_events:
+                break
             parquet_file = pq.ParquetFile(file, pre_buffer=False)
             for batch in parquet_file.iter_batches(batch_size=BATCH_SIZE, columns=schema_cols):
+                if max_events is not None:
+                    if n_read >= max_events:
+                        break
+                    batch = batch.slice(0, max_events - n_read)
+                n_read += batch.num_rows
                 for column in schema_cols:
                     arr = _arrow_to_numpy(column, batch.column(column))
                     if float32 and arr.dtype == np.float64 and "weight" not in column:
@@ -440,7 +484,7 @@ def get_columns_from_parquet(
         target = cat_col[category].setdefault(variation, {}) if load_all else cat_col[category]
         for column in list(columns):
             arrays = columns.pop(column)
-            target[column] = arrays[0] if len(arrays) == 1 else np.concatenate(arrays)
+            target[column] = (arrays[0] if len(arrays) == 1 else np.concatenate(arrays))[:max_events]
             del arrays
     del parts
     gc.collect()
@@ -480,7 +524,7 @@ def get_parquet_save_directory(input_parquet):
     return col_dir, dataset
 
 
-def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None, filter_mixed=False, categories=None, float32=False):
+def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, max_num_parquet_files=None, filter_mixed=False, categories=None, float32=False, max_events=None):
     cat_col = {}
     total_datasets_list = []
     # get the columns
@@ -493,7 +537,7 @@ def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, m
             logger.info("Empty columns, trying to read from parquet files")
             return get_columns_from_parquet(
                 inputfiles, "", filter_lambda, debug, accumulator["sum_genweights"], max_num_parquet_files=max_num_parquet_files, filter_mixed=filter_mixed,
-                categories=categories, float32=float32,
+                categories=categories, float32=float32, max_events=max_events,
             )
         for sample in samples:
             if debug:
@@ -553,4 +597,7 @@ def get_columns_from_files_novars(inputfiles, filter_lambda=None, debug=False, m
                                     cat_col[category][column].shape,
                                 )
 
+    if max_events is not None:
+        for category in cat_col:
+            _truncate_columns(cat_col[category], max_events)
     return cat_col, total_datasets_list

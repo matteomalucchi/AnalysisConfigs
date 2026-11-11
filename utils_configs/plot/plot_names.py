@@ -10,8 +10,7 @@ def plot_regions_names(cat_plot_name, namesuffix=""):
     if "Run2" in cat_plot_name:
         cat_plot_name = cat_plot_name.replace("Run2", "")
         namesuffix += r" $D_{HH}$"
-    else:
-        namesuffix += " SPANet"
+    
     cat_plot_name += namesuffix
     return cat_plot_name
 
