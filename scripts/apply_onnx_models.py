@@ -154,6 +154,13 @@ def parse_config(config_path, args):
     cfg.setdefault("process_output_all", False)
     cfg.setdefault("max_parquet_files", None)
     cfg.setdefault("overwrite", False)
+    cfg.setdefault("extra_columns", None)
+    if cfg["extra_columns"] is not None and not all(
+        isinstance(v, dict) for v in cfg["extra_columns"].values()
+    ):
+        raise ValueError(
+            "'extra_columns' must be a dictionary {column: {dataset pattern: value}}"
+        )
     if isinstance(cfg["input"], str):
         cfg["input"] = [cfg["input"]]
 
@@ -272,9 +279,9 @@ def to_awkward(array, counts=None, n_events=None):
     """
     arr = array if isinstance(array, ak.Array) else ak.Array(np.asarray(array))
     if arr.ndim > 1:
-        if "var *" not in str(arr.type.content):
-            arr = ak.from_regular(arr, axis=1)
-        return arr
+        # no-op if already jagged (also works with awkward 1, where the
+        # ArrayType has no `content`)
+        return ak.from_regular(arr, axis=1)
     if counts is not None:
         counts = np.asarray(counts, dtype=np.int64)
         if len(arr) == counts.sum():
@@ -340,7 +347,7 @@ def build_events(columns, models, n_events, unit_name=""):
                 )
             if "btagB" not in coll_fields:
                 # only needed for the b-tag ratios of SPANet
-                coll_fields["btagB"] = ak.ones_like(coll_fields["pt"])
+                coll_fields["btagB"] = ak.ones_like(next(iter(coll_fields.values())))
         else:
             for f, arr in coll_fields.items():
                 if is_jagged[f]:
@@ -353,6 +360,29 @@ def build_events(columns, models, n_events, unit_name=""):
         event_fields[coll] = ak.zip(coll_fields)
 
     return ak.zip(event_fields, depth_limit=1)
+
+
+def extra_columns_for(cfg, dataset):
+    """
+    Constant input columns of the given dataset from `extra_columns`
+    ({column: {dataset pattern: value}}): the value of the first pattern
+    matching the dataset, if any.
+    """
+    extra = {}
+    for col, values in (cfg.get("extra_columns") or {}).items():
+        for pattern, value in values.items():
+            if matches(dataset, pattern):
+                extra[col] = value
+                break
+    return extra
+
+
+def add_extra_columns(columns, extra, needed, n_events):
+    """Add the constant columns `extra` that are needed and not already saved."""
+    for col, value in extra.items():
+        if col in needed and col not in columns:
+            columns[col] = np.full(n_events, value, dtype=np.float64)
+    return columns
 
 
 def columns_needed(models):
@@ -680,6 +710,7 @@ def process_coffea_columns(cfg, coffea_files, out, pool):
             n_events = n_events_from_columns(cols)
             needed = columns_needed(unit_models)
             columns = {k: _value(v) for k, v in cols.items() if k in needed}
+            add_extra_columns(columns, extra_columns_for(cfg, dataset), needed, n_events)
             events = build_events(columns, unit_models, n_events, unit_name)
             logger.info(
                 f"{unit_name}: {n_events} events, models {[m['name'] for m in unit_models]}"
@@ -746,27 +777,53 @@ def _process_parquet_file(task):
     Read one parquet file, evaluate the models and write a copy with the new
     columns. Run in a separate process when workers > 1.
     """
-    src, dst, models, chunk_size, unit_name, overwrite = task
-    # read and written with awkward (as done by PocketCoffea), so that the
-    # awkward metadata stored in the parquet file stays consistent
-    array = ak.from_parquet(src)
-    if models:
-        needed = columns_needed(models)
-        columns = {c: array[c] for c in array.fields if c in needed}
-        events = build_events(columns, models, len(array), unit_name)
-        scores = evaluate_in_chunks(models, events, chunk_size)
-        for name, arr in scores.items():
-            if name in array.fields:
-                if not overwrite:
-                    raise ValueError(
-                        f"{unit_name}: column {name} already exists in {src}, "
-                        "set overwrite: true to replace it"
-                    )
-                logger.warning(f"{unit_name}: overwriting column {name} in {src}")
-            array = ak.with_field(array, arr, name)
+    src, dst, models, chunk_size, unit_name, overwrite, extra = task
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    ak.to_parquet(array, dst)
-    return dst, len(array)
+    if not models:
+        # nothing to add: plain copy, without loading the file in memory
+        shutil.copyfile(src, dst)
+        return dst, None
+
+    import pyarrow.parquet as pq
+
+    needed = columns_needed(models)
+    n_row_groups = pq.ParquetFile(src).metadata.num_row_groups
+
+    def row_groups_with_scores():
+        # one row group at a time, so that the memory does not scale with the
+        # size of the file (the merged files can be several GB)
+        for i in range(n_row_groups):
+            # converted with awkward (same arrow schema as ak.to_parquet, used
+            # by PocketCoffea), so that the files read back the same way
+            array = ak.from_parquet(src, row_groups=[i])
+            columns = {c: array[c] for c in array.fields if c in needed}
+            add_extra_columns(columns, extra, needed, len(array))
+            events = build_events(columns, models, len(array), unit_name)
+            scores = evaluate_in_chunks(models, events, chunk_size)
+            for name, arr in scores.items():
+                if name in array.fields:
+                    if not overwrite:
+                        raise ValueError(
+                            f"{unit_name}: column {name} already exists in {src}, "
+                            "set overwrite: true to replace it"
+                        )
+                    logger.warning(f"{unit_name}: overwriting column {name} in {src}")
+                array = ak.with_field(array, arr, name)
+            yield ak.to_arrow_table(array)
+
+    # one output row group per input row group
+    writer = None
+    try:
+        for table in row_groups_with_scores():
+            if writer is None:
+                writer = pq.ParquetWriter(dst, table.schema)
+            elif not table.schema.equals(writer.schema):
+                table = table.cast(writer.schema)
+            writer.write_table(table)
+    finally:
+        if writer is not None:
+            writer.close()
+    return dst, None
 
 
 def list_parquet_units(col_dir, datasets, variations):
@@ -836,6 +893,7 @@ def process_parquet_columns(cfg, coffea_files, col_dir, out, pool):
                         cfg["chunk_size"],
                         unit_name,
                         cfg["overwrite"],
+                        extra_columns_for(cfg, dataset),
                     ),
                 )
             )
@@ -906,11 +964,39 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
+def check_proxy(min_hours=2):
+    """
+    xrdcp to /pnfs needs a valid grid proxy: fail at the start, not after
+    processing. The proxy (X509_USER_PROXY) must be on a shared file system
+    (e.g. /t3home) to be seen by the slurm jobs.
+    """
+    proxy = os.environ.get("X509_USER_PROXY") or f"/tmp/x509up_u{os.getuid()}"
+    res = subprocess.run(
+        ["voms-proxy-info", "-exists", "-valid", f"{min_hours}:00", "-file", proxy],
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode != 0:
+        raise RuntimeError(
+            f"No grid proxy valid for at least {min_hours} h in {proxy}, needed to copy "
+            "the output to /pnfs with xrdcp: run `voms-proxy-init -voms cms -rfc --valid 168:0`"
+        )
+    if proxy.startswith("/tmp"):
+        logger.warning(
+            f"The proxy {proxy} is in /tmp: set X509_USER_PROXY to a file on a shared "
+            "file system (e.g. /t3home) to use it in the slurm jobs"
+        )
+    logger.info(f"Grid proxy: {proxy}")
+    return proxy
+
+
 def main(argv=None):
     args = parse_args(argv)
     if args.debug:
         logger.setLevel(logging.DEBUG)
     cfg = parse_config(args.config, args)
+    if cfg["output"].startswith("/pnfs") or "://" in cfg["output"]:
+        check_proxy()
 
     for m in cfg["models"]:
         logger.info(
@@ -961,6 +1047,15 @@ def main(argv=None):
             process_coffea_columns(cfg, coffea_files, out, pool)
         else:
             process_parquet_columns(cfg, coffea_files, col_dir, out, pool)
+    except BaseException:
+        # do not leave GBs of temporary files behind (e.g. a full /tmp)
+        if out.remote:
+            if pool is not None:
+                pool.shutdown(wait=True, cancel_futures=True)
+                pool = None
+            shutil.rmtree(out.local, ignore_errors=True)
+            logger.error(f"Failed: removed the temporary directory {out.local}")
+        raise
     finally:
         if pool is not None:
             pool.shutdown()
