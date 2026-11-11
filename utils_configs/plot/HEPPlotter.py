@@ -1624,6 +1624,10 @@ class HEPPlotter:
 
         ax.set_ylabel(self.ylabel, fontsize=self.ylabel_fontsize)
 
+        # align the y labels of the main, ratio and pull plots
+        if ax_ratio:
+            fig.align_ylabels([a for a in (ax, ax_ratio, ax_pull) if a is not None])
+
         # print xticklabels
         if self.xticklabels is not None and self.label_pos is not None:
             ax.set_xticks(self.label_pos)
