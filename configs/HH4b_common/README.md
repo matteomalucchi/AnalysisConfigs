@@ -16,6 +16,7 @@ The details are in the [`docs/`](./docs/) subdirectory:
 | [`docs/categories.md`](./docs/categories.md) | All the categories: first approach (4b/2b, mass-plane regions, `preW`/`postW`, blinded, high-score, VR1), second approach (SR/CR and b-tag categories), VBF and ggF, boosted, and the ones set by the config templates. |
 | [`docs/approaches.md`](./docs/approaches.md) | The first and second approaches of HIG-24-010: their common points and their differences (object and event preselection, skim, pT regression, pairing, VBF selection, regions, background estimate). |
 | [`docs/plotting.md`](./docs/plotting.md) | The plotting scripts `plot_2bMorphedvs4b.py` (morphed 2b vs 4b data) and `plot_DNN_score.py` (signal/background DNN score): what they plot, all the arguments and examples. |
+| [`docs/apply_onnx_models.md`](./docs/apply_onnx_models.md) | How to apply ONNX models (DNN or SPANet) to the columns (coffea or parquet) of an existing output with `scripts/apply_onnx_models.py`, selecting regions and datasets. |
 
 ## Configuration in short
 
