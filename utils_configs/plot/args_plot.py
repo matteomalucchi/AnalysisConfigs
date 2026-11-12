@@ -130,9 +130,11 @@ parser.add_argument(
 parser.add_argument(
     "-mw",
     "--mask-large-weights",
-    action="store_true",
-    help="Removes events with large weights from the plots (w>100)",
-    default=True,
+    type=float,
+    help="If set, remove from the plots the events with weight above this value "
+    "(the weight distribution is still plotted entirely, with a line at the threshold). "
+    "Default: None (no masking)",
+    default=None,
 )
 parser.add_argument(
     "-wc",

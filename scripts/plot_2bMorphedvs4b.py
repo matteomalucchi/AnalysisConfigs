@@ -27,6 +27,9 @@ if not args.output:
         args.output = "test_2bVS4b"
 
 NUMBER_OF_BINS = 20
+# integer variables with a range smaller than this get one bin per value,
+# otherwise they are binned like floats (avoids e.g. one bin per event number)
+MAX_INTEGER_BINS = 200
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
 ARCTANH_BINS = False
@@ -423,8 +426,16 @@ def plot_weights(weights_list, suffix, lumi, era_string):
         .add_annotation(
             x=0.05, y=0.95, s="\n".join(mean_std_list), fontsize=20, ha="left", va="top"
         )
-        .run()
     )
+    # show where the --mask-large-weights cut is applied in the other plots
+    if args.mask_large_weights is not None:
+        p = p.add_line(
+            orientation="v", x=args.mask_large_weights, color="red", linestyle="--", linewidth=2
+        ).add_annotation(
+            x=0.95, y=0.95, s=f"masked: w > {args.mask_large_weights:g}",
+            fontsize=20, ha="right", va="top", color="red",
+        )
+    p.run()
 
 
 def get_median_hist(
@@ -616,8 +627,8 @@ def plot_single_var_from_columns(
             col_num = col_num[mask_num]
 
             ### This is a bad workaround for the case where a few weights are Nan or very high.
-            if args.mask_large_weights:
-                bad_weights = np.isnan(weights_den) | (weights_den > 100)
+            if args.mask_large_weights is not None:
+                bad_weights = np.isnan(weights_den) | (weights_den > args.mask_large_weights)
                 weights_den = weights_den[~bad_weights]
                 col_den = col_den[~bad_weights]
 
@@ -652,8 +663,13 @@ def plot_single_var_from_columns(
                     if "blind" not in cat
                     else CONSTANT_SIGNAL_BLIND_BINS
                 )
-            elif np.issubdtype(col_num.dtype, np.integer):
+            elif (
+                np.issubdtype(col_num.dtype, np.integer)
+                and len(col_num)
+                and int(col_num.max()) - int(col_num.min()) < MAX_INTEGER_BINS
+            ):
                 # this is a categorical variable, use the number of bins
+                # (integers with a large range, e.g. the event number, use the float binning)
                 bins = np.arange(
                     col_num.min() - 0.5,
                     col_num.max() + 1.5,

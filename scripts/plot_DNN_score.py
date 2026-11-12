@@ -503,10 +503,10 @@ def main(cat_cols, lumi, era_string):
     SR_region_rew = cat_dict[f"SR{args.region_suffix}"][1]
     CR_weights = cat_cols[1][CR_region_rew]["weight"]
     SR_weights = cat_cols[1][SR_region_rew]["weight"]
-    if args.mask_large_weights:
+    if args.mask_large_weights is not None:
         for key in cat_cols[1][CR_region_rew].keys():
-            cat_cols[1][CR_region_rew][key] = cat_cols[1][CR_region_rew][key][CR_weights < 100]
-            cat_cols[1][SR_region_rew][key] = cat_cols[1][SR_region_rew][key][SR_weights < 100]
+            cat_cols[1][CR_region_rew][key] = cat_cols[1][CR_region_rew][key][CR_weights <= args.mask_large_weights]
+            cat_cols[1][SR_region_rew][key] = cat_cols[1][SR_region_rew][key][SR_weights <= args.mask_large_weights]
 
     try:
         if args.run2:

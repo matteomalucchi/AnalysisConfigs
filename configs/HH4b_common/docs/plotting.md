@@ -54,7 +54,8 @@ The ratio panel shows Data/Pred. and a $\chi^2$ is added to the plots. Additiona
 
 Binning: 20 bins in the range between the 0.1% and 99.9% quantiles of the 4b distribution (NaN
 values are dropped; if the range is degenerate, e.g. a constant column, it is widened to ±0.5 around
-the value); integer variables (any integer dtype) get one bin per value. If `-im` is a single coffea file containing a score column, the
+the value); integer variables (any integer dtype) get one bin per value if their range is smaller than
+`MAX_INTEGER_BINS` (200), otherwise (e.g. the event number) they are binned like floats. If `-im` is a single coffea file containing a score column, the
 score variables use 20 bins with constant signal yield (computed on the MC signal).
 
 ### Arguments
@@ -80,7 +81,7 @@ score variables use 20 bins with constant signal yield (computed on the MC signa
 | `-l`, `--linear` | `False` | Linear y axis (default is log). |
 | `-t`, `--test` | `False` | Quick test: only the variables containing `score`, `HH_mass`, `HiggsLeading` or the weight, at most 10000 events and 1 parquet file per category. |
 | `-cms`, `--cmstext` | `Private` | Text next to the CMS label. |
-| `-mw`, `--mask-large-weights` | `True` | Remove the events with NaN or weight > 100 from the predicted histograms (always on). |
+| `-mw`, `--mask-large-weights` | `None` | If set to a number `X`, remove the events with NaN or weight > `X` from the predicted histograms. The morphing-weight distribution is still plotted entirely, with a red dashed vertical line at `X`. Default: no masking. |
 
 Only one of `--run2`, `--boosted`, `--vbf`, `--mixed` is used, in this order of priority; without
 any of them the default (first approach, ggF) regions are plotted.
@@ -147,7 +148,7 @@ plots. The yields are written to `yields.txt` in the output directory.
 | `-l`, `--linear` | `False` | Linear y axis (default is log). |
 | `-t`, `--test` | `False` | Quick test: only the SR is plotted and the CR ratio is set to 1. |
 | `-cms`, `--cmstext` | `Private` | Text next to the CMS label. |
-| `-mw`, `--mask-large-weights` | `True` | Remove the background events with weight ≥ 100 (always on). |
+| `-mw`, `--mask-large-weights` | `None` | If set to a number `X`, remove the background events with weight > `X`. Default: no masking. |
 
 ### Examples
 
