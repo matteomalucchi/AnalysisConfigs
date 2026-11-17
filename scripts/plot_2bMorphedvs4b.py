@@ -14,7 +14,7 @@ from utils_configs.get_DNN_input_list import get_DNN_input_list
 from utils_configs.plot.get_era_lumi import get_era_lumi
 from utils_configs.plot.get_columns_from_files import get_columns_from_files
 from utils_configs.plot.weighted_quantile import weighted_quantile
-from utils_configs.plot.plot_names import plot_regions_names
+from utils_configs.plot.plot_utils import plot_regions_names, print_event_counts
 from utils_configs.plot.args_plot import args
 
 from utils_configs.plot.HEPPlotter import HEPPlotter
@@ -884,6 +884,8 @@ def main(cat_cols, lumi, era_string):
     for cats_name, cat_lists in cat_dict.items():
         plot_categories = False
         cat_lists_final = []
+        # variables not found in at least one region: they are skipped
+        missing_vars = set()
         for cat_list in cat_lists:
             print(f"categories being analysed {cats_name}", cat_list)
             if args.spread:
@@ -976,15 +978,26 @@ def main(cat_cols, lumi, era_string):
                                     == idx
                                 ]
                             except KeyError:
-                                col_dict[f"{var_name}_{idx}"][cat] = cat_col[
-                                    cat.replace("_MC", "")
-                                ][var_name][
-                                    np.arange(
-                                        len(cat_col[cat.replace("_MC", "")][var_name])
+                                try:
+                                    col_dict[f"{var_name}_{idx}"][cat] = cat_col[
+                                        cat.replace("_MC", "")
+                                    ][var_name][
+                                        np.arange(
+                                            len(
+                                                cat_col[cat.replace("_MC", "")][
+                                                    var_name
+                                                ]
+                                            )
+                                        )
+                                        % N
+                                        == idx
+                                    ]
+                                except KeyError:
+                                    print(
+                                        f"WARNING: variable {v} not found in region {cat}. Skipping..."
                                     )
-                                    % N
-                                    == idx
-                                ]
+                                    missing_vars.add(f"{var_name}_{idx}")
+                                    break
                 else:
                     if var_name not in col_dict:
                         col_dict[var_name] = {}
@@ -1007,9 +1020,16 @@ def main(cat_cols, lumi, era_string):
                         try:
                             col_dict[var_name][cat] = cat_col[cat.replace("_MC", "")][v]
                         except KeyError:
-                            col_dict[var_name][cat] = cat_col[cat.replace("_MC", "")][
-                                var_name
-                            ]
+                            try:
+                                col_dict[var_name][cat] = cat_col[
+                                    cat.replace("_MC", "")
+                                ][var_name]
+                            except KeyError:
+                                print(
+                                    f"WARNING: variable {v} not found in region {cat}. Skipping..."
+                                )
+                                missing_vars.add(var_name)
+                                break
 
             # number of objects of each jagged collection (e.g. jets), computed
             # by counting the non-None objects in each event (also if <coll>_N is stored)
@@ -1108,6 +1128,13 @@ def main(cat_cols, lumi, era_string):
             plot_categories = True
 
         if plot_categories:
+            if missing_vars:
+                print(f"WARNING: skipping variables missing in some region: {missing_vars}")
+            vars_to_plot = [
+                v
+                for v in vars_to_plot
+                if v.replace("_TRANSFORM", "") not in missing_vars
+            ]
             if args.workers > 1:
                 with Pool(args.workers) as p:
                     p.starmap(
@@ -1163,6 +1190,11 @@ if __name__ == "__main__":
         weights = weights[weights < np.inf]
         if "postW" in category:
             plot_weights([weights], category, lumi, era_string)
+
+    # table with the number of events in each region
+    print_event_counts(cat_col_data, "DATA", outputdir, WEIGHT_COLUMN)
+    if cat_col_mc is not None:
+        print_event_counts(cat_col_mc, "MC", outputdir, WEIGHT_COLUMN)
 
     main([cat_col_data, cat_col_mc], lumi, era_string)
 

@@ -12,7 +12,7 @@ from utils_configs.get_DNN_input_list import get_DNN_input_list
 from utils_configs.plot.get_era_lumi import get_era_lumi
 from utils_configs.plot.get_columns_from_files import get_columns_from_files
 from utils_configs.plot.weighted_quantile import weighted_quantile
-from utils_configs.plot.plot_names import plot_regions_names
+from utils_configs.plot.plot_utils import plot_regions_names, print_event_counts
 from utils_configs.plot.args_plot import args
 
 from utils_configs.plot.HEPPlotter import HEPPlotter
@@ -778,6 +778,13 @@ if __name__ == "__main__":
 
     ## Generating the lumi and era_string for the plots:
     lumi, era_string = get_era_lumi(total_datasets_list_data)
+
+    # table with the number of events in each region
+    print_event_counts(cat_col_data, "DATA", outputdir, "weight")
+    if args.mixed:
+        # otherwise the reweighted columns come from the same files as DATA
+        print_event_counts(cat_col_rew, "BKG", outputdir, "weight")
+    print_event_counts(cat_col_mc, "MC", outputdir, "weight")
 
     ############# Actual plotting command. Now a list with [datastuff, mcstuff] ######################
     main(
