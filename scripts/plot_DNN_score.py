@@ -421,7 +421,8 @@ def plot_single_var_from_columns(
         p_sob = (
             HEPPlotter(debug=True)
             .set_plot_config(
-                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                cmstext=args.cmstext,
                 figsize=[13, 13],
             )
             .set_output(os.path.join(dir_cat, f"{var}_{plot_name}"))
@@ -441,7 +442,8 @@ def plot_single_var_from_columns(
     p = (
         HEPPlotter(debug=True)
         .set_plot_config(
-            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            cmstext=args.cmstext,
             figsize=[13, 13],
         )
         .set_output(os.path.join(dir_cat, f"{var}"))
@@ -451,9 +453,7 @@ def plot_single_var_from_columns(
             ratio_label="Data/Pred.",
         )
         .set_options(
-            y_log=log_scale,
-            reference_to_den=False,
-            set_ylim_ratio= 0.5
+            y_log=log_scale, reference_to_den=False, set_ylim_ratio=0.5, pull=True
         )
         .add_annotation(x=0.05, y=0.95 - 0.15, s=sob_string, fontsize=20)
         .set_data(hist_1d_dict, plot_type="1d")
@@ -488,11 +488,20 @@ def main(cat_cols, lumi, era_string):
     # - In this region, 1st element is 4b, 3rd element is 2b-reweighted
     # PEP-8 compliance: replace lambda expression with function
     if args.normalisation == "sum_weights":
-        def op_norm(x, y): return sum(x) / sum(y)
+
+        def op_norm(x, y):
+            return sum(x) / sum(y)
+
     elif args.normalisation == "num_events":
-        def op_norm(x, y): return len(x) / len(y)
+
+        def op_norm(x, y):
+            return len(x) / len(y)
+
     elif args.normalisation == "density":
-        def op_norm(x, y): return 1
+
+        def op_norm(x, y):
+            return 1
+
     else:
         raise ValueError(
             f"Unknown normalisation type {args.normalisation}. Use num_events, sum_weights or density"
@@ -505,8 +514,12 @@ def main(cat_cols, lumi, era_string):
     SR_weights = cat_cols[1][SR_region_rew]["weight"]
     if args.mask_large_weights is not None:
         for key in cat_cols[1][CR_region_rew].keys():
-            cat_cols[1][CR_region_rew][key] = cat_cols[1][CR_region_rew][key][CR_weights <= args.mask_large_weights]
-            cat_cols[1][SR_region_rew][key] = cat_cols[1][SR_region_rew][key][SR_weights <= args.mask_large_weights]
+            cat_cols[1][CR_region_rew][key] = cat_cols[1][CR_region_rew][key][
+                CR_weights <= args.mask_large_weights
+            ]
+            cat_cols[1][SR_region_rew][key] = cat_cols[1][SR_region_rew][key][
+                SR_weights <= args.mask_large_weights
+            ]
 
     try:
         if args.run2:
@@ -555,7 +568,7 @@ def main(cat_cols, lumi, era_string):
         sys.exit(1)
 
     # cat_dict defined on top (global variable)
-    for cats_name, cat_list in cat_dict.items(): # Signal and background regions
+    for cats_name, cat_list in cat_dict.items():  # Signal and background regions
         if "Run2SPANet" in cats_name:
             chi_squared = False
             color_list = color_list_alt
@@ -572,7 +585,9 @@ def main(cat_cols, lumi, era_string):
         for data_mc, cat_col, cat in zip(["DATA", "BKG", "MC"], cat_cols, cat_list):
             print(data_mc)
             print(cat_col.keys())
-            vars_tot = list(cat_col[cat].keys()) # We only consider observables present in data
+            vars_tot = list(
+                cat_col[cat].keys()
+            )  # We only consider observables present in data
             # print("vars_tot", vars_tot)
             vars_to_plot = []
             # vars_tot = [v for v in vars_tot if "add" in v or "weight"  in v]
@@ -599,7 +614,9 @@ def main(cat_cols, lumi, era_string):
                         # Now it is only a one-to-one matching.
                         # I think this should not have an impact, but in case there is an issue, start with this.
                         cat_data_mc = f"{cat}_{data_mc}"
-                        if ("post" in cat and data_mc != "BKG") or ("post" not in cat and data_mc == "BKG"):
+                        if ("post" in cat and data_mc != "BKG") or (
+                            "post" not in cat and data_mc == "BKG"
+                        ):
                             print(f"Skipping {v} for {cat} in {data_mc}")
                             continue  # skip 2b MC
                         try:
@@ -610,8 +627,7 @@ def main(cat_cols, lumi, era_string):
                             col_dict[f"{v}_{idx}"][cat_data_mc] = cat_col[cat][
                                 v.replace("Run2", "")
                             ][
-                                np.arange(len(cat_col[cat][v.replace("Run2", "")]))
-                                % N
+                                np.arange(len(cat_col[cat][v.replace("Run2", "")])) % N
                                 == idx
                             ]
                 else:
@@ -621,7 +637,9 @@ def main(cat_cols, lumi, era_string):
                         vars_to_plot.append(v)
                     # for cat in cat_list:
                     cat_data_mc = f"{cat}_{data_mc}"
-                    if ("post" in cat and data_mc != "BKG") or ("post" not in cat and data_mc == "BKG"):
+                    if ("post" in cat and data_mc != "BKG") or (
+                        "post" not in cat and data_mc == "BKG"
+                    ):
                         print(f"Skipping {v} for {cat} in {data_mc}")
                         continue  # skip 2b MC
                     if not cat_data_mc in col_list_data_mc:
@@ -631,15 +649,11 @@ def main(cat_cols, lumi, era_string):
                     try:
                         col_dict[v][cat_data_mc] = cat_col[cat][v]
                     except KeyError:
-                        col_dict[v][cat_data_mc] = cat_col[cat][
-                            v.replace("Run2", "")
-                        ]
+                        col_dict[v][cat_data_mc] = cat_col[cat][v.replace("Run2", "")]
                     if v == "weight":
                         # Note that the total luminosity is hardcoded here for 2022postEE
                         col_dict[v][cat_data_mc] = col_dict[v][cat_data_mc] * (
-                            float(lumi) / (5.79 + 17.6 + 2.88)
-                            if data_mc == "MC"
-                            else 1
+                            float(lumi) / (5.79 + 17.6 + 2.88) if data_mc == "MC" else 1
                         )
 
             # compute the DNN score if onnx model is given
@@ -659,7 +673,9 @@ def main(cat_cols, lumi, era_string):
 
                 for cat in cat_list:
                     cat_data_mc = f"{cat}_{data_mc}"
-                    if ("post" in cat and data_mc != "BKG") or ("post" not in cat and data_mc == "BKG"):
+                    if ("post" in cat and data_mc != "BKG") or (
+                        "post" not in cat and data_mc == "BKG"
+                    ):
                         print(f"Skipping {v} for {cat} in {data_mc}")
                         continue  # skip 2b MC
                     # if not cat in col_dict[v].keys():

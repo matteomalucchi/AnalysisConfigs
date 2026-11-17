@@ -19,7 +19,6 @@ from utils_configs.plot.args_plot import args
 
 from utils_configs.plot.HEPPlotter import HEPPlotter
 
-
 if not args.output:
     if not args.test:
         args.output = "plots_2bVS4b"
@@ -102,7 +101,7 @@ elif args.boosted:
                 "boosted_vbf_incl_qcd_C_region_postW",
                 "boosted_vbf_incl_qcd_C_region",
             ]
-        ]
+        ],
     }
 elif args.vbf:
     # VBF analysis: vbf_ and ggf_ regions (if preW regions are missing they are built from postW with weight=1)
@@ -248,7 +247,6 @@ if args.comparison:
 #     }
 
 
-
 color_list_orig = [[("black",), ("blue", "dodgerblue"), ("red",)]]
 color_list_spread = [[("red", "red")] + [("green",)] * 20 + [("orange",)] + [("blue",)]]
 color_list_alt = [[("purple",), ("darkorange", "orange"), ("green",)]]
@@ -294,12 +292,27 @@ needed_categories = {
     for cat in cat_list
     for sub_cat in cat.split(MERGE_SEP)
 }
-filter_lambda = (lambda x: ("score" in x or x == WEIGHT_COLUMN)) if args.spread else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
+filter_lambda = (
+    (lambda x: ("score" in x or x == WEIGHT_COLUMN))
+    if args.spread
+    else (lambda x: "prov" not in x and "events_sigma" not in x and "era" not in x)
+)
 max_num_parquet_files = TEST_MAX_PARQUET_FILES if args.test else None
 
 max_events = TEST_MAX_EVENTS if args.test else None
 
-cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, max_num_parquet_files=max_num_parquet_files, max_events=max_events, filter_mixed=args.mixed, categories=needed_categories, float32=True)
+cat_col_data, total_datasets_list = get_columns_from_files(
+    inputfiles,
+    "nominal",
+    filter_lambda,
+    debug=False,
+    novars=args.novars,
+    max_num_parquet_files=max_num_parquet_files,
+    max_events=max_events,
+    filter_mixed=args.mixed,
+    categories=needed_categories,
+    float32=True,
+)
 
 # If a preW category is missing in the files, build it from the corresponding
 # postW category: same columns, but with the weight set to 1 (i.e. no morphing)
@@ -309,7 +322,9 @@ for cat in needed_categories:
     cat_postW = cat.replace("preW", "postW")
     if cat_postW not in cat_col_data:
         continue
-    print(f"WARNING: {cat} not found in the files, using {cat_postW} with {WEIGHT_COLUMN}=1")
+    print(
+        f"WARNING: {cat} not found in the files, using {cat_postW} with {WEIGHT_COLUMN}=1"
+    )
     cat_col_data[cat] = dict(cat_col_data[cat_postW])
     # the weight column may be missing in postW: use the length of any column
     n_events = len(next(iter(cat_col_data[cat_postW].values())))
@@ -328,12 +343,30 @@ if args.input_mc:
         ]
 
     sig_mc_category = (
-        f"4b{args.region_suffix}_signal_regionRun2" if args.run2
-        else f"boosted_signal_{args.region_suffix}_region" if args.boosted
-        else f"vbf_4b{args.region_suffix}_signal_region" if args.vbf
-        else f"4b{args.region_suffix}_signal_region"
+        f"4b{args.region_suffix}_signal_regionRun2"
+        if args.run2
+        else (
+            f"boosted_signal_{args.region_suffix}_region"
+            if args.boosted
+            else (
+                f"vbf_4b{args.region_suffix}_signal_region"
+                if args.vbf
+                else f"4b{args.region_suffix}_signal_region"
+            )
+        )
     )
-    cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: "prov" not in x and "era" not in x, debug=False, novars=args.novars, max_num_parquet_files=max_num_parquet_files, max_events=max_events, filter_mixed=args.mixed, categories=needed_categories | {sig_mc_category}, float32=True)
+    cat_col_mc, _ = get_columns_from_files(
+        inputfiles_mc,
+        "nominal",
+        lambda x: "prov" not in x and "era" not in x,
+        debug=False,
+        novars=args.novars,
+        max_num_parquet_files=max_num_parquet_files,
+        max_events=max_events,
+        filter_mixed=args.mixed,
+        categories=needed_categories | {sig_mc_category},
+        float32=True,
+    )
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]
@@ -380,7 +413,9 @@ def plot_weights(weights_list, suffix, lumi, era_string):
     mean_std_list = []
     for i, weights in enumerate(weights_list):
         if any(weights == np.inf):
-            print(f"There are infinite values in the weights at {ak.local_index(weights[weights == np.inf])}")
+            print(
+                f"There are infinite values in the weights at {ak.local_index(weights[weights == np.inf])}"
+            )
             print(f"We remove them")
         weights = weights[weights < np.inf]
         var_name = f"Morphing weights" + (f" {i}" if len(weights_list) > 1 else "")
@@ -391,10 +426,18 @@ def plot_weights(weights_list, suffix, lumi, era_string):
             print("These weights are removed for plotting")
             weights = weights[~nan_events]
         # Calculating limits of the weights:
-        print(f"minimal weight in the collection is: {np.min(weights)} at index {np.where(weights == np.min(weights))}")
-        print(f"maximal weight in the collection is: {np.max(weights)} at index {np.where(weights == np.max(weights))}")
-        log_min = np.floor(np.log10(np.min(weights[weights > 0])))  # negative weights not possible to show in logspace
-        log_max = np.ceil(np.log10(np.max(weights)))  # negative weights not possible to show in logspace
+        print(
+            f"minimal weight in the collection is: {np.min(weights)} at index {np.where(weights == np.min(weights))}"
+        )
+        print(
+            f"maximal weight in the collection is: {np.max(weights)} at index {np.where(weights == np.max(weights))}"
+        )
+        log_min = np.floor(
+            np.log10(np.min(weights[weights > 0]))
+        )  # negative weights not possible to show in logspace
+        log_max = np.ceil(
+            np.log10(np.max(weights))
+        )  # negative weights not possible to show in logspace
         hist_w = Hist.new.Var(
             np.logspace(log_min, log_max, 100),
             name=var_name,
@@ -413,7 +456,8 @@ def plot_weights(weights_list, suffix, lumi, era_string):
     p = (
         HEPPlotter()
         .set_plot_config(
-            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            cmstext=args.cmstext,
             figsize=[13, 13],
         )
         .set_output(output_base)
@@ -430,10 +474,19 @@ def plot_weights(weights_list, suffix, lumi, era_string):
     # show where the --mask-large-weights cut is applied in the other plots
     if args.mask_large_weights is not None:
         p = p.add_line(
-            orientation="v", x=args.mask_large_weights, color="red", linestyle="--", linewidth=2
+            orientation="v",
+            x=args.mask_large_weights,
+            color="red",
+            linestyle="--",
+            linewidth=2,
         ).add_annotation(
-            x=0.95, y=0.95, s=f"masked: w > {args.mask_large_weights:g}",
-            fontsize=20, ha="right", va="top", color="red",
+            x=0.95,
+            y=0.95,
+            s=f"masked: w > {args.mask_large_weights:g}",
+            fontsize=20,
+            ha="right",
+            va="top",
+            color="red",
         )
     p.run()
 
@@ -441,7 +494,7 @@ def plot_weights(weights_list, suffix, lumi, era_string):
 def get_median_hist(
     hist_1d_dict, histos_spread, bins, var, k, color_list, cat_plot_name_alt
 ):
-    
+
     h_median_spread = np.median([h.values() for h in histos_spread], axis=0)
 
     histo_median_spread = Hist.new.Var(
@@ -528,7 +581,12 @@ def find_jagged_collections(columns):
     for base, items in split_cols.items():
         coll = base.split("_")[0]
         # skip the event-level multi-dimensional columns (e.g. the spread weights)
-        if coll in collections or coll == "events" or WEIGHT_COLUMN in base or "score" in base:
+        if (
+            coll in collections
+            or coll == "events"
+            or WEIGHT_COLUMN in base
+            or "score" in base
+        ):
             continue
         collections[coll] = ("split", [c for _, c in sorted(items)])
 
@@ -536,9 +594,7 @@ def find_jagged_collections(columns):
         if not c.endswith("_N") or c[:-2] in collections:
             continue
         coll = c[:-2]
-        var = next(
-            (v for v in columns if v.startswith(f"{coll}_") and v != c), None
-        )
+        var = next((v for v in columns if v.startswith(f"{coll}_") and v != c), None)
         if var is not None:
             collections[coll] = ("flat", var)
     return collections
@@ -608,7 +664,9 @@ def plot_single_var_from_columns(
                     # (e.g. "CR_MERGED 4b CR"), to distinguish the 4b and 2b ones
                     sub_cats = [c.split("_") for c in cat.split(MERGE_SEP)]
                     common = [t for t in sub_cats[0] if all(t in c for c in sub_cats)]
-                    cat_plot_name = f"{cats_name} " + plot_regions_names("_".join(common), namesuffix)
+                    cat_plot_name = f"{cats_name} " + plot_regions_names(
+                        "_".join(common), namesuffix
+                    )
 
             weights_den = get_merged(weight_dict, cat)
             weights_num = get_merged(weight_dict, cat_list[0])
@@ -628,7 +686,9 @@ def plot_single_var_from_columns(
 
             ### This is a bad workaround for the case where a few weights are Nan or very high.
             if args.mask_large_weights is not None:
-                bad_weights = np.isnan(weights_den) | (weights_den > args.mask_large_weights)
+                bad_weights = np.isnan(weights_den) | (
+                    weights_den > args.mask_large_weights
+                )
                 weights_den = weights_den[~bad_weights]
                 col_den = col_den[~bad_weights]
 
@@ -681,7 +741,9 @@ def plot_single_var_from_columns(
                     range_4b = tuple(np.quantile(col_den, [0.001, 0.999]))
                     # degenerate range (e.g. constant column): widen it to get valid bins
                     if not range_4b[1] > range_4b[0]:
-                        print(f"WARNING: degenerate range {range_4b} for {var} in {cat}, widening it")
+                        print(
+                            f"WARNING: degenerate range {range_4b} for {var} in {cat}, widening it"
+                        )
                         range_4b = (range_4b[0] - 0.5, range_4b[0] + 0.5)
 
                 mask_num_range4b = (col_num >= range_4b[0]) & (col_num <= range_4b[1])
@@ -766,7 +828,8 @@ def plot_single_var_from_columns(
         p = (
             HEPPlotter(debug=DEBUG)
             .set_plot_config(
-                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                cmstext=args.cmstext,
                 figsize=[13, 13],
             )
             .set_output(os.path.join(dir_cat, f"{var}"))
@@ -779,7 +842,7 @@ def plot_single_var_from_columns(
                 reference_to_den=False,
                 legend_ratio=True,
                 set_ylim=False,
-                set_ylim_ratio= 0.5
+                set_ylim_ratio=0.5,
             )
             .set_data(hist_1d_dict, plot_type="1d")
             .add_ratio_hists(hist_1d_ratio_dict)
@@ -789,7 +852,8 @@ def plot_single_var_from_columns(
         p = (
             HEPPlotter(debug=DEBUG)
             .set_plot_config(
-                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)", cmstext=args.cmstext,
+                lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+                cmstext=args.cmstext,
                 figsize=[13, 13],
             )
             .set_output(os.path.join(dir_cat, f"{var}"))
@@ -799,9 +863,7 @@ def plot_single_var_from_columns(
                 ratio_label="Data/Pred." if not "DATAMC" in cats_name else "Bkg/Sig",
             )
             .set_options(
-                y_log=log_scale,
-                reference_to_den=False,
-                set_ylim_ratio= 0.5
+                y_log=log_scale, reference_to_den=False, set_ylim_ratio=0.5, pull=True
             )
             .set_data(hist_1d_dict, plot_type="1d")
         )
@@ -842,7 +904,9 @@ def main(cat_cols, lumi, era_string):
 
             # check if the categories are in the accumulator
             # merged categories ("MERGED") are split in their sub-categories
-            sub_cat_list = [sub_cat for cat in cat_list for sub_cat in cat.split(MERGE_SEP)]
+            sub_cat_list = [
+                sub_cat for cat in cat_list for sub_cat in cat.split(MERGE_SEP)
+            ]
             try:
                 for cat in sub_cat_list:
                     cat_col_DATA[cat.replace("_MC", "").replace("_SPREAD", "")]
@@ -858,7 +922,6 @@ def main(cat_cols, lumi, era_string):
             else:
                 vars_tot = list(cat_col_DATA[cat_list[1].split(MERGE_SEP)[0]].keys())
                 vars_tot = [v for v in vars_tot if "year" not in v]
-
 
             if args.test:
                 # vars_tot = vars_tot[:3]
@@ -1082,7 +1145,7 @@ def main(cat_cols, lumi, era_string):
 
 
 if __name__ == "__main__":
-            
+
     lumi, era_string = get_era_lumi(total_datasets_list)
 
     # plot the weights
