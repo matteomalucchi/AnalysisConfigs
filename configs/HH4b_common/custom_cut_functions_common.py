@@ -396,26 +396,14 @@ def hh4b_boosted_category_3(events, params, **kwargs):
     return cat_mask
 
 
-def hh4b_boosted_background_vbf(events, params, **kwargs):
+def hh4b_boosted_background(events, params, **kwargs):
     if not params["txbb_morph"]:
         txbb = events["HiggsSubLeading"]["btagBBTXbb"]
     else:
         txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
     bdt_vbf = events[params["score_vbf"]]
     cat_mask = (
-            (txbb < params["txbb_c2a"]) & (bdt_vbf > params["bdt_ggf_bkg"])
-            )
-    return cat_mask
-
-
-def hh4b_boosted_background_ggf(events, params, **kwargs):
-    if not params["txbb_morph"]:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb"]
-    else:
-        txbb = events["HiggsSubLeading"]["btagBBTXbb_morph"]
-    bdt_ggf = events[params["score_ggf"]]
-    cat_mask = (
-            (txbb < params["txbb_c2a"]) & (bdt_ggf > params["bdt_ggf_bkg"])
+            (txbb < params["txbb_c2a"]) & (txbb < params["txbb_vbf"])
             )
     return cat_mask
 

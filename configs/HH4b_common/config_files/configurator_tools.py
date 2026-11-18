@@ -340,6 +340,8 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
             cut_list.append(cuts.hh4b_boosted_category_2(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, score_suffix=score_suffix))
         elif "cat3" in category_name:
             cut_list.append(cuts.hh4b_boosted_category_3(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, score_suffix=score_suffix))
+        elif "catqcd" in category_name:
+            cut_list.append(cuts.hh4b_boosted_background(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, score_suffix=score_suffix))
 
     # mass cuts
     elif "VR1" not in category_name:
@@ -448,6 +450,7 @@ def define_categories(
                 categories_dict |= define_single_category("boosted_signal_region_D_cat2", **region_kwargs)
                 categories_dict |= define_single_category("boosted_signal_region_D_cat3", **region_kwargs)
                 categories_dict |= define_single_category("boosted_signal_region_D_catvbf", **region_kwargs)
+                categories_dict |= define_single_category("boosted_signal_region_D_catqcd", **region_kwargs)
             if morphing_direction == "mass":
                 categories_dict |= define_single_category("boosted_signal_sideband_region_C_postW", **region_kwargs)
                 if signal_categories:
@@ -455,6 +458,7 @@ def define_categories(
                     categories_dict |= define_single_category("boosted_signal_sideband_region_C_cat2_postW", **region_kwargs)
                     categories_dict |= define_single_category("boosted_signal_sideband_region_C_cat3_postW", **region_kwargs)
                     categories_dict |= define_single_category("boosted_signal_sideband_region_C_catvbf_postW", **region_kwargs)
+                    categories_dict |= define_single_category("boosted_signal_sideband_region_C_catqcd_postW", **region_kwargs)
             elif morphing_direction == "btag":
                 categories_dict |= define_single_category("boosted_control_region_B_postW", **region_kwargs)
                 if signal_categories:
@@ -462,6 +466,7 @@ def define_categories(
                     categories_dict |= define_single_category("boosted_control_region_B_cat2_postW", **region_kwargs)
                     categories_dict |= define_single_category("boosted_control_region_B_cat3_postW", **region_kwargs)
                     categories_dict |= define_single_category("boosted_control_region_B_catvbf_postW", **region_kwargs)
+                    categories_dict |= define_single_category("boosted_control_region_B_catqcd_postW", **region_kwargs)
 
         if fit_sidebands:
             # Sidebands used in the fit to constrain the QCD and ttbar normalisation in every category.
@@ -481,7 +486,7 @@ def define_categories(
             if bkg_morphing_dnn:
                 categories_dict |= define_single_category("boosted_control_ttbar_region_F_postW", **region_kwargs)
             if signal_categories:
-                for cat in ("cat1", "cat2", "cat3", "catvbf"):
+                for cat in ("cat1", "cat2", "cat3", "catvbf", "catqcd"):
                     categories_dict |= define_single_category(f"boosted_signal_sideband_region_C_{cat}", score_suffix="_qcdsb", **region_kwargs)
                     categories_dict |= define_single_category(f"boosted_signal_ttbar_region_E_{cat}", score_suffix="_ttsb", **region_kwargs)
                     if bkg_morphing_dnn:

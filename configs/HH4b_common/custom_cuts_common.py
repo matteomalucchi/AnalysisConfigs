@@ -334,19 +334,13 @@ def hh4b_boosted_category_3(txbb_morph=True, region_setting="50GeV", optimised_c
         function=cuts_f.hh4b_boosted_category_3,
     )
 
-def hh4b_boosted_background_vbf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, score_suffix=""):
+def hh4b_boosted_background(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, score_suffix=""):
     return Cut(
-        name="hh4b_boosted_background_vbf" + score_suffix,
+        name="hh4b_boosted_background" + score_suffix,
         params=_category_params(txbb_morph, region_setting, optimised_cuts, score_suffix),
-        function=cuts_f.hh4b_boosted_background_vbf,
+        function=cuts_f.hh4b_boosted_background,
     )
 
-def hh4b_boosted_background_ggf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, score_suffix=""):
-    return Cut(
-        name="hh4b_boosted_background_ggf" + score_suffix,
-        params=_category_params(txbb_morph, region_setting, optimised_cuts, score_suffix),
-        function=cuts_f.hh4b_boosted_background_ggf,
-    )
 
 hh4b_boosted_signal_region = Cut(
     name="hh4b_boosted_signal_region",
