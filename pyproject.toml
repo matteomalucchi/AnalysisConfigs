@@ -41,7 +41,7 @@ readme = {file = ["README.md"], content-type = "text/markdown"}
 dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
-include = ["configs*", "utils_configs*"]
+include = ["configs*", "utils_configs*", "scripts*"]
 exclude = ["tests/*", "output/*"]
 
 [tool.setuptools]
@@ -55,4 +55,4 @@ pocket_coffea = ["configs/*.txt",
 
 [project.scripts]
 run_pocket_coffea = "configs.HH4b_common.config_files.run_pocket_coffea_wrapper:main"
-merge_parquet = "utils_configs.merge_parquet:main"
+postprocess_parquet = "scripts.postprocess_parquet:main"

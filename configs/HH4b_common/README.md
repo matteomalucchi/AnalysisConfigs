@@ -16,7 +16,7 @@ The details are in the [`docs/`](./docs/) subdirectory:
 | [`docs/categories.md`](./docs/categories.md) | All the categories: first approach (4b/2b, mass-plane regions, `preW`/`postW`, blinded, high-score, VR1), second approach (SR/CR and b-tag categories), VBF and ggF, boosted, and the ones set by the config templates. |
 | [`docs/approaches.md`](./docs/approaches.md) | The first and second approaches of HIG-24-010: their common points and their differences (object and event preselection, skim, pT regression, pairing, VBF selection, regions, background estimate). |
 | [`docs/plotting.md`](./docs/plotting.md) | The plotting scripts `plot_2bMorphedvs4b.py` (morphed 2b vs 4b data) and `plot_DNN_score.py` (signal/background DNN score): what they plot, all the arguments and examples. |
-| [`docs/apply_onnx_models.md`](./docs/apply_onnx_models.md) | How to apply ONNX models (DNN or SPANet) to the columns (coffea or parquet) of an existing output with `scripts/apply_onnx_models.py`, selecting regions and datasets. |
+| [`docs/postprocess_parquet.md`](./docs/postprocess_parquet.md) | How to merge the parquet chunks and/or apply ONNX models (DNN or SPANet) to the columns (coffea or parquet) of an existing output with `scripts/postprocess_parquet.py`, selecting regions and datasets. |
 
 ## Configuration in short
 
@@ -590,31 +590,30 @@ Additional options of `run_pocket_coffea` (anywhere after the 4 required argumen
 | `--test` | Run locally on a small number of files (no executor). |
 | `--debug` | Only print the `pocket-coffea run` command. |
 | `--copy-to <dir>` | At the end, copy the output directory to `<dir>` with `rsync`, verify it with checksums and remove the original. |
-| `--merge-parquet` | At the end (before `--copy-to`), merge the `parquet` chunks with [`utils_configs/merge_parquet.py`](../../utils_configs/merge_parquet.py), see [Merge the parquet chunks](#merge-the-parquet-chunks). |
+| `--merge-parquet` | At the end (before `--copy-to`), merge the `parquet` chunks with [`scripts/postprocess_parquet.py`](../../scripts/postprocess_parquet.py), see [Merge the parquet chunks](#merge-the-parquet-chunks). |
 | `--merge-parquet-update-config` | Same as `--merge-parquet`, and also overwrite the `parquet` path in the `config.json` of the output with the path of the merged files (`--update-config`). |
-| `--merge-parquet-args "<args>"` | Extra arguments for `merge_parquet.py` (implies `--merge-parquet`), e.g. `--merge-parquet-args "-j 16 -o <dir>"`. |
+| `--merge-parquet-args "<args>"` | Extra arguments for `postprocess_parquet.py` (implies `--merge-parquet`), e.g. `--merge-parquet-args "-j 16 -o <dir>"`, or `--merge-parquet-args "-c <yaml>"` to also apply the ONNX models of the yaml. |
 
 ### Merge the parquet chunks
 
-With `save_chunk`, PocketCoffea saves the columns as thousands of small `parquet` chunks. Reading them (especially from dCache, `/pnfs`) is dominated by the per-file latency (~1-2 min per dataset/region even for few MB). [`utils_configs/merge_parquet.py`](../../utils_configs/merge_parquet.py) (`merge_parquet` once `AnalysisConfigs` is installed with `pip install -e .`) merges them into a single `merged.parquet` per leaf directory (e.g. `<dataset>/<region>/nominal`), keeping the directory structure and the events order, so the merged directory can be used in place of the original one (e.g. by [ML_pytorch](https://github.com/matteomalucchi/ML_pytorch) or [`get_columns_from_files.py`](../../utils_configs/plot/get_columns_from_files.py)).
+With `save_chunk`, PocketCoffea saves the columns as thousands of small `parquet` chunks. Reading them (especially from dCache, `/pnfs`) is dominated by the per-file latency (~1-2 min per dataset/region even for few MB). [`scripts/postprocess_parquet.py`](../../scripts/postprocess_parquet.py) (`postprocess_parquet` once `AnalysisConfigs` is installed with `pip install -e .`) merges them into a single `merged.parquet` per leaf directory (e.g. `<dataset>/<region>/nominal`), keeping the directory structure and the events order, so the merged directory can be used in place of the original one (e.g. by [ML_pytorch](https://github.com/matteomalucchi/ML_pytorch) or [`get_columns_from_files.py`](../../utils_configs/plot/get_columns_from_files.py)). The same script can also apply ONNX models to the columns (`-c <yaml>` with `models`).
 
 It can be run automatically at the end of `run_pocket_coffea` with `--merge-parquet`, or by hand:
 
 ```bash
 # -i: PocketCoffea output dir (the parquet location is read from its config.json) or the parquet files dir
-python utils_configs/merge_parquet.py -i <output_dir> [-o <merged_dir>] [--tmp-dir <tmp_dir>] [--redirector <root://host:port>] [-j 32] [--files-per-step 256] [--overwrite] [--update-config]
+python scripts/postprocess_parquet.py -i <output_dir> [-c <yaml>] [-o <merged_dir>] [-j 32] [--tmp-dir <tmp_dir>] [--overwrite] [--update-config]
 
 # e.g. merge into <...>/merged_parquet_files next to <...>/parquet_files and point the config.json to the merged files
-python utils_configs/merge_parquet.py -i /work/$USER/out_hh4b/<name> --update-config
+python scripts/postprocess_parquet.py -i /work/$USER/out_hh4b/<name> --update-config
 ```
 
 * `-o/--output`: directory of the merged files. By default, a directory called `merged_parquet_files` next to the original `parquet` directory (e.g. `<...>/parquet_files` &rarr; `<...>/merged_parquet_files`)
-* `--tmp-dir`: merge the files here first; each merged file is copied to the output directory in the background while the next one is merged (so at most two merged files are kept here), the copy is checked (size, adler32 checksum, number of events) and the file is removed from here (the directories left empty are removed at the end). If a check fails the copy is removed, the merged file is kept and the script stops; a rerun reuses it. Needed when the output is on `/pnfs`, where the files cannot be written directly: in that case it defaults to `<output_dir>/merged_parquet_files_tmp` when `-i` is the PocketCoffea output directory. Each file is copied with `rsync` if `/pnfs` is writable through the mount (T3 login nodes, e.g. with `run_pocket_coffea --merge-parquet`), otherwise (batch nodes, where `/pnfs` is read-only) with `xrdcp` through the xrootd redirector (needs a valid grid proxy, `voms-proxy-init`)
-* `--redirector`: xrootd redirector used to write on `/pnfs` when it is read-only through the mount (default: the one of the parquet path in the `config.json`, otherwise `root://t3dcachedb03.psi.ch:1094`)
-* `--update-config`: overwrite `dump_columns_as_arrays_per_chunk` and `save_chunk` in the `workflow_options` of the `config.json` with the path of the merged files (keeping the same `root://` redirector, if any), so that the scripts reading the columns through the `config.json` use the merged files directly (in ML_pytorch, no `parquet_dir` is needed). The original paths are kept as `dump_columns_as_arrays_per_chunk_unmerged` and `save_chunk_unmerged`, and are used as input if the merging is run again
-* `-j/--threads`: number of threads reading the files in parallel (default 32)
-* `--files-per-step`: number of files kept in memory at the same time (default 256)
+* `--tmp-dir`: produce the files here first, needed when the output is on `/pnfs` (default: `<output_dir>/merged_parquet_files_tmp`). Each merged file is copied to the output in the background while the next one is merged, with `rsync` if `/pnfs` is writable through the mount (T3 login nodes) or `xrdcp` otherwise (batch nodes, needs a grid proxy); the copy is checked (size, adler32, number of events) and removed from here. A failed run can simply be restarted: existing outputs are skipped and the files left here are reused
+* `--update-config`: overwrite `dump_columns_as_arrays_per_chunk` and `save_chunk` in the `config.json` with the path of the merged files, so that the scripts reading the columns through the `config.json` use them directly (in ML_pytorch, no `parquet_dir` is needed). The original paths are kept as `<key>_unmerged` and are used as input if the merging is run again
+* `-j/--workers`: number of threads reading the files in parallel when merging only (default 32)
 * `--overwrite`: re-merge directories already merged (skipped by default)
+* `-c <yaml>`: other options (`redirector`, `files_per_step`, `variations`, ...) and the ONNX `models`, see [docs/postprocess_parquet.md](./docs/postprocess_parquet.md)
 
 ### Run ggF HH4b analysis
 

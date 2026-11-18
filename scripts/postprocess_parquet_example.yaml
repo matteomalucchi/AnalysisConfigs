@@ -1,0 +1,162 @@
+# Configuration of scripts/postprocess_parquet.py
+#
+#   python scripts/postprocess_parquet.py -c scripts/postprocess_parquet_example.yaml
+#
+# The command line arguments override the corresponding options here:
+#   -i input, -o output, -j workers, --merge/--no-merge merge,
+#   --update-config update_config, --overwrite overwrite, --tmp-dir tmp_dir,
+#   --stall-timeout stall_timeout, --read-timeout read_timeout.
+# Without `models` the script only merges the parquet chunks (no config needed:
+#   python scripts/postprocess_parquet.py -i <PocketCoffea output dir>).
+
+# ---------------------------------------------------------------------------
+# Input / output
+# ---------------------------------------------------------------------------
+
+# PocketCoffea output directory (with config.json and the coffea files), a
+# coffea file, or a parquet files directory.
+# If the coffea files contain the columns (and `models` are given), they are
+# read from there; otherwise they are read from the parquet files of
+# `dump_columns_as_arrays_per_chunk` (`save_chunk`) in the config.json
+# (merge only: the original directory, `<key>_unmerged`, if the config.json
+# was already updated).
+input: /work/mmalucch/out_hh4b/my_run/
+
+# Output directory. Default (parquet columns): `merged_parquet_files` (merge
+# only), `onnx_parquet_files` or `onnx_merged_parquet_files` (with models)
+# next to the parquet directory. Needed for the coffea columns.
+#  - parquet columns: <output>/<dataset>/<category>/<variation>/*.parquet
+#    (or merged.parquet with merge), copies of the input files with the scores.
+#  - coffea columns: copies of the coffea files with the scores, plus the
+#    config.json/metadata of the run and this yaml (postprocess_parquet_config.yaml).
+output: /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/my_run_onnx/
+
+# Local directory where the files are produced before being copied to /pnfs
+# (default: <output name>_tmp in the PocketCoffea output directory if it is not
+# on /pnfs, otherwise in $TMPDIR or /tmp). Files left here by a failed run are
+# reused by the next run. On the T3, /scratch is removed at the end of each
+# slurm job: use /work/<user>/... to be able to restart a failed job.
+tmp_dir: null
+# xrootd redirector used to copy to /pnfs with xrdcp when /pnfs is read-only
+# through the mount (batch nodes). Default: the one of the parquet path in the
+# config.json, otherwise root://t3dcachedb03.psi.ch:1094
+redirector: null
+
+# Merge the parquet files into one merged.parquet per
+# <dataset>/<category>/<variation>, keeping the events order.
+# Default: true without models, false with models.
+merge: true
+# Overwrite the parquet directory (dump_columns_as_arrays_per_chunk and
+# save_chunk) in the config.json of `input` with the output directory (the
+# original values are kept as <key>_unmerged). With models, it forces
+# copy_unprocessed: true so that the output has all the columns.
+update_config: false
+# Produce again the output files that already exist (skipped by default).
+# Without it, the unmerged chunks left in tmp_dir by a failed run (models and
+# merge) are reused, so do not change the models between a failed run and its
+# restart (or remove <tmp_dir>/_unmerged_chunks).
+overwrite: false
+# Exit with an error if nothing progresses (no file processed, merge step or
+# copy done) for this many seconds, e.g. a read hanging forever on the /pnfs
+# mount of a batch node. The temporary files are kept and reused by the next
+# run. 0 = never.
+stall_timeout: 3600
+# Seconds after which a read of an input file through the /pnfs mount is
+# considered hanging (seen on the batch nodes): the file is then read with
+# xrdcp through the redirector (3 attempts, same timeout). 0 = always read
+# through the mount.
+read_timeout: 300
+
+# Number of parallel processes for the ONNX evaluation (1 = single process).
+# Without models, -j from the command line sets merge_threads instead.
+workers: 8
+# Number of threads reading the files to merge, and number of files kept in
+# memory at the same time while merging.
+merge_threads: 8
+files_per_step: 256
+
+# Variations to process (names or glob patterns). null = all the saved ones.
+variations: [nominal]
+
+# Optional: directory with the input parquet files, if not in config.json.
+# parquet_input: /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/my_run/parquet_files/
+# Optional: subdirectory of the output where the parquet files are written
+# (default: directly in the output directory).
+# parquet_subdir: parquet_files
+# Optional: only process the first N parquet files per directory (tests).
+# max_parquet_files: 2
+
+# ---------------------------------------------------------------------------
+# ONNX models (optional)
+# ---------------------------------------------------------------------------
+
+# Number of events evaluated at once (and parallel task size for coffea columns;
+# for parquet columns the parallel tasks are the parquet files).
+chunk_size: 100000
+# Fail (false) or overwrite (true) if a score column with the same name already exists.
+overwrite_columns: false
+# Parquet columns: also copy (and merge) the files of the datasets/regions where
+# no model is applied, so that the output contains all the datasets/regions
+# (of the selected variations) together.
+copy_unprocessed: false
+# Coffea columns: also process output_all.coffea when the directory has
+# per-dataset files.
+process_output_all: false
+# Optional: constant input columns not saved in the run (e.g. events_era), as
+# {column: {dataset name or glob pattern: value}} (first matching pattern).
+# They are only used as model inputs (not saved) and only if the column is missing.
+# extra_columns:
+#   events_era:
+#     "*_2024_EraC": 13
+#     "*_2024_EraD": 14
+
+models:
+  - name: sig_bkg_dnn
+    # path to the onnx file
+    model: /work/mmalucch/models/sig_bkg_dnn.onnx
+    # Input variables dictionary, the same as in the standard PocketCoffea run.
+    # Either `<python.module>:<variable>` or `<path/to/file.py>:<variable>`
+    # (relative to the yaml, the current directory or the repository).
+    input_variables: configs.HH4b_common.dnn_input_variables:sig_bkg_dnn_input_variables
+    # Name of the column saved in the output. Use the `events_` prefix to have
+    # the same name as the columns of the workflow (e.g. events_sig_bkg_dnn_score).
+    # Default: events_<name>
+    column_name: events_sig_bkg_dnn_score_new
+    # Which column of the model output to save:
+    #  auto (default, as sig_bkg_dnn_score in the workflow): 1D outputs as they
+    #       are, <= 2 columns -> the last one, > 2 columns -> one column per
+    #       class, named <column_name>_<i>
+    #  <int>: only that column;  [<int>, ...]: those columns (<column_name>_<i>);
+    #  all: all the columns (<column_name>_<i>)
+    score_index: auto
+    # Optional: name(s) of the ONNX output node to use (default: the first one).
+    # Ignored for SPANet models, see spanet_output.
+    onnx_output: null
+    # Regions (categories) and datasets where the model is applied.
+    # Names or glob patterns, null = all.
+    regions: ["4b_*signal_region*", "4b_*control_region*"]
+    datasets: null
+    # Optional exclusions (names or glob patterns)
+    exclude_datasets: null
+    exclude_regions: null
+    # Padding values, as in default_config.py
+    pad_value: -999.0
+    pad_value_spanet: 9999.0
+
+  - name: ggf_vbf_spanet
+    model: /work/mmalucch/models/ggf_vbf_spanet.onnx
+    # SPANet models (with `sequential` and `global` inputs) are supported as well
+    input_variables: configs/HH4b_common/dnn_input_variables.py:ggf_vbf_input_variables_spanet_nobtag
+    column_name: events_VBF_ggF_score_new
+    # SPANet output to save: class_prob (default), regr_value, detection_prob, assignment_prob
+    spanet_output: class_prob
+    # index in the list of the outputs of that type
+    spanet_output_index: 0
+    score_index: auto
+    # number of jets of the sequential inputs (null = max number of jets in the chunk;
+    # set it to the value used in the workflow, e.g. max_num_jets_vbf_discriminator)
+    max_num_jets: null
+    # mask of the SPANet global inputs: ones or padded (spanet_global_mask)
+    spanet_global_mask: ones
+    regions: ["*vbf*", "*VBF*"]
+    datasets: ["*VBF*", "*GluGlu*", "DATA*"]

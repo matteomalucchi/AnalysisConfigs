@@ -206,5 +206,5 @@ them to `config_options_dict` while building the `Configurator`.
 
 | Key | Added by | Description |
 | --- | --- | --- |
-| `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. In the `config.json` of the output it is overwritten (together with `save_chunk`) with the path of the merged files by `merge_parquet.py --update-config` (`run_pocket_coffea ... --merge-parquet-update-config`), the original being kept as `dump_columns_as_arrays_per_chunk_unmerged`. |
+| `dump_columns_as_arrays_per_chunk` | all templates | Set from `save_chunk`, and read by PocketCoffea to write the columns as `parquet` files per chunk. In the `config.json` of the output it is overwritten (together with `save_chunk`) with the path of the merged files by `postprocess_parquet.py --update-config` (`run_pocket_coffea ... --merge-parquet-update-config`), the original being kept as `dump_columns_as_arrays_per_chunk_unmerged`. |
 | `num_bins` | [`config_compute_befficiency_HH4b.py`](../../HH4b_btagging/config_compute_befficiency_HH4b.py) | Leftover of the b-tag efficiency studies; currently not read anywhere. |

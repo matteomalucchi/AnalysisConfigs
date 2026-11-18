@@ -178,8 +178,8 @@ if $merge_parquet; then
     if [[ $status -ne 0 ]]; then
         echo "WARNING: PocketCoffea failed (status $status), not merging the parquet files."
     else
-        merge_cmd=( python "${SCRIPT_DIR}/../../../utils_configs/merge_parquet.py"
-                    -i "$output" "${merge_parquet_args[@]}" )
+        merge_cmd=( python "${SCRIPT_DIR}/../../../scripts/postprocess_parquet.py"
+                    -i "$output" --merge "${merge_parquet_args[@]}" )
         echo "${merge_cmd[@]}"
         "${merge_cmd[@]}"
         merge_status=$?
