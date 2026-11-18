@@ -341,11 +341,8 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
 
     The pairing with the smallest D_HH is chosen, unless the two smallest D_HH
     differ by less than 30 GeV: then, between these two pairings, the one
-    maximising the Higgs candidate pt is chosen. With `pt_in_hh_frame` (second approach, as in HIG-20-005) the
-    leading candidate of each pairing in D_HH is the one with the higher pt and the
-    tie-break is on the pt in the HH rest frame; otherwise (default, kept for
-    reproducibility) the candidates are taken in the pairing order and the
-    tie-break is on the highest lab-frame pt.
+    maximising the Higgs candidate pt is chosen (if `pt_in_hh_frame` is True 
+    the pt is computed in the HH rest frame, otherwise in the lab frame).
 
     The events with less than 4 jets (or with None jets) get None Higgs
     candidates, delta_dhh and pairing indices, and 4 None jets.
