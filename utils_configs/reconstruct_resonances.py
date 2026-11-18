@@ -340,8 +340,8 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
     """Run 2 (minimum distance to the diagonal) pairing of the 4 jets.
 
     The pairing with the smallest D_HH is chosen, unless the two smallest D_HH
-    differ by less than 30 GeV: then the pairing maximising the Higgs candidate pt
-    is chosen. With `pt_in_hh_frame` (second approach, as in HIG-20-005) the
+    differ by less than 30 GeV: then, between these two pairings, the one
+    maximising the Higgs candidate pt is chosen. With `pt_in_hh_frame` (second approach, as in HIG-20-005) the
     leading candidate of each pairing in D_HH is the one with the higher pt and the
     tie-break is on the pt in the HH rest frame; otherwise (default, kept for
     reproducibility) the candidates are taken in the pairing order and the
@@ -376,11 +376,14 @@ def run2_matching_algorithm(jet_collection, pt_in_hh_frame=False):
 
     delta_dhh = abs(dist_order[:, 0] - dist_order[:, 1])
 
-    # Do the pt ordering for all events and fill later only the ones where the dhh is smaller than 30
-    pt_order_idx = ak.argsort(max_pt, axis=1, ascending=False)
+    # Among the two pairings with the smallest D_HH, choose the one with the highest pt
+    pt_by_dist = max_pt[dist_order_idx]
+    pt_choice_idx = ak.where(
+        pt_by_dist[:, 0] > pt_by_dist[:, 1], dist_order_idx[:, 0], dist_order_idx[:, 1]
+    )
 
-    # Find idxes where the delta_dhh is smaller than 30 and if so, fill in by pt ordering.
-    min_idx = ak.where(delta_dhh > 30, dist_order_idx[:, 0], pt_order_idx[:, 0])
+    # Find idxes where the delta_dhh is smaller than 30 and if so, fill in by pt choice.
+    min_idx = ak.where(delta_dhh > 30, dist_order_idx[:, 0], pt_choice_idx)
 
     # get higgs candidates
     higgs_1 = add_fields(
