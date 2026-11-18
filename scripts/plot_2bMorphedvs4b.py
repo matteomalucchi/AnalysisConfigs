@@ -800,6 +800,8 @@ def plot_single_var_from_columns(
                         "histtype": "errorbar" if i == 0 else "step",
                         "color": color_list[k][i][0],
                     }
+                # pull only for the postW (morphed) histograms, not for the preW ones
+                style_dict["plot_pull"] = "preW" not in cat
 
             hist_1d_dict[cat_plot_name] = {
                 "data": histo,
@@ -1190,6 +1192,22 @@ if __name__ == "__main__":
         weights = weights[weights < np.inf]
         if "postW" in category:
             plot_weights([weights], category, lumi, era_string)
+
+    # plot the weights of the merged postW categories
+    merged_cats = {
+        cat
+        for cat_lists in cat_dict.values()
+        for cat_list in cat_lists
+        for cat in cat_list
+        if MERGE_SEP in cat
+        and "postW" in cat
+        and all(c in cat_col_data for c in cat.split(MERGE_SEP))
+    }
+    for cat in merged_cats:
+        weights = get_merged(
+            {c: cat_col_data[c][WEIGHT_COLUMN] for c in cat.split(MERGE_SEP)}, cat
+        )
+        plot_weights([weights[weights < np.inf]], cat, lumi, era_string)
 
     # table with the number of events in each region
     print_event_counts(cat_col_data, "DATA", outputdir, WEIGHT_COLUMN)

@@ -229,6 +229,7 @@ class HEPPlotter:
                 Dictionary mapping names to {name:{"data": hist.Hist, "style": dict}}.
                 To plot the ratio plot, the reference histogram must include {"is_reference": True} inside the style dict.
                 The pull plot is drawn below the ratio plot if set_options(pull=True) is used.
+                Use {"plot_pull": False} inside the style dict to exclude a histogram from the pull plot (default True).
                 Optional systematic uncertainties can be passed with {"syst_unc": array} inside the style dict
                 (absolute, one value per bin): symmetric (array) or asymmetric ([down, up]).
         - For 2D histograms:
@@ -813,8 +814,8 @@ class HEPPlotter:
                         syst_label=band_label,
                     )
 
-            # pull
-            if pull_plot and ax_pull is not None:
+            # pull (skip the series with {"plot_pull": False} in the style dict)
+            if pull_plot and ax_pull is not None and style.get("plot_pull", True):
                 if self.reference_to_den:
                     self._plot_pull(
                         ax_pull, hist_cmp, ref_cmp, legend_name_ratio, is_ref, style

@@ -85,6 +85,8 @@ pull = (h - h_ref) / sqrt(sigma_h^2 + sigma_ref^2)
 
 (`h_ref - h` if `reference_to_den=False`). By default it is drawn as a filled histogram;
 use `"histtype_pull"` in the style dict to change it (e.g. `"step"` or `"errorbar"`).
+To exclude a histogram from the pull plot (while keeping it in the main and ratio plots),
+set `"plot_pull": False` in its style dict (default `True`).
 
 `hist.Hist` objects only store the value and the (statistical) variance of each bin, so
 systematic uncertainties can't be stored in the histogram itself. They can be passed
@@ -507,6 +509,7 @@ series_dict = {
 * `"syst_unc"`: absolute systematic uncertainty per bin, symmetric (array) or asymmetric (`[down, up]`) (see pull/systematics example)
 * `"syst_color"` / `"syst_facecolor"` / `"syst_hatch"`: style of the systematic band
 * `"histtype_pull"`: histtype in the pull plot (default `"fill"`)
+* `"plot_pull"`: whether the histogram is drawn in the pull plot (default `True`)
 
 ---
 
