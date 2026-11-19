@@ -156,6 +156,15 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "--skip-control-region",
+    action="store_true",
+    help=(
+        "Boosted only: do not make the CR and CR_TT plots (only the SR and SR_TT plots are made). "
+        "Use it to add the signal-region plots to an output folder that already has the CR ones"
+    ),
+    default=False,
+)
+parser.add_argument(
     "--skip-signal-region",
     action="store_true",
     help=(

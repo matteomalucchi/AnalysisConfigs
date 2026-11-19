@@ -203,6 +203,8 @@ categories_dict = define_categories(
     morphing_direction=config_options_dict["bkg_morphing_direction"],
     txbb_wp_categories=config_options_dict["boosted_txbb_wp_categories"],
     txbb_cdf_wps=bool(config_options_dict["txbb_cdf_wp_cuts"]),
+    cut_sub_above_lead=config_options_dict["cut_sub_above_lead"],
+    txbb_cdf_max_wp=config_options_dict["txbb_cdf_max_wp"],
 )
 
 if BASELINE:
@@ -282,6 +284,19 @@ else:
             # quantile-mapped TXbb working points, subleading Higgs only
             column_list += get_columns_list(
                 {"HiggsSubLeading": ["btagBBTXbb_CDF_rescaled_WPs"]},
+                not config_options_dict["save_chunk"],
+            )
+        if config_options_dict["txbb_cdf_wp_cuts"] or config_options_dict["cut_sub_above_lead"] or config_options_dict["txbb_cdf_max_wp"]:
+            # nominal working-point index of the leading Higgs (0..5, never merged, used by `cut_sub_above_lead` and as DNN input);
+            # also saved in linear mode (no txbb_cdf_wp_cuts), where the subleading index is the saved btagBBTXbb_morph_5wp
+            column_list += get_columns_list(
+                {"HiggsLeading": ["btagBBTXbb_5wp"]},
+                not config_options_dict["save_chunk"],
+            )
+        if config_options_dict["txbb_cdf_wp_cuts_leading"]:
+            # quantile-mapped TXbb working points of the leading Higgs (applied by region)
+            column_list += get_columns_list(
+                {"HiggsLeading": ["btagBBTXbb_CDF_rescaled_WPs"]},
                 not config_options_dict["save_chunk"],
             )
         if config_options_dict["bdt_model"]:
@@ -373,7 +388,13 @@ cfg = Configurator(
     workflow=VBFHH4bProcessor,
     workflow_options=config_options_dict,
     skim=cuts.skimming_cut_list(config_options_dict),
-    preselections=[eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets, cuts.hh4b_boosted_lepton_veto],  # preselection,
+    # The boosted templates do not use `define_preselection`: the leading-jet TXbb floor is added here (strict >, all events, also region D and MC)
+    preselections=[eventFlags, cuts.hh4b_JetVetoMap, cuts.hh4b_boosted_2fatjets, cuts.hh4b_boosted_lepton_veto]
+    + (
+        [cuts.hh4b_boosted_lead_txbb_min(config_options_dict["boosted_lead_txbb_min"])]
+        if config_options_dict["boosted_lead_txbb_min"]
+        else []
+    ),
     categories=categories_dict,
     weights_classes=common_weights
     + [bkg_morphing_dnn_weight, SF_TXbb_fixed_multiple_wp],

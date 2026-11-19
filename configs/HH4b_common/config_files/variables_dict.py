@@ -133,6 +133,31 @@ variables_dict_fatjets = {
             )
         ],
     ),
+    # nominal working-point index of the leading Higgs (0 = below 0.65, ... 5 = above 0.99): all the bins, never merged
+    "LeadingHiggsTXbbWPs": HistConf(
+        [
+            Axis(
+                coll=f"HiggsLeading",
+                field="btagBBTXbb_5wp",
+                bins=6,
+                start=-0.5,
+                stop=5.5,
+                label=r"$TXbb_{H_1}$ nominal WP",
+            )
+        ],
+    ),
+    "LeadingHiggsTXbbCDFWPs": HistConf(
+        [
+            Axis(
+                coll=f"HiggsLeading",
+                field="btagBBTXbb_CDF_rescaled_WPs",
+                bins=6,
+                start=-0.5,
+                stop=5.5,
+                label=r"$TXbb_{H_1}$ CDF-rescaled WP",
+            )
+        ],
+    ),
 }
 
 

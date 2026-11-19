@@ -137,6 +137,120 @@ Setting the option also switches everything downstream of the subleading-Higgs T
 The config `boosted_other_group_50GeV_lower_sideband_txbbwps_cdf_model.py` is the second pass: it needs the
 retrained morphing model (without it, only the ABCD regions are defined). Without the option, nothing changes.
 
+#### Leading TXbb untouched: merged top working points and `cut_sub_above_lead` (optional)
+
+With the marginal subleading map and the nominal leading TXbb, most of A has a leading working-point index below the subleading
+one (72.7% of the DATA events of A; 65% of A has leading TXbb below 0.65, which C and D never have, because there the jets are
+ordered by TXbb and the leading TXbb is at least the subleading one). Two options handle this without touching the leading TXbb:
+
+- `cut_sub_above_lead` (default `False`; linear mode if `txbb_cdf_wp_cuts` is empty, see below): in the control regions A and B (all categories with
+  `boosted_control` in the name) remove the events whose nominal leading index `HiggsLeading btagBBTXbb_5wp` is below the CDF
+  subleading index (cut `hh4b_boosted_lead_ge_sub`). C and D are not cut (the cut would remove nothing there).
+- `txbb_cdf_max_wp` (default `0` = off, 2..5; linear mode if `txbb_cdf_wp_cuts` is empty, see below): the CDF index of the SUBLEADING Higgs is capped,
+  `min(index, txbb_cdf_max_wp)` (`merge_subleading_cdf_wps`, applied in `build_boosted_variables`; the leading Higgs is never merged:
+  its nominal index `HiggsLeading btagBBTXbb_5wp` (0..5, saved and histogrammed as `LeadingHiggsTXbbWPs` when `txbb_cdf_wp_cuts` is set),
+  its continuous TXbb and the by-value `btagBBTXbb_CDF_rescaled_WPs` it inherits from the FatJet keep all their bins, and the cut
+  `cut_sub_above_lead` compares the unmerged leading index with the merged subleading one). With 3 the
+  WPs 0.95, 0.975, 0.99 are merged into one bin (index 1, 2, 3), which gives the top bin usable statistics (in C 235 events instead of
+  201 / 31 / 3). The 4 cuts of `txbb_cdf_wp_cuts` are kept. Then the category cuts can only sit on the WPs 0.8, 0.95 (the
+  config raises otherwise), and the `txbbwp<i>` closure categories are `txbbwp0, 1, 2` with `txbbwp2` = (0.95, 1.0]. Not combinable
+  with `txbb_cdf_wp_cuts_leading`.
+
+Example: `config_files/boosted_other_group_50GeV_lower_sideband_txbbwps_nomet_cdf_merged3_leadge.py` (initial run, from the `_nomet_alex`
+config, DNN dict `..._txbb_cdf_wp_nomet`: the only TXbb inputs are working-point indices, the nominal leading index
+`HiggsLeading btagBBTXbb_5wp` (1..5 after the cut, 5 bins) and the merged subleading CDF index (1..3), no MET, 39 variables). On the DATA of A
+(552,596 events) the cut keeps 151,030 events (27.3%): subleading index 1 / 2 / 3 = 107,874 / 42,617 / 539 (71.43 / 28.22 / 0.36%), against
+70.27 / 28.63 / 1.06% in C. The 4 cuts were derived on all of A, so after the cut the top bin of A is below the one of C: re-derive them on
+the cut sample if that matters.
+
+Plots: `scripts/plot_boosted_signal_regions.py -r txbbwp` reads `txbb_cdf_max_wp` from the `config.json` of the input directory (override
+with `--txbb-max-wp`, `0` = no merging), so for a merged run it plots `txbbwp0, 1, 2` and labels the last bin `0.95 < TXbb ≤ 1.0`
+(asking for a higher bin raises an error). `scripts/plot_2bMorphedvs4b.py` needs no option: a working-point index column
+(`HiggsSubLeading_btagBBTXbb_CDF_rescaled_WPs`) gets one bin per value found in the data, i.e. 3 bins for the merged column.
+
+#### Linear mode: the same two options with the linear rescaling (`txbb_cdf_wp_cuts` empty)
+
+With `txbb_cdf_wp_cuts` empty, `txbb_cdf_max_wp` and `cut_sub_above_lead` act on the linear rescaling instead of the quantile map: the subleading index
+is `HiggsSubLeading btagBBTXbb_morph_5wp` (the working points applied to the linearly stretched `btagBBTXbb_morph`, [0.05, 0.65] -> [0.65, 1.0]; the nominal
+index in C, D), `txbb_cdf_max_wp` caps that column (`merge_subleading_cdf_wps`) and `hh4b_boosted_lead_ge_sub` compares the nominal leading index with it
+(the CDF column is used if the field exists, else the morph one). The category cuts stay continuous (morph in A, B, nominal in C, D: the same partition as
+the merged index, `txbbwp0, 1, 2` with the top bin (0.95, 1.0]); the CDF histograms are not defined. `old_wp_def=True` raises. `HiggsLeading btagBBTXbb_5wp`
+is saved when either option is set. A raw TXbb of exactly float32(0.05) gives morph = 0.65, which is not above the first WP, so index 0 (13 events in the
+DATA of A, none in C): the check script counts them.
+Example: `config_files/boosted_other_group_50GeV_lower_sideband_txbbwps_nomet_linear_merged3_leadge.py` (+ `_model.py`), DNN dict
+`..._txbb_linear_wp_nomet` (39 variables, `higgs2_btag_morph_wp` at the position of `higgs2_btag_cdf_wp`), chain script `waiter/run_nomet_linear_merged3_leadge_pipeline.sh`,
+check `waiter/check_initial_output_linear.py`. Predicted from the cached DATA of A (552,596 events, saved TXbb): the cut keeps 158,939 events (28.8%),
+merged index 0 / 1 / 2 / 3 = 13 / 131,378 / 26,316 / 1,232 (82.7 / 16.6 / 0.78% of the kept events with index >= 1), against 70.27 / 28.63 / 1.06% in C.
+
+#### Leading Higgs (optional, `txbb_cdf_wp_cuts_leading`)
+
+Feeding the continuous leading-Higgs TXbb to the morphing DNN lets it separate A from C almost perfectly: region C has no
+event with leading TXbb below 0.65, while 65% of A has. Most A events then get a weight close to 0 and the high-WP bins
+are left with a handful of effective events. The same idea can be applied to the leading Higgs, so that the model only sees
+working-point indices of both Higgs candidates. A quantile map of the leading TXbb alone (marginal) is not enough: it does not
+preserve the joint occupancy of (leading index, subleading index). In C the leading index is never below the subleading one;
+in the mapped A it is for 0.67% of the events, and 55% of the A events with subleading index >= 3 sit in cells that are empty in C.
+The map is therefore conditional on the subleading index `s` (1..5), with one row of leading cuts per `s` and no pooling:
+
+1. Cuts: `python scripts/find_txbb_cdf_wp_cuts.py -i <output_dir> -o <cuts_dir> --higgs leading --conditional --subleading-cuts <subleading json> [--bootstrap 200]`
+   (same input as for the subleading Higgs; it writes `txbb_cdf_wp_cuts_leading_cond.json` and a 5-panel plot). For each `s`
+   the percentiles of the leading WPs (0.8, 0.95, 0.975, 0.99) are those of the leading TXbb in C restricted to `s`, and the cuts are
+   the leading TXbb values at the same percentiles in A restricted to `s`. `s` is the nominal index in C and `1 + number of
+   subleading cuts exceeded` in A. A percentile of 0 (the WP lies below every leading TXbb that C can have for this `s`, because the
+   leading TXbb is at least the subleading one) is stored as the sentinel `-1`, which every event exceeds, so the leading index is
+   at least `s` by construction. The script prints the joint occupancy of C and of A with the marginal and with the conditional map,
+   the leading fractions given `s`, the number of events in C and A per `s` (it warns if C has fewer than `--min-events-c`) and,
+   with `--bootstrap`, the spread of the cuts. `--subleading-groups "1;2;3,4,5"` would pool subleading indices (not used).
+   Without `--conditional` the script writes the marginal `txbb_cdf_wp_cuts_leading.json` (flat `cuts_A`).
+2. Set `"txbb_cdf_wp_cuts_leading"` (path or dict) next to `txbb_cdf_wp_cuts`, which it requires. The nested `cuts_A` has 5 rows
+   (subleading index 1..5) of 4 cuts and stores the `subleading_cuts_A` it was derived with; the workflow raises if they differ
+   from `txbb_cdf_wp_cuts`. A flat `cuts_A` (4 cuts) is still accepted and gives the marginal map. The column
+   `HiggsLeading_btagBBTXbb_CDF_rescaled_WPs` is then defined and saved.
+
+The map is applied **by region**, not by value: the leading TXbb in A and B reaches 1 and overlaps the range of C and D. The region
+is decided by the subleading TXbb (`<= 0.65`: A, B; same predicate as for the subleading column). In A and B the index is
+`(TXbb >= 0.05) + number of the cuts of the row s exceeded`, in C and D it is the nominal WP index. The field has the same name as the
+subleading one; it replaces the by-value field that `HiggsLeading` inherits from the FatJet, so a DNN dict using
+`["HiggsLeading", "btagBBTXbb_CDF_rescaled_WPs"]` raises unless the option is set.
+
+Statistics: C has about 15.5k / 6.3k / 200 / 31 / 3 events at subleading index 1..5, so the rows `s = 4` (one estimated cut) and
+`s = 5` (no estimated cut: every A event with `s = 5` gets leading index 5, as in C) are statistically limited; the `s = 3` cuts have
+a bootstrap spread of about 0.01 and the `s = 4` cut of about 0.03. The closure is A to C by construction, the transfer B to D is not tested.
+
+The morphing DNN input dict is `bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_both` (ML_pytorch:
+`bkg_morphing_dnn_boosted_bdt_inputs_50GeV_wps_cdf_both`, training yml `..._lower_band_txbbwps_cdf_both.yml`). The configs are
+`boosted_other_group_50GeV_lower_sideband_txbbwps_cdf_both.py` (initial run) and `..._cdf_both_model.py` (second pass), both with the
+conditional cuts inline, and `/work/zhiheng/BoostedAnalysis/waiter/run_cdf_both_pipeline.sh` chains initial run, training and application
+(`check_initial_output_both.py` checks the two CDF columns of the initial output).
+The existing `_cdf` configs and their trained model are unchanged.
+
+#### Production chain "nomet + conditional CDF" (unattended, tmux)
+
+`/work/zhiheng/BoostedAnalysis/waiter/run_nomet_cdf_cond_pipeline.sh` runs the whole chain, built from
+`boosted_other_group_50GeV_lower_sideband_txbbwps_nomet_alex.py` (no MET inputs) with the quantile-mapped working points of both Higgs
+candidates (subleading `txbb_cdf_wp_cuts`, leading conditional `txbb_cdf_wp_cuts_leading`). It stops at the first failure and retries nothing.
+
+| stage | what | output |
+|---|---|---|
+| 1 | initial run `boosted_..._txbbwps_nomet_cdf_cond.py`, then `check_initial_output_both.py` and `check_cuts_consistency.py` (the inline cuts must be those of the data of this run) | `Out/boosted_other_group_50GeV_lower_sideband_txbbwps_nomet_cdf_cond_initial` |
+| 2 | 20-fold morphing-DNN training in Slurm (`..._nomet_cdf_cond_patience15.yml`: 39 inputs, patience 15, lr 1e-3, ttbar subtraction, median over the folds) | `ML_pytorch/out/1e-3_e20drop95_..._txbbwps_nomet_cdf_cond_patience15` |
+| 3 | run that applies the trained DNN (`boosted_..._nomet_cdf_cond_model.py`, also the closure categories per TXbb working point) | `Out/boosted_other_group_50GeV_lower_sideband_txbbwps_nomet_cdf_cond_model` |
+| 4 | closure plots: `plot_2bMorphedvs4b.py --boosted --skip-signal-region` and `plot_boosted_signal_regions.py -r txbbwp` | `plots_2bVS4b_sum_weights/`, `plots_boosted_TXWP/` in the model output folder |
+
+Both workflow stages use the template `VBF_HH4b_boosted_config_sf.py`: it is the nominal template with the TXbb working-point scale factor
+`sf_txbb_fixed_multiple_wp` switched on (common weight and variation). The nominal template does not apply this SF (the two lines are commented
+out), and `VBF_HH4b_boosted_config_with_syst.py` applies it together with the `jet_calibration` shape variations. The SF is applied to the MC only
+and, since the merge of Thierry's changes, only to truth b/bb jets (`hadronFlavour == 5`).
+
+Start it in tmux (the session survives logging out) and restart from a stage with `START_STAGE`:
+
+```bash
+tmux new-session -d -s nomet_cdf_cond 'bash /work/zhiheng/BoostedAnalysis/waiter/run_nomet_cdf_cond_pipeline.sh; exec bash'
+tmux attach -t nomet_cdf_cond                                  # look at it (detach with ctrl-b d)
+tail -f /work/zhiheng/BoostedAnalysis/waiter/run_nomet_cdf_cond_pipeline.log   # progress of the stages
+START_STAGE=3 bash .../run_nomet_cdf_cond_pipeline.sh          # restart from stage 3
+```
+
 ## 0. Datasets and skimming
 
 The datasets are built in the same way as in the resolved analysis, see

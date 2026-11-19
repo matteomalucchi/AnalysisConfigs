@@ -19,6 +19,9 @@ With --region txbbwp the sideband closure is made in bins of the TXbb working po
 TXbb) and the QCD estimate from boosted_control_sideband_region_A_txbbwp<i>_postW (morphed TXbb), both with the same
 global scale factor. Besides the per-variable plots, closure_summary.png/pdf shows the data/prediction yield per bin.
 The input must be made with the option boosted_txbb_wp_categories.
+If the run merged the top working points (option txbb_cdf_max_wp = M), only the bins txbbwp0 ... txbbwp<M-1> exist and the
+last one is the merged bin, (TXBB_WP_EDGES[M-1], 1.0]. M is read from the config.json of the input directory (override with
+--txbb-max-wp).
 
 Example:
     python scripts/plot_boosted_signal_regions.py -i /path/to/output_dir -o plots_boosted_SR
@@ -27,6 +30,7 @@ Example:
 """
 
 import os
+import json
 import argparse
 import numpy as np
 from multiprocessing import Pool
@@ -52,6 +56,9 @@ parser.add_argument("-r", "--region", type=str, choices=["signal", "sideband", "
 parser.add_argument("-c", "--categories", type=str, nargs="+", default=None,
                     help=f"Categories to plot ('{FULL_SR}' = inclusive region). Default: catvbf cat1 cat2 cat3 {FULL_SR}, "
                          f"or the TXbb working point bins txbbwp0 txbbwp1 ... with --region txbbwp")
+parser.add_argument("--txbb-max-wp", type=int, default=None,
+                    help="Only with --region txbbwp: the option txbb_cdf_max_wp of the run (working points above it merged into "
+                         "the last bin, 0 = no merging). Default: read from config.json in the input directory")
 parser.add_argument("-u", "--unblind", type=str, nargs="*", default=["cat3", "full"], help="Categories in which data is shown")
 parser.add_argument("-w", "--workers", type=int, default=8, help="Number of workers")
 parser.add_argument("-l", "--linear", action="store_true", help="Linear y scale", default=False)
@@ -66,7 +73,25 @@ if TXBB_WP:
     # single source of truth for the bin edges of the txbbwp<i> categories
     from configs.HH4b_common.config_files.configurator_tools import TXBB_WP_EDGES
 
-    DEFAULT_CATEGORIES = [f"txbbwp{i}" for i in range(len(TXBB_WP_EDGES) - 1)]
+    def _read_txbb_cdf_max_wp(input_dir):
+        """txbb_cdf_max_wp of the run (0 = no merging), from the config.json written next to the coffea files."""
+        try:
+            with open(os.path.join(input_dir, "config.json")) as f:
+                options = json.load(f)["workflow"]["workflow_options"]
+            return int(options.get("txbb_cdf_max_wp", 0) or 0)
+        except Exception as e:
+            print(f"WARNING: could not read txbb_cdf_max_wp from {input_dir}/config.json ({e}), assuming no merged bin")
+            return 0
+
+    TXBB_MAX_WP = _read_txbb_cdf_max_wp(args.input_dir) if args.txbb_max_wp is None else args.txbb_max_wp
+    if TXBB_MAX_WP:
+        print(f"Merged top TXbb bin: working-point indices above {TXBB_MAX_WP} are merged, bins txbbwp0..txbbwp{TXBB_MAX_WP - 1}")
+    n_wp_bins = TXBB_MAX_WP if TXBB_MAX_WP else len(TXBB_WP_EDGES) - 1
+    DEFAULT_CATEGORIES = [f"txbbwp{i}" for i in range(n_wp_bins)]
+    if args.categories is not None and TXBB_MAX_WP:
+        too_high = [c for c in args.categories if c.startswith("txbbwp") and int(c[len("txbbwp"):]) >= TXBB_MAX_WP]
+        if too_high:
+            raise ValueError(f"Categories {too_high} do not exist: the top working points are merged (txbb_cdf_max_wp={TXBB_MAX_WP})")
 else:
     DEFAULT_CATEGORIES = ["catvbf", "cat1", "cat2", "cat3", FULL_SR]
 # bins that don't exist in the input (e.g. the lowest bin for region_setting 40GeV) are dropped for the default list
@@ -98,7 +123,9 @@ def category_label(category):
     """Readable label of a category: the TXbb range for the txbbwp<i> bins, the category name otherwise."""
     if TXBB_WP and category.startswith("txbbwp"):
         i = int(category[len("txbbwp"):])
-        return f"{TXBB_WP_EDGES[i]} < TXbb ≤ {TXBB_WP_EDGES[i + 1]}"
+        # the merged top bin extends to the upper edge
+        upper = TXBB_WP_EDGES[-1] if (TXBB_MAX_WP and i == TXBB_MAX_WP - 1) else TXBB_WP_EDGES[i + 1]
+        return f"{TXBB_WP_EDGES[i]} < TXbb ≤ {upper}"
     return category
 
 

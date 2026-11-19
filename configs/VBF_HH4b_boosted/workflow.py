@@ -25,6 +25,34 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             for option in ("bkg_morphing_dnn_input_variables", "sig_bkg_dnn_input_variables"):
                 if any(v[1] == "btagBBTXbb_CDF_rescaled_WPs" for v in (getattr(self, option, None) or {}).values()):
                     raise ValueError(f"{option} uses btagBBTXbb_CDF_rescaled_WPs, set the option txbb_cdf_wp_cuts to define it")
+        # Same idea for the leading Higgs (option txbb_cdf_wp_cuts_leading), conditional on the subleading working-point index. The leading
+        # TXbb in A/B overlaps the range of C/D, so it is applied by region (decided by the subleading TXbb), see `define_cdf_rescaled_leading_wps`.
+        self.txbb_cdf_wp_cuts_leading = self._load_txbb_cdf_wp_cuts_leading(getattr(self, "txbb_cdf_wp_cuts_leading", ""), self.txbb_cdf_wp_cuts)
+        if self.txbb_cdf_wp_cuts_leading:
+            if not self.txbb_cdf_wp_cuts:
+                raise ValueError("txbb_cdf_wp_cuts_leading needs txbb_cdf_wp_cuts (the region of an event is decided by the subleading TXbb)")
+            if self.old_wp_def:
+                raise ValueError("txbb_cdf_wp_cuts_leading cannot be used with old_wp_def=True: the working-point index assumes the offset 0")
+        else:
+            # HiggsLeading inherits a field of the same name from FatJet (the by-value map of the subleading Higgs): it must not be used
+            # as the leading working-point index, only the by-region column defined by txbb_cdf_wp_cuts_leading is valid
+            for option in ("bkg_morphing_dnn_input_variables", "sig_bkg_dnn_input_variables"):
+                if any(v[0] == "HiggsLeading" and v[1] == "btagBBTXbb_CDF_rescaled_WPs" for v in (getattr(self, option, None) or {}).values()):
+                    raise ValueError(f"{option} uses HiggsLeading btagBBTXbb_CDF_rescaled_WPs, set the option txbb_cdf_wp_cuts_leading to define it")
+        # Merging of the top working points and removal of the events with a leading index below the subleading one (A, B)
+        self.txbb_cdf_max_wp = int(getattr(self, "txbb_cdf_max_wp", 0) or 0)
+        self.cut_sub_above_lead = bool(getattr(self, "cut_sub_above_lead", False))
+        if self.txbb_cdf_max_wp:
+            if not 2 <= self.txbb_cdf_max_wp <= 5:
+                raise ValueError(f"txbb_cdf_max_wp must be 0 (off) or between 2 and 5, got {self.txbb_cdf_max_wp}")
+            if self.txbb_cdf_wp_cuts_leading:
+                raise ValueError("txbb_cdf_max_wp cannot be combined with txbb_cdf_wp_cuts_leading: its rows are indexed by the unmerged subleading index")
+        # Without txbb_cdf_wp_cuts these two options act on the LINEAR rescaling: the subleading index is `btagBBTXbb_morph_5wp`
+        # (WP edges on the linearly stretched TXbb) instead of the CDF column.
+        if (self.txbb_cdf_max_wp or self.cut_sub_above_lead) and self.old_wp_def:
+            raise ValueError("txbb_cdf_max_wp and cut_sub_above_lead cannot be used with old_wp_def=True: the working-point indices assume the offset 0")
+        if self.cut_sub_above_lead and self.txbb_cdf_wp_cuts_leading:
+            raise ValueError("cut_sub_above_lead cannot be combined with txbb_cdf_wp_cuts_leading: it compares with the nominal leading index")
 
     @staticmethod
     def _load_txbb_cdf_wp_cuts(option):
@@ -41,21 +69,122 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             raise ValueError(f"txbb_cdf_wp_cuts needs 4 increasing cuts_A (for the WPs 0.8, 0.95, 0.975, 0.99), got {cuts}")
         return cuts
 
+    @staticmethod
+    def _load_txbb_cdf_wp_cuts_leading(option, subleading_cuts):
+        """Read the leading-Higgs map of scripts/find_txbb_cdf_wp_cuts.py --higgs leading (path or dict). Returns a table [5][4], or None.
+
+        Row s - 1 holds the 4 cuts (for the WPs 0.8, 0.95, 0.975, 0.99) used in A/B when the subleading working-point index is s.
+        - flat `cuts_A` (4 increasing values, the marginal map): the same row for every s;
+        - nested `cuts_A` (5 rows, `conditional: true`, written with --conditional): one row per s. A cut of -1 (sentinel) is always exceeded
+          and can only be a prefix of a row. The rows were derived with the subleading cuts stored in `subleading_cuts_A`, which must be the
+          ones of the option txbb_cdf_wp_cuts (the subleading index s of an event in A/B is defined by them).
+        """
+        if not option:
+            return None
+        if isinstance(option, str):
+            with open(option) as f:
+                option = json.load(f)
+        if option.get("region_setting", "50GeV") != "50GeV":
+            raise ValueError("txbb_cdf_wp_cuts_leading is only supported for the 50GeV region setting")
+        n_wp, n_sub, sentinel = 4, 5, -1.0
+        cuts = option["cuts_A"]
+        if len(cuts) == n_wp and not any(isinstance(c, (list, tuple)) for c in cuts):
+            row = [float(c) for c in cuts]
+            if any(b < a for a, b in zip(row, row[1:])):
+                raise ValueError(f"txbb_cdf_wp_cuts_leading needs 4 increasing cuts_A (for the WPs 0.8, 0.95, 0.975, 0.99), got {row}")
+            return [list(row) for _ in range(n_sub)]
+        if not option.get("conditional", False):
+            raise ValueError("txbb_cdf_wp_cuts_leading: a nested cuts_A needs 'conditional': true (output of --conditional)")
+        table = [[float(c) for c in row] for row in cuts]
+        if len(table) != n_sub or any(len(row) != n_wp for row in table):
+            raise ValueError(f"txbb_cdf_wp_cuts_leading needs a {n_sub}x{n_wp} table cuts_A (rows: subleading index 1..{n_sub}), got {table}")
+        for s_idx, row in enumerate(table, start=1):
+            if any(b < a for a, b in zip(row, row[1:])):
+                raise ValueError(f"txbb_cdf_wp_cuts_leading: the cuts of the row s={s_idx} are not increasing: {row}")
+            if any(c != sentinel and c < 0 for c in row):
+                raise ValueError(f"txbb_cdf_wp_cuts_leading: row s={s_idx} has a negative cut other than the sentinel {sentinel}: {row}")
+        groups = option.get("subleading_groups", [[i] for i in range(1, n_sub + 1)])
+        if [i for g in groups for i in g] != list(range(1, n_sub + 1)):
+            raise ValueError(f"txbb_cdf_wp_cuts_leading: subleading_groups must be a contiguous partition of 1..{n_sub}, got {groups}")
+        for g in groups:
+            if any(table[i - 1] != table[g[0] - 1] for i in g):
+                raise ValueError(f"txbb_cdf_wp_cuts_leading: the rows of the pooled subleading indices {g} differ")
+        if subleading_cuts is not None:
+            used = option.get("subleading_cuts_A")
+            if used is None or len(used) != len(subleading_cuts) or any(abs(float(a) - float(b)) > 1e-9 for a, b in zip(used, subleading_cuts)):
+                raise ValueError(
+                    "txbb_cdf_wp_cuts_leading was derived with other subleading cuts than the option txbb_cdf_wp_cuts "
+                    f"({used} vs {list(subleading_cuts)}): rerun scripts/find_txbb_cdf_wp_cuts.py --higgs leading --conditional"
+                )
+        return table
+
     def define_cdf_rescaled_wps(self, fatjets, b_low, b_thresh):
         """TXbb working-point index with the low-TXbb jets (A, B) mapped to the WPs of the high-TXbb jets (C, D) by quantile.
 
         Jets above `b_thresh` (C, D): nominal WP index (number of the 5 WPs exceeded).
-        Jets below `b_thresh` (A, B): 1 + number of the quantile-matched cuts exceeded, 0 below `b_low`.
+        Jets below `b_thresh` (A, B): 1 + number of the quantile-matched cuts exceeded, 0 below `b_low` (a jet exactly at `b_low` gets 1, like the baseline `>=`).
         Same scale as `btagBBTXbb_morph_5wp`. The lowest WP (0.65) is the lower edge of C, so it maps onto `b_low` and needs no cut.
         """
         fatjets = self.generate_btag_workingpoints(fatjets, 5, "btagBBTXbb")
         txbb = fatjets["btagBBTXbb"]
         offset = 1 if self.old_wp_def else 0
-        low_wp = ak.where(txbb > b_low, 1, 0) - offset
+        # >= to match hh4b_boosted_baseline (TXbb >= b_low): a jet exactly at b_low (float32 ties occur in MC) must not get index 0
+        low_wp = ak.where(txbb >= b_low, 1, 0) - offset
         for cut in self.txbb_cdf_wp_cuts:
             low_wp = low_wp + ak.where(txbb > cut, 1, 0)
         cdf_wp = ak.where(txbb > b_thresh, fatjets["btagBBTXbb_5wp"], low_wp)
+        # NOTE: the FatJet column is never merged (`txbb_cdf_max_wp`): the leading jet inherits it, and the leading working-point
+        # indices must keep all their bins. The merge is applied to the subleading Higgs only, see `merge_subleading_cdf_wps`.
         return ak.with_field(fatjets, cdf_wp, "btagBBTXbb_CDF_rescaled_WPs")
+
+    def merge_subleading_cdf_wps(self, higgs_sublead):
+        """Merge the working-point indices above `txbb_cdf_max_wp` into it, for the SUBLEADING Higgs only.
+
+        Capping the cumulative index merges the working points (with 3: 0.95, 0.975, 0.99 -> index 3). The leading Higgs is not
+        touched: neither its nominal index `btagBBTXbb_5wp` (0..5, used by `hh4b_boosted_lead_ge_sub`) nor its continuous TXbb.
+        """
+        # CDF column with txbb_cdf_wp_cuts, else the index of the linear rescaling (linear mode)
+        column = "btagBBTXbb_CDF_rescaled_WPs" if self.txbb_cdf_wp_cuts else "btagBBTXbb_morph_5wp"
+        cdf_wp = higgs_sublead[column]
+        cdf_wp = ak.where(cdf_wp > self.txbb_cdf_max_wp, self.txbb_cdf_max_wp, cdf_wp)
+        return ak.with_field(higgs_sublead, cdf_wp, column)
+
+    def _txbb_region_edges(self):
+        """(b_low, b_thresh) of the region setting: baseline TXbb cut and the threshold between the low-TXbb (A, B) and high-TXbb (C, D) regions."""
+        if self.region_setting == "40GeV":
+            return 0.3, 0.8
+        if self.region_setting == "50GeV":
+            return 0.05, 0.65
+        raise ValueError(f"Unknown region_setting {self.region_setting}")
+
+    def define_cdf_rescaled_leading_wps(self, higgs_lead, higgs_sublead, b_low, b_thresh):
+        """TXbb working-point index of the leading Higgs, quantile-mapped in the low-TXbb regions (A, B) given the subleading index, BY REGION.
+
+        Unlike the subleading Higgs, the leading TXbb in A and B overlaps the range of C and D (it is at least the subleading one and
+        goes up to 1), so the map cannot be chosen by the value of the TXbb. The region is decided by the subleading TXbb, with the
+        same predicate as `define_cdf_rescaled_wps` (subleading TXbb > b_thresh: C, D):
+        - C, D: nominal WP index of the leading jet (number of the 5 WPs exceeded).
+        - A, B: `(lead >= b_low)` + number of the cuts of the row s exceeded, where s is the subleading working-point index (field
+          `btagBBTXbb_CDF_rescaled_WPs` of the subleading Higgs, 1..5 in A, B) and the row s holds the 4 leading cuts matched in A to the
+          leading TXbb of C at the same s (a cut of -1 is always exceeded, so the index is at least s with the conditional table). A flat
+          (marginal) option gives the same row for every s. A jet exactly at `b_low` gets 1, like the baseline `>=`.
+        Same scale as `btagBBTXbb_CDF_rescaled_WPs` of the subleading Higgs. Returns `higgs_lead` with the field `btagBBTXbb_CDF_rescaled_WPs`,
+        which replaces the by-value field inherited from the FatJet.
+        """
+        txbb = higgs_lead["btagBBTXbb"]
+        low_region = ak.fill_none(higgs_sublead["btagBBTXbb"] <= b_thresh, False)
+        sub_index = ak.fill_none(higgs_sublead["btagBBTXbb_CDF_rescaled_WPs"], 0)
+        low_wp = ak.where(txbb >= b_low, 1, 0)
+        for row_number, row in enumerate(self.txbb_cdf_wp_cuts_leading, start=1):
+            row_wp = ak.zeros_like(low_wp)
+            for cut in row:
+                row_wp = row_wp + ak.where(txbb > cut, 1, 0)
+            low_wp = low_wp + ak.where(sub_index == row_number, row_wp, 0)
+        # nominal index of the leading jet, computed from its own TXbb (not read from the inherited FatJet fields)
+        nominal_wp = ak.zeros_like(txbb, dtype=np.int32)
+        for wp in (0.65, 0.8, 0.95, 0.975, 0.99):
+            nominal_wp = nominal_wp + ak.where(txbb > wp, 1, 0)
+        return ak.with_field(higgs_lead, ak.where(low_region, low_wp, nominal_wp), "btagBBTXbb_CDF_rescaled_WPs")
 
     def process_extra_after_skim(self):
         super().process_extra_after_skim()
@@ -96,12 +225,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
                     (self.events["FatJet"]["globalParT3_Xbb"] / (self.events["FatJet"]["globalParT3_Xbb"] + self.events["FatJet"]["globalParT3_QCD"])),
                     "btagBBTXbb",
                 )
-                if self.region_setting == "40GeV":
-                    b_low = 0.3
-                    b_thresh = 0.8
-                elif self.region_setting == "50GeV":
-                    b_low = 0.05
-                    b_thresh = 0.65
+                b_low, b_thresh = self._txbb_region_edges()
                 self.events["FatJet"] = ak.with_field(self.events["FatJet"], ak.where(self.events["FatJet"]["btagBBTXbb"] > b_thresh, (self.events["FatJet"]["btagBBTXbb"]), (self.events["FatJet"]["btagBBTXbb"] - b_low) * (1-b_thresh) / (b_thresh - b_low) + b_thresh), "btagBBTXbb_morph")
                 # self.events["FatJet"] = ak.with_field(
                 #     self.events["FatJet"],
@@ -439,3 +563,12 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
             ak.fill_none(disc_TXbb(self.events.HiggsLeading.btagBBTXbb, "old"), -999),
             "btagBBTXbb_dig_old",
             )
+        if self.txbb_cdf_wp_cuts_leading and "2024" in self._year:
+            # quantile-mapped working-point index of the leading Higgs, by region (needs the subleading TXbb)
+            b_low, b_thresh = self._txbb_region_edges()
+            self.events["HiggsLeading"] = self.define_cdf_rescaled_leading_wps(
+                self.events["HiggsLeading"], self.events["HiggsSubLeading"], b_low, b_thresh
+            )
+        if self.txbb_cdf_max_wp and "2024" in self._year:
+            # merged top working points of the subleading Higgs (the leading Higgs keeps all its bins)
+            self.events["HiggsSubLeading"] = self.merge_subleading_cdf_wps(self.events["HiggsSubLeading"])

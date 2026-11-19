@@ -171,6 +171,16 @@ def hh4b_boosted_presel_cuts(events, params, **kwargs):
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
+def hh4b_boosted_lead_txbb_min(events, params, **kwargs):
+    """Preselection: keep the events whose leading selected fat jet has btagBBTXbb strictly above `params["threshold"]`.
+
+    The leading jet is `FatJetGoodSelected[:, 0]` (the one used for `HiggsLeading`). Events without a leading jet (or with a missing TXbb) are
+    rejected.
+    """
+    lead_txbb = ak.firsts(events["FatJetGoodSelected"]["btagBBTXbb"])
+    return ak.fill_none(lead_txbb > params["threshold"], False)
+
+
 def hh4b_boosted_2fatjets(events, params, **kwargs):
     # selection is already performed in the object preselection, 
     # here I just need to count the fat jets
@@ -346,6 +356,8 @@ class _SubleadingTXbb:
 
     def __init__(self, events, params):
         self.cdf = bool(params.get("txbb_cdf", False))
+        # With `txbb_cdf_max_wp` the working-point indices above it are merged into it: only cuts on WPs below the cap exist
+        self.max_wp = int(params.get("txbb_cdf_max_wp", 0))
         higgs = events["HiggsSubLeading"]
         if self.cdf:
             self.values = higgs["btagBBTXbb_CDF_rescaled_WPs"]
@@ -354,14 +366,23 @@ class _SubleadingTXbb:
         else:
             self.values = higgs["btagBBTXbb"]
 
+    def _wp_index(self, edge):
+        k = txbb_wp_index(edge)
+        if self.max_wp and k >= self.max_wp:
+            raise ValueError(
+                f"TXbb cut {edge} is the working point number {k}, which is merged into the top bin: with txbb_cdf_max_wp={self.max_wp} "
+                f"only the cuts {TXBB_WP_EDGES[:self.max_wp]} can be expressed"
+            )
+        return k
+
     def gt(self, edge):
         if self.cdf:
-            return self.values > txbb_wp_index(edge)
+            return self.values > self._wp_index(edge)
         return self.values > edge
 
     def lt(self, edge):
         if self.cdf:
-            return self.values <= txbb_wp_index(edge)
+            return self.values <= self._wp_index(edge)
         return self.values < edge
 
 
@@ -372,6 +393,14 @@ def hh4b_boosted_TXbb_bin(events, params, **kwargs):
     # in all regions.
     if params.get("txbb_cdf", False):
         i = txbb_wp_index(params["low"])
+        max_wp = int(params.get("txbb_cdf_max_wp", 0))
+        if max_wp and i >= max_wp:
+            raise ValueError(f"TXbb bin ({params['low']}, {params['high']}] lies above the merged top bin of txbb_cdf_max_wp={max_wp}")
+        if max_wp and i == max_wp - 1:
+            # merged top bin: everything above the working point `low` up to the upper edge, which is the index `max_wp`
+            if abs(params["high"] - TXBB_WP_EDGES[-1]) > 1e-9:
+                raise ValueError(f"The merged top TXbb bin must end at {TXBB_WP_EDGES[-1]}, got ({params['low']}, {params['high']}]")
+            return events["HiggsSubLeading"]["btagBBTXbb_CDF_rescaled_WPs"] == max_wp
         if abs(params["high"] - TXBB_WP_EDGES[i + 1]) > 1e-9:
             raise ValueError(f"TXbb bin ({params['low']}, {params['high']}] is not between two neighbouring working points")
         return events["HiggsSubLeading"]["btagBBTXbb_CDF_rescaled_WPs"] == i + 1
@@ -380,6 +409,22 @@ def hh4b_boosted_TXbb_bin(events, params, **kwargs):
     else:
         txbb = events["HiggsSubLeading"]["btagBBTXbb"]
     return (txbb > params["low"]) & (txbb <= params["high"])
+
+
+def hh4b_boosted_lead_ge_sub(events, params, **kwargs):
+    """Keep the events whose nominal leading working-point index is not below the CDF-rescaled subleading one.
+
+    In C and D the jets are ordered by TXbb, so the leading index is never below the subleading one there. In A and B the quantile
+    map pushes the subleading index up while the leading TXbb is left untouched, so the leading index can be lower (always for a leading
+    TXbb below the lowest working point, which has no counterpart in C and D). Those events are removed.
+    Needs `old_wp_def=False` (both indices start at 0 = below the first working point).
+    The subleading index is the CDF-rescaled one if `txbb_cdf_wp_cuts` is set (the field only exists then), otherwise the one of
+    the linear rescaling, `btagBBTXbb_morph_5wp` (linear mode). With `txbb_cdf_max_wp` either column is already merged.
+    """
+    lead = events["HiggsLeading"]["btagBBTXbb_5wp"]
+    higgs_sub = events["HiggsSubLeading"]
+    sub = higgs_sub["btagBBTXbb_CDF_rescaled_WPs"] if "btagBBTXbb_CDF_rescaled_WPs" in higgs_sub.fields else higgs_sub["btagBBTXbb_morph_5wp"]
+    return ak.fill_none(lead >= sub, False)
 
 
 def hh4b_boosted_mass(events, params, **kwargs):

@@ -227,6 +227,32 @@ default_config_options_dict = {
     # `btagBBTXbb_CDF_rescaled_WPs`. Path to the JSON written by
     # `scripts/find_txbb_cdf_wp_cuts.py` (or the dict itself). Empty: the column is not defined.
     "txbb_cdf_wp_cuts": "",
+    # Boosted only (50GeV setting): same for the LEADING Higgs, used to define
+    # `HiggsLeading.btagBBTXbb_CDF_rescaled_WPs`. Path to the JSON written by
+    # `scripts/find_txbb_cdf_wp_cuts.py --higgs leading` (or the dict itself). Needs `txbb_cdf_wp_cuts`.
+    # Two forms: flat `cuts_A` (4 cuts, marginal map) or nested `cuts_A` (5x4, `conditional: true`, written with `--conditional`):
+    # one row of 4 leading cuts per subleading working-point index s (-1: always exceeded), derived with the subleading cuts
+    # stored in `subleading_cuts_A`, which must equal `txbb_cdf_wp_cuts`.
+    # Unlike the subleading Higgs it is applied by region (the leading TXbb in A, B overlaps C, D): A, B (subleading
+    # TXbb <= threshold) use the quantile map, C, D the nominal working-point index. Empty: the column is not defined.
+    "txbb_cdf_wp_cuts_leading": "",
+    # Boosted only, needs `txbb_cdf_wp_cuts`: merge the working-point indices above this one into it, i.e.
+    # `btagBBTXbb_CDF_rescaled_WPs = min(index, txbb_cdf_max_wp)`. With 3 the subleading index takes the values 1, 2, 3 (3 = TXbb > 0.95
+    # in C, D and the quantile-matched equivalent in A, B, so the WPs 0.95, 0.975, 0.99 are merged). The 4 cuts of `txbb_cdf_wp_cuts` stay as they
+    # are. Category cuts must then sit on the WPs below the cap (0.8, 0.95) and the `txbbwp<i>` closure categories stop at the merged bin.
+    # 0: off (all 5 working points). Allowed: 2..5.
+    # LINEAR MODE: without `txbb_cdf_wp_cuts` the cap is applied to the subleading `btagBBTXbb_morph_5wp` (WP edges on the linearly
+    # stretched TXbb) instead. The category cuts stay continuous (morph in A/B, nominal in C/D), which is the same partition.
+    "txbb_cdf_max_wp": 0,
+    # Boosted only: in the control regions (A, B) remove the events whose nominal leading working-point index
+    # (`HiggsLeading.btagBBTXbb_5wp`) is below the subleading one (`hh4b_boosted_lead_ge_sub`): the CDF-rescaled one with
+    # `txbb_cdf_wp_cuts`, otherwise (linear mode) `btagBBTXbb_morph_5wp`; merged if `txbb_cdf_max_wp` is set. C and D are not cut.
+    "cut_sub_above_lead": False,
+    # Boosted only: preselection cut `HiggsLeading btagBBTXbb > boosted_lead_txbb_min` (strict), added to `preselections` in the three
+    # VBF_HH4b_boosted_config*.py templates (they do not use `define_preselection`). It acts on all events, also on region D and on MC
+    # (`hh4b_boosted_lead_txbb_min`). With TXbb_order the leading jet has the larger TXbb, so in C, D (subleading TXbb > 0.65) it removes
+    # nothing when set to 0.65. 0.0: off.
+    "boosted_lead_txbb_min": 0.0,
     # b-tag SF studies only: compute the b-tag scale factors using only the
     # 5 leading jets instead of all the `JetGood`.
     "only5jetsbSF": False,

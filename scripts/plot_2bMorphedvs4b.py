@@ -46,9 +46,44 @@ PAD_VALUE = -999
 BLIND_VALUE = 0.9
 ARCTANH_BINS = False
 # Columns that are a working-point index (integers stored as floats): one bin per index, the same in all the regions
-WP_INDEX_VARIABLES = ("btagBBTXbb_morph_5wp", "btagBBTXbb_CDF_rescaled_WPs")
+WP_INDEX_VARIABLES = ("btagBBTXbb_morph_5wp", "btagBBTXbb_CDF_rescaled_WPs", "btagBBTXbb_5wp")
 VARIABLES_TEST = ["score", "weight", "prob"]
 DEBUG = args.test
+
+# Linear-rescaling subleading index: a jet exactly at the lower edge of the low-TXbb region (raw TXbb = float32(0.05), float32 ties occur in
+# data and MC) is rescaled to exactly 0.65 = the first working point, which the strict '>' of the index does not exceed, so the processor
+# stored index 0 for it although it passes the baseline TXbb >= 0.05. The plots show these events in index 1 (like the cdf case).
+# Their leading Higgs then has an index below the subleading one (the leading index 0 is a genuine TXbb < 0.65, not a tie): with the tie in
+# index 1 `cut_sub_above_lead` (leading index >= subleading index) would have rejected them, so they are dropped from all the columns.
+LOWER_EDGE_TIE_COLUMN = "HiggsSubLeading_btagBBTXbb_morph_5wp"
+LEADING_WP_COLUMN = "HiggsLeading_btagBBTXbb_5wp"
+
+
+def fix_lower_edge_ties(cat_col, label):
+    """In place, for every region of `cat_col` (dict region -> column -> array): subleading index 0 -> 1 in LOWER_EDGE_TIE_COLUMN, then drop
+    the events with the leading index (LEADING_WP_COLUMN) below the subleading one from all the columns of the region."""
+    if not cat_col:
+        return
+    for cat, cols in cat_col.items():
+        if LOWER_EDGE_TIE_COLUMN not in cols:
+            continue
+        wp = np.asarray(cols[LOWER_EDGE_TIE_COLUMN])
+        n_zero = int((wp == 0).sum())
+        if n_zero:
+            wp = np.where(wp == 0, 1, wp).astype(wp.dtype)
+            cols[LOWER_EDGE_TIE_COLUMN] = wp
+            print(f"{label} {cat}: {n_zero} events with {LOWER_EDGE_TIE_COLUMN} = 0 (lower-edge TXbb ties) moved to index 1")
+        if LEADING_WP_COLUMN not in cols:
+            continue
+        lead = np.asarray(cols[LEADING_WP_COLUMN])
+        bad = (lead < wp) & (lead != PAD_VALUE) & (wp != PAD_VALUE)
+        if bad.any():
+            keep = ~bad
+            for k, v in list(cols.items()):
+                if len(v) != len(keep):
+                    raise RuntimeError(f"{label} {cat}: column {k} has {len(v)} entries, expected {len(keep)}: cannot drop the events with leading index < subleading index")
+                cols[k] = v[keep]
+            print(f"{label} {cat}: {int(bad.sum())} events with the leading index below the subleading one (leading idx 0 + lower-edge tie) dropped")
 
 # -i can be a directory (with or without trailing slash) or coffea files
 if os.path.isdir(args.input_data[0]):
@@ -289,6 +324,13 @@ if args.skip_signal_region:
     # no plot (and no loading) of the signal region data
     cat_dict = {name: cats for name, cats in cat_dict.items() if not name.startswith("SR")}
 
+if args.skip_control_region:
+    if not args.boosted:
+        raise ValueError("--skip-control-region is only for --boosted")
+    if args.skip_signal_region:
+        raise ValueError("--skip-control-region and --skip-signal-region leave nothing to plot")
+    cat_dict = {name: cats for name, cats in cat_dict.items() if not name.startswith("CR")}
+
 if args.test:
     cat_dict = {
         f"CR": [
@@ -398,7 +440,8 @@ if args.only_vars:
 
         args.only_vars = _load_only_vars_from_py(args.only_vars[0])
     def _keep_var(x):
-        return "weight" in x or "_N" in x or any(s in x for s in args.only_vars)
+        # the two index columns of fix_lower_edge_ties are always needed
+        return "weight" in x or "_N" in x or x in (LOWER_EDGE_TIE_COLUMN, LEADING_WP_COLUMN) or any(s in x for s in args.only_vars)
 else:
     def _keep_var(x):
         return True
@@ -425,6 +468,7 @@ else:
     category_filter = None
 
 cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed, category_filter=category_filter)
+fix_lower_edge_ties(cat_col_data, "DATA")
 cat_col_tt = None
 inputfiles_tt = [
     os.path.join(input_dir, file)
@@ -438,6 +482,7 @@ if inputfiles_tt:
         debug=False, novars=args.novars, filter_mixed=args.mixed,
         category_filter=category_filter,
     )
+    fix_lower_edge_ties(cat_col_tt, "TT")
 else:
     if args.compare_morphing_models:
         raise FileNotFoundError(
@@ -459,6 +504,7 @@ if args.input_mc:
         ]
 
     cat_col_mc, _ = get_columns_from_files(inputfiles_mc, "nominal", lambda x: _keep_var(x) and "prov" not in x and "era" not in x, debug=False, novars=args.novars, filter_mixed=args.mixed, category_filter=category_filter)
+    fix_lower_edge_ties(cat_col_mc, "MC")
 
     if args.run2:
         cols_sig_mc = cat_col_mc[f"4b{args.region_suffix}_signal_regionRun2"]

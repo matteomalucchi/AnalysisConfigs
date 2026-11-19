@@ -614,6 +614,46 @@ bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp = OrderedDict(
     }
 )
 
+# Same as `..._txbb_cdf_wp`, but the leading Higgs TXbb is also the quantile-mapped working-point index
+# (`HiggsLeading btagBBTXbb_CDF_rescaled_WPs`, option `txbb_cdf_wp_cuts_leading`, applied by region) instead of the continuous
+# nominal TXbb, which separates A from C almost perfectly (C has no leading TXbb below 0.65). Same position, 41 variables.
+# Needs a morphing DNN trained with these variables.
+bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_both = OrderedDict(
+    (
+        ("higgs1_btag_cdf_wp", ["HiggsLeading", "btagBBTXbb_CDF_rescaled_WPs"]) if name == "higgs1_btag" else (name, variable)
+        for name, variable in bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp.items()
+    )
+)
+
+# Same as `..._txbb_cdf_wp_both` without the MET inputs (`puppimet_pt`, `met_et`), as the `..._nomet` dicts: 39 variables, the TXbb inputs of
+# both Higgs candidates are the quantile-mapped working-point indices (`higgs1_btag_cdf_wp`, `higgs2_btag_cdf_wp`). Needs a morphing DNN
+# trained with these variables (ML_pytorch: `bkg_morphing_dnn_boosted_bdt_inputs_50GeV_wps_nomet_cdf_cond`).
+bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_both_nomet = OrderedDict(
+    (name, variable)
+    for name, variable in bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_both.items()
+    if name not in ("puppimet_pt", "met_et")
+)
+
+# Same as `..._txbb_cdf_wp` without the MET inputs (`puppimet_pt`, `met_et`): 39 variables, and the TXbb inputs are working-point
+# indices only, for both Higgs candidates: the leading one is the NOMINAL working-point index `HiggsLeading btagBBTXbb_5wp` (untouched,
+# not rescaled, not merged; 1..5 after `cut_sub_above_lead`, instead of the continuous `higgs1_btag`, same position) and the subleading one
+# the quantile-mapped index `higgs2_btag_cdf_wp` (merged with `txbb_cdf_max_wp`). Used with `cut_sub_above_lead`, which removes the A/B
+# events whose leading index is below the subleading one. Needs a morphing DNN trained with these variables.
+bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_nomet = OrderedDict(
+    ("higgs1_btag_wp", ["HiggsLeading", "btagBBTXbb_5wp"]) if name == "higgs1_btag" else (name, variable)
+    for name, variable in bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp.items()
+    if name not in ("puppimet_pt", "met_et")
+)
+
+# Same as `..._txbb_cdf_wp_nomet` (39 variables, same positions), but the subleading working-point index is the one of the LINEAR rescaling:
+# `HiggsSubLeading btagBBTXbb_morph_5wp` (WP edges on the linearly stretched TXbb; nominal in C/D), merged with `txbb_cdf_max_wp`
+# (linear mode: option `txbb_cdf_wp_cuts` empty), as `higgs2_btag_cdf_wp` there. The leading input is the nominal index `higgs1_btag_wp`.
+# Used with `cut_sub_above_lead`. Needs a morphing DNN trained with these variables.
+bkg_morphing_boosted_dnn_input_variables_other_group_txbb_linear_wp_nomet = OrderedDict(
+    ("higgs2_btag_morph_wp", ["HiggsSubLeading", "btagBBTXbb_morph_5wp"]) if name == "higgs2_btag_cdf_wp" else (name, variable)
+    for name, variable in bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_nomet.items()
+)
+
 sig_bkg_boosted_dnn_input_variables_other_group_txbb_wp_noh2txbb = OrderedDict(
     {
         "n_vbf_cand_jets": ["events", "nJetGoodVBFGood"],

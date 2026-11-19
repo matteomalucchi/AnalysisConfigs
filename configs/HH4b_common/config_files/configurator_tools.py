@@ -49,6 +49,10 @@ def get_variables_dict(
         variables_dict.update(variable_dict_bkg_morphing)
     if BOOSTED:
         variables_dict.update(variables_dict_fatjets)
+        if not config_options_dict.get("txbb_cdf_wp_cuts"):
+            # the CDF-rescaled working-point column is only defined with the option txbb_cdf_wp_cuts (not in linear mode)
+            for name in ("SubLeadingHiggsTXbbCDFWPs", "LeadingHiggsTXbbCDFWPs"):
+                variables_dict.pop(name, None)
     if BOOSTED and BDT:
         variables_dict.update(variables_dict_boosted_bdt)
     if SCORE:
@@ -292,18 +296,31 @@ def create_DNN_columns_list(run2, flatten, columns_dict, btag=True):
 TXBB_WP_EDGES = cuts_f.TXBB_WP_EDGES
 
 
-def txbb_wp_bins(region_setting):
-    """Indices of the TXbb WP bins that lie above the TXbb threshold of the signal regions (C, D)."""
+def txbb_wp_bins(region_setting, txbb_cdf_max_wp=0):
+    """Indices of the TXbb WP bins that lie above the TXbb threshold of the signal regions (C, D).
+
+    With `txbb_cdf_max_wp` (working-point indices above it merged into it) only the bins below the cap exist: the bin
+    number `txbb_cdf_max_wp - 1` is the merged top bin."""
     threshold = 0.8 if region_setting == "40GeV" else 0.65
-    return [i for i in range(len(TXBB_WP_EDGES) - 1) if TXBB_WP_EDGES[i] >= threshold]
+    bins = [i for i in range(len(TXBB_WP_EDGES) - 1) if TXBB_WP_EDGES[i] >= threshold]
+    if txbb_cdf_max_wp:
+        bins = [i for i in bins if i < txbb_cdf_max_wp]
+    return bins
 
 
-def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False, full_sideband=False, region_setting="40GeV", lead_sublead="sublead", optimised_cuts=False, txbb_cdf_wps=False):
+def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False, full_sideband=False, region_setting="40GeV", lead_sublead="sublead", optimised_cuts=False, txbb_cdf_wps=False, cut_sub_above_lead=False, txbb_cdf_max_wp=0):
     """
     Define a single category for the analysis.
 
     If `vbf_discriminator` is defined, we MUST have a `ggf_vbf_threshold`. Otherwise the scan will crash.
     But the workflow should be designed in a way, that we never call this function without a threshold if one is needed.
+
+    `cut_sub_above_lead`: in the control regions (A, B) remove the events whose nominal leading working-point index is below the
+    subleading one (CDF-rescaled with `txbb_cdf_wps`, otherwise the index of the linear rescaling `btagBBTXbb_morph_5wp`).
+    The signal regions (C, D) are not cut.
+    `txbb_cdf_max_wp`: the working-point indices above it are merged into it. With `txbb_cdf_wps` the categories cut on the merged
+    CDF index; without it (linear mode) they keep cutting on the continuous TXbb (morph in A/B, nominal in C/D), which is the same
+    partition, and the merged top bin is (WP, 1.0].
     """
     cut_list = []
     # number of b jets
@@ -325,6 +342,8 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
                 cut_list.append(cuts.hh4b_boosted_mass_signal(region_setting, lead_sublead))
         elif "boosted_control" in category_name:
             cut_list.append(cuts.hh4b_boosted_TXbb_control(region_setting))
+            if cut_sub_above_lead:
+                cut_list.append(cuts.hh4b_boosted_lead_ge_sub)
             if "sideband" in category_name:
                 if full_sideband:
                     cut_list.append(cuts.hh4b_boosted_mass_sideband_full(region_setting, lead_sublead))
@@ -338,20 +357,24 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
         wp_match = re.search(r"txbbwp(\d+)", category_name)
         if wp_match:
             wp_bin = int(wp_match.group(1))
-            cut_list.append(cuts.hh4b_boosted_TXbb_bin(TXBB_WP_EDGES[wp_bin], TXBB_WP_EDGES[wp_bin + 1], morph="boosted_control" in category_name, txbb_cdf=txbb_cdf_wps))
+            if txbb_cdf_max_wp and wp_bin >= txbb_cdf_max_wp:
+                raise ValueError(f"{category_name}: the TXbb bin {wp_bin} lies above the merged top bin (txbb_cdf_max_wp={txbb_cdf_max_wp})")
+            # the merged top bin extends to the upper edge
+            wp_high = TXBB_WP_EDGES[-1] if (txbb_cdf_max_wp and wp_bin == txbb_cdf_max_wp - 1) else TXBB_WP_EDGES[wp_bin + 1]
+            cut_list.append(cuts.hh4b_boosted_TXbb_bin(TXBB_WP_EDGES[wp_bin], wp_high, morph="boosted_control" in category_name, txbb_cdf=txbb_cdf_wps, txbb_cdf_max_wp=txbb_cdf_max_wp))
         # The signal categories cut on the subleading TXbb. In the control regions (A, B) the TXbb is below the
         # signal threshold by construction, so there the categories cut on the morphed TXbb (`btagBBTXbb_morph`)
         # instead. The signal regions (C, D) always use the nominal TXbb.
         # With `txbb_cdf_wps` (option `txbb_cdf_wp_cuts`) all regions use the CDF-rescaled working-point index of the
         # subleading Higgs instead, so the cuts must sit on working points and no shape of the TXbb is used.
         if "cat1" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_1(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
+            cut_list.append(cuts.hh4b_boosted_category_1(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps, txbb_cdf_max_wp=txbb_cdf_max_wp))
         elif "catvbf" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_vbf(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
+            cut_list.append(cuts.hh4b_boosted_category_vbf(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps, txbb_cdf_max_wp=txbb_cdf_max_wp))
         elif "cat2" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_2(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
+            cut_list.append(cuts.hh4b_boosted_category_2(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps, txbb_cdf_max_wp=txbb_cdf_max_wp))
         elif "cat3" in category_name:
-            cut_list.append(cuts.hh4b_boosted_category_3(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps))
+            cut_list.append(cuts.hh4b_boosted_category_3(txbb_morph="boosted_control" in category_name, region_setting=region_setting, optimised_cuts=optimised_cuts, txbb_cdf=txbb_cdf_wps, txbb_cdf_max_wp=txbb_cdf_max_wp))
 
     # mass cuts
     elif "VR1" not in category_name:
@@ -425,6 +448,8 @@ def define_categories(
     morphing_direction="btag",
     txbb_wp_categories=False,
     txbb_cdf_wps=False,
+    cut_sub_above_lead=False,
+    txbb_cdf_max_wp=0,
 ):
     """Define the categories for the analysis."""
     categories_dict = {}
@@ -433,7 +458,7 @@ def define_categories(
         if morphing_direction not in ("btag", "mass"):
             raise ValueError(f"Unknown bkg_morphing_direction '{morphing_direction}', expected 'btag' or 'mass'")
         # All ABCD regions must share the same region definition, otherwise the regions are inconsistent
-        region_kwargs = dict(full_sideband=full_sideband, region_setting=region_setting, lead_sublead=lead_sublead, optimised_cuts=optimised_cuts, txbb_cdf_wps=txbb_cdf_wps)
+        region_kwargs = dict(full_sideband=full_sideband, region_setting=region_setting, lead_sublead=lead_sublead, optimised_cuts=optimised_cuts, txbb_cdf_wps=txbb_cdf_wps, cut_sub_above_lead=cut_sub_above_lead, txbb_cdf_max_wp=txbb_cdf_max_wp)
         # The signal categories cut on the DNN scores (optimised cuts) or, without optimised cuts, on the BDT scores.
         # If neither is available, only the ABCD regions are defined.
         signal_categories = bool(optimised_cuts) or bool(bdt_model)
@@ -488,7 +513,7 @@ def define_categories(
                 if txbb_wp_categories:
                     # Closure of the morphing (trained A -> C) in bins of the TXbb working point: the nominal TXbb in C
                     # and the morphed TXbb in A_postW, with the same bin edges
-                    for wp_bin in txbb_wp_bins(region_setting):
+                    for wp_bin in txbb_wp_bins(region_setting, txbb_cdf_max_wp):
                         categories_dict |= define_single_category(f"boosted_signal_sideband_region_C_txbbwp{wp_bin}", **region_kwargs)
                         categories_dict |= define_single_category(f"boosted_control_sideband_region_A_txbbwp{wp_bin}_postW", **region_kwargs)
     

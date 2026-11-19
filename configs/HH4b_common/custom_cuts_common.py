@@ -33,6 +33,13 @@ hh4b_boosted_presel = Cut(
     function=cuts_f.hh4b_boosted_presel_cuts,
 )
 
+def hh4b_boosted_lead_txbb_min(threshold):
+    return Cut(
+        name=f"hh4b_boosted_lead_txbb_min_{threshold}",
+        params={"threshold": threshold},
+        function=cuts_f.hh4b_boosted_lead_txbb_min,
+    )
+
 hh4b_boosted_2fatjets = Cut(
     name="hh4b_boosted_2fatjets",
     params={
@@ -221,20 +228,30 @@ def hh4b_boosted_TXbb_control(region_setting):
         function=cuts_f.hh4b_boosted_TXbb,
 )
 
-def hh4b_boosted_TXbb_bin(low, high, morph, txbb_cdf=False):
-    # With `txbb_cdf` the bin is selected on the CDF-rescaled working-point index in all regions (`morph` is then ignored)
+def hh4b_boosted_TXbb_bin(low, high, morph, txbb_cdf=False, txbb_cdf_max_wp=0):
+    # With `txbb_cdf` the bin is selected on the CDF-rescaled working-point index in all regions (`morph` is then ignored).
+    # With `txbb_cdf_max_wp` the top bin is the merged one (see `hh4b_boosted_TXbb_bin` in custom_cut_functions_common)
     if txbb_cdf:
         cuts_f.txbb_wp_index(low)
     # The parameters are part of the name so that bins never share a cut name
+    suffix = f"cdf_max{txbb_cdf_max_wp}" if (txbb_cdf and txbb_cdf_max_wp) else "cdf" if txbb_cdf else "morph" if morph else "nominal"
     return Cut(
-        name=f"hh4b_boosted_TXbb_bin_{low}_{high}_{'cdf' if txbb_cdf else 'morph' if morph else 'nominal'}",
+        name=f"hh4b_boosted_TXbb_bin_{low}_{high}_{suffix}",
         params={
             "low": low,
             "high": high,
             "morph": morph,
             "txbb_cdf": txbb_cdf,
+            "txbb_cdf_max_wp": txbb_cdf_max_wp,
             },
         function=cuts_f.hh4b_boosted_TXbb_bin,
+)
+
+# Events whose nominal leading working-point index is below the CDF-rescaled subleading one are removed (see the function).
+hh4b_boosted_lead_ge_sub = Cut(
+    name="hh4b_boosted_lead_ge_sub",
+    params={},
+    function=cuts_f.hh4b_boosted_lead_ge_sub,
 )
 
 def hh4b_boosted_mass_signal(region_setting, lead_sublead):
@@ -286,14 +303,19 @@ def _get_params(region_setting="50GeV"):
         return {"txbb_c1": 0.945, "bdt_ggf_c1": 0.94, "txbb_vbf": 0.8, "bdt_vbf": 0.9825, "txbb_c2a": 0.85, "bdt_ggf_c2b": 0.755, "bdt_ggf_bkg": 0.03}
 
 def _check_txbb_cuts_are_wps(cuts):
-    """The CDF-rescaled TXbb is a working-point index: the TXbb cuts of the categories must be working points."""
+    """The CDF-rescaled TXbb is a working-point index: the TXbb cuts of the categories must be working points.
+
+    With `txbb_cdf_max_wp` the indices above it are merged, so the cuts must also lie below the merged top bin."""
+    max_wp = int(cuts.get("txbb_cdf_max_wp", 0))
     for name in ("txbb_c1", "txbb_vbf", "txbb_c2a"):
         try:
-            cuts_f.txbb_wp_index(cuts[name])
+            k = cuts_f.txbb_wp_index(cuts[name])
+            if max_wp and k >= max_wp:
+                raise ValueError(f"the working point {cuts[name]} is merged into the top bin (txbb_cdf_max_wp={max_wp}), allowed cuts: {cuts_f.TXBB_WP_EDGES[:max_wp]}")
         except ValueError as e:
             raise ValueError(f"Parameter {name}={cuts[name]}: {e}") from None
 
-def hh4b_boosted_category_1(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False):
+def hh4b_boosted_category_1(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False, txbb_cdf_max_wp=0):
     if optimised_cuts:
         cuts = dict(optimised_cuts)
         cuts["score_ggf"] = "sig_bkg_dnn_score_ggFvsBKG"
@@ -304,6 +326,7 @@ def hh4b_boosted_category_1(txbb_morph=True, region_setting="50GeV", optimised_c
         cuts["score_vbf"] = "boosted_bdt_vbf_score"
     cuts["txbb_morph"] = txbb_morph
     cuts["txbb_cdf"] = txbb_cdf
+    cuts["txbb_cdf_max_wp"] = txbb_cdf_max_wp
     if txbb_cdf:
         _check_txbb_cuts_are_wps(cuts)
     return Cut(
@@ -312,7 +335,7 @@ def hh4b_boosted_category_1(txbb_morph=True, region_setting="50GeV", optimised_c
         function=cuts_f.hh4b_boosted_category_1,
     )
 
-def hh4b_boosted_category_vbf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False):
+def hh4b_boosted_category_vbf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False, txbb_cdf_max_wp=0):
     if optimised_cuts:
         cuts = dict(optimised_cuts)
         cuts["score_ggf"] = "sig_bkg_dnn_score_ggFvsBKG"
@@ -323,6 +346,7 @@ def hh4b_boosted_category_vbf(txbb_morph=True, region_setting="50GeV", optimised
         cuts["score_vbf"] = "boosted_bdt_vbf_score"
     cuts["txbb_morph"] = txbb_morph
     cuts["txbb_cdf"] = txbb_cdf
+    cuts["txbb_cdf_max_wp"] = txbb_cdf_max_wp
     if txbb_cdf:
         _check_txbb_cuts_are_wps(cuts)
     return Cut(
@@ -331,7 +355,7 @@ def hh4b_boosted_category_vbf(txbb_morph=True, region_setting="50GeV", optimised
         function=cuts_f.hh4b_boosted_category_vbf,
     )
 
-def hh4b_boosted_category_2(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False):
+def hh4b_boosted_category_2(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False, txbb_cdf_max_wp=0):
     if optimised_cuts:
         cuts = dict(optimised_cuts)
         cuts["score_ggf"] = "sig_bkg_dnn_score_ggFvsBKG"
@@ -342,6 +366,7 @@ def hh4b_boosted_category_2(txbb_morph=True, region_setting="50GeV", optimised_c
         cuts["score_vbf"] = "boosted_bdt_vbf_score"
     cuts["txbb_morph"] = txbb_morph
     cuts["txbb_cdf"] = txbb_cdf
+    cuts["txbb_cdf_max_wp"] = txbb_cdf_max_wp
     if txbb_cdf:
         _check_txbb_cuts_are_wps(cuts)
     return Cut(
@@ -350,7 +375,7 @@ def hh4b_boosted_category_2(txbb_morph=True, region_setting="50GeV", optimised_c
         function=cuts_f.hh4b_boosted_category_2,
     )
 
-def hh4b_boosted_category_3(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False):
+def hh4b_boosted_category_3(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False, txbb_cdf_max_wp=0):
     if optimised_cuts:
         cuts = dict(optimised_cuts)
         cuts["score_ggf"] = "sig_bkg_dnn_score_ggFvsBKG"
@@ -361,6 +386,7 @@ def hh4b_boosted_category_3(txbb_morph=True, region_setting="50GeV", optimised_c
         cuts["score_vbf"] = "boosted_bdt_vbf_score"
     cuts["txbb_morph"] = txbb_morph
     cuts["txbb_cdf"] = txbb_cdf
+    cuts["txbb_cdf_max_wp"] = txbb_cdf_max_wp
     if txbb_cdf:
         _check_txbb_cuts_are_wps(cuts)
     return Cut(
@@ -369,7 +395,7 @@ def hh4b_boosted_category_3(txbb_morph=True, region_setting="50GeV", optimised_c
         function=cuts_f.hh4b_boosted_category_3,
     )
 
-def hh4b_boosted_background_vbf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False):
+def hh4b_boosted_background_vbf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False, txbb_cdf_max_wp=0):
     if optimised_cuts:
         cuts = dict(optimised_cuts)
         cuts["score_ggf"] = "sig_bkg_dnn_score_ggFvsBKG"
@@ -380,6 +406,7 @@ def hh4b_boosted_background_vbf(txbb_morph=True, region_setting="50GeV", optimis
         cuts["score_vbf"] = "boosted_bdt_vbf_score"
     cuts["txbb_morph"] = txbb_morph
     cuts["txbb_cdf"] = txbb_cdf
+    cuts["txbb_cdf_max_wp"] = txbb_cdf_max_wp
     if txbb_cdf:
         _check_txbb_cuts_are_wps(cuts)
     return Cut(
@@ -388,7 +415,7 @@ def hh4b_boosted_background_vbf(txbb_morph=True, region_setting="50GeV", optimis
         function=cuts_f.hh4b_boosted_background_vbf,
     )
 
-def hh4b_boosted_background_ggf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False):
+def hh4b_boosted_background_ggf(txbb_morph=True, region_setting="50GeV", optimised_cuts=False, txbb_cdf=False, txbb_cdf_max_wp=0):
     if optimised_cuts:
         cuts = dict(optimised_cuts)
         cuts["score_ggf"] = "sig_bkg_dnn_score_ggFvsBKG"
@@ -399,6 +426,7 @@ def hh4b_boosted_background_ggf(txbb_morph=True, region_setting="50GeV", optimis
         cuts["score_vbf"] = "boosted_bdt_vbf_score"
     cuts["txbb_morph"] = txbb_morph
     cuts["txbb_cdf"] = txbb_cdf
+    cuts["txbb_cdf_max_wp"] = txbb_cdf_max_wp
     if txbb_cdf:
         _check_txbb_cuts_are_wps(cuts)
     return Cut(
