@@ -1,6 +1,6 @@
 scaleout: 80
 cores-per-worker: 1
-mem-per-worker: "5GB"
+mem-per-worker: "6GB"
 disk-per-worker: "1GB"
 queue: "standard"
 walltime: "12:00:00"

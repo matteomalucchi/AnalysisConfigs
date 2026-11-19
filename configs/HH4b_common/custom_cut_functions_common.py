@@ -443,6 +443,17 @@ def hh4b_boosted_mass(events, params, **kwargs):
         return ~cat_mask & cat_mask_outer
 
 
+def hh4b_boosted_mass_ttbar(events, params, **kwargs):
+    """ttbar-enriched sideband: both Higgs candidate masses in [upper, upper + sideband_size]."""
+    low = params["upper"]
+    high = params["upper"] + params["sideband_size"]
+    mask = ak.ones_like(events["HiggsLeading"]["mass"], dtype=bool)
+    for higgs in ("HiggsLeading", "HiggsSubLeading"):
+        mass = events[higgs]["mass"]
+        mask = mask & (mass > low) & (mass < high)
+    return ak.fill_none(mask, False)
+
+
 def hh4b_boosted_category_1(events, params, **kwargs):
     txbb = _SubleadingTXbb(events, params)
     bdt_ggf = events[params["score_ggf"]]
@@ -487,20 +498,11 @@ def hh4b_boosted_category_3(events, params, **kwargs):
     return cat_mask
 
 
-def hh4b_boosted_background_vbf(events, params, **kwargs):
+def hh4b_boosted_background(events, params, **kwargs):
+    """QCD-enriched category: subleading TXbb below both the ggF (c2a) and the VBF thresholds."""
     txbb = _SubleadingTXbb(events, params)
-    bdt_vbf = events[params["score_vbf"]]
     cat_mask = (
-            txbb.lt(params["txbb_c2a"]) & (bdt_vbf > params["bdt_ggf_bkg"])
-            )
-    return cat_mask
-
-
-def hh4b_boosted_background_ggf(events, params, **kwargs):
-    txbb = _SubleadingTXbb(events, params)
-    bdt_ggf = events[params["score_ggf"]]
-    cat_mask = (
-            txbb.lt(params["txbb_c2a"]) & (bdt_ggf > params["bdt_ggf_bkg"])
+            txbb.lt(params["txbb_c2a"]) & txbb.lt(params["txbb_vbf"])
             )
     return cat_mask
 

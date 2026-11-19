@@ -112,8 +112,44 @@ parser.add_argument(
          "uncorrelated between categories (e.g. for the non-closure of the background estimate)",
     default=None,
 )
+parser.add_argument(
+    "-fs",
+    "--fit-sidebands",
+    action="store_true",
+    help="Boosted only: also build one-bin datacards for every category in the QCD sideband "
+         "(boosted_signal_sideband_region_C_<cat>, QCD from A_<cat>_postW) and in the ttbar sideband "
+         "(boosted_signal_ttbar_region_E_<cat>, QCD from F_<cat>_postW). Needs a coffea output produced with "
+         "boosted_fit_sidebands=True. Implies --rate-params.",
+    default=False,
+)
+parser.add_argument(
+    "-rp",
+    "--rate-params",
+    action="store_true",
+    help="Boosted only: free rateParams per category for QCD (rate_QCD_<cat>) and ttbar (rate_ttbar_<cat>), shared "
+         "between the signal region and the sidebands of the same category. The pure normalisation lnNs of these "
+         "processes (QCD norm, ttbar cross section, lumi on ttbar) are then dropped, as the rateParams absorb them.",
+    default=False,
+)
+parser.add_argument(
+    "--qcd-ttsb",
+    choices=["lnN", "shared"],
+    default="lnN",
+    help="QCD normalisation in the ttbar sideband: 'lnN' = own lnN of --qcd-ttsb-unc around the ABCD prediction, "
+         "'shared' = the same rate_QCD_<cat> as in the signal region",
+)
+parser.add_argument(
+    "--qcd-ttsb-unc",
+    type=float,
+    default=0.3,
+    help="lnN uncertainty on the QCD prediction in the ttbar sideband (with --qcd-ttsb lnN)",
+)
 
 args = parser.parse_args()
+if args.fit_sidebands:
+    args.rate_params = True
+if (args.fit_sidebands or args.rate_params) and not args.boosted:
+    parser.error("--fit-sidebands / --rate-params are only implemented for the boosted analysis (--boosted)")
 if args.fit_range is not None and args.fit_range[0] >= args.fit_range[1]:
     parser.error(f"--fit-range: LOW must be smaller than HIGH, got {args.fit_range}")
 if args.single_bin:
@@ -199,19 +235,42 @@ else:
             }
 
 # Define the new region name
+# region_info: {datacard region: {"kind": "SR" / "QCDsb" / "TTsb", "category": category}}
+region_info = {}
 if args.boosted:
     region_name_list = ["catvbf", "cat1", "cat2", "cat3"]
     sig_region_name = ["boosted_signal_region_D_catvbf", "boosted_signal_region_D_cat1", "boosted_signal_region_D_cat2", "boosted_signal_region_D_cat3"]
     bkg_region_name = ["boosted_control_region_B_catvbf_postW", "boosted_control_region_B_cat1_postW", "boosted_control_region_B_cat2_postW", "boosted_control_region_B_cat3_postW"]
     region_definitions = {}
+    # The global normalisation of the QCD template is always taken from C / A_postW (inclusive)
+    norm_regions = {
+        "sig_control_region_name": "boosted_signal_sideband_region_C",
+        "bkg_control_region_name": "boosted_control_sideband_region_A_postW",
+    }
     for name, sig, bkg in zip(region_name_list, sig_region_name, bkg_region_name):
         region_definitions[f"HH4b_merged_{name}"] = {
                 "fit_variable": "SubLeadingHiggsMass",
                 "sig_region_name": sig,
                 "bkg_region_name": bkg,
-                "sig_control_region_name": "boosted_signal_sideband_region_C",
-                "bkg_control_region_name": "boosted_control_sideband_region_A_postW",
+                **norm_regions,
                 }
+        region_info[f"HH4b_merged_{name}"] = {"kind": "SR", "category": name}
+        if args.fit_sidebands:
+            # One-bin sideband cards (rebinned to a single bin below)
+            region_definitions[f"HH4b_qcdsb_{name}"] = {
+                    "fit_variable": "SubLeadingHiggsMass",
+                    "sig_region_name": f"boosted_signal_sideband_region_C_{name}",
+                    "bkg_region_name": f"boosted_control_sideband_region_A_{name}_postW",
+                    **norm_regions,
+                    }
+            region_info[f"HH4b_qcdsb_{name}"] = {"kind": "QCDsb", "category": name}
+            region_definitions[f"HH4b_ttsb_{name}"] = {
+                    "fit_variable": "SubLeadingHiggsMass",
+                    "sig_region_name": f"boosted_signal_ttbar_region_E_{name}",
+                    "bkg_region_name": f"boosted_control_ttbar_region_F_{name}_postW",
+                    **norm_regions,
+                    }
+            region_info[f"HH4b_ttsb_{name}"] = {"kind": "TTsb", "category": name}
 
 else:
     region_definitions = {
@@ -223,6 +282,7 @@ else:
                 "bkg_control_region_name": "2b_control_region_postW",
                 }
             }
+    region_info = {"ggHH": {"kind": "SR", "category": "ggHH"}}
 
 
 def get_year(pocketcoffea_year, year_type=0):
@@ -617,6 +677,33 @@ def create_new_region(coffea_file, cat_name, sig_region_name, bkg_region_name, f
 
 
 
+def add_rate_params(card_path, rate_params, low=0, high=5):
+    """Append rateParam lines to a datacard written by the PocketCoffea Datacard.
+
+    The PocketCoffea `has_rateParam` option writes one global rateParam per process (bin "*"), while here the
+    rateParams are per category and shared only between the signal region and the sidebands of that category.
+    The bin and process names are read back from the card, so that the year suffix of the process names does
+    not matter. Parameters with the same name in different cards are merged by combineCards.py.
+
+    :param rate_params: list of (parameter name, list of process names as in sig_bkg_dict)
+    """
+    with open(card_path) as f:
+        lines = f.read().splitlines()
+    tokens = [line.split() for line in lines]
+    bin_name = next(t[1] for t in tokens if len(t) > 1 and t[0] == "bin")
+    process_rows = [t[1:] for t in tokens if t and t[0] == "process"]
+    card_processes = next(row for row in process_rows if not all(re.fullmatch(r"-?\d+", x) for x in row))
+    new_lines = []
+    for param, processes in rate_params:
+        matched = sorted({p for p in card_processes if any(p == q or p.startswith(f"{q}_") for q in processes)})
+        if not matched:
+            logger.warning(f"rateParam {param}: none of {processes} found in {card_path}")
+        for process in matched:
+            new_lines.append(f"{param} rateParam {bin_name} {process} 1 [{low},{high}]")
+    with open(card_path, "a") as f:
+        f.write("\n" + "\n".join(new_lines) + "\n")
+    logger.info(f"Added rateParams to {card_path}:\n  " + "\n  ".join(new_lines))
+
 
 if __name__ == "__main__":
     # I want to use the coffea file with all outputs. Therefore, it should be merged beforehand.
@@ -637,7 +724,18 @@ if __name__ == "__main__":
     for name, datasets in sig_bkg_dict["background"].items():
         sig_bkg_dict["background"][name] = [f"{d}_background" if "DATA" in d else d for d in datasets]
 
+    missing_regions = sorted({
+        value[key] for value in region_definitions.values() for key in ("sig_region_name", "bkg_region_name")
+        if value[key] not in coffea_file["sumw"] and value[key] not in coffea_file["cutflow"]
+    })
+    if missing_regions:
+        raise KeyError(f"Regions {missing_regions} not found in the coffea file"
+                       + (" (was it produced with boosted_fit_sidebands=True?)" if args.fit_sidebands else ""))
+
+    card_paths = defaultdict(list)
     for region_name, value in region_definitions.items():
+        kind = region_info[region_name]["kind"]
+        category = region_info[region_name]["category"]
         coffea_file, norm_rel_unc = create_new_region(coffea_file,
                                         cat_name=region_name,
                                         **value
@@ -652,7 +750,13 @@ if __name__ == "__main__":
                         sample: {dataset: cut_range(h, *args.fit_range) for dataset, h in datasets.items()}
                         for sample, datasets in sob_hist.items()
                     }
-                if args.nbins is None:
+                if kind != "SR":
+                    # Sidebands: only the yield enters the fit -> one bin (flow already folded in create_new_region)
+                    histograms_dict[key] = {
+                        sample: {dataset: h[{h.axes[-1].name: hist.rebin(h.axes[-1].size)}] for dataset, h in datasets.items()}
+                        for sample, datasets in sob_hist.items()
+                    }
+                elif args.nbins is None:
                     histograms_dict[key] = sob_hist
                 else:
                     # Rebin the variable axis (last axis) of every histogram into args.nbins bins.
@@ -736,7 +840,7 @@ if __name__ == "__main__":
             # The final binning is fixed before the theory variations are built, as the
             # envelope and the quadrature sum are not additive over bins.
             bins_edges = None
-            if args.max_bkg_unc is not None or args.min_bkg_yield is not None:
+            if kind == "SR" and (args.max_bkg_unc is not None or args.min_bkg_yield is not None):
                 bkg_datasets = [d for datasets in sig_bkg_dict["background"].values() for d in datasets]
                 bins_edges = compute_min_stat_edges(sob_hist, region_name, bkg_datasets, meta_dict,
                                                     max_rel_unc=args.max_bkg_unc, min_yield=args.min_bkg_yield)
@@ -790,11 +894,15 @@ if __name__ == "__main__":
                 systematics_list.append(SystematicUncertainty(name=variation, datacard_name=get_uncertainty_name(variation, card_year), typ="shape", processes=sorted(processes), years=[card_year], value=1.0))
 
             # ====== Other systematics / basically theory =======
-            systematics_list.append(SystematicUncertainty(name="lumi", datacard_name=get_uncertainty_name("lumi", card_year), typ="lnN", processes=list(bg_mc.keys()) + list(sig_bkg_dict["signal"].keys()), value=lumi_sys_values[card_year], years=[card_year]))
+            # With rateParams the ttbar normalisation is free: lumi only on the signal
+            lumi_processes = ([] if args.rate_params else list(bg_mc.keys())) + list(sig_bkg_dict["signal"].keys())
+            systematics_list.append(SystematicUncertainty(name="lumi", datacard_name=get_uncertainty_name("lumi", card_year), typ="lnN", processes=lumi_processes, value=lumi_sys_values[card_year], years=[card_year]))
             # Inclusive cross-section uncertainties, each only on the processes it belongs to
             ggHH_processes = signal_processes_by_production["ggHH"]
             qqHH_processes = signal_processes_by_production["qqHH"]
             ttbar_processes = list(bg_mc.keys())
+            # The inclusive ttbar cross-section uncertainties are absorbed by the free rate_ttbar_<cat>
+            ttbar_xs_processes = [] if args.rate_params else ttbar_processes
             lnN_uncertainties = [
                 ("BR_hbb", signal_processes, BR_HBB),
                 ("pdf_alphas_ggHH", ggHH_processes, ALPHAS_GGHH),
@@ -804,8 +912,8 @@ if __name__ == "__main__":
                 ("pdf_Higgs_qqHH", qqHH_processes, PDF_HIGGS_QQHH),
                 ("pdf_Higgs_ggHH", ggHH_processes, PDF_HIGGS_GGHH),
                 ("QCDscale_qqHH", qqHH_processes, SCALE_QQHH),
-                ("QCDscale_ttbar", ttbar_processes, SCALE_TTBAR),
-                ("pdf_gg", ttbar_processes, PDF_GG),
+                ("QCDscale_ttbar", ttbar_xs_processes, SCALE_TTBAR),
+                ("pdf_gg", ttbar_xs_processes, PDF_GG),
             ]
             for name, processes, value in lnN_uncertainties:
                 if processes:
@@ -817,11 +925,18 @@ if __name__ == "__main__":
             # The per-bin statistics of the template are covered by autoMCStats.
             data_driven_processes = [k for k, v in sig_bkg_dict["background"].items() if "DATA" in v[0]]
             analysis_tag = "boosted" if args.boosted else "resolved"
-            norm_stat_name = f"CMS_bbbb_{analysis_tag}_QCD_norm_stat"
-            if args.separate_normalisation:
-                norm_stat_name += f"_{region_name}"
-            systematics_list.append(SystematicUncertainty(name=norm_stat_name, datacard_name=norm_stat_name, typ="lnN", processes=data_driven_processes, value=round(1 + norm_rel_unc, 4), years=[card_year]))
-            if args.qcd_norm_unc is not None:
+            qcd_has_rate_param = args.rate_params and not (kind == "TTsb" and args.qcd_ttsb == "lnN")
+            if not qcd_has_rate_param:
+                # Without a free rateParam the normalisation factor from C / A_postW and its stat. uncertainty are used
+                norm_stat_name = f"CMS_bbbb_{analysis_tag}_QCD_norm_stat"
+                if args.separate_normalisation:
+                    norm_stat_name += f"_{region_name}"
+                systematics_list.append(SystematicUncertainty(name=norm_stat_name, datacard_name=norm_stat_name, typ="lnN", processes=data_driven_processes, value=round(1 + norm_rel_unc, 4), years=[card_year]))
+            if kind == "TTsb" and args.qcd_ttsb == "lnN":
+                # QCD under the ttbar peak: ABCD prediction with its own normalisation uncertainty
+                ttsb_name = f"CMS_bbbb_{analysis_tag}_QCD_ttsb_norm_{category}"
+                systematics_list.append(SystematicUncertainty(name=ttsb_name, datacard_name=ttsb_name, typ="lnN", processes=data_driven_processes, value=1 + args.qcd_ttsb_unc, years=[card_year]))
+            if args.qcd_norm_unc is not None and not qcd_has_rate_param:
                 norm_name = f"CMS_bbbb_{analysis_tag}_QCD_norm_{region_name}"
                 systematics_list.append(SystematicUncertainty(name=norm_name, datacard_name=norm_name, typ="lnN", processes=data_driven_processes, value=1 + args.qcd_norm_unc, years=[card_year]))
 
@@ -858,4 +973,21 @@ if __name__ == "__main__":
                     category=region_name,
                     single_year=True,
                     )
-            datacard.dump(directory=f"{args.output}/{hist_cat}", card_name=f"{region_name}_{_label}.txt", shapes_name=f"shapes_{region_name}_{_label}.root")
+            card_name = f"{region_name}_{_label}.txt"
+            datacard.dump(directory=f"{args.output}/{hist_cat}", card_name=card_name, shapes_name=f"shapes_{region_name}_{_label}.root")
+            card_paths[hist_cat].append((region_name, card_name))
+
+            if args.rate_params:
+                rate_params = [(f"rate_ttbar_{category}", list(bg_mc.keys()))]
+                if qcd_has_rate_param:
+                    rate_params.append((f"rate_QCD_{category}", data_driven_processes))
+                add_rate_params(f"{args.output}/{hist_cat}/{card_name}", rate_params)
+
+    # Command to combine the cards of all regions (signal region + sidebands) into one card per fit variable
+    for hist_cat, cards in card_paths.items():
+        script = f"{args.output}/{hist_cat}/combine_cards.sh"
+        with open(script, "w") as f:
+            f.write("#!/bin/bash\n# Combine the datacards of all regions (rateParams with the same name are merged)\n")
+            f.write('cd "$(dirname "$0")"\n')
+            f.write("combineCards.py " + " ".join(f"{region}={card}" for region, card in cards) + " > datacard_combined.txt\n")
+        logger.info(f"Written {script}")

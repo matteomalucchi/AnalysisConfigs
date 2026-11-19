@@ -205,6 +205,7 @@ categories_dict = define_categories(
     txbb_cdf_wps=bool(config_options_dict["txbb_cdf_wp_cuts"]),
     cut_sub_above_lead=config_options_dict["cut_sub_above_lead"],
     txbb_cdf_max_wp=config_options_dict["txbb_cdf_max_wp"],
+    fit_sidebands=config_options_dict["boosted_fit_sidebands"],
 )
 
 if BASELINE:
@@ -261,6 +262,8 @@ else:
         )
         column_list += get_columns_list({})
     if config_options_dict["boosted"]:
+        # nominal scores and, with the fit sidebands, the scores evaluated with shifted Higgs masses
+        SCORE_SUFFIXES = [""] + (["_qcdsb", "_ttsb"] if config_options_dict["boosted_fit_sidebands"] else [])
         # column_list += get_columns_list(DEFAULT_FATJET_COLUMNS, not config_options_dict["save_chunk"])
         column_list += get_columns_list(
             {
@@ -301,13 +304,21 @@ else:
             )
         if config_options_dict["bdt_model"]:
             column_list += get_columns_list(
-                {"events": ["boosted_bdt_score", "boosted_bdt_vbf_score"]},
+                {"events": [
+                    f"{score}{suffix}"
+                    for score in ("boosted_bdt_score", "boosted_bdt_vbf_score")
+                    for suffix in SCORE_SUFFIXES
+                ]},
                 not config_options_dict["save_chunk"],
             )
         if config_options_dict["sig_bkg_dnn"]:
             column_list += get_columns_list(
                     {
-                        "events": ["sig_bkg_dnn_score_VBF", "sig_bkg_dnn_score_ggF", "sig_bkg_dnn_score_TTbar", "sig_bkg_dnn_score_QCD", "sig_bkg_dnn_score_VBFvsBKG", "sig_bkg_dnn_score_ggFvsBKG", ]
+                        "events": [
+                            f"{score}{suffix}"
+                            for score in ("sig_bkg_dnn_score_VBF", "sig_bkg_dnn_score_ggF", "sig_bkg_dnn_score_TTbar", "sig_bkg_dnn_score_QCD", "sig_bkg_dnn_score_VBFvsBKG", "sig_bkg_dnn_score_ggFvsBKG")
+                            for suffix in SCORE_SUFFIXES
+                        ]
                 }
             )
         # column_list += get_columns_list(

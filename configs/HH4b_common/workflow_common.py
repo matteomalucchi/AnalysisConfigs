@@ -1697,6 +1697,79 @@ class HH4bCommonProcessor(BaseProcessorABC):
 
         return ~ak.all(btag_lead_used, axis=-1)
 
+    def eval_sig_bkg_dnn(self, events):
+        """Evaluate the signal-vs-background DNN on `events`.
+
+        Returns a dict {column name: score array}, so that the DNN can also be evaluated on a modified copy of the
+        events (e.g. with shifted Higgs masses for the boosted sidebands) without touching `self.events`.
+        """
+        (
+            model_session_SIG_BKG_DNN,
+            input_name_SIG_BKG_DNN,
+            output_name_SIG_BKG_DNN,
+        ) = get_model_session(self.sig_bkg_dnn, "sig_bkg_dnn")
+
+        onnx_output, out_type = get_onnx_prediction(
+            model_session_SIG_BKG_DNN,
+            input_name_SIG_BKG_DNN,
+            output_name_SIG_BKG_DNN,
+            events,
+            self.sig_bkg_dnn_input_variables,
+            pad_value=self.pad_value,
+            pad_value_spanet=self.pad_value_spanet,
+            max_num_jets_spanet=self.max_num_jets_spanet_class,
+        )
+        del (
+            model_session_SIG_BKG_DNN,
+            input_name_SIG_BKG_DNN,
+            output_name_SIG_BKG_DNN,
+        )
+        if out_type == "spanet":
+            class_prob = onnx_output["class_prob"][0]
+            if class_prob.shape[1] > 2:
+                print(
+                    "Warning: multi-class DNN detected. Number of classes: ",
+                    class_prob.shape[1],
+                )
+                onnx_output = class_prob
+            else:
+                onnx_output = class_prob[:, 1]
+
+        if isinstance(onnx_output, list):
+            raise NotImplementedError(
+                "multi-output DNN is not supported for sig_bkg_dnn: "
+                f"get_onnx_prediction returned {len(onnx_output)} arrays"
+            )
+        scores = {}
+        # if array is 1 dim just take it
+        if onnx_output.ndim == 1:
+            scores["sig_bkg_dnn_score"] = onnx_output
+        elif onnx_output.shape[1] <= 2:
+            # single-output or binary classifier: the signal probability is the
+            # last column, which for 2 classes is the same convention as the
+            # spanet branch above (`class_prob[:, 1]`)
+            scores["sig_bkg_dnn_score"] = onnx_output[:, -1]
+        else:
+            # multi-class classifier: save one column per class and build the
+            # signal-vs-background discriminant out of the first two.
+            # NOTE: this assumes classes 0 and 1 are the ones to discriminate;
+            # adapt it if the model orders its classes differently.
+            if not self.boosted:
+                for i in range(onnx_output.shape[1]):
+                    scores[f"sig_bkg_dnn_score_{i}"] = onnx_output[:, i]
+                scores["sig_bkg_dnn_score"] = scores["sig_bkg_dnn_score_0"] / (
+                    scores["sig_bkg_dnn_score_0"] + scores["sig_bkg_dnn_score_1"]
+                )
+            else:
+                qcd, ttbar, vbf, ggf = (onnx_output[:, i] for i in range(4))
+                scores["sig_bkg_dnn_score_QCD"] = qcd
+                scores["sig_bkg_dnn_score_TTbar"] = ttbar
+                scores["sig_bkg_dnn_score_VBF"] = vbf
+                scores["sig_bkg_dnn_score_ggF"] = ggf
+                scores["sig_bkg_dnn_score_VBFvsBKG"] = vbf / (vbf + qcd + ttbar)
+                scores["sig_bkg_dnn_score_ggFvsBKG"] = ggf / (ggf + qcd + ttbar)
+        return scores
+
     def process_extra_after_presel(self, variation):  # -> ak.Array:
         if not self.boosted:
             # Define the Delta WP
@@ -1993,74 +2066,8 @@ class HH4bCommonProcessor(BaseProcessorABC):
             )
 
         if self.sig_bkg_dnn:
-            (
-                model_session_SIG_BKG_DNN,
-                input_name_SIG_BKG_DNN,
-                output_name_SIG_BKG_DNN,
-            ) = get_model_session(self.sig_bkg_dnn, "sig_bkg_dnn")
-
-            onnx_output, out_type = get_onnx_prediction(
-                model_session_SIG_BKG_DNN,
-                input_name_SIG_BKG_DNN,
-                output_name_SIG_BKG_DNN,
-                self.events,
-                self.sig_bkg_dnn_input_variables,
-                pad_value=self.pad_value,
-                pad_value_spanet=self.pad_value_spanet,
-                max_num_jets_spanet=self.max_num_jets_spanet_class,
-            )
-            if out_type == "spanet":
-                class_prob = onnx_output["class_prob"][0]
-                if class_prob.shape[1] > 2:
-                    print(
-                        "Warning: multi-class DNN detected. Number of classes: ",
-                        class_prob.shape[1],
-                    )
-                    onnx_output = class_prob
-                else:
-                    onnx_output = class_prob[:, 1]
-
-            if isinstance(onnx_output, list):
-                raise NotImplementedError(
-                    "multi-output DNN is not supported for sig_bkg_dnn: "
-                    f"get_onnx_prediction returned {len(onnx_output)} arrays"
-                )
-            # if array is 1 dim just take it
-            if onnx_output.ndim == 1:
-                self.events["sig_bkg_dnn_score"] = onnx_output
-            elif onnx_output.shape[1] <= 2:
-                # single-output or binary classifier: the signal probability is the
-                # last column, which for 2 classes is the same convention as the
-                # spanet branch above (`class_prob[:, 1]`)
-                self.events["sig_bkg_dnn_score"] = onnx_output[:, -1]
-            else:
-                # multi-class classifier: save one column per class and build the
-                # signal-vs-background discriminant out of the first two.
-                # NOTE: this assumes classes 0 and 1 are the ones to discriminate;
-                # adapt it if the model orders its classes differently.
-                if not self.boosted:
-                    for i in range(onnx_output.shape[1]):
-                        self.events[f"sig_bkg_dnn_score_{i}"] = onnx_output[:, i]
-                    self.events["sig_bkg_dnn_score"] = self.events[
-                        "sig_bkg_dnn_score_0"
-                    ] / (
-                        self.events["sig_bkg_dnn_score_0"]
-                        + self.events["sig_bkg_dnn_score_1"]
-                    )
-                else:
-                    self.events["sig_bkg_dnn_score_QCD"] = onnx_output[:, 0]
-                    self.events["sig_bkg_dnn_score_TTbar"] = onnx_output[:, 1]
-                    self.events["sig_bkg_dnn_score_VBF"] = onnx_output[:, 2]
-                    self.events["sig_bkg_dnn_score_ggF"] = onnx_output[:, 3]
-
-                    self.events["sig_bkg_dnn_score_VBFvsBKG"] = self.events["sig_bkg_dnn_score_VBF"] / (self.events["sig_bkg_dnn_score_VBF"] + self.events["sig_bkg_dnn_score_QCD"] + self.events["sig_bkg_dnn_score_TTbar"])
-                    self.events["sig_bkg_dnn_score_ggFvsBKG"] = self.events["sig_bkg_dnn_score_ggF"] / (self.events["sig_bkg_dnn_score_ggF"] + self.events["sig_bkg_dnn_score_QCD"] + self.events["sig_bkg_dnn_score_TTbar"])
-
-            del (
-                model_session_SIG_BKG_DNN,
-                input_name_SIG_BKG_DNN,
-                output_name_SIG_BKG_DNN,
-            )
+            for name, score in self.eval_sig_bkg_dnn(self.events).items():
+                self.events[name] = score
         # ====== Extract the single weight values for each event =======
         extract_single_weights = False
         if extract_single_weights:

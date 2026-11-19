@@ -11,6 +11,7 @@ from utils_configs.reconstruct_resonances import get_lead_mjj_jet_pair
 from utils_configs.bdt_evaluation_functions import get_default_bdt_inputs, evaluate_bdt, disc_TXbb
 
 from configs.HH4b_common.custom_object_preselection_common import clean_ak4_boosted
+from configs.HH4b_common.custom_cuts_common import boosted_mass_window
 
 
 class VBFHH4bProcessor(HH4bCommonProcessor):
@@ -507,6 +508,75 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         if self.bdt_model:
             bdt_events = get_default_bdt_inputs(self.events)
             self.events["boosted_bdt_score"], self.events["boosted_bdt_vbf_score"] = evaluate_bdt(self.bdt_model, bdt_events)
+
+        if self.boosted and getattr(self, "boosted_fit_sidebands", False):
+            self.eval_sideband_scores()
+
+    def get_sideband_mass_shifts(self):
+        """Shifts of the (leading, subleading) Higgs candidate mass that move the fit sidebands into the signal window.
+
+        - "_qcdsb": QCD sideband (region C / A): the Higgs mass defining the ABCD plane (`lead_sublead`) is moved
+          by +sideband_size if it is below the window (-sideband_size if above, for completeness).
+        - "_ttsb": ttbar sideband (regions E / F): both Higgs masses are moved down by sideband_size.
+        """
+        window = boosted_mass_window(self.region_setting)
+        size = float(window["sideband_size"])
+        abcd_higgs = "HiggsLeading" if self.lead_sublead == "lead" else "HiggsSubLeading"
+        abcd_mass = self.events[abcd_higgs].mass
+        shift_abcd = ak.fill_none(
+            ak.where(abcd_mass < window["lower"], size, ak.where(abcd_mass > window["upper"], -size, 0.0)),
+            0.0,
+        )
+        no_shift = ak.zeros_like(shift_abcd)
+        qcd_shift = (shift_abcd, no_shift) if self.lead_sublead == "lead" else (no_shift, shift_abcd)
+        return {
+            "_qcdsb": qcd_shift,
+            "_ttsb": (no_shift - size, no_shift - size),
+        }
+
+    def build_mass_shifted_events(self, shift_lead, shift_sublead):
+        """Copy of the events with the masses of the two selected fat jets shifted and all the Higgs/HH variables
+        that depend on them (HH mass, m_Hjet_min_dR, massclosestVBF, ...) rebuilt. `self.events` is not modified."""
+        events_nominal = self.events
+        self.events = copy.copy(events_nominal)
+        try:
+            fatjets = self.events["FatJetGoodSelected"]
+            jet_idx = ak.local_index(fatjets, axis=1)
+            shift = ak.where(jet_idx == 0, shift_lead, shift_sublead)
+            fatjets = ak.with_field(fatjets, fatjets.mass + shift, "mass")
+            self.events["FatJetGoodSelected"] = fatjets
+            (
+                self.events["HiggsLeading"],
+                self.events["HiggsSubLeading"],
+                self.events["HH"],
+                self.events["LeadingVBFJet"],
+                self.events["SubLeadingVBFJet"],
+            ) = self.define_boosted_dnn_variables(
+                fatjets[:, 0],
+                fatjets[:, 1],
+                self.events.JetGoodVBFGood,
+                vbf_variables=True,
+            )
+            self.build_boosted_variables()
+            events_shifted = self.events
+        finally:
+            self.events = events_nominal
+        return events_shifted
+
+    def eval_sideband_scores(self):
+        """Evaluate the category scores (BDT and sig-vs-bkg DNN) with the Higgs masses shifted into the signal
+        window, as it is done for the ttbar/QCD sidebands of the fit. Saved as `<score><suffix>`.
+        The background morphing weight is NOT shifted: it is always evaluated with the true masses."""
+        for suffix, (shift_lead, shift_sublead) in self.get_sideband_mass_shifts().items():
+            events_shifted = self.build_mass_shifted_events(shift_lead, shift_sublead)
+            if self.bdt_model:
+                bdt_score, bdt_vbf_score = evaluate_bdt(self.bdt_model, get_default_bdt_inputs(events_shifted))
+                self.events[f"boosted_bdt_score{suffix}"] = bdt_score
+                self.events[f"boosted_bdt_vbf_score{suffix}"] = bdt_vbf_score
+            if self.sig_bkg_dnn:
+                for name, score in self.eval_sig_bkg_dnn(events_shifted).items():
+                    self.events[f"{name}{suffix}"] = score
+            del events_shifted
 
     def build_boosted_variables(self):
         """Define the Higgs variable used for a boosted analysis."""

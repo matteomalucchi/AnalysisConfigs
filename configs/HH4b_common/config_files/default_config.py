@@ -369,4 +369,11 @@ default_config_options_dict = {
     #   "mass" : along the Higgs mass, trained A -> B (low TXbb) and applied to C
     #            (defines `boosted_signal_sideband_region_C_postW`)
     "bkg_morphing_direction": "btag",
+    # Define the boosted sidebands used in the fit to constrain the QCD and ttbar normalisation per category:
+    #   QCD sideband   : boosted_signal_sideband_region_C_<cat> (+ boosted_control_sideband_region_A_<cat>_postW)
+    #   ttbar sideband : boosted_signal_ttbar_region_E(_<cat>), both Higgs masses above the signal window
+    #                    (+ low-TXbb counterpart boosted_control_ttbar_region_F(_<cat>)_postW for the QCD in E)
+    # The categories in the sidebands use the DNN/BDT scores evaluated with the Higgs masses shifted into the
+    # signal window (`*_qcdsb` and `*_ttsb` scores). Only for bkg_morphing_direction "btag" and the lower sideband.
+    "boosted_fit_sidebands": False,
 } | default_onnx_model_dict
