@@ -445,8 +445,9 @@ def define_second_approach_categories(
       - SR3MnT: the 3 jets leading in b-tag score pass M but fail T (validation,
         training for SR3T1L)
       - SR3M, CR3M, SR4M, CR4M: exactly 3 M, 4 M, only in `btag_wp_category_years`
-    With `bkg_morphing_dnn`, SR2M_postW and CR2M_postW get the morphing weights on
-    data; with `blind`, SR3T1M_blind and SR3T1L_blind apply the blinding cut.
+    With `bkg_morphing_dnn`, SR2M and CR2M are replaced by SR2M_postW and
+    CR2M_postW (same cuts, with the morphing weights on data); with `blind`,
+    SR3T1M_blind and SR3T1L_blind apply the blinding cut.
     """
     signal = cuts.hh4b_mass_plane_region("signal")
     control = cuts.hh4b_mass_plane_region("control")
@@ -472,7 +473,7 @@ def define_second_approach_categories(
             ]
     if bkg_morphing_dnn:
         for name in ("SR2M", "CR2M"):
-            categories_dict[f"{name}_postW"] = categories_dict[name]
+            categories_dict[f"{name}_postW"] = categories_dict.pop(name)
     if blind:
         for name in ("SR3T1M", "SR3T1L"):
             categories_dict[f"{name}_blind"] = categories_dict[name] + [cuts.blinded]
@@ -541,7 +542,7 @@ def define_second_approach_vbf_categories(
         (3T1M and 3T1L in 2022-2023, 4M in 2024-2025; empty in the other years):
         vbf_SR3T1M, vbf_CR3T1M, vbf_SR3T1L, vbf_CR3T1L, vbf_SR4M, vbf_CR4M
       - the 2M category for the background estimate: vbf_SR2M, vbf_CR2M
-        (and vbf_SR2M_postW, vbf_CR2M_postW with `bkg_morphing_dnn`)
+        (replaced by vbf_SR2M_postW, vbf_CR2M_postW with `bkg_morphing_dnn`)
     and the corresponding ggF regions (ggf_SR3T1M, ..., ggf_CR2M_postW).
     """
     regions = {
@@ -560,7 +561,7 @@ def define_second_approach_vbf_categories(
             inclusive_categories[f"{region}{category}"] = [region_cut, btag_cut]
     if bkg_morphing_dnn:
         for name in ("SR2M", "CR2M"):
-            inclusive_categories[f"{name}_postW"] = inclusive_categories[name]
+            inclusive_categories[f"{name}_postW"] = inclusive_categories.pop(name)
     return define_vbf_ggf_categories(
         inclusive_categories,
         vbf_jet_coll,
@@ -693,7 +694,9 @@ def define_categories(
                 else {}
             )
             categories_dict |= define_single_category("4b_signal_region_high_score")
-        if not mixeddata:
+        # The preW categories have the same cuts as the postW ones, only without
+        # the morphing weights: with `bkg_morphing_dnn` only the postW ones are saved
+        if not bkg_morphing_dnn and not mixeddata:
             categories_dict |= define_single_category(f"2b_control_region_preW", expandCR)
             categories_dict |= define_single_category(f"2b_signal_region_preW", expandCR)
             categories_dict |= (
@@ -708,7 +711,7 @@ def define_categories(
                     if blind
                     else {}
                 )
-        else:
+        elif not bkg_morphing_dnn:
             categories_dict |= define_single_category(f"4b_control_region_preW", expandCR)
             categories_dict |= define_single_category(f"4b_signal_region_preW", expandCR)
             categories_dict |= (
@@ -788,14 +791,17 @@ def define_categories(
             )
     else:
         categories_dict |= define_single_category(f"4b_VR1_control_region")
-        categories_dict |= define_single_category(
-            "2b_VR1_control_region_preW"
-        )
         categories_dict |= define_single_category(f"4b_VR1_signal_region")
-        categories_dict |= define_single_category(
-            "2b_VR1_signal_region_preW"
-        )
-        if bkg_morphing_dnn:
+        # with `bkg_morphing_dnn` only the postW categories are saved (the
+        # preW ones have the same cuts, only without the morphing weights)
+        if not bkg_morphing_dnn:
+            categories_dict |= define_single_category(
+                "2b_VR1_control_region_preW"
+            )
+            categories_dict |= define_single_category(
+                "2b_VR1_signal_region_preW"
+            )
+        else:
             categories_dict |= define_single_category(
                 "2b_VR1_control_region_postW"
             )

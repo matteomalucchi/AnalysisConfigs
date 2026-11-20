@@ -7,13 +7,14 @@ from configs.HH4b_common.config_files.default_config import default_config_optio
 
 onnx_model_dict  |= {
     "spanet":"/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/vbf_ggf_all_Klambda_HiggsPairing.onnx",
+    "bkg_morphing_dnn":"/work/mmalucch/out_ML_pytorch/hh4b_bkg_reweighting/DNN_12_02_08_1e-4_e20drop95_minDelta1em5_ggF_VBF_vars_NVBFjets_2022postEE_maskedBN1D_PadInd_20fold/kfold_onnx/kfold_morphing_ratio_average.onnx",
 }
 
 config_options_dict |= {
     "dnn_variables": True,
     "run2": False,
     "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,
-    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_vbf_input_variables,
     "max_num_jets_good": 4,
     "max_num_jets_higgs_pairing": 5,
     "which_bquark": "last",

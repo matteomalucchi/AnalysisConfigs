@@ -40,7 +40,7 @@ SPANET_TRAINING = False
 VBF_REGIONS = False
 SIGNAL_REGION = False
 TRAIN_BKG_MORPHING = False
-APPLY_BKG_MORPHING = False
+APPLY_BKG_MORPHING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -50,8 +50,8 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir)
 
 # year = ["2022_postEE", "2022_preEE", "2023_preBPix", "2023_postBPix", "2024"]
-year = ["2024"]
-# year = ["2022_postEE"]
+# year = ["2024"]
+year = ["2022_postEE"]
 
 # adding object preselection
 parameters = defaults.merge_parameters_from_files(
@@ -151,8 +151,8 @@ sample_list = (
     # + sample_official_ggF_list
     # + sample_VBF_list
     # + sample_ZZ_ZH_list
-    # + sample_data_jme_list
-    + sample_data_parkinghh_list
+    + sample_data_jme_list
+    # + sample_data_parkinghh_list
 )
 
 
@@ -207,7 +207,7 @@ if TRAIN_BKG_MORPHING:
 if APPLY_BKG_MORPHING:
     categories_dict = {}
     categories_dict |= define_single_category("2b_control_region_postW")
-    categories_dict = define_single_category("4b_signal_region")
+    categories_dict |= define_single_category("4b_signal_region")
     categories_dict |= define_single_category("2b_signal_region_postW")
 
 column_list = []
