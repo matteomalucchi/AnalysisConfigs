@@ -339,6 +339,9 @@ def define_single_category(category_name, wide_cr=False, ggf_vbf_threshold=False
                 cut_list.append(cuts.hh4b_boosted_TXbb_signal(region_setting))
             else:
                 cut_list.append(cuts.hh4b_boosted_TXbb_control(region_setting))
+                if cut_sub_above_lead:
+                    # F is a control region (low TXbb): same cut as in A, B, whose events the morphing DNN was trained on
+                    cut_list.append(cuts.hh4b_boosted_lead_ge_sub)
             cut_list.append(cuts.hh4b_boosted_mass_ttbar(region_setting))
         elif "boosted_signal" in category_name:
             cut_list.append(cuts.hh4b_boosted_TXbb_signal(region_setting))
@@ -540,8 +543,8 @@ def define_categories(
             #       signal window ("_qcdsb").
             #     - ttbar sideband: both Higgs masses above the signal window (150-200 GeV for "50GeV"),
             #       E (high TXbb) and its low-TXbb counterpart F, from which the QCD in E is predicted with the
-            #       same morphing as B -> D. The categories use the scores evaluated with both Higgs masses shifted
-            #       down by the sideband size ("_ttsb").
+            #       same morphing as B -> D. The categories use the scores evaluated with the leading Higgs mass
+            #       shifted down by the sideband size ("_ttsb"); the subleading Higgs mass is not shifted.
             if morphing_direction != "btag":
                 raise ValueError("The fit sidebands are only implemented for bkg_morphing_direction 'btag'")
             if full_sideband:

@@ -517,7 +517,8 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
 
         - "_qcdsb": QCD sideband (region C / A): the Higgs mass defining the ABCD plane (`lead_sublead`) is moved
           by +sideband_size if it is below the window (-sideband_size if above, for completeness).
-        - "_ttsb": ttbar sideband (regions E / F): both Higgs masses are moved down by sideband_size.
+        - "_ttsb": ttbar sideband (regions E / F): only the leading Higgs mass is moved down by sideband_size, the
+          subleading one is NOT shifted (the variables built from the leading mass follow: see `build_mass_shifted_events`).
         """
         window = boosted_mass_window(self.region_setting)
         size = float(window["sideband_size"])
@@ -531,7 +532,7 @@ class VBFHH4bProcessor(HH4bCommonProcessor):
         qcd_shift = (shift_abcd, no_shift) if self.lead_sublead == "lead" else (no_shift, shift_abcd)
         return {
             "_qcdsb": qcd_shift,
-            "_ttsb": (no_shift - size, no_shift - size),
+            "_ttsb": (no_shift - size, no_shift),
         }
 
     def build_mass_shifted_events(self, shift_lead, shift_sublead):

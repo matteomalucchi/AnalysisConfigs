@@ -692,6 +692,15 @@ bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_nomet = Ordered
     if name not in ("puppimet_pt", "met_et")
 )
 
+# Input variables of the boosted signal-vs-background XGBoost classifier of the "nomet + merged3 + lead >= sub cut" chain, without the subleading Higgs mass:
+# the 39 variables of `..._txbb_cdf_wp_nomet` minus `higgs2_reco_mass` (38). Equal (keys, order, values) to `dnn_input_variables` of
+# ML_pytorch `ml_pytorch/defaults/sig_bkg_dnn_boosted_bdt_inputs_50GeV_wps_nomet_cdf_merged3_leadge_nosublmass.py` (checked by loading both).
+sig_bkg_boosted_dnn_input_variables_other_group_txbb_cdf_wp_nomet_nosublmass = OrderedDict(
+    (name, variable)
+    for name, variable in bkg_morphing_boosted_dnn_input_variables_other_group_txbb_cdf_wp_nomet.items()
+    if name != "higgs2_reco_mass"
+)
+
 # Same as `..._txbb_cdf_wp_nomet` (39 variables, same positions), but the subleading working-point index is the one of the LINEAR rescaling:
 # `HiggsSubLeading btagBBTXbb_morph_5wp` (WP edges on the linearly stretched TXbb; nominal in C/D), merged with `txbb_cdf_max_wp`
 # (linear mode: option `txbb_cdf_wp_cuts` empty), as `higgs2_btag_cdf_wp` there. The leading input is the nominal index `higgs1_btag_wp`.
