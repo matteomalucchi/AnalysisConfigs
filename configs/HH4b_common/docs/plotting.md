@@ -48,6 +48,13 @@ For each region (CR, SR) it plots every column saved in the files, comparing:
 The ratio panel shows Data/Pred. and a $\chi^2$ is added to the plots. Additionally it produces:
 
 - `weights_<category>`: the distribution of the morphing weights for each `postW` category;
+- `chi2_values.json`: the $\chi^2$, ndof, $\chi^2$/ndof and p-value of every distribution w.r.t. the
+  reference, as `{category: {variable: {region: {chi2, ndof, chi2_ndof, pvalue}}}}`;
+- `chi2_pvalue_<category>`: bar plot (log scale, one figure per category, wide enough for ~50
+  variables) with the p-value of the $\chi^2$ of the `preW` (red) and `postW` (blue) histograms for
+  each variable. A dashed line marks `PVALUE_THRESHOLD` (0.05); the values printed on the bars are
+  green if p-value ≥ 0.05 (good agreement) and black otherwise. p-values below `PVALUE_FLOOR` (1e-10)
+  are drawn at the floor and labelled `<1e-10` (exact values in the json);
 - `N_<collection>`: the multiplicity of each jagged collection (e.g. the jets), counting the
   non-padded objects;
 - `<score>_TRANSFORM`: the score variables drawn with equal-width bins.

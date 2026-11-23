@@ -138,6 +138,16 @@ class HEPPlotter:
             "enable_watermark": True,
             "mpl_magic": False,
             "normalize_1d_histo": False,
+            ## categorical plots: value printed on each bar = value * scale, formatted with fmt
+            ## (set categorical_bar_labels=False to hide the values).
+            ## fmt can be a format spec (e.g. ".1f") or a callable value -> str;
+            ## color can be a color or a callable value -> color (e.g. to highlight a threshold)
+            "categorical_bar_labels": True,
+            "categorical_label_scale": 100,
+            "categorical_label_fmt": ".1f",
+            "categorical_label_fontsize": 12,
+            "categorical_label_color": "black",
+            "categorical_label_rotation": 0,
         }
 
         # expose as attributes too (so they're accessible normally)
@@ -148,6 +158,9 @@ class HEPPlotter:
         self._plot_chi_square = False
         self._chi_square_add_prediction_uncertainty = None
         self._chi_square_style = {}
+        # filled by run() when add_chi_square() is used:
+        # {series_name: {"chi2", "ndof", "chi2_ndof", "pvalue"}}
+        self.chi_square_results = {}
 
         self._ratio_hists = {}
         self._ratio_graphs = {}
@@ -439,8 +452,9 @@ class HEPPlotter:
         for x, y, kwargs in self._curves:
             ax.plot(x, y, **kwargs)
 
-    def _apply_chi_square(self, ax, hist_1d, ref_hist, index, style):
-        """Compute and add chi-square text to the plot."""
+    def _apply_chi_square(self, ax, hist_1d, ref_hist, index, style, name=None):
+        """Compute and add chi-square text to the plot.
+        The values are stored in self.chi_square_results[name]."""
 
         num = (hist_1d.values() - ref_hist.values()) ** 2
         den = ref_hist.variances() + (
@@ -461,6 +475,13 @@ class HEPPlotter:
         chi2_norm = chi2_value / (ndof if ndof > 0 else 1)
 
         pvalue = chi2.sf(chi2_value, ndof)
+
+        self.chi_square_results[name if name is not None else index] = {
+            "chi2": float(chi2_value),
+            "ndof": int(ndof),
+            "chi2_ndof": float(chi2_norm),
+            "pvalue": float(pvalue),
+        }
 
         self.chi_square_text = (
             r"$\chi^2$/ndof= {:.3f},".format(chi2_norm) + f"  p-value= {pvalue:.3f}"
@@ -784,7 +805,7 @@ class HEPPlotter:
                     )
 
             if self._plot_chi_square and ratio_plot and not is_ref:
-                self._apply_chi_square(ax, hist_cmp, ref_cmp, index, style)
+                self._apply_chi_square(ax, hist_cmp, ref_cmp, index, style, name=name)
 
             if self._plot_mean_std:
                 self._apply_mean_std(ax, hist_1d, name, style, index)
@@ -1526,16 +1547,23 @@ class HEPPlotter:
             ax.legend(loc=pos, fontsize=self.legend_font_size)
 
     def _autolabel_categorical(self, ax, bars):
+        if not self.categorical_bar_labels:
+            return
+        fmt = self.categorical_label_fmt
+        color = self.categorical_label_color
         for bar in bars:
             height = bar.get_height()
+            value = height * self.categorical_label_scale
             ax.annotate(
-                f"{height * 100:.1f}",
+                fmt(value) if callable(fmt) else format(value, fmt),
                 xy=(bar.get_x() + bar.get_width() / 2, height),
                 xytext=(0, 3),
                 textcoords="offset points",
                 ha="center",
                 va="bottom",
-                fontsize=12,
+                fontsize=self.categorical_label_fontsize,
+                color=color(value) if callable(color) else color,
+                rotation=self.categorical_label_rotation,
             )
 
     def _draw_categorical_bars(self, ax, x, values, width, style):

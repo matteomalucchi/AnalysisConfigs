@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import json
 import numpy as np
 import awkward as ak
 from multiprocessing import Pool
@@ -31,6 +32,10 @@ NUMBER_OF_BINS = 20
 MAX_INTEGER_BINS = 200
 PAD_VALUE = -999
 BLIND_VALUE = 0.9
+# chi2 p-value summary plot: threshold line (labels green above, black below)
+# and minimum p-value drawn (smaller values are shown as "<PVALUE_FLOOR")
+PVALUE_THRESHOLD = 0.05
+PVALUE_FLOOR = 1e-10
 ARCTANH_BINS = False
 # Column used as weight to fill the histograms (set with --weight-column)
 WEIGHT_COLUMN = args.weight_column
@@ -633,7 +638,11 @@ def plot_single_var_from_columns(
     lumi,
     era_string,
 ):
+    # Returns (var, {category: chi2 results}) with the chi2 of each histogram
+    # w.r.t. the reference one (empty if the chi2 is not computed)
     histos_spread = []
+    # plot name -> category name (to map the chi2 results back to the categories)
+    plot_name_to_cat = {}
 
     for k, cat_list in enumerate(cat_lists):
         hist_1d_dict = {}
@@ -807,6 +816,7 @@ def plot_single_var_from_columns(
                 "data": histo,
                 "style": style_dict,
             }
+            plot_name_to_cat[cat_plot_name] = cat
 
             del col_den, col_num
 
@@ -874,6 +884,101 @@ def plot_single_var_from_columns(
 
     p.run()
 
+    chi2_results = {
+        plot_name_to_cat.get(name, name): res
+        for name, res in p.chi_square_results.items()
+    }
+    return var, chi2_results
+
+
+def plot_chi2_summary(chi2_cat, cats_name, lumi, era_string):
+    # Bar plot of the p-value of the chi2 (w.r.t. the reference 4b histogram) of the
+    # preW (red) and postW (blue) histograms for all the variables of a category.
+    # The values printed on the bars are green if p-value >= PVALUE_THRESHOLD, black otherwise.
+    # p-values below PVALUE_FLOOR are drawn at PVALUE_FLOOR (exact values in the json).
+    # chi2_cat: {var: {category: {"chi2", "ndof", "chi2_ndof", "pvalue"}}}
+    series = {
+        "preW": {"key": "preW", "style": {"color": color_list_orig[0][2][0]}},
+        "postW": {
+            "key": "postW",
+            "style": {
+                "edgecolor": color_list_orig[0][1][0],
+                "color": color_list_orig[0][1][1],
+            },
+        },
+    }
+    variables, values = [], {s: [] for s in series}
+    for var, res in chi2_cat.items():
+        vals = {
+            s: next(
+                (r["pvalue"] for cat, r in res.items() if props["key"] in cat), None
+            )
+            for s, props in series.items()
+        }
+        if any(v is None or not np.isfinite(v) for v in vals.values()):
+            print(f"WARNING: chi2 of preW/postW missing for {var} in {cats_name}")
+            continue
+        variables.append(var)
+        for s in series:
+            values[s].append(max(vals[s], PVALUE_FLOOR))
+    if not variables:
+        return
+
+    series_dict = {
+        s: {
+            "data": {"categories": variables, "values": values[s]},
+            "style": {**props["style"], "label": s},
+        }
+        for s, props in series.items()
+    }
+    all_values = np.array(values["preW"] + values["postW"])
+    ymin = all_values.min() / 10
+
+    def label_fmt(v):
+        return f"<{PVALUE_FLOOR:.0e}" if v <= PVALUE_FLOOR else f"{v:.2g}"
+
+    def label_color(v):
+        return "green" if v >= PVALUE_THRESHOLD else "black"
+
+    (
+        HEPPlotter(debug=DEBUG)
+        .set_plot_config(
+            lumitext=f"{era_string}, {lumi}" + r" $fb^{-1}$, (13.6 TeV)",
+            cmstext=args.cmstext,
+            # very wide figure: usually there are ~50 variables
+            figsize=[max(20, 0.8 * len(variables)), 20],
+        )
+        .set_output(os.path.join(outputdir, f"chi2_pvalue_{cats_name}"))
+        .set_labels(
+            "",
+            r"p-value of $\chi^2$ (vs reference)",
+            rotate_xticks=True,
+            xtick_fontsize=18,
+        )
+        .set_options(
+            y_log=True,
+            # room above p=1 for the rotated labels and the legend
+            ylim_top_value=100,
+            ylim_bottom_value=ymin,
+            legend_loc="upper right",
+            categorical_label_scale=1,
+            categorical_label_fmt=label_fmt,
+            categorical_label_color=label_color,
+            categorical_label_fontsize=12,
+            categorical_label_rotation=90,
+        )
+        .set_data(series_dict, plot_type="categorical")
+        .add_line(
+            orientation="h",
+            y=PVALUE_THRESHOLD,
+            color="green",
+            linestyle="--",
+            linewidth=2,
+            label=f"p-value = {PVALUE_THRESHOLD:g}",
+        )
+        .run()
+    )
+
 
 def main(cat_cols, lumi, era_string):
 
@@ -883,6 +988,7 @@ def main(cat_cols, lumi, era_string):
     cat_col_MC = cat_cols[1]
 
     col_dict = {}
+    chi2_dict = {}
     for cats_name, cat_lists in cat_dict.items():
         plot_categories = False
         cat_lists_final = []
@@ -1053,6 +1159,13 @@ def main(cat_cols, lumi, era_string):
                             col_dict[var_n][cat] = count_objects(
                                 cat_columns, coll, kind, cols
                             )
+                # collections not present in all the regions are skipped
+                for var_n in [v for v in vars_to_plot if v.startswith("N_")]:
+                    if any(cat not in col_dict[var_n] for cat in sub_cat_list):
+                        print(
+                            f"WARNING: variable {var_n} not found in all regions {sub_cat_list}. Skipping..."
+                        )
+                        missing_vars.add(var_n)
 
             cat_list_final = cat_list.copy()
 
@@ -1139,7 +1252,7 @@ def main(cat_cols, lumi, era_string):
             ]
             if args.workers > 1:
                 with Pool(args.workers) as p:
-                    p.starmap(
+                    results = p.starmap(
                         plot_single_var_from_columns,
                         [
                             (
@@ -1158,7 +1271,7 @@ def main(cat_cols, lumi, era_string):
                         ],
                     )
             else:
-                for var in vars_to_plot:
+                results = [
                     plot_single_var_from_columns(
                         var,
                         col_dict[var.replace("_TRANSFORM", "")],
@@ -1171,6 +1284,22 @@ def main(cat_cols, lumi, era_string):
                         lumi,
                         era_string,
                     )
+                    for var in vars_to_plot
+                ]
+
+            # chi2 of the distributions: summary plot of preW vs postW for each category
+            chi2_cat = {var: res for var, res in results if res}
+            if chi2_cat:
+                chi2_dict[cats_name] = chi2_cat
+                plot_chi2_summary(chi2_cat, cats_name, lumi, era_string)
+
+    # save the chi2 values of all the distributions:
+    # {category group: {variable: {region: {chi2, ndof, chi2_ndof, pvalue}}}}
+    if chi2_dict:
+        chi2_file = os.path.join(outputdir, "chi2_values.json")
+        with open(chi2_file, "w") as f:
+            json.dump(chi2_dict, f, indent=2)
+        print(f"Chi2 values saved in {chi2_file}")
 
 
 if __name__ == "__main__":

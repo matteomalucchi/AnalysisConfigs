@@ -450,7 +450,7 @@ Each method returns `self`, so you can chain calls.
 | `add_ratio_hists(ratio_hists)`                                                  | Adds precomputed ratio histograms                                        |
 | `add_annotation(**kwargs)`                                                      | Adds text annotations (`ax.text`) with free positioning                  |
 | `add_line(orientation="h", **kwargs)`                                           | Adds horizontal (`"h"`) or vertical (`"v"`) lines                        |
-| `add_chi_square(pred_unc=False, **kwargs)`                                      | Computes and displays χ²/ndof and p-value                                |
+| `add_chi_square(pred_unc=False, **kwargs)`                                      | Computes and displays χ²/ndof and p-value; after `run()` the values are in `chi_square_results[name] = {chi2, ndof, chi2_ndof, pvalue}` |
 | `run()`                                                                         | Executes the plotting                                                    |
 
 ---
@@ -483,6 +483,12 @@ You can pass multiple options together:
 | `ylim_top_factor`    | float | `1.7`    | Scale factor for y-max                 |
 | `ylim_bottom_factor` | float | `1e-2`   | Scale factor for y-min                 |
 | `reference_to_den`   | bool  | `True`   | In ratio: divide by reference or not   |
+| `categorical_bar_labels` | bool | `True` | Categorical plots: print the value on each bar |
+| `categorical_label_scale` | float | `100` | Categorical plots: printed value = value × scale (100 → percent) |
+| `categorical_label_fmt` | str or callable | `".1f"` | Categorical plots: format spec of the printed value, or function value → str |
+| `categorical_label_fontsize` | int | `12` | Categorical plots: font size of the printed value |
+| `categorical_label_color` | str or callable | `"black"` | Categorical plots: color of the printed value, or function value → color (e.g. `lambda v: "green" if v >= 0.05 else "black"`) |
+| `categorical_label_rotation` | float | `0` | Categorical plots: rotation (degrees) of the printed value |
 
 ---
 

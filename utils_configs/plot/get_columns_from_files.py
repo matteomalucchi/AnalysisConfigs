@@ -280,7 +280,8 @@ def get_columns_from_parquet(
     cat_col: dict = {}
     total_datasets_list: list = []
     dirs_datasets: dict = {}
-
+    
+    logger.debug(f"input_files: {input_files}")
     for input_file in input_files:
         result = get_parquet_save_directory(input_file)
         if result is None:
@@ -515,9 +516,9 @@ def get_parquet_save_directory(input_parquet):
         if col_dir is not None and "://" in col_dir:
             col_dir = col_dir.split("://")[-1].split("/", 1)[-1]
             col_dir = "/" + col_dir.split("/", 1)[-1]
-        logger.debug(f"dump_columns_as_arrays_per_chunk: {col_dir}")
+        logger.info(f"dump_columns_as_arrays_per_chunk: {col_dir}")
     except Exception as e:
-        logger.debug(
+        logger.info(
             f"Could not determine save directory (probably bad config.json): {e}"
         )
         return None
