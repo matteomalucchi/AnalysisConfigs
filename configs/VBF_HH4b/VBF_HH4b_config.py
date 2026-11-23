@@ -36,11 +36,11 @@ from configs.HH4b_common.vbf_jet_collections import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
-SPANET_TRAINING = False
+SPANET_TRAINING = True
 VBF_REGIONS = False
 SIGNAL_REGION = False
 TRAIN_BKG_MORPHING = False
-APPLY_BKG_MORPHING = True
+APPLY_BKG_MORPHING = False
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -147,11 +147,11 @@ sample_data_parkinghh_list = ["DATA_ParkingHH"]
 
 sample_list = (
     []
-    # + sample_spanet_ggF_list
-    # + sample_official_ggF_list
-    # + sample_VBF_list
-    # + sample_ZZ_ZH_list
-    + sample_data_jme_list
+    + sample_spanet_ggF_list
+    + sample_official_ggF_list
+    + sample_VBF_list
+    + sample_ZZ_ZH_list
+    # + sample_data_jme_list
     # + sample_data_parkinghh_list
 )
 
