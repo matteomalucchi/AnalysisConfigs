@@ -78,7 +78,9 @@ default_jets_calibration:
         jec_mc: Summer24Prompt24_V5_MC
         jec_data: Summer24Prompt24_V5_DATA
         jer: Summer24Prompt24_JRV2_MC
-        level: L1L2L3Res
+        # JEC applied level by level, needed by the residual_pt_floor jets mitigation
+        by_level: True
+        level: [L1FastJet, L2Relative, L3Absolute, L2L3Residual]
 
       "2025":
         json_path: ${cvmfs:Run3-25Prompt-Summer24-NanoAODv15,JME,jet_jerc.json.gz,2026-07-16}
@@ -197,7 +199,9 @@ default_jets_calibration:
         jec_mc: Summer24Prompt24_V5_MC
         jec_data: Summer24Prompt24_V5_DATA
         jer: Summer24Prompt24_JRV2_MC
-        level: L1L2L3Res
+        # JEC applied level by level, needed by the residual_pt_floor jets mitigation
+        by_level: True
+        level: [L1FastJet, L2Relative, L3Absolute, L2L3Residual]
 
       "2025":
         json_path: "${path_to_JERC_regression_files}/Run3Summer24Prompt25/latest/regJet_jerc.json.gz"
@@ -213,7 +217,9 @@ default_jets_calibration:
         jec_mc: Summer24Prompt24_V5_MC
         jec_data: Summer24Prompt24_V5_DATA
         jer: Summer24Prompt24_JRV2_MC
-        level: L1L2L3Res
+        # JEC applied level by level, needed by the residual_pt_floor jets mitigation
+        by_level: True
+        level: [L1FastJet, L2Relative, L3Absolute, L2L3Residual]
 
       "2025":
         json_path: "${path_to_JERC_regression_files}/Run3Summer24Prompt25/latest/regJet_jerc.json.gz"
@@ -1054,8 +1060,11 @@ jets_calibration:
       - AK4PFPuppiUParTRegressionPlusNeutrino
     jer_genmatched_only:
       apply: True
+    # 2024 data: the L2L3Residual of the jets with MC-truth corrected pt < 30 GeV in
+    # 2.0 < |eta| < 2.5 is evaluated at 30 GeV. Needs the JEC by level (`by_level`) of
+    # the jet types of `jet_types` calibrated in 2024 (AK4PFPuppi and the UParT ones)
     residual_pt_floor:
-      apply: False
+      apply: True
 
 # path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/JERC_json/JERC_json_forPNetUParT_WithJER/"
 path_to_JERC_regression_files: "/pnfs/psi.ch/cms/trivcat/store/user/tharte/JERC_json/JERC_json_forPNetUParT_WithJER/"

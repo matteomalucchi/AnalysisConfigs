@@ -116,12 +116,21 @@ mitigations (`jets_calibration.jets_mitigation`):
 - selection mitigations, applied by PocketCoffea to every AK4 jet selection (also the ones made
   with `custom_jet_selection`, on its `pt_type` pt), never to the FatJets: `pt_cut_HE`
   (pt > 50 GeV in 2.5 < \|η\| < 3.0, also in 2025) and `raw_factor_cut`;
-- calibration mitigation `jer_genmatched_only`, applied to the jet types of `jet_types`:
-  `AK4PFPuppi` (also the `CorrT1METJet` jets, aliased to it) and the pt-regressed jet types
+- calibration mitigations, applied to the jet types of `jet_types`: `AK4PFPuppi` (also the
+  `CorrT1METJet` jets, aliased to it) and the pt-regressed jet types
   (`AK4PFPuppiPNetRegression[PlusNeutrino]`, `AK4PFPuppiUParTRegression[PlusNeutrino]`), i.e.
-  the calibration of `JetDefault`, `JetPtRegressed` and `JetPtRegressedPlusNeutrino`.
+  the calibration of `JetDefault`, `JetPtRegressed` and `JetPtRegressedPlusNeutrino`:
+  - `jer_genmatched_only` (MC, 2022-2024): in 2.5 < \|η\| < 3.0 the JER smearing is applied
+    only to the gen-matched jets;
+  - `residual_pt_floor` (data, 2024): for the jets in 2.0 < \|η\| < 2.5 with MC-truth
+    corrected pt < 30 GeV, the L2L3Residual is evaluated at 30 GeV. It needs the JEC applied
+    level by level, so the 2024 calibration of `AK4PFPuppi`, `AK4PFPuppiUParTRegression` and
+    `AK4PFPuppiUParTRegressionPlusNeutrino` uses `by_level: True` with
+    `level: [L1FastJet, L2Relative, L3Absolute, L2L3Residual]` (same result as the compound
+    `L1L2L3Res` correction for all the other jets).
 
-The synchronization config uses its own copy of the file, with `pt_cut_HE` switched off.
+The synchronization config uses its own copy of the file, with `pt_cut_HE` switched off and
+without `residual_pt_floor`.
 
 ## Jet veto map
 

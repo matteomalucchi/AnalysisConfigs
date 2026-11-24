@@ -12,7 +12,8 @@ share and where they differ. The objects are described in [jets.md](jets.md), th
 - **Workflow and calibration**: same workflows (`HH4bCommonProcessor` and its VBF subclass),
   same jet calibration (`params/jets_calibration_regression_json.yaml`, with the
   `JetDefault`, `JetPtRegressed` and `JetPtRegressedPlusNeutrino` collections merged into `Jet`),
-  same Run3 jets mitigations (`pt_cut_HE`, `jer_genmatched_only`, `raw_factor_cut`, see
+  same Run3 jets mitigations (`pt_cut_HE`, `jer_genmatched_only`, `raw_factor_cut`,
+  `residual_pt_floor`, see
   [jets.md](jets.md#jets-mitigations)) and same year-dependent b-tagging and pT-regression
   algorithms (ParticleNet in 2022-2023, UParTAK4 in 2024-2025, read through the generic `btagB`
   field).
