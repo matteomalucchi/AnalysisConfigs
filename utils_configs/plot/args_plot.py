@@ -132,7 +132,8 @@ parser.add_argument(
     "--mask-large-weights",
     type=float,
     help="If set, remove from the plots the events with weight above this value "
-    "(the weight distribution is still plotted entirely, with a line at the threshold). "
+    "(the weight distribution is still plotted entirely, with a line at the threshold, "
+    "but the quoted mean/std exclude the weights above it). "
     "Default: None (no masking)",
     default=None,
 )

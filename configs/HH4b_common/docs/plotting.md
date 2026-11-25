@@ -88,7 +88,7 @@ score variables use 20 bins with constant signal yield (computed on the MC signa
 | `-l`, `--linear` | `False` | Linear y axis (default is log). |
 | `-t`, `--test` | `False` | Quick test: only the variables containing `score`, `HH_mass`, `HiggsLeading` or the weight, at most 10000 events and 1 parquet file per category. |
 | `-cms`, `--cmstext` | `Private` | Text next to the CMS label. |
-| `-mw`, `--mask-large-weights` | `None` | If set to a number `X`, remove the events with NaN or weight > `X` from the predicted histograms. The morphing-weight distribution is still plotted entirely, with a red dashed vertical line at `X`. Default: no masking. |
+| `-mw`, `--mask-large-weights` | `None` | If set to a number `X`, remove the events with NaN or weight > `X` from the predicted histograms. The morphing-weight distribution is still plotted entirely, with a red dashed vertical line at `X`, but the mean/std quoted on it exclude weights > `X`. Default: no masking. |
 
 Only one of `--run2`, `--boosted`, `--vbf`, `--mixed` is used, in this order of priority; without
 any of them the default (first approach, ggF) regions are plotted.

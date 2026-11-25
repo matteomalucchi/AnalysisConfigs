@@ -452,8 +452,14 @@ def plot_weights(weights_list, suffix, lumi, era_string):
         hist_1d_dict[var_name] = {
             "data": hist_w,
         }
+        # exclude weights above the --mask-large-weights cut from mean/std
+        weights_stats = (
+            weights[weights <= args.mask_large_weights]
+            if args.mask_large_weights is not None
+            else weights
+        )
         mean_std_list.append(
-            f"mean: {np.mean(weights):.2f}, std: {np.std(weights):.2f}"
+            f"mean: {np.mean(weights_stats):.2f}, std: {np.std(weights_stats):.2f}"
         )
 
     output_base = os.path.join(outputdir, f"weights_{suffix}")
