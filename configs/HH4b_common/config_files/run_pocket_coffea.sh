@@ -38,6 +38,10 @@ expect_copy_path=false
 merge_parquet=false
 merge_parquet_args=()
 expect_merge_args=false
+# --skip-parquet-check: do not check that the parquet output directories
+# (dump_columns_as_arrays_per_chunk) of the datasets/regions/variations to run
+# are empty before running (the check is also skipped with --resubmit-failed)
+skip_parquet_check=false
 extra_args=()
 
 for arg in "${raw_extra_args[@]}"; do
@@ -61,6 +65,9 @@ for arg in "${raw_extra_args[@]}"; do
         --merge-parquet-args)
             merge_parquet=true
             expect_merge_args=true
+            ;;
+        --skip-parquet-check)
+            skip_parquet_check=true
             ;;
         *)
             if [[ "$expect_copy_path" == true ]]; then
@@ -147,6 +154,35 @@ cmd+=( "${extra_args[@]}" )
 
 # Print the full command exactly as executed
 echo "${cmd[@]}"
+
+###################################
+# CHECK THE PARQUET OUTPUT IS EMPTY
+###################################
+# If the config dumps the columns as parquet chunks (dump_columns_as_arrays_per_chunk,
+# set from save_chunk), crash when <dump dir>/<dataset>/<region>/<variation> already
+# holds parquet files: the new chunks would be mixed with (and partly overwrite)
+# the ones of a previous run. Not done with --resubmit-failed (reuses the same
+# directories), --skip-parquet-check or --debug.
+if ! $is_debug && ! $skip_parquet_check && [[ ! " ${extra_args[*]} " =~ " --resubmit-failed " ]]; then
+    check_cmd=( python "${SCRIPT_DIR}/check_parquet_output.py" --cfg "$new_config_template" )
+    # same dataset filters as pocket-coffea run
+    for ((k = 0; k < ${#extra_args[@]}; k++)); do
+        case "${extra_args[$k]}" in
+            --filter-datasets|--filter-samples|--filter-years)
+                check_cmd+=( "${extra_args[$k]}" "${extra_args[$((k+1))]}" )
+                ;;
+            --filter-datasets=*|--filter-samples=*|--filter-years=*)
+                check_cmd+=( "${extra_args[$k]}" )
+                ;;
+        esac
+    done
+    echo "${check_cmd[@]}"
+    if ! "${check_cmd[@]}"; then
+        echo "ERROR: parquet output check failed, not running pocket-coffea."
+        cleanup
+        exit 1
+    fi
+fi
 
 ###################################
 # DEBUG MODE → run without trapping

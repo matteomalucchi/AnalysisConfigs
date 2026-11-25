@@ -593,6 +593,7 @@ Additional options of `run_pocket_coffea` (anywhere after the 4 required argumen
 | `--merge-parquet` | At the end (before `--copy-to`), merge the `parquet` chunks with [`scripts/postprocess_parquet.py`](../../scripts/postprocess_parquet.py), see [Merge the parquet chunks](#merge-the-parquet-chunks). |
 | `--merge-parquet-update-config` | Same as `--merge-parquet`, and also overwrite the `parquet` path in the `config.json` of the output with the path of the merged files (`--update-config`). |
 | `--merge-parquet-args "<args>"` | Extra arguments for `postprocess_parquet.py` (implies `--merge-parquet`), e.g. `--merge-parquet-args "-j 16 -o <dir>"`, or `--merge-parquet-args "-c <yaml>"` to also apply the ONNX models of the yaml. |
+| `--skip-parquet-check` | Skip the check done before running: when the config saves the columns as `parquet` chunks (`save_chunk`), [`config_files/check_parquet_output.py`](./config_files/check_parquet_output.py) crashes the run with a clear error if `<save_chunk>/<dataset>/[<subsample>/]<region>/<variation>` already holds `parquet` files for any dataset/region of the run (the `--filter-datasets/samples/years` are taken into account), since the new chunks would be mixed with (and partly overwrite) the ones of a previous run. Also skipped with `--resubmit-failed` and `--debug`. It can be run by hand with `python config_files/check_parquet_output.py --cfg <config.py> [--filter-datasets ...]`. |
 
 ### Merge the parquet chunks
 
