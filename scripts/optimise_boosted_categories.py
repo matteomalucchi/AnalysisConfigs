@@ -40,6 +40,14 @@ import os
 import numpy as np
 
 from utils_configs.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.plot.morphing_weight import (
+    HELP as MORPH_WEIGHT_HELP,
+    MORPH_WEIGHT_CHOICES,
+    TEMPLATE_COLUMN,
+    apply_morph_weight,
+    read_weight_mode,
+    resolve_morph_weight,
+)
 from utils_configs.plot.weighted_quantile import weighted_quantile
 
 
@@ -95,6 +103,7 @@ parser.add_argument("--holdout", action="store_true", default=False, help="Optim
 parser.add_argument("--cache", type=str, default=None, help="npz file with the loaded events: read if it exists, else written after loading (delete it when the inputs change)")
 parser.add_argument("--region-setting", choices=["40GeV", "50GeV"], default="50GeV", help="Region setting for the BDT baseline cuts")
 parser.add_argument("--signal-region", type=str, default="boosted_signal_region_D")
+parser.add_argument("--morph-weight", type=str, choices=MORPH_WEIGHT_CHOICES, default="auto", help=MORPH_WEIGHT_HELP)
 parser.add_argument("--qcd-region", type=str, default="boosted_control_region_B_postW")
 parser.add_argument("--norm-num-region", type=str, default="boosted_signal_sideband_region_C")
 parser.add_argument("--norm-denom-region", type=str, default="boosted_control_sideband_region_A_postW")
@@ -146,12 +155,13 @@ SCORE_COLUMNS = {
 
 
 # ======================= Loading =======================
-def load_group(files, categories, columns):
-    """Load the columns of a group of datasets, merged over the datasets: {category: {column: array}}."""
+def load_group(files, categories, columns, optional=()):
+    """Load the columns of a group of datasets, merged over the datasets: {category: {column: array}}.
+    The `optional` columns are loaded where they exist (e.g. only the *_postW categories have the template weight)."""
     if not files:
         return {}
     cat_col, _ = get_columns_from_files(
-        files, "nominal", lambda c: c in columns, category_filter=lambda c: c in categories,
+        files, "nominal", lambda c: c in columns or c in optional, category_filter=lambda c: c in categories,
     )
     for category in categories:
         if category not in cat_col:
@@ -224,14 +234,21 @@ def load_processes():
             processes[name] = build_process(cat_col[args.signal_region], "HiggsSubLeading_btagBBTXbb")
 
     # QCD: data-driven from the reweighted B region, normalised with (C - ttbar MC in C) / A_postW
-    norm = load_group(groups["DATA"], [args.norm_num_region, args.norm_denom_region], ["weight"])
+    # Morphing weight of the reweighted data (A_postW and B_postW): the one of the run, or the template weight of a "both" run
+    morph_mode = read_weight_mode(args.input_data)
+    morph_weight = resolve_morph_weight(args.morph_weight, morph_mode)
+    logger.info(f"Morphing weight: {morph_weight} (run bkg_morphing_weight_mode: {morph_mode})")
+    optional = [TEMPLATE_COLUMN] if morph_weight == "template" and morph_mode == "both" else []
+    norm = load_group(groups["DATA"], [args.norm_num_region, args.norm_denom_region], ["weight"], optional)
+    apply_morph_weight(norm, morph_weight, morph_mode)
     sum_num, sum_denom = norm[args.norm_num_region]["weight"].sum(), norm[args.norm_denom_region]["weight"].sum()
     norm_tt = load_group(groups["TT"], [args.norm_num_region], ["weight"])
     sum_tt = norm_tt[args.norm_num_region]["weight"].sum() if norm_tt else 0.0
     norm_factor = (sum_num - sum_tt) / sum_denom
     logger.info(f"QCD normalisation ({args.norm_num_region} - TT) / {args.norm_denom_region} = "
                 f"({sum_num:.1f} - {sum_tt:.1f}) / {sum_denom:.1f} = {norm_factor:.5f}")
-    cat_col = load_group(groups["DATA"], [args.qcd_region], columns)
+    cat_col = load_group(groups["DATA"], [args.qcd_region], columns, optional)
+    apply_morph_weight(cat_col, morph_weight, morph_mode)
     # In the control region the TXbb is morphed into the signal region range (as in the category cuts): linearly, or
     # with --txbb-cdf as the CDF-rescaled working-point index (the WP index and the nominal TXbb give the same cuts in the SR)
     processes["QCD"] = build_process(cat_col[args.qcd_region], qcd_txbb_column, scale=norm_factor, wp_index=args.txbb_cdf)

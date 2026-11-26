@@ -5,11 +5,13 @@ import logging
 import os
 import numpy as np
 import re
+import sys
 import yaml
 from collections import defaultdict
 from pathlib import Path
 
 import hist
+import uproot
 from coffea.util import load
 from pocket_coffea.utils.stat import (
     Datacard,
@@ -25,6 +27,10 @@ from pocket_coffea.utils.stat.shape_manipulation import (
     add_quadrature_variation,
 )
 from pocket_coffea.utils.histogram import rebin_hist
+
+# the repository root, for utils_configs (the script is also run without PYTHONPATH=.)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from utils_configs.plot.morphing_weight import read_weight_mode  # noqa: E402
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -144,8 +150,70 @@ parser.add_argument(
     default=0.3,
     help="lnN uncertainty on the QCD prediction in the ttbar sideband (with --qcd-ttsb lnN)",
 )
+parser.add_argument(
+    "--require-template-weight",
+    action=argparse.BooleanOptionalAction,
+    default=None,
+    help="Stop unless the input was produced with bkg_morphing_weight_mode 'template' (config.json next to the coffea file): "
+         "the data-driven background is then filled with the template weight of the morphing model only, and the training "
+         "weight (clipped, >= 0) is not used. Default: on with --fit-sidebands, off otherwise",
+)
+parser.add_argument(
+    "--clip-negative-bins",
+    action="store_true",
+    default=False,
+    help="Set the negative bins of the data-driven background (they come from the negative template weights) to 0, bin by bin of every "
+         "dataset (era) histogram, before the datacards are written. NOT the same as clipping the summed template: it biases the "
+         "yield upwards, use it only to test the effect. Default: only report the negative bins and stop if the integral is <= 0",
+)
+parser.add_argument(
+    "--split-negative-bins",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="With --rate-params: keep the negative bins of the data-driven background in the fit (only the total prediction has to be "
+         "positive). Combine zeroes the negative bins of every process, so their magnitude is written as a second process "
+         "<name>_negative, which enters with minus the same rateParam. --no-split-negative-bins: the bins are clipped to 0",
+)
+parser.add_argument(
+    "--rate-param-scheme",
+    choices=["category", "inclusive"],
+    default="category",
+    help="Names of the rateParams (with --rate-params): 'category' = rate_ttbar_<cat> / rate_QCD_<cat> per category, "
+         "'inclusive' = one rate_ttbar and one rate_QCD shared by all categories",
+)
+parser.add_argument(
+    "--unblind",
+    action="store_true",
+    default=False,
+    help="Boosted only: use the data of the signal region. By default (blinded) the data of all boosted_signal_region_D* "
+         "categories are zeroed right after loading, and data_obs of the signal-region cards is a placeholder (ttbar + QCD "
+         "+ SM signal as written in the card): run Combine with Asimov data (-t -1 or --run blind)",
+)
+parser.add_argument(
+    "--thu-hh",
+    action="store_true",
+    default=False,
+    help="Drop the QCDscale_ggHH and mtop_ggHH lnN: use when the workspace is built with the HH model option "
+         "doklDependentUnc=True, whose THU_HH nuisance covers both",
+)
+parser.add_argument(
+    "--sidebands",
+    choices=["cmass", "cmasscat", "cscore"],
+    default=None,
+    help="Boosted only: add shape channels in the sidebands and free rates (implies --rate-params), all cards in <output>/combined. "
+         "Always: region E, inclusive, TTbar/(TTbar+QCD) (QCD from F_postW; rate_ttbar shared with the SR, own rate_QCD_E). "
+         "Plus region C (QCD from A_postW; own rate_ttbar_C, QCD rate shared with the SR): 'cmass' = inclusive, subleading mass "
+         "(rate_QCD); 'cmasscat' = per category, subleading mass (rate_QCD_<cat>); 'cscore' = inclusive, TTbar/(TTbar+QCD) "
+         "(rate_QCD). The score needs the input made by add_boosted_score_hist.py",
+)
 
 args = parser.parse_args()
+if args.require_template_weight is None:
+    args.require_template_weight = args.fit_sidebands or args.sidebands is not None
+if args.sidebands:
+    if args.fit_sidebands or args.rate_param_scheme != "category":
+        parser.error("--sidebands defines its own channels and rate names: not with --fit-sidebands / --rate-param-scheme")
+    args.rate_params = True
 if args.fit_sidebands:
     args.rate_params = True
 if (args.fit_sidebands or args.rate_params) and not args.boosted:
@@ -154,6 +222,15 @@ if args.fit_range is not None and args.fit_range[0] >= args.fit_range[1]:
     parser.error(f"--fit-range: LOW must be smaller than HIGH, got {args.fit_range}")
 if args.single_bin:
     args.nbins = 1
+if args.rate_param_scheme != "category" and not args.rate_params:
+    parser.error("--rate-param-scheme needs --rate-params (or --fit-sidebands)")
+args.blind = args.boosted and not args.unblind
+if args.blind and args.separate_normalisation:
+    parser.error("--separate-normalisation normalises to the data of the signal region: not possible when blinded (--unblind)")
+
+BLINDED_REGION_PREFIX = "boosted_signal_region_D"
+# Signal processes (names of sig_bkg_dict) of the SM point, used for the placeholder data_obs of blinded cards
+SM_SIGNAL_PROCESSES = ["ggHH_kl_1_kt_1_13p6TeV_hbbhbb", "qqHH_CV_1_C2V_1_kl_1_13p6TeV_hbbhbb"]
 
 LUMI_YAML = Path(__file__).parent.parent / "configs" / "HH4b_common" / "params" / "lumi_systematics.yaml"
 with open(LUMI_YAML) as f:
@@ -234,6 +311,8 @@ else:
                 }
             }
 
+SCORE_VARIABLE = "TTbarQCDDiscriminant"
+
 # Define the new region name
 # region_info: {datacard region: {"kind": "SR" / "QCDsb" / "TTsb", "category": category}}
 region_info = {}
@@ -271,6 +350,19 @@ if args.boosted:
                     **norm_regions,
                     }
             region_info[f"HH4b_ttsb_{name}"] = {"kind": "TTsb", "category": name}
+
+    if args.sidebands:
+        sideband_channels = [("Esb", "incl", SCORE_VARIABLE, "boosted_signal_ttbar_region_E", "boosted_control_ttbar_region_F_postW")]
+        if args.sidebands == "cmasscat":
+            sideband_channels += [("Csb", name, "SubLeadingHiggsMass", f"boosted_signal_sideband_region_C_{name}",
+                                   f"boosted_control_sideband_region_A_{name}_postW") for name in region_name_list]
+        else:
+            sideband_channels.append(("Csb", "incl", "SubLeadingHiggsMass" if args.sidebands == "cmass" else SCORE_VARIABLE,
+                                      "boosted_signal_sideband_region_C", "boosted_control_sideband_region_A_postW"))
+        for kind, name, fit_variable, sig, bkg in sideband_channels:
+            region_definitions[f"HH4b_{kind}_{name}"] = {
+                    "fit_variable": fit_variable, "sig_region_name": sig, "bkg_region_name": bkg, **norm_regions}
+            region_info[f"HH4b_{kind}_{name}"] = {"kind": kind, "category": name}
 
 else:
     region_definitions = {
@@ -337,6 +429,8 @@ def get_uncertainty_name(pocketcoffea_name, year):
         "pileup": f"CMS_pileup_{year_tag}",
         "sf_partonshower_isr": "ps_isr",
         "sf_partonshower_fsr": "ps_fsr",
+        # TXbb tagging scale factor (added to the histograms by add_boosted_txbb_syst.py), one nuisance for all working points
+        "sf_txbb_fixed_multiple_wp": f"CMS_eff_bb_txbb_{year_tag}",
         "lumi": f"lumi_{energy}_{get_year(year, year_type=1)}",
         }
     if pocketcoffea_name in unc_map.keys():
@@ -623,6 +717,37 @@ def add_theory_acceptance_variations(histograms, processes_by_production, meta_d
     return histograms, theory_shapes
 
 
+def check_background_negative_bins(variable_hists, cat_name, clip=False):
+    """Report the negative bins of the data-driven background of the category `cat_name` (the data of the `*_background` datasets, summed
+    over the datasets), which come from the negative weights of the template weight. Raises if the integral is not positive. With `clip`
+    the negative bins of every dataset histogram are set to 0 (value only: the variance is kept)."""
+    total = None
+    for sample, datasets in variable_hists.items():
+        if not sample.endswith("_background"):
+            continue
+        for dataset, histogram in datasets.items():
+            names = list(histogram.axes.name)
+            index = [slice(None)] * histogram.ndim
+            index[names.index("cat")] = histogram.axes["cat"].index(cat_name)
+            if "variation" in names:
+                index[names.index("variation")] = histogram.axes["variation"].index("nominal")
+            values = histogram.view(flow=True)[tuple(index)]["value"]
+            if clip:
+                values[values < 0] = 0.0
+            total = values.copy() if total is None else total + values
+    if total is None:
+        return
+    bins = total[1:-1]  # without the underflow and overflow bins (they are folded into the first and last bin by fold_flow)
+    negative = bins < 0
+    logger.info(
+        f"Data-driven background {cat_name}: integral {total.sum():.4g}, {int(negative.sum())}/{bins.size} negative bins"
+        + (f", most negative {bins.min():.4g} (sum of the negative bins {bins[negative].sum():.4g})" if negative.any() else "")
+        + (" [per-dataset negative bins clipped to 0]" if clip else "")
+    )
+    if total.sum() <= 0:
+        raise ValueError(f"The data-driven background of {cat_name} has a non-positive integral ({total.sum():.4g})")
+
+
 def create_new_region(coffea_file, cat_name, sig_region_name, bkg_region_name, fit_variable, sig_control_region_name, bkg_control_region_name):
     """Create a new region in the coffea file, that contains all the regions we need for the analysis."""
 
@@ -660,6 +785,7 @@ def create_new_region(coffea_file, cat_name, sig_region_name, bkg_region_name, f
                     base = coffea_file["variables"][column].get(bkg_sample, {}).get(bkg_dataset, histogram)
                     coffea_file["variables"][column].setdefault(bkg_sample, {})[bkg_dataset] = duplicate_category(
                         base, bkg_region_name, cat_name, axis=0, scale=norm_factor)
+    check_background_negative_bins(coffea_file["variables"][fit_variable], cat_name, clip=args.clip_negative_bins)
     # == datasets_metadata : by_datataking_period ==
     for period, entries in coffea_file["datasets_metadata"]["by_datataking_period"].items():
         for sample, dataset in list(entries.items()):
@@ -675,6 +801,85 @@ def create_new_region(coffea_file, cat_name, sig_region_name, bkg_region_name, f
             coffea_file["datasets_metadata"]["by_dataset"][f"{dataset}_background"] = temp_dset
     return coffea_file, norm_rel_unc
 
+
+
+def blind_signal_region_data(coffea_file):
+    """Zero the data of all signal-region categories (histograms, cutflow, sumw) in place, so that it cannot reach
+    any card, shape file or log. Saved columns are dropped altogether."""
+    def zeroed(entry):
+        if isinstance(entry, dict):
+            return {key: zeroed(value) for key, value in entry.items()}
+        return type(entry)(0)
+
+    n_hists = 0
+    for samples in coffea_file["variables"].values():
+        for datasets in samples.values():
+            for dataset, histogram in datasets.items():
+                if "DATA" not in dataset:
+                    continue
+                cat_idx = list(histogram.axes.name).index("cat")
+                for cat in histogram.axes["cat"]:
+                    if not cat.startswith(BLINDED_REGION_PREFIX):
+                        continue
+                    index = [slice(None)] * histogram.ndim
+                    index[cat_idx] = histogram.axes["cat"].index(cat)
+                    view = histogram.view(flow=True)
+                    view["value"][tuple(index)] = 0.0
+                    view["variance"][tuple(index)] = 0.0
+                    n_hists += 1
+    for key in ("cutflow", "sumw", "sumw2"):
+        for cat, datasets in coffea_file[key].items():
+            if cat.startswith(BLINDED_REGION_PREFIX):
+                for dataset in datasets:
+                    if "DATA" in dataset:
+                        datasets[dataset] = zeroed(datasets[dataset])
+    coffea_file["columns"] = {}
+    if n_hists == 0:
+        raise ValueError(f"Blinding: no data histogram with a {BLINDED_REGION_PREFIX}* category found")
+    logger.info(f"BLINDED: zeroed the data of the {BLINDED_REGION_PREFIX}* categories in {n_hists} histograms")
+
+
+def fill_placeholder_data(histograms, category, meta_dict):
+    """Return a copy of `histograms` ({sample: {dataset: hist}}) in which the data of `category` is the sum of the
+    backgrounds and the SM signal, as written in the card (negative bins clipped per process, as the Datacard does, except for the
+    data-driven background whose negative bins are kept by split_negative_bins).
+    This is NOT a fit-consistent Asimov dataset (no model scalings): fit with -t -1 / --run blind."""
+    expected = 0.0
+    processes = {p: sig_bkg_dict["signal"][p] for p in SM_SIGNAL_PROCESSES}
+    processes.update(sig_bkg_dict["background"])
+    for datasets in processes.values():
+        keeps_negative = args.rate_params and args.split_negative_bins and "DATA" in datasets[0]
+        total = 0.0
+        for dataset in datasets:
+            histogram = histograms[meta_dict[dataset]["sample"]][dataset]
+            selection = {"cat": category}
+            if "variation" in histogram.axes.name:
+                selection["variation"] = "nominal"
+            total = total + histogram[selection].view(flow=False)["value"]
+        expected = expected + (total if keeps_negative else np.clip(total, 0.0, None))
+    expected = np.clip(expected, 0.0, None)
+
+    new_histograms = {sample: dict(datasets) for sample, datasets in histograms.items()}
+    for number, dataset in enumerate(sig_bkg_dict["data"]["data_obs"]):
+        sample = meta_dict[dataset]["sample"]
+        histogram = new_histograms[sample][dataset].copy()
+        view = histogram.view(flow=True)
+        index = histogram.axes["cat"].index(category)
+        view["value"][index] = 0.0
+        view["variance"][index] = 0.0
+        if number == 0:
+            in_range = slice(1, 1 + len(expected)) if histogram.axes[-1].traits.underflow else slice(0, len(expected))
+            view["value"][index, in_range] = expected
+            view["variance"][index, in_range] = expected
+        new_histograms[sample][dataset] = histogram
+    logger.info(f"BLINDED: data_obs of {category} is the placeholder ttbar + QCD + SM signal, integral {np.sum(expected):.3f}")
+    return new_histograms
+
+
+def sideband_rate_names(kind, category):
+    """(ttbar rateParam, QCD rateParam) of a channel with --sidebands: ttbar is shared by SR and E, QCD by SR and C."""
+    qcd_sr = f"rate_QCD_{category}" if args.sidebands == "cmasscat" else "rate_QCD"
+    return {"SR": ("rate_ttbar", qcd_sr), "Esb": ("rate_ttbar", "rate_QCD_E"), "Csb": ("rate_ttbar_C", qcd_sr)}[kind]
 
 
 def add_rate_params(card_path, rate_params, low=0, high=5):
@@ -705,6 +910,66 @@ def add_rate_params(card_path, rate_params, low=0, high=5):
     logger.info(f"Added rateParams to {card_path}:\n  " + "\n  ".join(new_lines))
 
 
+def split_negative_bins(card_path, shapes_path, datacard, processes, rate_param, region):
+    """Keep the negative bins of the data-driven background in the likelihood (call after add_rate_params).
+
+    Combine sets the negative bins of every process template to 0, but only the total prediction has to be positive. The Datacard
+    has already written <process> with these bins at 0; their magnitude (with their MC-stat. variance) is added as the process
+    <process>_negative, whose rate parameter is -1 x the one of <process>."""
+    for process in processes:
+        values = datacard.histogram[process, "nominal", :].values()
+        variances = datacard.histogram[process, "nominal", :].variances()
+        negative = values < 0
+        if not negative.any():
+            continue
+        total = sum(datacard.histogram[f"{p.name}{datacard.process_suffix(y)}", "nominal", :].values()
+                    for p in datacard.mc_processes.values() for y in p.years if not p.is_signal)
+        if np.any(total[negative] <= 0):
+            raise ValueError(f"{region}: the total background is not positive in a bin where {process} is negative: merge the bins")
+        name = f"{process}_negative"
+
+        with uproot.open(shapes_path) as f:
+            objects = {key: f[key].to_hist() for key in f.keys(cycle=False)}
+        if any(key.startswith(f"{process}_") and key != f"{process}_nominal" for key in objects):
+            raise NotImplementedError(f"{region}: shape variations of {process} are not supported by split_negative_bins")
+        negative_hist = objects[f"{process}_nominal"].copy()
+        negative_hist.view()["value"] = np.where(negative, -values, 0.0)
+        negative_hist.view()["variance"] = np.where(negative, variances, 0.0)
+        objects[f"{name}_nominal"] = negative_hist
+        with uproot.recreate(shapes_path) as f:
+            for key, histogram in objects.items():
+                f[key] = histogram
+
+        with open(card_path) as f:
+            lines = f.read().splitlines()
+        first_process = next(i for i, line in enumerate(lines) if line.split()[:1] == ["process"])
+        names = lines[first_process].split()[1:]
+        parent = names.index(process)
+        next_id = max(int(x) for x in lines[first_process + 1].split()[1:]) + 1
+        for i, line in enumerate(lines):
+            tokens = line.split()
+            if tokens[:1] == ["jmax"]:
+                lines[i] = line.replace(f"jmax {tokens[1]}", f"jmax {int(tokens[1]) + 1}")
+            elif i == first_process - 1:  # bin names of the expectation section
+                lines[i] = f"{line}   {tokens[1]}"
+            elif i == first_process:
+                lines[i] = f"{line}   {name}"
+            elif i == first_process + 1:
+                lines[i] = f"{line}   {next_id}"
+            elif tokens[:1] == ["rate"] and len(tokens) == len(names) + 1:
+                lines[i] = f"{line}   {float(-values[negative].sum())!r}"
+            elif len(tokens) == len(names) + 2 and tokens[1] in ("lnN", "shape"):
+                value = tokens[2 + parent]
+                if tokens[1] == "shape" and value != "-":
+                    raise NotImplementedError(f"{region}: shape nuisance {tokens[0]} on {process} is not supported")
+                lines[i] = f"{line}   {value}"  # the negative part has the same lnN as its parent
+        card_bin = lines[first_process - 1].split()[1]  # bin row of the expectation section
+        lines.append(f"{rate_param}_neg_{region} rateParam {card_bin} {name} (-1.0*@0) {rate_param}")
+        with open(card_path, "w") as f:
+            f.write("\n".join(lines) + "\n")
+        logger.info(f"{region}: kept {int(negative.sum())} negative bin(s) of {process} (sum {values[negative].sum():.4g}) as {name}")
+
+
 if __name__ == "__main__":
     # I want to use the coffea file with all outputs. Therefore, it should be merged beforehand.
     if "output_all.coffea" in input_dir:
@@ -716,8 +981,22 @@ if __name__ == "__main__":
         else:
             raise NameError(f"No combined coffea file found in {coffea_list}")
 
+    # -- Morphing weight of the data-driven background (config.json next to the coffea file) --
+    morph_mode = read_weight_mode(os.path.dirname(coffea_file) if coffea_file.endswith(".coffea") else coffea_file)
+    logger.info(f"Morphing weight of the data-driven background: bkg_morphing_weight_mode '{morph_mode}' of the input")
+    if args.require_template_weight and morph_mode != "template":
+        raise ValueError(
+            f"--require-template-weight: the input has bkg_morphing_weight_mode '{morph_mode}', the data-driven background must be "
+            f"filled with the template weight only (run the processing with bkg_morphing_weight_mode 'template', or pass "
+            f"--no-require-template-weight to build the datacards with the training weight)"
+        )
+    if morph_mode == "both":
+        logger.warning("The input has both weights: the histograms (so the datacards) are filled with the TRAINING weight")
+
     # -- Load Coffea file and config.json --
     coffea_file = load(coffea_file)
+    if args.blind:
+        blind_signal_region_data(coffea_file)
 
     # Data-driven backgrounds are listed with the plain data dataset names. Their reweighted copies
     # (created in create_new_region) carry the "_background" suffix, so point to those instead.
@@ -745,12 +1024,12 @@ if __name__ == "__main__":
         histograms_dict = {}
         for key, sob_hist in coffea_file["variables"].items():
             if value["fit_variable"] in key:
-                if args.fit_range is not None:
+                if args.fit_range is not None and value["fit_variable"] != SCORE_VARIABLE:
                     sob_hist = {
                         sample: {dataset: cut_range(h, *args.fit_range) for dataset, h in datasets.items()}
                         for sample, datasets in sob_hist.items()
                     }
-                if kind != "SR":
+                if kind in ("QCDsb", "TTsb"):
                     # Sidebands: only the yield enters the fit -> one bin (flow already folded in create_new_region)
                     histograms_dict[key] = {
                         sample: {dataset: h[{h.axes[-1].name: hist.rebin(h.axes[-1].size)}] for dataset, h in datasets.items()}
@@ -840,16 +1119,20 @@ if __name__ == "__main__":
             # The final binning is fixed before the theory variations are built, as the
             # envelope and the quadrature sum are not additive over bins.
             bins_edges = None
-            if kind == "SR" and (args.max_bkg_unc is not None or args.min_bkg_yield is not None):
+            card_group = "combined" if args.sidebands else hist_cat
+            mass_shape = kind == "SR" or (kind == "Csb" and value["fit_variable"] == "SubLeadingHiggsMass")
+            if mass_shape and (args.max_bkg_unc is not None or args.min_bkg_yield is not None):
                 bkg_datasets = [d for datasets in sig_bkg_dict["background"].values() for d in datasets]
                 bins_edges = compute_min_stat_edges(sob_hist, region_name, bkg_datasets, meta_dict,
                                                     max_rel_unc=args.max_bkg_unc, min_yield=args.min_bkg_yield)
-                os.makedirs(f"{args.output}/{hist_cat}", exist_ok=True)
-                with open(f"{args.output}/{hist_cat}/bin_edges_{region_name}.json", "w") as f:
+                os.makedirs(f"{args.output}/{card_group}", exist_ok=True)
+                with open(f"{args.output}/{card_group}/bin_edges_{region_name}.json", "w") as f:
                     json.dump({"edges": bins_edges.tolist(), "max_bkg_unc": args.max_bkg_unc,
                                "min_bkg_yield": args.min_bkg_yield}, f, indent=2)
                 sob_hist = rebin_hist(bins_edges, sob_hist)
             sob_hist, theory_shapes = add_theory_acceptance_variations(sob_hist, signal_processes_by_production, meta_dict)
+            if args.blind and kind == "SR":
+                sob_hist = fill_placeholder_data(sob_hist, region_name, meta_dict)
 
             systematics_list = []
             card_year = meta_dict[sig_bkg_dict["data"]["data_obs"][0]]["year"]
@@ -916,6 +1199,8 @@ if __name__ == "__main__":
                 ("pdf_gg", ttbar_xs_processes, PDF_GG),
             ]
             for name, processes, value in lnN_uncertainties:
+                if args.thu_hh and name in ("QCDscale_ggHH", "mtop_ggHH"):
+                    continue
                 if processes:
                     systematics_list.append(SystematicUncertainty(name=name, datacard_name=name, typ="lnN", processes=processes, value=value, years=[card_year]))
 
@@ -974,14 +1259,22 @@ if __name__ == "__main__":
                     single_year=True,
                     )
             card_name = f"{region_name}_{_label}.txt"
-            datacard.dump(directory=f"{args.output}/{hist_cat}", card_name=card_name, shapes_name=f"shapes_{region_name}_{_label}.root")
-            card_paths[hist_cat].append((region_name, card_name))
+            datacard.dump(directory=f"{args.output}/{card_group}", card_name=card_name, shapes_name=f"shapes_{region_name}_{_label}.root")
+            card_paths[card_group].append((region_name, card_name))
 
             if args.rate_params:
-                rate_params = [(f"rate_ttbar_{category}", list(bg_mc.keys()))]
+                if args.sidebands:
+                    ttbar_rate, qcd_rate = sideband_rate_names(kind, category)
+                else:
+                    rate_suffix = "" if args.rate_param_scheme == "inclusive" else f"_{category}"
+                    ttbar_rate, qcd_rate = f"rate_ttbar{rate_suffix}", f"rate_QCD{rate_suffix}"
+                rate_params = [(ttbar_rate, list(bg_mc.keys()))]
                 if qcd_has_rate_param:
-                    rate_params.append((f"rate_QCD_{category}", data_driven_processes))
-                add_rate_params(f"{args.output}/{hist_cat}/{card_name}", rate_params)
+                    rate_params.append((qcd_rate, data_driven_processes))
+                add_rate_params(f"{args.output}/{card_group}/{card_name}", rate_params)
+                if args.split_negative_bins and qcd_has_rate_param:
+                    split_negative_bins(f"{args.output}/{card_group}/{card_name}", f"{args.output}/{card_group}/shapes_{region_name}_{_label}.root",
+                                        datacard, data_driven_processes, qcd_rate, region_name)
 
     # Command to combine the cards of all regions (signal region + sidebands) into one card per fit variable
     for hist_cat, cards in card_paths.items():

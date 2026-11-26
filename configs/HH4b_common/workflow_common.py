@@ -96,17 +96,53 @@ year_dict = {
 }
 
 
+# Values of the option bkg_morphing_weight_mode (see default_config.py)
+BKG_MORPHING_WEIGHT_MODES = ("training", "both", "template")
+
+
 class HH4bCommonProcessor(BaseProcessorABC):
     def __init__(self, cfg) -> None:
         super().__init__(cfg=cfg)
 
         for key, value in self.workflow_options.items():
             setattr(self, key, value)
+        self._check_bkg_morphing_weight_mode()
 
         # cached model outputs, so that a model is evaluated only once per chunk
         # even when several parts of the workflow read it
         self._spanet_output = None
         self._vbf_discriminator_output = None
+
+    def _check_bkg_morphing_weight_mode(self):
+        """Check the option bkg_morphing_weight_mode against the morphing models that are set."""
+        mode = getattr(self, "bkg_morphing_weight_mode", "training")
+        if mode not in BKG_MORPHING_WEIGHT_MODES:
+            raise ValueError(
+                f"bkg_morphing_weight_mode must be one of {BKG_MORPHING_WEIGHT_MODES}, got {mode!r}"
+            )
+        training = getattr(self, "bkg_morphing_dnn", "")
+        template = getattr(self, "bkg_morphing_dnn_template", "")
+        if mode == "training" and template:
+            raise ValueError(
+                "bkg_morphing_dnn_template is set but bkg_morphing_weight_mode is 'training': "
+                "set the mode to 'both' or 'template', or empty the template model"
+            )
+        if mode == "both" and not (training and template):
+            raise ValueError(
+                "bkg_morphing_weight_mode 'both' needs bkg_morphing_dnn (training weight) "
+                "and bkg_morphing_dnn_template (template weight)"
+            )
+        if mode == "template" and not template:
+            raise ValueError("bkg_morphing_weight_mode 'template' needs bkg_morphing_dnn_template")
+        if mode == "template" and training:
+            raise ValueError(
+                "bkg_morphing_weight_mode 'template' does not evaluate the training weight: "
+                "leave bkg_morphing_dnn empty (use 'both' to have both weights)"
+            )
+        if mode == "template" and getattr(self, "bkg_morphing_spread_dnn", ""):
+            raise ValueError(
+                "bkg_morphing_spread_dnn is not defined for the template weight (bkg_morphing_weight_mode 'template')"
+            )
 
     def process_extra_after_skim(self):
         # copy the discriminants of the b-tagging algorithm chosen for the year
@@ -2007,30 +2043,39 @@ class HH4bCommonProcessor(BaseProcessorABC):
                 raise ValueError("This case was not implemented")
 
         # ============== BKG MORPHING =============
-        if self.bkg_morphing_dnn and not (self._isMC and "TTto" not in self.events.metadata["dataset"]):
-            (
-                model_session_bkg_morphing_dnn,
-                input_name_bkg_morphing_dnn,
-                output_name_bkg_morphing_dnn,
-            ) = get_model_session(self.bkg_morphing_dnn, "bkg_morphing_dnn")
+        # The training weight (bkg_morphing_dnn, numerator clipped to >= 0) and/or the template weight
+        # (bkg_morphing_dnn_template, numerator not clipped), according to bkg_morphing_weight_mode
+        # (checked in `_check_bkg_morphing_weight_mode`): both models have the same inputs.
+        if not (self._isMC and "TTto" not in self.events.metadata["dataset"]):
+            for model_name, weight_name in [
+                ("bkg_morphing_dnn", "bkg_morphing_dnn_weight"),
+                ("bkg_morphing_dnn_template", "bkg_morphing_dnn_weight_template"),
+            ]:
+                if not getattr(self, model_name, ""):
+                    continue
+                (
+                    model_session_bkg_morphing_dnn,
+                    input_name_bkg_morphing_dnn,
+                    output_name_bkg_morphing_dnn,
+                ) = get_model_session(getattr(self, model_name), model_name)
 
-            if self.spanet or self.boosted or self.run2:
-                self.events["bkg_morphing_dnn_weight"] = ak.flatten(
-                    get_dnn_prediction(
-                        model_session_bkg_morphing_dnn,
-                        input_name_bkg_morphing_dnn,
-                        output_name_bkg_morphing_dnn,
-                        self.events,
-                        self.bkg_morphing_dnn_input_variables,
-                        pad_value=self.pad_value,
-                    )[0],
-                    axis=None,
+                if self.spanet or self.boosted or self.run2:
+                    self.events[weight_name] = ak.flatten(
+                        get_dnn_prediction(
+                            model_session_bkg_morphing_dnn,
+                            input_name_bkg_morphing_dnn,
+                            output_name_bkg_morphing_dnn,
+                            self.events,
+                            self.bkg_morphing_dnn_input_variables,
+                            pad_value=self.pad_value,
+                        )[0],
+                        axis=None,
+                    )
+                del (
+                    model_session_bkg_morphing_dnn,
+                    input_name_bkg_morphing_dnn,
+                    output_name_bkg_morphing_dnn,
                 )
-            del (
-                model_session_bkg_morphing_dnn,
-                input_name_bkg_morphing_dnn,
-                output_name_bkg_morphing_dnn,
-            )
 
         if self.bkg_morphing_spread_dnn and not (
             self._isMC and "TTto" not in self.events.metadata["dataset"]

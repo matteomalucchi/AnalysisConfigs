@@ -16,6 +16,7 @@ from utils_configs.plot.get_columns_from_files import get_columns_from_files
 from utils_configs.plot.weighted_quantile import weighted_quantile
 from utils_configs.plot.plot_names import plot_regions_names
 from utils_configs.plot.args_plot import args
+from utils_configs.plot.morphing_weight import apply_morph_weight, read_weight_mode, resolve_morph_weight
 
 from utils_configs.plot.HEPPlotter import HEPPlotter
 from utils_configs.plot.morphing_model_comparison import (
@@ -469,6 +470,13 @@ else:
 
 cat_col_data, total_datasets_list = get_columns_from_files(inputfiles, "nominal", filter_lambda, debug=False, novars=args.novars, filter_mixed=args.mixed, category_filter=category_filter)
 fix_lower_edge_ties(cat_col_data, "DATA")
+# Morphing weight of the reweighted data (all the *_postW categories): the one of the run, or the template weight of a "both" run.
+# For the run-2/SPANet outputs without the option the mode is "training" and nothing changes.
+MORPH_MODE = read_weight_mode(input_dir)
+MORPH_WEIGHT = resolve_morph_weight(args.morph_weight, MORPH_MODE)
+print(f"Morphing weight: {MORPH_WEIGHT} (run bkg_morphing_weight_mode: {MORPH_MODE})")
+if apply_morph_weight(cat_col_data, MORPH_WEIGHT, MORPH_MODE):
+    print("  `weight` replaced by the template weight in the *_postW categories of the data")
 cat_col_tt = None
 inputfiles_tt = [
     os.path.join(input_dir, file)
@@ -758,13 +766,14 @@ def plot_single_var_from_columns(
             if args.mask_large_weights:
                 if "postW" in cats_name:
                     n_before = len(weights_den)
-                    bad_weights = np.isnan(weights_den) | (weights_den > 100) | (weights_den < 0)
+                    # the template weight is negative by construction: only its size is bounded
+                    bad_weights = np.isnan(weights_den) | (np.abs(weights_den) > 100 if MORPH_WEIGHT == "template" else (weights_den > 100) | (weights_den < 0))
                     n_cut = int(np.sum(bad_weights))
                     if n_cut > 0:
                         print(
                             f"[mask_large_weights] {cat}, variable {var}: removing "
                             f"{n_cut}/{n_before} events ({100 * n_cut / n_before:.3f}%) "
-                            f"with NaN, weight > 100, or weight < 0"
+                            f"with NaN, weight > 100" + (" or |weight| > 100 (template weight)" if MORPH_WEIGHT == "template" else ", or weight < 0")
                         )
                     weights_den = weights_den[~bad_weights]
                     col_den = col_den[~bad_weights]

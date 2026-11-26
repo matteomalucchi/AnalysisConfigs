@@ -38,6 +38,14 @@ from hist import Hist
 
 from utils_configs.plot.get_era_lumi import get_era_lumi
 from utils_configs.plot.get_columns_from_files import get_columns_from_files
+from utils_configs.plot.morphing_weight import (
+    HELP as MORPH_WEIGHT_HELP,
+    MORPH_WEIGHT_CHOICES,
+    apply_morph_weight,
+    good_weight_mask,
+    read_weight_mode,
+    resolve_morph_weight,
+)
 from utils_configs.plot.HEPPlotter import HEPPlotter
 
 
@@ -64,7 +72,9 @@ parser.add_argument("-w", "--workers", type=int, default=8, help="Number of work
 parser.add_argument("-l", "--linear", action="store_true", help="Linear y scale", default=False)
 parser.add_argument("-ov", "--only-vars", type=str, nargs="+", default=None, help="Only plot columns containing one of these substrings")
 parser.add_argument("-mw", "--mask-large-weights", action="store_true", default=False,
-                    help="Remove reweighted events with NaN, weight > 100 or weight < 0 (also in the normalisation region)")
+                    help="Remove reweighted events with NaN, weight > 100 or weight < 0 (also in the normalisation region); "
+                         "with the template weight (can be negative) only |weight| > 100 is removed")
+parser.add_argument("--morph-weight", type=str, choices=MORPH_WEIGHT_CHOICES, default="auto", help=MORPH_WEIGHT_HELP)
 parser.add_argument("-cms", "--cmstext", type=str, default="Private", help="Text shown on CMS plot")
 args = parser.parse_args()
 
@@ -178,6 +188,14 @@ cat_col_tt, _ = get_columns_from_files(
     category_filter=lambda c: c in tt_categories,
 )
 
+# Morphing weight of the reweighted data (all the *_postW categories, so that the normalisation C / A_postW is consistent)
+MORPH_MODE = read_weight_mode(args.input_dir)
+MORPH_WEIGHT = resolve_morph_weight(args.morph_weight, MORPH_MODE)
+print(f"Morphing weight: {MORPH_WEIGHT} (run bkg_morphing_weight_mode: {MORPH_MODE})")
+n_template = apply_morph_weight(cat_col_data, MORPH_WEIGHT, MORPH_MODE)
+if n_template:
+    print(f"  `weight` replaced by the template weight in {n_template} *_postW categories of the data")
+
 if DEFAULT_CATEGORIES_USED and TXBB_WP:
     available = [
         c for c in args.categories
@@ -194,9 +212,7 @@ if DEFAULT_CATEGORIES_USED and TXBB_WP:
 def clean_weights(cols, is_reweighted):
     """Return a mask removing events with non-finite (and optionally large/negative) weights."""
     w = cols["weight"]
-    mask = np.isfinite(w)
-    if is_reweighted and args.mask_large_weights:
-        mask &= (w <= 100) & (w >= 0)
+    mask = good_weight_mask(w, MORPH_WEIGHT if is_reweighted else "training", is_reweighted and args.mask_large_weights)
     n_cut = int((~mask).sum())
     if n_cut:
         print(f"  removing {n_cut}/{len(w)} events ({100 * n_cut / len(w):.3f}%) with bad weights")

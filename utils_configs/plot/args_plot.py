@@ -193,6 +193,16 @@ parser.add_argument(
     help="Removes events with large weights from the plots (w>100)",
     default=True,
 )
+parser.add_argument(
+    "--morph-weight",
+    type=str,
+    choices=["auto", "training", "template"],
+    default="auto",
+    help="Background-morphing weight of the *_postW categories of the data: 'auto' = the weight of the run (`weight` column, "
+    "see bkg_morphing_weight_mode in the config.json of the input), 'template' = the template weight (numerator not clipped, "
+    "can be negative; for a run with bkg_morphing_weight_mode both it is read from the column events_bkg_morphing_dnn_weight_template), "
+    "'training' = the training weight (clipped, >= 0). Boosted runs only",
+)
 
 args = parser.parse_args()
 

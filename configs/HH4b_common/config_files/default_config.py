@@ -45,6 +45,13 @@ default_onnx_model_dict = {
     # DNN reweighting 2b (or mixed) data to 4b data; produces the per-event
     # `bkg_morphing_dnn_weight` applied in the `*_postW` categories.
     "bkg_morphing_dnn": "",
+    # Template version of the morphing weight, from the same 4-node multiclass model
+    # (ML_pytorch `kfold_morphing_ttbar_subtracted_template_*.onnx`): same ratio, but the
+    # numerator r0 - alpha * r2 of the ttbar subtraction is not clipped to >= 0, so the weight can
+    # be negative. Produces `bkg_morphing_dnn_weight_template`. It has the same inputs
+    # (`bkg_morphing_dnn_input_variables`) as `bkg_morphing_dnn`. Used according to
+    # `bkg_morphing_weight_mode`.
+    "bkg_morphing_dnn_template": "",
     # Signal vs background classifier; produces `sig_bkg_dnn_score`.
     "sig_bkg_dnn": "",
     # Ensemble of morphing models used to estimate the spread (systematic
@@ -359,6 +366,15 @@ default_config_options_dict = {
     # region A_postW (morphed TXbb), to check the closure of the morphing per working point. Needs
     # `bkg_morphing_dnn` and `bkg_morphing_direction == "btag"`.
     "boosted_txbb_wp_categories": False,
+    # Which morphing weight is evaluated and applied in the `*_postW` categories:
+    #   "training": `bkg_morphing_dnn` (numerator clipped to >= 0), applied as the category weight (default)
+    #   "both"    : `bkg_morphing_dnn` and `bkg_morphing_dnn_template` are evaluated; the training weight is the
+    #               category weight and the template weight is saved as the column `events_bkg_morphing_dnn_weight_template`
+    #               in the data `*_postW` categories (scripts: --morph-weight template)
+    #   "template": only `bkg_morphing_dnn_template` is evaluated and applied as the category weight, so the
+    #               histograms and the `weight` column of the `*_postW` categories are the template weight; the training
+    #               weight is neither evaluated nor saved (for the runs of the datacards)
+    "bkg_morphing_weight_mode": "training",
     # Size of the signal and control regions in the boosted topology
     "region_setting": "40GeV",
     # Boosted region definition either by the leading or subleading Higgs mass

@@ -31,6 +31,7 @@ from configs.HH4b_common.config_files.configurator_tools import (
 )
 from configs.HH4b_common.custom_weights import (
     bkg_morphing_dnn_weight,
+    bkg_morphing_dnn_weight_template,
 )
 from configs.HH4b_common.params.CustomWeights import SF_TXbb_fixed_multiple_wp
 from configs.VBF_HH4b_boosted.workflow import VBFHH4bProcessor
@@ -180,7 +181,8 @@ sample_list = (
 
 # Define the categories to save
 categories_dict = define_categories(
-    bkg_morphing_dnn=config_options_dict["bkg_morphing_dnn"],
+    # the *_postW categories need a morphing weight: the training one (bkg_morphing_dnn) or the template one (bkg_morphing_dnn_template)
+    bkg_morphing_dnn=bool(config_options_dict["bkg_morphing_dnn"] or config_options_dict["bkg_morphing_dnn_template"]),
     blind=config_options_dict["blind"],
     spanet=config_options_dict["spanet"],
     run2=config_options_dict["run2"],
@@ -355,6 +357,14 @@ for sample in sample_list:
                 and "postW" in category
                 else []
             )
+            + (
+                # template weight next to the training weight (the `weight` column), data only
+                get_columns_list({"events": ["bkg_morphing_dnn_weight_template"]})
+                if "DATA" in sample
+                and config_options_dict["bkg_morphing_weight_mode"] == "both"
+                and "postW" in category
+                else []
+            )
         )
 
 # Define the weights to apply
@@ -364,8 +374,12 @@ for sample in sample_list:
         bysample_bycategory_weight_dict[sample] = {"inclusive": [], "bycategory": {}}
         for category in categories_dict.keys():
             if "postW" in category:
+                # "template": the category weight (histograms and `weight` column) is the template weight and the
+                # training weight is not used; "training" and "both": the training weight
                 bysample_bycategory_weight_dict[sample]["bycategory"][category] = [
-                    "bkg_morphing_dnn_weight"
+                    "bkg_morphing_dnn_weight_template"
+                    if config_options_dict["bkg_morphing_weight_mode"] == "template"
+                    else "bkg_morphing_dnn_weight"
                 ]
 
 cfg = Configurator(
@@ -408,7 +422,7 @@ cfg = Configurator(
     ),
     categories=categories_dict,
     weights_classes=common_weights
-    + [bkg_morphing_dnn_weight, SF_TXbb_fixed_multiple_wp],
+    + [bkg_morphing_dnn_weight, bkg_morphing_dnn_weight_template, SF_TXbb_fixed_multiple_wp],
     weights={
         "common": {
             "inclusive": [
