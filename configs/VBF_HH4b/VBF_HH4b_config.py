@@ -16,6 +16,7 @@ import utils_configs.quantile_transformer as quantile_transformer
 from configs.HH4b_common.config_files.configurator_tools import (
     DEFAULT_JET_COLUMNS_DICT,
     SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+    SPANET_VBF_TRAINING_JET_TOTAL_COLUMNS,
     SPANET_TRAINING_DEFAULT_COLUMNS_BTWP,
     create_DNN_columns_list,
     define_categories,
@@ -36,9 +37,9 @@ from configs.HH4b_common.vbf_jet_collections import (
 from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 
 BASELINE = False
-SPANET_TRAINING = True
 VBF_REGIONS = False
 SIGNAL_REGION = False
+SPANET_TRAINING = True
 TRAIN_BKG_MORPHING = False
 APPLY_BKG_MORPHING = False
 
@@ -203,6 +204,8 @@ if SPANET_TRAINING:
 if TRAIN_BKG_MORPHING:
     categories_dict = define_single_category("4b_control_region")
     categories_dict |= define_single_category("2b_control_region_preW")
+    categories_dict |= define_single_category("4b_signal_region")
+    categories_dict |= define_single_category("2b_signal_region_preW")
 
 if APPLY_BKG_MORPHING:
     categories_dict = {}
@@ -221,7 +224,7 @@ if not config_options_dict["spanet"]:
     else:
         column_list += get_columns_list(
             with_fw_momenta_columns(
-                SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+                SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, # SPANET_VBF_TRAINING_JET_TOTAL_COLUMNS
                 config_options_dict["max_order_FW"],
                 config_options_dict["FW_momenta_norms"],
             ),
@@ -233,7 +236,7 @@ elif (
 ):
     column_list += get_columns_list(
         with_fw_momenta_columns(
-            SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP,
+            SPANET_VBF_TRAINING_DEFAULT_COLUMNS_BTWP, # SPANET_VBF_TRAINING_JET_TOTAL_COLUMNS
             config_options_dict["max_order_FW"],
             config_options_dict["FW_momenta_norms"],
         ),
