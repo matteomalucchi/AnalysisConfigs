@@ -5,7 +5,8 @@
 # The command line arguments override the corresponding options here:
 #   -i input, -o output, -j workers, --merge/--no-merge merge,
 #   --update-config update_config, --overwrite overwrite, --tmp-dir tmp_dir,
-#   --stall-timeout stall_timeout, --read-timeout read_timeout.
+#   --stall-timeout stall_timeout, --read-timeout read_timeout,
+#   --remove-original remove_original.
 # Without `models` the script only merges the parquet chunks (no config needed:
 #   python scripts/postprocess_parquet.py -i <PocketCoffea output dir>).
 
@@ -32,8 +33,8 @@ input: /work/mmalucch/out_hh4b/my_run/
 output: /pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/my_run_onnx/
 
 # Local directory where the files are produced before being copied to /pnfs
-# (default: <output name>_tmp in the PocketCoffea output directory if it is not
-# on /pnfs, otherwise in $TMPDIR or /tmp). Files left here by a failed run are
+# (default: <output name>_tmp in /scratch/<user>, the local disk of the node,
+# or in $TMPDIR or /tmp if there is no /scratch). Files left here by a failed run are
 # reused by the next run. On the T3, /scratch is removed at the end of each
 # slurm job: use /work/<user>/... to be able to restart a failed job.
 tmp_dir: null
@@ -56,6 +57,13 @@ update_config: false
 # merge) are reused, so do not change the models between a failed run and its
 # restart (or remove <tmp_dir>/_unmerged_chunks).
 overwrite: false
+# Merge only: after all the merges, check for each <dataset>/<category>/<variation>
+# that the merged file has the same number of events as the original parquet
+# files (counted while merging, from the metadata for the directories merged
+# by a previous run) and that the original files did not change, then remove
+# the original files and the directories left empty. If any check fails,
+# nothing is removed and the script fails. Not with max_parquet_files.
+remove_original: false
 # Exit with an error if nothing progresses (no file processed, merge step or
 # copy done) for this many seconds, e.g. a read hanging forever on the /pnfs
 # mount of a batch node. The temporary files are kept and reused by the next

@@ -1,18 +1,47 @@
 #!/usr/bin/env bash
 
+######################################################################
+# SLURM JOB OF THE PARQUET MERGING (--merge-parquet*): edit by hand
+######################################################################
+# The merging of the parquet files (scripts/postprocess_parquet.py) can need a
+# lot of memory, so it runs in a slurm job (sbatch --wait: this script waits
+# for it before --copy-to). The job inherits the environment (--export=ALL),
+# so run this script with the python environment activated. If the output is
+# on /pnfs, X509_USER_PROXY must point to a valid proxy on a shared file
+# system (e.g. /t3home). The temporary files of the merging are written in
+# /scratch/<user> of the worker node (default of postprocess_parquet.py).
+MERGE_USE_SLURM=true             # false: run the merging here, without slurm
+MERGE_SLURM_PARTITION="standard"
+MERGE_SLURM_TIME="08:00:00"
+MERGE_SLURM_MEM="200G"
+MERGE_SLURM_CPUS=8
+# directory of the slurm logs of the merging jobs
+MERGE_SLURM_LOG_DIR="${PWD}/slurm_logs_merge_parquet"
+######################################################################
+
 cleanup() {
     echo "Cleaning up..."
     [ -f "$new_config_template" ] && rm -f "$new_config_template"
     [ -f "$onnx_exec" ] && rm -f "$onnx_exec"
+    [ -n "$merge_jobid_file" ] && [ -f "$merge_jobid_file" ] && rm -f "$merge_jobid_file"
 }
 
-# On Ctrl+C / kill / terminal closed: stop pocket-coffea, wait for it to exit,
-# then remove the temporary files
+# On Ctrl+C / kill / terminal closed: stop pocket-coffea (or cancel the slurm
+# job of the merging), wait for it to exit, then remove the temporary files
 on_signal() {
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
         echo "Stopping pocket-coffea (pid $pid)..."
         kill -TERM "$pid" 2>/dev/null
         wait "$pid" 2>/dev/null
+    fi
+    if [ -n "$merge_pid" ] && kill -0 "$merge_pid" 2>/dev/null; then
+        merge_jobid=$(head -n 1 "$merge_jobid_file" 2>/dev/null | cut -d ';' -f 1)
+        if [ -n "$merge_jobid" ]; then
+            echo "Cancelling the slurm job of the merging ($merge_jobid)..."
+            scancel "$merge_jobid"
+        fi
+        kill -TERM "$merge_pid" 2>/dev/null
+        wait "$merge_pid" 2>/dev/null
     fi
     cleanup
     exit 1
@@ -60,6 +89,15 @@ for arg in "${raw_extra_args[@]}"; do
             ;;
         --merge-parquet-update-config)
             merge_parquet=true
+            merge_parquet_args+=( --update-config )
+            ;;
+        --merge-parquet-remove-original)
+            # remove the original parquet files once merged, only if the number
+            # of events of each dataset/region/variation is the same in the
+            # original and merged files (--remove-original of postprocess_parquet.py)
+            # It also updates the config path
+            merge_parquet=true
+            merge_parquet_args+=( --remove-original )
             merge_parquet_args+=( --update-config )
             ;;
         --merge-parquet-args)
@@ -217,8 +255,38 @@ if $merge_parquet; then
         merge_cmd=( python "${SCRIPT_DIR}/../../../scripts/postprocess_parquet.py"
                     -i "$output" --merge "${merge_parquet_args[@]}" )
         echo "${merge_cmd[@]}"
-        "${merge_cmd[@]}"
-        merge_status=$?
+        if $MERGE_USE_SLURM && command -v sbatch &> /dev/null; then
+            mkdir -p "$MERGE_SLURM_LOG_DIR"
+            if [[ "$output" == /pnfs* && -z "$X509_USER_PROXY" ]]; then
+                echo "WARNING: X509_USER_PROXY not set: the merging job may not be able to write on /pnfs."
+            fi
+            printf -v merge_wrap '%q ' "${merge_cmd[@]}"
+            merge_jobid_file="${MERGE_SLURM_LOG_DIR}/.jobid_${i}_$$"
+            sbatch_cmd=( sbatch --wait --parsable --export=ALL
+                         --partition "$MERGE_SLURM_PARTITION"
+                         --time "$MERGE_SLURM_TIME"
+                         --mem "$MERGE_SLURM_MEM"
+                         --cpus-per-task "$MERGE_SLURM_CPUS"
+                         --job-name "merge_parquet_$(basename "$output")"
+                         --output "${MERGE_SLURM_LOG_DIR}/%x_%j.log"
+                         --chdir "$PWD"
+                         --wrap "$merge_wrap" )
+            echo "Submitting the merging as a slurm job (partition $MERGE_SLURM_PARTITION," \
+                 "time $MERGE_SLURM_TIME, mem $MERGE_SLURM_MEM, cpus $MERGE_SLURM_CPUS)," \
+                 "logs in $MERGE_SLURM_LOG_DIR"
+            # in background + wait, so that the trap can cancel the job
+            "${sbatch_cmd[@]}" > "$merge_jobid_file" &
+            merge_pid=$!
+            wait $merge_pid
+            merge_status=$?
+            merge_jobid=$(head -n 1 "$merge_jobid_file" 2>/dev/null | cut -d ';' -f 1)
+            echo "Slurm job $merge_jobid of the merging finished with status $merge_status," \
+                 "log: ${MERGE_SLURM_LOG_DIR}/merge_parquet_$(basename "$output")_${merge_jobid}.log"
+        else
+            $MERGE_USE_SLURM && echo "WARNING: sbatch not found, merging here."
+            "${merge_cmd[@]}"
+            merge_status=$?
+        fi
         if [[ $merge_status -ne 0 ]]; then
             echo "ERROR: merging of the parquet files failed. Not copying the output."
             cleanup

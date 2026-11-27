@@ -47,9 +47,23 @@ With --update-config, the parquet path in the config.json of the PocketCoffea
 output (`dump_columns_as_arrays_per_chunk` and `save_chunk`) is overwritten
 with the output directory (the original values are kept as `<key>_unmerged`).
 
+With --remove-original (merge only), the original parquet files are removed
+once all the merges are done and checked: for each
+<dataset>/<category>/<variation>, the number of events in the merged file
+must be the same as in the original files (counted while merging, so that
+the files are read only once; from the parquet metadata for the directories
+merged by a previous run) and the original files must not have changed. If
+any check fails, the errors are printed, nothing is removed and the script
+fails. The directories left empty are removed too.
+
+The default temporary directory (output on /pnfs) is /scratch/<user>
+(/scratch is local on the T3 nodes), or $TMPDIR (or /tmp) if there is no
+/scratch.
+
 Usage:
     # merge into <...>/merged_parquet_files next to the parquet directory
-    python scripts/postprocess_parquet.py -i <PocketCoffea output dir> [--update-config]
+    python scripts/postprocess_parquet.py -i <PocketCoffea output dir> [--update-config] \
+        [--remove-original]
     # apply the ONNX models of the config (and merge)
     python scripts/postprocess_parquet.py -c scripts/postprocess_parquet_example.yaml \
         [-i <dir>] [-o <dir>] [-j 8] [--merge] [--update-config]
@@ -60,6 +74,7 @@ documented in scripts/postprocess_parquet_example.yaml.
 
 import argparse
 import fnmatch
+import getpass
 import glob
 import importlib
 import importlib.util
@@ -128,6 +143,7 @@ DEFAULTS = {
     "overwrite": False,
     "stall_timeout": 3600,  # seconds without progress before exiting (0 = never)
     "read_timeout": 300,  # seconds before reading a /pnfs input with xrdcp (0 = never)
+    "remove_original": False,  # merge only: remove the original files after the checks
     # yaml only
     "redirector": None,
     "merge_threads": 32,
@@ -249,6 +265,7 @@ def parse_config(args):
         "overwrite",
         "stall_timeout",
         "read_timeout",
+        "remove_original",
     ]:
         value = getattr(args, key)
         if value is not None:
@@ -262,6 +279,14 @@ def parse_config(args):
         cfg["merge"] = not cfg["models"]
     if not cfg["models"] and not cfg["merge"]:
         raise ValueError("Nothing to do: no models in the config and merging disabled")
+    if cfg["remove_original"]:
+        if cfg["models"]:
+            raise ValueError("--remove-original is only possible when merging only (no models)")
+        if cfg["max_parquet_files"]:
+            raise ValueError(
+                "--remove-original is not possible with max_parquet_files (not all the "
+                "files are merged)"
+            )
     if cfg["extra_columns"] is not None and not all(
         isinstance(v, dict) for v in cfg["extra_columns"].values()
     ):
@@ -1060,7 +1085,8 @@ def leaf_dirs(path, variations=None):
 
 
 def merge_files(files, out_file, n_threads, files_per_step):
-    """Merge the parquet files into out_file, keeping the events order."""
+    """Merge the parquet files into out_file, keeping the events order.
+    Return the number of events read from the files (= written)."""
     if not files:
         raise ValueError(f"No parquet files to merge into {out_file}")
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
@@ -1093,19 +1119,138 @@ def merge_files(files, out_file, n_threads, files_per_step):
     writer.close()
     os.replace(tmp_file, out_file)
     logger.info(f"Merged {len(files)} files ({n_rows} events) into {out_file}")
+    return n_rows
+
+
+def num_rows(path):
+    """Number of events of a parquet file, from its metadata (footer only)."""
+    return read_with_timeout(lambda p: pq.ParquetFile(p).metadata.num_rows, path)
+
+
+def count_rows(files, n_threads):
+    """Total number of events of the parquet files, from their metadata."""
+    with ThreadPoolExecutor(n_threads) as ex:
+        return sum(ex.map(num_rows, files))
 
 
 def run_merge(cfg, parquet_dir, out):
-    """Merge only: one merged.parquet per leaf directory."""
+    """
+    Merge only: one merged.parquet per leaf directory. With remove_original,
+    return {leaf: {"files", "n_events", "merged"}}: the original files, their
+    number of events (counted while merging, or from their metadata if the
+    merged file was produced by a previous run) and the merged file, checked
+    by check_merged before removing the original files.
+    """
+    merged = {}
     for leaf in leaf_dirs(parquet_dir, cfg["variations"]):
         rel = os.path.normpath(os.path.join(leaf, MERGED_NAME))
         todo = out.todo(rel)
-        if todo == "skip":
+        if todo == "skip" and not cfg["remove_original"]:
             continue
+        files = parquet_files(os.path.join(parquet_dir, leaf), cfg["max_parquet_files"])
         if todo == "produce":
-            files = parquet_files(os.path.join(parquet_dir, leaf), cfg["max_parquet_files"])
-            merge_files(files, out.stage_path(rel), cfg["merge_threads"], cfg["files_per_step"])
-        out.publish(rel)
+            n_events = merge_files(
+                files, out.stage_path(rel), cfg["merge_threads"], cfg["files_per_step"]
+            )
+        else:
+            # merged by a previous run: count the events of the original files
+            n_events = count_rows(files, cfg["merge_threads"]) if cfg["remove_original"] else None
+            progress(f"{leaf}: events counted")
+        if cfg["remove_original"]:
+            merged[leaf] = {"files": files, "n_events": n_events, "merged": out.final_path(rel)}
+        if todo != "skip":
+            out.publish(rel)
+    return merged
+
+
+def check_merged(parquet_dir, merged):
+    """
+    --remove-original: check, for each leaf directory, that the merged file
+    exists and has the same number of events as the original files, and that
+    the original files did not change in the meantime. All the failures are
+    logged and an error is raised if any check fails.
+    """
+    errors = []
+    for leaf, info in merged.items():
+        try:
+            current = parquet_files(os.path.join(parquet_dir, leaf))
+            if current != info["files"]:
+                errors.append(
+                    f"{leaf}: the original files changed during the merge "
+                    f"({len(info['files'])} files merged, {len(current)} files now)"
+                )
+                continue
+            if not os.path.isfile(info["merged"]):
+                errors.append(f"{leaf}: merged file {info['merged']} not found")
+                continue
+            n_merged = num_rows(info["merged"])
+        except Exception as err:
+            errors.append(f"{leaf}: check failed with {err!r}")
+            continue
+        progress(f"{leaf}: checked")
+        if n_merged != info["n_events"]:
+            errors.append(
+                f"{leaf}: {n_merged} events in {info['merged']}, {info['n_events']} "
+                f"in the {len(info['files'])} original files"
+            )
+        else:
+            logger.info(
+                f"Check OK {leaf}: {n_merged} events in the {len(info['files'])} original "
+                "files and in the merged file"
+            )
+    if errors:
+        for e in errors:
+            logger.error(e)
+        raise RuntimeError(
+            f"--remove-original: {len(errors)}/{len(merged)} directories failed the check, "
+            "NO original file was removed:\n" + "\n".join(f"  {e}" for e in errors)
+        )
+    logger.info(f"All the {len(merged)} merged directories passed the check")
+
+
+def remove_original_files(parquet_dir, merged, redirector, n_threads):
+    """
+    --remove-original: remove the original parquet files of the merged leaf
+    directories (through xrootd if redirector is given, i.e. /pnfs read-only
+    through the mount) and then the directories of parquet_dir left empty.
+    """
+    files = [os.path.normpath(f) for info in merged.values() for f in info["files"]]
+    # listed before the removal: through the mount, the removals done with
+    # xrootd may not be seen immediately
+    tree = list(os.walk(parquet_dir, topdown=False))
+    logger.info(
+        f"Removing the {len(files)} original parquet files of {len(merged)} directories "
+        f"in {parquet_dir}" + (f" through {redirector}" if redirector else "")
+    )
+
+    def remove(path):
+        remove_file(path, redirector)
+        progress(f"removed {path}")
+
+    with ThreadPoolExecutor(n_threads) as ex:
+        for i, _ in enumerate(ex.map(remove, files), 1):
+            if i % 1000 == 0:
+                logger.info(f"{i}/{len(files)} original files removed")
+
+    removed = set(files)
+    n_dirs = 0
+    for root, dirs, filenames in tree:
+        root = os.path.normpath(root)
+        if not all(os.path.join(root, n) in removed for n in dirs + filenames):
+            continue
+        try:
+            if redirector is None:
+                os.rmdir(root)
+            else:
+                subprocess.run(
+                    ["xrdfs", redirector, "rmdir", root], check=True, capture_output=True
+                )
+        except (OSError, subprocess.CalledProcessError) as err:
+            logger.warning(f"Could not remove the empty directory {root}: {err}")
+            continue
+        removed.add(root)
+        n_dirs += 1
+    logger.info(f"Removed {len(files)} original files and {n_dirs} empty directories")
 
 
 def _process_parquet_file(task):
@@ -1574,8 +1719,18 @@ def parse_args(argv=None):
         "--tmp-dir",
         default=None,
         help="Local directory where the files are produced before being copied to the "
-        "output, needed if the output is on /pnfs (default: <output name>_tmp in the "
-        "PocketCoffea output directory, or in $TMPDIR)",
+        "output, needed if the output is on /pnfs (default: <output name>_tmp in "
+        "/scratch/<user>, or in $TMPDIR or /tmp if there is no /scratch)",
+    )
+    parser.add_argument(
+        "--remove-original",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Merge only: once all the merges are done, check for each "
+        "<dataset>/<category>/<variation> that the merged file has the same number of "
+        "events as the original parquet files (counted while merging) and then remove "
+        "the original files (and the directories left empty). If any check fails, "
+        "nothing is removed and the script fails",
     )
     parser.add_argument(
         "--stall-timeout",
@@ -1672,10 +1827,18 @@ def main(argv=None):
     if output in (parquet_dir, run_dir):
         raise ValueError("The output directory cannot be the input directory")
 
+    if cfg["remove_original"]:
+        for path in (output, os.path.abspath(cfg["tmp_dir"]) if cfg["tmp_dir"] else None):
+            if path and (path == parquet_dir or path.startswith(parquet_dir + os.sep)):
+                raise ValueError(
+                    f"--remove-original: {path} is inside the parquet directory {parquet_dir}"
+                )
+
     tmp_dir = cfg["tmp_dir"]
     if tmp_dir is None and output.startswith("/pnfs"):
-        if run_dir and not run_dir.startswith("/pnfs"):
-            base = run_dir
+        # local disk of the node (also in the slurm jobs), not /work or /tmp
+        if os.path.isdir("/scratch"):
+            base = os.path.join("/scratch", getpass.getuser())
         else:
             base = os.environ.get("TMPDIR") or "/tmp"
         tmp_dir = os.path.join(base, os.path.basename(output) + "_tmp")
@@ -1691,6 +1854,18 @@ def main(argv=None):
     read_redirector = cfg["redirector"] or input_redirector or DEFAULT_REDIRECTOR
     reads = (cfg["read_timeout"], read_redirector, os.path.join(stage, "_input_tmp"))
     configure_reads(*reads)
+
+    # --remove-original: /pnfs read-only through the mount (batch nodes):
+    # remove through xrootd (checked now, not after merging)
+    remove_redirector = None
+    if cfg["remove_original"]:
+        if parquet_dir.startswith("/pnfs") and not is_writable(parquet_dir):
+            remove_redirector = read_redirector.rstrip("/")
+            check_proxy()
+        logger.info(
+            f"--remove-original: the original files in {parquet_dir} are removed after "
+            "the check of the merged files"
+        )
 
     logger.info(f"Output: {output}")
     if stage != output:
@@ -1720,9 +1895,10 @@ def main(argv=None):
 
     out = Output(output, stage, redirector, cfg["overwrite"])
     completed = False
+    merged = {}
     try:
         if not models:
-            run_merge(cfg, parquet_dir, out)
+            merged = run_merge(cfg, parquet_dir, out)
         elif columns_in_coffea:
             run_coffea_models(cfg, coffea_files, out, pool)
             copy_run_metadata(run_dir, out, args.config)
@@ -1747,8 +1923,19 @@ def main(argv=None):
             )
         out.close()
 
+    if cfg["remove_original"]:
+        # after out.close(): all the merged files are copied to the output.
+        # Raises (nothing removed, config.json not updated) if a check fails
+        check_merged(parquet_dir, merged)
     if cfg["update_config"]:
         update_config(config_file, os.path.join(output, cfg["parquet_subdir"] or ""))
+    if cfg["remove_original"]:
+        remove_original_files(parquet_dir, merged, remove_redirector, cfg["merge_threads"])
+        if cfg["update_config"]:
+            logger.info(
+                f"The <key>{UNMERGED_SUFFIX} entries of {config_file} point to the removed "
+                "original files"
+            )
     logger.info(f"Done: output in {output}")
 
 

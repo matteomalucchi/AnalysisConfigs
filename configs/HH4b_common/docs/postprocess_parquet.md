@@ -40,6 +40,7 @@ all the options and the ONNX models, documented in
 | `--merge/--no-merge` | `merge` | Merge the parquet files into one `merged.parquet` per directory (default: on without models, off with models). |
 | `--update-config` | `update_config` | Overwrite `dump_columns_as_arrays_per_chunk` and `save_chunk` in the `config.json` of the input with the output directory (keeping the same `root://` redirector, if any), so that the scripts reading the columns through the `config.json` (e.g. ML_pytorch) use it directly. The original paths are kept as `<key>_unmerged`. With models it also sets `copy_unprocessed: true`, so that the output contains all the columns. |
 | `--overwrite` | `overwrite` | Produce again the output files that already exist (skipped by default). |
+| `--remove-original` | `remove_original` | Merge only: after all the merges, check for each `<dataset>/<category>/<variation>` that the merged file has the same number of events as the original files (counted while merging) and that the original files did not change, then remove the original files and the directories left empty. If any check fails nothing is removed and the script fails. |
 | `--tmp-dir` | `tmp_dir` | Local directory where the files are produced before being copied to `/pnfs` (see below). |
 | `--read-timeout` | `read_timeout` | Seconds after which a read of an input file through the `/pnfs` mount is considered hanging and the file is read with `xrdcp` instead (default 300, 0 = always through the mount, see below). |
 | `--stall-timeout` | `stall_timeout` | Exit with an error (code 3) if nothing progresses for this many seconds (default 3600, 0 = never), e.g. a read hanging on the `/pnfs` mount of a batch node (see below). |
@@ -80,8 +81,8 @@ ONNX options `models`, `chunk_size`, `overwrite_columns`, `copy_unprocessed`, `p
     The files of the datasets/regions where no model is applied are written only with
     `copy_unprocessed: true` (merged directly from the input with `--merge`).
 - **/pnfs**: the files cannot be written directly on `/pnfs`, so they are produced in `tmp_dir`
-  (default `<output name>_tmp` in the PocketCoffea output directory if it is not on `/pnfs`, otherwise
-  in `$TMPDIR` or `/tmp`) and each one is copied to the output in the background while the next one is
+  (default `<output name>_tmp` in `/scratch/<user>`, the local disk of the node, or in `$TMPDIR` or
+  `/tmp` if there is no `/scratch`) and each one is copied to the output in the background while the next one is
   produced (at most two files wait in `tmp_dir`). The copy is done with `rsync` if `/pnfs` is writable
   through the mount (T3 login nodes), otherwise (batch nodes) with `xrdcp` through the `redirector`,
   which needs a grid proxy: the script stops at the start if `$X509_USER_PROXY` is not valid for at
