@@ -319,21 +319,35 @@ cat_col_data, total_datasets_list = get_columns_from_files(
     float32=True,
 )
 
-# If a preW category is missing in the files, build it from the corresponding
-# postW category: same columns, but with the weight set to 1 (i.e. no morphing)
+# If a preW/postW category is missing in the files, build it from its
+# counterpart (no event duplication, arrays are shared):
+# - missing preW: use the postW columns with the weight set to 1 (no morphing)
+# - missing postW: point to the preW category if it has the WEIGHT_COLUMN
 for cat in needed_categories:
-    if "preW" not in cat or cat in cat_col_data:
+    if cat in cat_col_data:
         continue
-    cat_postW = cat.replace("preW", "postW")
-    if cat_postW not in cat_col_data:
+    if "preW" in cat:
+        cat_other = cat.replace("preW", "postW")
+    elif "postW" in cat:
+        cat_other = cat.replace("postW", "preW")
+    else:
         continue
-    print(
-        f"WARNING: {cat} not found in the files, using {cat_postW} with {WEIGHT_COLUMN}=1"
-    )
-    cat_col_data[cat] = dict(cat_col_data[cat_postW])
-    # the weight column may be missing in postW: use the length of any column
-    n_events = len(next(iter(cat_col_data[cat_postW].values())))
-    cat_col_data[cat][WEIGHT_COLUMN] = np.ones(n_events)
+    cols_other = cat_col_data.get(cat_other)
+    if cols_other is None:
+        continue
+    if "preW" in cat:
+        print(
+            f"WARNING: {cat} not found in the files, using {cat_other} with {WEIGHT_COLUMN}=1"
+        )
+        # shallow copy: only the weight column is replaced. The weight column
+        # may be missing in postW: use the length of any column
+        cat_col_data[cat] = dict(cols_other)
+        cat_col_data[cat][WEIGHT_COLUMN] = np.ones(len(next(iter(cols_other.values()))))
+    elif WEIGHT_COLUMN in cols_other:
+        print(
+            f"WARNING: {cat} not found in the files, using {cat_other} (has {WEIGHT_COLUMN})"
+        )
+        cat_col_data[cat] = cols_other
 
 cat_col_mc = None
 if args.input_mc:
