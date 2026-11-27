@@ -39,9 +39,9 @@ from configs.VBF_HH4b.workflow import VBFHH4bProcessor
 BASELINE = False
 VBF_REGIONS = False
 SIGNAL_REGION = False
-SPANET_TRAINING = True
+SPANET_TRAINING = False
 TRAIN_BKG_MORPHING = False
-APPLY_BKG_MORPHING = False
+APPLY_BKG_MORPHING = True
 
 
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -148,11 +148,11 @@ sample_data_parkinghh_list = ["DATA_ParkingHH"]
 
 sample_list = (
     []
-    + sample_spanet_ggF_list
-    + sample_official_ggF_list
-    + sample_VBF_list
-    + sample_ZZ_ZH_list
-    # + sample_data_jme_list
+    # + sample_spanet_ggF_list
+    # + sample_official_ggF_list
+    # + sample_VBF_list
+    # + sample_ZZ_ZH_list
+    + sample_data_jme_list
     # + sample_data_parkinghh_list
 )
 

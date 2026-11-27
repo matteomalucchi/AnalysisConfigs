@@ -1,0 +1,42 @@
+import configs.HH4b_common.dnn_input_variables as dnn_vars
+
+from configs.HH4b_common.config_files.default_config import default_onnx_model_dict as onnx_model_dict
+
+from configs.HH4b_common.config_files.default_config import default_config_options_dict as config_options_dict
+
+
+onnx_model_dict  |= {
+    "spanet":"/pnfs/psi.ch/cms/trivcat/store/user/mmalucch/spanet_vbf_models/vbf_ggf_all_Klambda_HiggsPairing.onnx",
+    "bkg_morphing_dnn":"/work/mmalucch/out_ML_pytorch/hh4b_bkg_reweighting/DNN_12_02_09_1e-3_e0_drop95_patience20_ClassWeights_StdVars_PadInd_Shuffle_LogW_2022postEE_kfold20/kfold_onnx/kfold_morphing_ratio_logmedian.onnx",
+}
+
+config_options_dict |= {
+    "dnn_variables": True,
+    "run2": False,
+    "sig_bkg_dnn_input_variables": dnn_vars.sig_bkg_dnn_input_variables,
+    "bkg_morphing_dnn_input_variables": dnn_vars.bkg_morphing_dnn_input_variables,
+    "max_num_jets_good": 4,
+    "max_num_jets_higgs_pairing": 5,
+    "which_bquark": "last",
+    "fifth_jet": "pt",
+    "pad_value": -999.0,
+    "add_jet_spanet": True,
+    "qt_postEE": None,
+    "random_pt": True,
+    "rand_type": 0.3,
+    "save_chunk":"root://t3dcachedb03.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/mmalucch/out_hh4b/VBF/12_02_09_out_DATA_ApplyMorphingLogMedian12_02_09_AllKlambda_DetaMjjCentrality_DNNVars_vbfregions_2022postEE/parquet_files/",
+    "spanet_input_name": dnn_vars.pairing_spanet_btagWP5,
+    # VBF
+    # "vbf_discriminator_input_variables": dnn_vars.vbf_discriminator_boosted_dnn_input_variables,
+    # "max_num_jets_vbf_discriminator": 2,
+    "vbf_parton_matching": False,
+    "vbf_presel": False,
+    "vbf_analysis": True,
+    "which_vbf_quark":"with_mothers_children",
+    "max_num_jets_add_vbf": 3,
+    "jets_add_vbf_order": "pt",
+    "vbf_matching_after_higgs_pairing": False,
+    # Presel
+    "era_dependent_presel": True,
+    "preselection_pt_field": "pt_default",
+}| onnx_model_dict
